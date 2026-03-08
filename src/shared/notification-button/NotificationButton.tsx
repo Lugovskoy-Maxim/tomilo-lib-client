@@ -4,9 +4,7 @@ import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
-
-const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 минут — не спамить сервер
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 
 export function NotificationButton() {
   const { isAuthenticated } = useAuth();
@@ -20,13 +18,10 @@ export function NotificationButton() {
     return () => document.removeEventListener("visibilitychange", handler);
   }, []);
 
-  const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
+  const { count: notificationCount } = useUnreadCount({
     skip: !isAuthenticated,
-    pollingInterval: isTabVisible ? POLL_INTERVAL_MS : 0,
-    refetchOnMountOrArgChange: 90,
+    tabVisible: isTabVisible,
   });
-
-  const notificationCount = unreadCountResponse?.data?.count || 0;
 
   return (
     <Link

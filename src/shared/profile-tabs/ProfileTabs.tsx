@@ -113,6 +113,8 @@ export function ProfileTabs({
     el.style.userSelect = "none";
   };
 
+  const DRAG_THRESHOLD_PX = 15;
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDraggingRef.current) return;
     const el = scrollRef.current;
@@ -120,7 +122,7 @@ export function ProfileTabs({
     e.preventDefault();
     const x = e.pageX - el.offsetLeft;
     const walk = (x - startXRef.current) * 1.5;
-    if (Math.abs(walk) > 5) {
+    if (Math.abs(walk) > DRAG_THRESHOLD_PX) {
       hasDraggedRef.current = true;
     }
     el.scrollLeft = scrollLeftRef.current - walk;
@@ -133,6 +135,12 @@ export function ProfileTabs({
       el.style.userSelect = "";
     }
     isDraggingRef.current = false;
+    // Сброс после жеста, чтобы следующий клик по вкладке не блокировался
+    if (hasDraggedRef.current) {
+      queueMicrotask(() => {
+        hasDraggedRef.current = false;
+      });
+    }
   };
 
   const handleMouseLeave = () => {

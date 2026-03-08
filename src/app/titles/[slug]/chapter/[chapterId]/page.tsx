@@ -6,6 +6,9 @@ import { getOgImageUrl } from "@/lib/seo-og-image";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { sanitizeMetaString } from "@/lib/seo-meta-sanitize";
 
+// Всегда рендерить страницу главы динамически, чтобы после синхронизации страниц данные и изображения были актуальными
+export const dynamic = "force-dynamic";
+
 // Кодируем slug для URL (апостроф, кавычки и др.) — бэкенд должен декодировать
 function encodeSlugForApi(slug: string): string {
   return encodeURIComponent(slug);

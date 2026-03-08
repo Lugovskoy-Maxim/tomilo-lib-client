@@ -27,7 +27,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Logo from "@/shared/logo/logo";
 import { useAuth } from "@/hooks/useAuth";
-import { useGetUnreadCountQuery } from "@/store/api/notificationsApi";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 import { BarChart3 } from "lucide-react";
 
@@ -94,7 +94,6 @@ function isActivePath(pathname: string | null, href: string): boolean {
 
 const SCROLL_THRESHOLD_TOP = 400;
 const SWIPE_THRESHOLD = 50;
-const POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 export default function Footer() {
   const pathname = usePathname();
@@ -113,12 +112,10 @@ export default function Footer() {
   const currentY = useRef(0);
 
   const { isAuthenticated } = useAuth();
-  const { data: unreadCountResponse } = useGetUnreadCountQuery(undefined, {
+  const { count: notificationCount } = useUnreadCount({
     skip: !isAuthenticated,
-    pollingInterval: isTabVisible ? POLL_INTERVAL_MS : 0,
-    refetchOnMountOrArgChange: 90,
+    tabVisible: isTabVisible,
   });
-  const notificationCount = unreadCountResponse?.data?.count || 0;
 
   const { data: statsResponse } = useGetStatsQuery(undefined, {
     skip: false,
@@ -356,7 +353,7 @@ export default function Footer() {
                 <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
               <span className="py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)] bg-gradient-to-br from-[rgba(var(--primary-rgb),0.12)] to-[rgba(var(--primary-rgb),0.06)] border border-[rgba(var(--border-rgb),0.6)] dark:border-[rgba(var(--border-rgb),0.6)]">
-                Версия 03032025
+                Версия 09032025
               </span>
             </div>
           </div>

@@ -459,7 +459,9 @@ export default function LeadersPageClient() {
   } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  /** Бэкенд может поддерживать period (week/month/all) для части категорий; для остальных обычно возвращает то же, что для "all". */
+  /** Период имеет смысл только для ratings, comments, chaptersRead. Level, readingTime, streak — кумулятивные, за неделю/месяц/всё время одинаковы. */
+  const supportsPeriod =
+    activeCategory === "ratings" || activeCategory === "comments" || activeCategory === "chaptersRead";
   const {
     data: leaderboardData,
     isLoading: leaderboardLoading,
@@ -468,7 +470,7 @@ export default function LeadersPageClient() {
   } = useGetLeaderboardQuery(
     {
       category: activeCategory,
-      period: activePeriod,
+      period: supportsPeriod ? activePeriod : "all",
       limit: 50,
     },
     {
@@ -625,24 +627,26 @@ export default function LeadersPageClient() {
             })}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 text-[var(--muted-foreground)] shrink-0" />
-            <div className="flex gap-0.5" role="group" aria-label="Период рейтинга">
-              {PERIODS.map(period => (
-                <button
-                  key={period.id}
-                  onClick={() => setActivePeriod(period.id)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                    activePeriod === period.id
-                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                      : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                  }`}
-                >
-                  {period.shortLabel}
-                </button>
-              ))}
+          {supportsPeriod && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-[var(--muted-foreground)] shrink-0" />
+              <div className="flex gap-0.5" role="group" aria-label="Период рейтинга">
+                {PERIODS.map(period => (
+                  <button
+                    key={period.id}
+                    onClick={() => setActivePeriod(period.id)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                      activePeriod === period.id
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                        : "bg-[var(--secondary)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    }`}
+                  >
+                    {period.shortLabel}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex items-center gap-2">
             <div className="relative flex-1 min-w-0">

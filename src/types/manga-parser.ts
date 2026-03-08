@@ -34,3 +34,17 @@ export interface ParseResult {
   message: string;
   data?: Record<string, unknown>;
 }
+
+/** Тело запроса повторной синхронизации страниц глав из источника */
+export interface SyncChaptersDto {
+  titleId: string;
+  sourceUrl: string;
+  chapterNumbers?: number[];
+}
+
+/** Результат синхронизации глав: какие обновлены, пропущены, ошибки */
+export interface SyncChaptersResponse {
+  synced: number[];
+  skipped: number[];
+  errors: Array<{ chapterNumber?: number; message: string }>;
+}

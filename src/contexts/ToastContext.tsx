@@ -56,9 +56,10 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   );
 
   useEffect(() => {
+    const timeoutIds = timeoutIdsRef.current;
     return () => {
-      timeoutIdsRef.current.forEach(id => clearTimeout(id));
-      timeoutIdsRef.current.clear();
+      timeoutIds.forEach(id => clearTimeout(id));
+      timeoutIds.clear();
     };
   }, []);
 

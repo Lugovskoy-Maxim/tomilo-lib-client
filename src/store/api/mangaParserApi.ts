@@ -7,6 +7,8 @@ import {
   ParseChaptersInfoResponse,
   SupportedSitesResponse,
   ParseResult,
+  SyncChaptersDto,
+  SyncChaptersResponse,
 } from "@/types/manga-parser";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
@@ -26,7 +28,7 @@ export const mangaParserApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["MangaParser"],
+  tagTypes: ["MangaParser", "Chapters"],
   endpoints: builder => ({
     // Parse and import complete title
     parseTitle: builder.mutation<ApiResponseDto<ParseResult>, ParseTitleDto>({
@@ -70,6 +72,20 @@ export const mangaParserApi = createApi({
       providesTags: ["MangaParser"],
       transformResponse: (response: ApiResponseDto<SupportedSitesResponse>) => response,
     }),
+
+    // Sync existing chapters from source (re-download pages). Only manual — do not call automatically.
+    syncChapters: builder.mutation<
+      ApiResponseDto<SyncChaptersResponse>,
+      SyncChaptersDto
+    >({
+      query: data => ({
+        url: "/manga-parser/sync-chapters",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["MangaParser", "Chapters"],
+      transformResponse: (response: ApiResponseDto<SyncChaptersResponse>) => response,
+    }),
   }),
 });
 
@@ -78,4 +94,5 @@ export const {
   useParseChaptersMutation,
   useParseChaptersInfoQuery,
   useGetSupportedSitesQuery,
+  useSyncChaptersMutation,
 } = mangaParserApi;

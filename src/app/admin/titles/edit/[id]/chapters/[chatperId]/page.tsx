@@ -2,18 +2,22 @@
 
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useState, useEffect, ChangeEvent, FormEvent, useRef } from "react";
+import { useDispatch } from "react-redux";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Edit, Save, AlertCircle, Eye, Trash2 } from "lucide-react";
+import { Edit, Save, AlertCircle, Eye, Trash2, FileDown, Loader2 } from "lucide-react";
 
 import { useToast } from "@/hooks/useToast";
 import {
+  chaptersApi,
   useGetChapterByIdQuery,
   useUpdateChapterMutation,
   useDeleteChapterMutation,
   useAddPagesToChapterMutation,
 } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { mangaParserApi } from "@/store/api/mangaParserApi";
+import type { AppDispatch } from "@/store";
 import { UpdateChapterDto } from "@/types/title";
 import { ImagePreviewModal } from "@/shared/admin/ImagePreviewModal";
 import { TranslatorTeamSelect } from "@/shared/admin/TranslatorTeamSelect";
@@ -82,11 +86,15 @@ export default function ChapterEditorPage() {
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
 
+  const dispatch = useDispatch<AppDispatch>();
   const [updateChapterMutation, { isLoading: isUpdating }] = useUpdateChapterMutation();
   const [deleteChapter] = useDeleteChapterMutation();
   const [addPagesToChapter, { isLoading: isUploading }] = useAddPagesToChapterMutation();
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [sourceUrlForSync, setSourceUrlForSync] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isDeletingAllPages, setIsDeletingAllPages] = useState(false);
 
   useEffect(() => {
     if (chapter && chapter._id !== formData._id) {
@@ -307,6 +315,71 @@ export default function ChapterEditorPage() {
       toast.error(
         `Ошибка при удалении главы: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
+    }
+  };
+
+  const handleSyncFromSource = async () => {
+    const url = sourceUrlForSync.trim();
+    if (!url) {
+      toast.error("Укажите URL страницы тайтла на источнике");
+      return;
+    }
+    const chapterNum = Number(formData.chapterNumber);
+    if (Number.isNaN(chapterNum)) {
+      toast.error("Некорректный номер главы");
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      const res = await dispatch(
+        mangaParserApi.endpoints.syncChapters.initiate({
+          titleId,
+          sourceUrl: url,
+          chapterNumbers: [chapterNum],
+        }),
+      ).unwrap();
+      if (res.data) {
+        toast.success(
+          `Синхронизация: обновлено ${res.data.synced.length}, ошибок: ${res.data.errors.length}`,
+        );
+        if (res.data.synced.includes(chapterNum)) {
+          dispatch(chaptersApi.util.invalidateTags([{ type: "Chapters", id: chapterId }]));
+        }
+      }
+    } catch (e) {
+      const message =
+        e && typeof e === "object" && "data" in e
+          ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка синхронизации")
+          : "Ошибка синхронизации";
+      toast.error(message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleDeleteAllPages = async () => {
+    if (
+      !confirm(
+        "Удалить все страницы этой главы? Файлы на сервере будут удалены. Это действие нельзя отменить.",
+      )
+    ) {
+      return;
+    }
+    setIsDeletingAllPages(true);
+    try {
+      await updateChapterMutation({
+        id: chapterId,
+        data: { pages: [] },
+      }).unwrap();
+      setFormData(prev => ({ ...prev, pages: [] }));
+      setImagesToDelete([]);
+      toast.success("Все страницы удалены");
+    } catch (err) {
+      toast.error(
+        `Ошибка при удалении страниц: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
+    } finally {
+      setIsDeletingAllPages(false);
     }
   };
 
@@ -543,6 +616,45 @@ export default function ChapterEditorPage() {
               </div>
             </div>
 
+            {/* Синхронизация с источника */}
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <FileDown className="w-5 h-5" />
+                Синхронизация с источника
+              </h2>
+              <p className="text-sm text-[var(--muted-foreground)]">
+                Укажите URL страницы тайтла на источнике — страницы этой главы будут заново скачаны и заменены.
+              </p>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">
+                    URL страницы тайтла на источнике
+                  </label>
+                  <input
+                    type="url"
+                    value={sourceUrlForSync}
+                    onChange={e => setSourceUrlForSync(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] bg-[var(--background)]"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSyncFromSource}
+                  disabled={isSyncing || !sourceUrlForSync.trim()}
+                  className="flex items-center gap-2"
+                >
+                  {isSyncing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4" />
+                  )}
+                  {isSyncing ? "Синхронизация..." : "Синхронизировать эту главу"}
+                </Button>
+              </div>
+            </div>
+
             {/* Секция добавления новых изображений */}
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 mb-6">
               <div className="flex justify-between items-center mb-3">
@@ -699,13 +811,32 @@ export default function ChapterEditorPage() {
 
             {/* Секция изображений */}
             <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-[var(--foreground)] font-medium">
-                  Страницы главы ({formData.pages?.length || 0})
-                </label>
-                <span className="text-sm text-[var(--muted-foreground)]">
-                  Перетащите для сортировки
-                </span>
+              <div className="flex flex-wrap justify-between items-center gap-3 mb-3">
+                <div className="flex items-center gap-3">
+                  <label className="block text-[var(--foreground)] font-medium">
+                    Страницы главы ({formData.pages?.length || 0})
+                  </label>
+                  <span className="text-sm text-[var(--muted-foreground)]">
+                    Перетащите для сортировки
+                  </span>
+                </div>
+                {(formData.pages?.length ?? 0) > 0 && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDeleteAllPages}
+                    disabled={isDeletingAllPages}
+                    className="flex items-center gap-2"
+                  >
+                    {isDeletingAllPages ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                    Удалить все страницы
+                  </Button>
+                )}
               </div>
 
               {formData.pages && formData.pages.length > 0 ? (

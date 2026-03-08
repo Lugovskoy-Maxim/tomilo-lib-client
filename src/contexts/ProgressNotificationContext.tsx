@@ -17,6 +17,7 @@ import {
 } from "@/types/progress";
 import { RankInfo } from "@/lib/rank-utils";
 import { UserAchievement } from "@/types/user";
+import { subscribeProgress } from "@/lib/notificationsSocket";
 
 const HISTORY_STORAGE_KEY = "progress_history";
 const MAX_HISTORY_EVENTS = 100;
@@ -164,6 +165,31 @@ export function ProgressNotificationProvider({ children }: ProgressNotificationP
       localStorage.removeItem(HISTORY_STORAGE_KEY);
     }
   }, []);
+
+  // Тосты прогресса по WebSocket (опыт, уровень, достижения с сервера)
+  useEffect(() => {
+    const unsubscribe = subscribeProgress(event => {
+      if (event.type === "exp_gain") {
+        showExpGain(event.amount, event.reason);
+      } else if (event.type === "level_up" && event.oldRank && event.newRank) {
+        showLevelUp(event.oldLevel, event.newLevel, event.oldRank as RankInfo, event.newRank as RankInfo);
+      } else if (event.type === "achievement" && event.achievement) {
+        const a = event.achievement;
+        showAchievement({
+          id: String(a.id ?? ""),
+          name: String(a.name ?? ""),
+          description: String(a.description ?? ""),
+          icon: String(a.icon ?? ""),
+          type: (String(a.type ?? "") || "reading") as UserAchievement["type"],
+          rarity: (String(a.rarity ?? "") || "common") as UserAchievement["rarity"],
+          unlockedAt: String(a.unlockedAt ?? ""),
+          progress: Number(a.progress ?? 0),
+          maxProgress: Number(a.maxProgress ?? 0),
+        });
+      }
+    });
+    return unsubscribe;
+  }, [showExpGain, showLevelUp, showAchievement]);
 
   const value: ProgressNotificationContextType = {
     levelUpEvent,
