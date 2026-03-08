@@ -59,6 +59,19 @@
   --card-shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --card-title-size: 0.875rem;
   --card-meta-size: 0.75rem;
+  /* Базовый размер шрифта: адаптивно по экрану (все rem масштабируются от него) */
+  --text-base: 14px;
+}
+
+/* Адаптивная база: мобильный 14px, планшет 15px, десктоп 16px */
+html {
+  font-size: var(--text-base);
+}
+@media (min-width: 768px) {
+  :root { --text-base: 15px; }
+}
+@media (min-width: 1024px) {
+  :root { --text-base: 16px; }
 }
 
 [data-theme="dark"],
@@ -100,7 +113,7 @@ body {
   background: var(--background);
   color: var(--muted-foreground);
   font-family: var(--font-exo_2), Arial, Helvetica, sans-serif;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 /* Светлая тема: явно белый фон хедера и десктопного футера (по выбору темы в приложении, не по системной) */
