@@ -83,8 +83,6 @@ const TitleCard = memo(function TitleCard({ title }: { title: SimilarTitle }) {
 
 export function SimilarTitles({
   titleId,
-  genres,
-  currentTitleSlug,
   includeAdult = false,
 }: SimilarTitlesProps) {
   const { data, isLoading, error, refetch } = useGetSimilarTitlesQuery(

@@ -136,7 +136,6 @@ function ContinueCard({ item }: { item: ContinueItem }) {
       : item.name;
   const coverImage =
     shouldFetch && titleData ? (titleData.coverImage ?? item.coverImage) : item.coverImage;
-  const type = shouldFetch && titleData ? (titleData.type ?? item.type) : item.type;
   const slug = shouldFetch && titleData ? (titleData.slug ?? item.slug) : item.slug;
   const totalChapters =
     item.totalChapters > 0

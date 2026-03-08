@@ -208,7 +208,7 @@ export function GenresSection() {
       setIsFormOpen(false);
       setForm(emptyForm);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error(editingGenre ? "Ошибка при обновлении жанра" : "Ошибка при создании жанра");
     }
   };
@@ -221,7 +221,7 @@ export function GenresSection() {
       toast.success("Жанр удалён");
       setDeleteTarget(null);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при удалении жанра");
     } finally {
       setDeleteLoading(false);
@@ -240,7 +240,7 @@ export function GenresSection() {
       setMergeSource(null);
       setMergeTarget(null);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при объединении жанров");
     }
   };

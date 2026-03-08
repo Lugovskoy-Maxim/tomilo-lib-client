@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       message: "Письмо подтверждения отправлено",
       ...(typeof data === "object" && data !== null ? data : {}),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Ошибка отправки письма подтверждения" },
       { status: 500 },

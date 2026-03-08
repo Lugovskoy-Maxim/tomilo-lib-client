@@ -4,8 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProfile } from "@/types/user";
-import { Menu, Repeat, X, ChevronLeft, ChevronRight } from "lucide-react";
-import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
+import { Repeat, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { type ProfileTab, tabMeta, PROFILE_TABS, isValidProfileTab } from "./profileTabConfig";
 
@@ -56,10 +55,12 @@ export function ProfileTabs({
   isBookmarksRestricted = false,
   isHistoryRestricted = false,
 }: ProfileTabsProps) {
+  void breadcrumbPrefix;
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  void isMobileNavOpen;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);

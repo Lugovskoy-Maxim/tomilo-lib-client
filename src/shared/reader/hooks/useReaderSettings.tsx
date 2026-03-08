@@ -253,7 +253,7 @@ function getInitialSettings(): ReaderSettings {
 
 function useReaderSettingsImpl(): UseReaderSettingsReturn {
   const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_SETTINGS);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [_isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const loadedSettings = getInitialSettings();
@@ -261,7 +261,7 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
     setIsInitialized(true);
   }, []);
 
-  const createSetter = useCallback(
+  const _createSetter = useCallback(
     <K extends keyof ReaderSettings>(
       key: K,
       storageKey: string,

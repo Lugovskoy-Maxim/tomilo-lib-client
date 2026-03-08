@@ -101,6 +101,7 @@ export default function Footer() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  void isLargeScreen;
   const [sheetTranslateY, setSheetTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isTabVisible, setIsTabVisible] = useState(() =>

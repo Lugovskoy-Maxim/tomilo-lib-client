@@ -174,8 +174,7 @@ export const useHomeData = (
 
   const skipPopular = !visibleSections.popular && !visibleSections.featured;
   const skipRecent = !visibleSections.recent;
-  // const skipTrending = !visibleSections.trending; // блок «В тренде» отключён
-  const skipTrending = true; // запрос тренда отключён
+  // блок «В тренде» отключён — запрос тренда не выполняется
   const skipUnderrated = !visibleSections.underrated;
   const skipTopCombined = !visibleSections.topCombined;
   const skipRandom = !visibleSections.random;

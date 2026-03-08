@@ -296,7 +296,8 @@ export function ChaptersTab({
 export function ChapterItem({
   chapter,
   titleId,
-  user: _user,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- user передаётся с родителя
+  ..._rest
 }: {
   chapter: Chapter;
   titleId: string;

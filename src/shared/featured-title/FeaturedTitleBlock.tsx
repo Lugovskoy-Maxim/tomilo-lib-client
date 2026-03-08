@@ -9,7 +9,6 @@ import {
   Calendar,
   Tag,
   Play,
-  Bookmark,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -50,16 +49,6 @@ interface FeaturedTitleBlockProps {
   autoPlayInterval?: number;
 }
 
-const CATEGORY_LABELS: Record<BookmarkCategory, string> = {
-  reading: "Читаю",
-  planned: "В планах",
-  completed: "Прочитано",
-  favorites: "Избранное",
-  dropped: "Брошено",
-};
-
-const CATEGORIES: BookmarkCategory[] = ["reading", "planned", "completed", "favorites", "dropped"];
-
 const formatViews = (value?: number | string) => {
   if (value === undefined || value === null) return null;
   const views = typeof value === "string" ? parseInt(value.replace(/[KkМм]/g, "000"), 10) : value;
@@ -90,12 +79,14 @@ export default function FeaturedTitleBlock({
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTickRef = useRef<number>(Date.now());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  void bookmarkLoading;
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const touchTargetRef = useRef<EventTarget | null>(null);
   const bookmarkHandledByPointerRef = useRef(false);
+  void bookmarkHandledByPointerRef;
   const dropdownRef = useRef<HTMLDivElement>(null);
   const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -280,6 +271,7 @@ export default function FeaturedTitleBlock({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- выбор категории закладки
   const handleAddWithCategory = async (category: BookmarkCategory) => {
     if (!isAuthenticated) {
       toast.warning("Пожалуйста, авторизуйтесь, чтобы добавить в закладки");
@@ -299,6 +291,7 @@ export default function FeaturedTitleBlock({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- клик по кнопке закладки
   const handleBookmarkClick = () => {
     if (!isAuthenticated) {
       toast.warning("Пожалуйста, авторизуйтесь, чтобы добавить в закладки");
@@ -352,7 +345,7 @@ export default function FeaturedTitleBlock({
         onTouchMove={e => {
           setTouchEnd(e.targetTouches[0].clientX);
         }}
-        onTouchEnd={e => {
+        onTouchEnd={() => {
           if (isInteractiveElement(touchTargetRef.current)) {
             touchTargetRef.current = null;
             setTouchStart(null);

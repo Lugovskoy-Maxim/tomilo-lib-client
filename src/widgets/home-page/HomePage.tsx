@@ -1,16 +1,15 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
-import { BookOpen, Clock, Flame, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
+import { Clock, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
 
 import CollectionCard from "@/shared/collection-card/CollectionCard";
 import LazySection from "@/shared/lazy-section/LazySection";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
 import ContinueReadingSection from "@/widgets/home-page/ContinueReadingSection";
-import TrendingCard from "@/shared/trending-card/TrendingCard";
 import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
 import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
-import { GenresQuickAccess, TelegramSection } from "@/shared/home";
+import { TelegramSection } from "@/shared/home";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { Carousel, Footer, GridSection, Header } from "@/widgets";
 import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
@@ -88,6 +87,7 @@ export default function HomePage() {
   const [visibleSections, setVisibleSections] = useState<VisibleSections>({});
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingAgeAction, setPendingAgeAction] = useState<(() => void) | null>(null);
+  void pendingAgeAction;
 
   const handleSectionVisible = useCallback((sectionId: string) => {
     setVisibleSections(prev => ({ ...prev, [sectionId]: true }));
@@ -119,7 +119,6 @@ export default function HomePage() {
   const {
     popularTitles,
     randomTitles,
-    trendingTitles,
     underratedTitles,
     topManhwa,
     topManhua,

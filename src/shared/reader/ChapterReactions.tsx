@@ -42,10 +42,10 @@ const RATING_VALUES = Array.from({ length: CHAPTER_RATING_MAX }, (_, i) => i + 1
 
 export function ChapterReactions({
   chapterId,
-  titleId: _titleId,
   onLoginRequired,
   initialRating,
   initialReactions,
+  ..._rest
 }: ChapterReactionsProps) {
   const CHAPTER_RATING_STORAGE_KEY = "chapter_user_rating";
   const CHAPTER_REACTION_STORAGE_KEY = "chapter_user_reaction";

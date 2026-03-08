@@ -201,7 +201,8 @@ function EventCard({ event }: { event: ProgressEvent }) {
   return null;
 }
 
-export default function ProfileProgress({ userProfile }: ProfileProgressProps) {
+export default function ProfileProgress(props: ProfileProgressProps) {
+  void props.userProfile;
   const { history, clearHistory } = useProgressNotification();
   const [filter, setFilter] = useState<ProgressEventType | "all">("all");
   const [showAll, setShowAll] = useState(false);

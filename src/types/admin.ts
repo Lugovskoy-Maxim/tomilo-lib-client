@@ -1,5 +1,5 @@
-import { UserProfile, BookmarkCategory } from "./user";
-import { Title, TitleType, TitleStatus } from "./title";
+import { UserProfile } from "./user";
+import { TitleType, TitleStatus } from "./title";
 
 /** Статистика дашборда админки */
 export interface AdminDashboardStats {

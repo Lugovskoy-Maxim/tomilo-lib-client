@@ -2,7 +2,6 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { ApiResponseDto } from "@/types/api";
 import { UserProfile } from "@/types/user";
-import { Title } from "@/types/title";
 import {
   AdminDashboardStats,
   AdminChartData,

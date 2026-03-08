@@ -11,7 +11,7 @@ import { useProgressNotification } from "@/contexts/ProgressNotificationContext"
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { Chapter } from "@/types/title";
-import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, ZoomIn, Clock } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, ZoomIn } from "lucide-react";
 import { levelToRank } from "@/lib/rank-utils";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
@@ -19,8 +19,6 @@ import {
   useIncrementChapterViewsMutation,
   useLazyGetChapterByIdQuery,
 } from "@/store/api/chaptersApi";
-import { getCoverUrls } from "@/lib/asset-url";
-import Link from "next/link";
 import {
   useReaderSettingsContext,
   ReaderSettingsProvider,
@@ -162,6 +160,7 @@ function ReadChapterPageContent({
   const [isLoadingNextChapter, setIsLoadingNextChapter] = useState(false);
   const loadedChapterIdsRef = useRef<Set<string>>(new Set([chapter._id]));
   const [loadedChapterIds, setLoadedChapterIds] = useState<Set<string>>(new Set([chapter._id]));
+  void loadedChapterIds;
 
   // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
@@ -1177,6 +1176,7 @@ function ReadChapterPageContent({
     if (!effectiveChapter) return 1;
     return calculateReadingTime(effectiveChapter.images.length, totalContentHeight);
   }, [effectiveChapter, totalContentHeight, calculateReadingTime]);
+  void estimatedReadingTime;
 
   // Динамическое обновление SEO при смене главы (бесконечное чтение)
   useEffect(() => {

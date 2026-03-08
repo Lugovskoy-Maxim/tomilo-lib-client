@@ -324,6 +324,7 @@ export function UsersSection() {
     toast.success("Экспорт завершён");
   }, [sortedUsers, toast, triggerExportUsers]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- зарезервировано для массового удаления комментариев
   const handleDeleteUserComments = useCallback(
     async (userId: string, username: string) => {
       if (

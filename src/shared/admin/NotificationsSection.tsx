@@ -15,7 +15,6 @@ import {
   Calendar,
   Search,
   Copy,
-  Filter,
   FileText,
   Eye,
 } from "lucide-react";
@@ -192,7 +191,7 @@ export function NotificationsSection() {
       setIsFormOpen(false);
       setForm(emptyForm);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при отправке уведомления");
     }
   };
@@ -205,7 +204,7 @@ export function NotificationsSection() {
       toast.success("Уведомление удалено");
       setDeleteTarget(null);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при удалении");
     } finally {
       setDeleteLoading(false);

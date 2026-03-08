@@ -12,7 +12,6 @@ import {
   Shield,
   Menu,
   X,
-  ChevronRight,
   ChevronDown,
   Activity,
   LayoutDashboard,

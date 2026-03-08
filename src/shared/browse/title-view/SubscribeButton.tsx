@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, BellOff, BellRing, Settings, Check, Loader2 } from "lucide-react";
+import { Bell, BellOff, BellRing, Settings, Loader2 } from "lucide-react";
 import {
   useCheckTitleSubscriptionQuery,
   useSubscribeToTitleMutation,

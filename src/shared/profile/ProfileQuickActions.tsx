@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, ShoppingBag, Compass, Sparkles, Settings, Trophy } from "lucide-react";
+import { ShoppingBag, Compass, Sparkles, Trophy } from "lucide-react";
 import Link from "next/link";
 
 interface QuickAction {

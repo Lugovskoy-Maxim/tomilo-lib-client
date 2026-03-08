@@ -44,6 +44,7 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
   const total = commentsData?.data?.total ?? 0;
   const totalPages = commentsData?.data?.totalPages ?? 0;
   const currentPageComments = commentsData?.data?.comments ?? [];
+  void currentPageComments;
   const hasMore = page < totalPages;
   const isLoadingMore = page > 1 && isLoading;
 

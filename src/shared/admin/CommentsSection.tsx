@@ -9,7 +9,6 @@ import {
   ThumbsUp,
   Trash2,
   User,
-  CalendarClock,
   ArrowUpDown,
   LayoutList,
   Grid3X3,
@@ -23,7 +22,6 @@ import {
   RefreshCw,
   Edit,
   UserCircle,
-  AlertTriangle,
   Save,
   Clock,
 } from "lucide-react";
@@ -36,7 +34,6 @@ import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import {
   useGetCommentsStatsQuery,
   useBulkDeleteCommentsMutation,
-  useUpdateCommentVisibilityMutation,
   useDeleteCommentMutation,
 } from "@/store/api/adminApi";
 import { getTitlePath } from "@/lib/title-paths";

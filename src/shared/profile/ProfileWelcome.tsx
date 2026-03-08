@@ -3,7 +3,7 @@
 import { UserProfile } from "@/types/user";
 import { Sun, Moon, CloudSun } from "lucide-react";
 import { useMemo } from "react";
-import { getRankDisplay, getRankColor, levelToRank } from "@/lib/rank-utils";
+import { getRankColor, levelToRank } from "@/lib/rank-utils";
 
 interface ProfileWelcomeProps {
   userProfile: UserProfile;

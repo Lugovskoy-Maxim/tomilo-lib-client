@@ -22,9 +22,8 @@ export default function ReadingPositionRestoreModal({
   onReset,
   onJumpToPage,
   page,
-  timestamp: _timestamp,
   totalPages,
-  chapterTitle: _chapterTitle,
+  ..._rest
 }: ReadingPositionRestoreModalProps) {
   const [countdown, setCountdown] = useState(5);
   const [isPaused, setIsPaused] = useState(false);

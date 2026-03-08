@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { List, Percent, Timer, Eye, Download, RotateCcw, Smartphone, Wifi } from "lucide-react";
+import { List, Percent, Timer, Eye, Download, Smartphone, Wifi } from "lucide-react";
 import { BookOpen, LayoutList } from "lucide-react";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useReaderSettingsContext } from "./hooks";

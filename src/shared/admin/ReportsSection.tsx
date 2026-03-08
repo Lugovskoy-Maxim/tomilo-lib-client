@@ -24,11 +24,8 @@ import {
   Download,
   FileText,
   RefreshCw,
-  User,
   ExternalLink,
-  Calendar,
   Eye,
-  Filter,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { ReportEntityInfo } from "./ReportEntityInfo";
@@ -131,6 +128,7 @@ export function ReportsSection() {
   const [entityTypeFilter, setEntityTypeFilter] = useState<EntityTypeFilter>("all");
   const [detailReport, setDetailReport] = useState<Report | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- зарезервировано для расширенных фильтров
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const { data, error, isLoading, refetch } = useGetReportsQuery({

@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       message: "Email успешно подтверждён",
       ...(typeof data === "object" && data !== null ? data : {}),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Ошибка подтверждения email" },
       { status: 500 },

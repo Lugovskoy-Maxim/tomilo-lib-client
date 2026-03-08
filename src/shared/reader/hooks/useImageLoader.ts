@@ -48,7 +48,7 @@ export function useImageLoader({
   strategy = "preload-nearby",
   preloadCount = 3,
   maxRetries = 2,
-  quality = "auto",
+  quality: _quality = "auto",
 }: UseImageLoaderOptions): UseImageLoaderReturn {
   const [imageStates, setImageStates] = useState<Map<number, ImageLoadState>>(() => new Map());
   const preloadedRef = useRef<Set<number>>(new Set());

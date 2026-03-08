@@ -7,14 +7,9 @@ import {
   RefreshCw,
   AlertTriangle,
   Globe,
-  Users,
-  MessageCircle,
-  Star,
   Shield,
   Database,
   Trash2,
-  CheckCircle,
-  XCircle,
   Activity,
 } from "lucide-react";
 import {
@@ -30,7 +25,7 @@ import { useToast } from "@/hooks/useToast";
 export function SiteSettingsSection() {
   const toast = useToast();
   const { data: settingsData, isLoading, refetch } = useGetSiteSettingsQuery();
-  const { data: healthData, refetch: refetchHealth } = useGetSystemHealthQuery();
+  const { data: healthData } = useGetSystemHealthQuery();
   const [updateSettings, { isLoading: isUpdating }] = useUpdateSiteSettingsMutation();
   const [clearCache, { isLoading: isClearing }] = useClearCacheMutation();
 
@@ -59,7 +54,7 @@ export function SiteSettingsSection() {
       toast.success("Настройки сохранены");
       setHasChanges(false);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при сохранении настроек");
     }
   };
@@ -68,7 +63,7 @@ export function SiteSettingsSection() {
     try {
       const result = await clearCache({ cacheType }).unwrap();
       toast.success(`Кэш очищен: ${result.data?.cleared?.join(", ") || "все"}`);
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при очистке кэша");
     }
   };

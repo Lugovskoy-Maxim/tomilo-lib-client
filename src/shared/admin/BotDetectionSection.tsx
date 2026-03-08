@@ -13,6 +13,7 @@ const PAGE_SIZE = 20;
 function useEmptyBotStats() {
   return { data: undefined };
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- fallback stub
 function useEmptySuspiciousUsers(_opts: { page: number; limit: number }) {
   return { data: undefined, isLoading: false, refetch: () => {} };
 }

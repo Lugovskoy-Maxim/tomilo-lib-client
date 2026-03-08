@@ -29,7 +29,7 @@ import {
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import type { TranslatorTeam, TranslatorRole } from "@/types/translator";
 import { translatorRoleLabels } from "@/types/translator";
-import { AdminCard, ConfirmModal } from "./ui";
+import { ConfirmModal } from "./ui";
 import { useToast } from "@/hooks/useToast";
 
 const ROLES: TranslatorRole[] = [
@@ -58,6 +58,7 @@ export function TranslatorsSection() {
   const [form, setForm] = useState(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<TranslatorTeam | null>(null);
   const [addTitleTeamId, setAddTitleTeamId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- поиск по тайтлам для добавления в команду
   const [titleSearch, setTitleSearch] = useState("");
 
   const {

@@ -9,7 +9,6 @@ import { getRankDisplay } from "@/lib/rank-utils";
 import {
   getDecorationImageUrl,
   getEquippedFrameUrl,
-  getEquippedBackgroundUrl,
   getEquippedAvatarDecorationUrl,
 } from "@/api/shop";
 import { EquippedDecorations } from "@/types/user";
@@ -93,15 +92,6 @@ function getFrameUrl(equipped: LeaderboardUser["equippedDecorations"]): string |
 function getCardUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
   if (!equipped?.card) return null;
   return resolveDecorationValue(equipped.card);
-}
-
-function getBackgroundUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
-  if (!equipped) return null;
-
-  const fromHelper = getEquippedBackgroundUrl(equipped as EquippedDecorations);
-  if (fromHelper) return fromHelper;
-
-  return resolveDecorationValue(equipped.background);
 }
 
 function getAvatarDecorationUrl(equipped: LeaderboardUser["equippedDecorations"]): string | null {
@@ -343,7 +333,6 @@ function Top3Card({
   const rarityStyles = getRarityStyles(cardRarity || frameRarity);
 
   const avatarSize = rank === 1 ? "w-12 h-12 md:w-28 md:h-28" : "w-12 h-12 md:w-20 md:h-20";
-  const cardPadding = rank === 1 ? "p-2.5 md:p-8" : "p-2 md:p-5";
   const iconSize = rank === 1 ? "w-3 h-3 md:w-8 md:h-8" : "w-2.5 h-2.5 md:w-6 md:h-6";
   const badgeSize = rank === 1 ? "w-5 h-5 md:w-14 md:h-14" : "w-4 h-4 md:w-10 md:h-10";
 

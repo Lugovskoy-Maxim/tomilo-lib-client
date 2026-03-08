@@ -157,7 +157,7 @@ export const useStaticData = (
         let formattedCollections: Collection[];
         try {
           formattedCollections = formatCollections(collectionsData);
-        } catch (_) {
+        } catch {
           formattedCollections = [];
         }
 

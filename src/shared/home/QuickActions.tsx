@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Bookmark, Clock, Bell, Settings, User, TrendingUp, Shuffle } from "lucide-react";
+import { Bookmark, Clock, Bell, Settings, User, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface QuickActionProps {

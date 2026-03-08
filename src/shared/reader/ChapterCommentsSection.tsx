@@ -6,7 +6,6 @@ import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { CommentForm } from "@/shared/comments/CommentForm";
 import { CommentItem } from "@/shared/comments/CommentItem";
 import { CommentsList } from "@/shared/comments/CommentsList";
-import { Button } from "@/shared/ui/button";
 import {
   MessageCircle,
   ChevronDown,

@@ -7,7 +7,6 @@ import {
   Trash2,
   Search,
   Trophy,
-  Eye,
   EyeOff,
   Copy,
   Filter,
@@ -219,7 +218,7 @@ export function AchievementsSection() {
       setIsFormOpen(false);
       setForm(emptyForm);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error(editingAchievement ? "Ошибка при обновлении" : "Ошибка при создании");
     }
   };
@@ -232,7 +231,7 @@ export function AchievementsSection() {
       toast.success("Достижение удалено");
       setDeleteTarget(null);
       refetch();
-    } catch (err) {
+    } catch {
       toast.error("Ошибка при удалении");
     } finally {
       setDeleteLoading(false);

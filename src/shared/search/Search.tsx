@@ -42,7 +42,7 @@ export default function Search({
 
   const isPanelOnly = trigger === "none";
   const isOpen = isPanelOnly ? controlledOpen : internalOpen;
-  const setOpen = isPanelOnly && onOpenChange ? onOpenChange : setInternalOpen;
+  const _setOpen = isPanelOnly && onOpenChange ? onOpenChange : setInternalOpen;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleSearchChange(e.target.value);

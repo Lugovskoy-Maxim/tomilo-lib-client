@@ -106,7 +106,7 @@ function AdminControlsPanel({
       toast.success(`Роль пользователя изменена на ${getRoleName(selectedRole)}`);
       setActivePanel(null);
       invalidateAuthCache();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при изменении роли");
     }
   };
@@ -137,7 +137,7 @@ function AdminControlsPanel({
       setBanDuration("permanent");
       setActivePanel(null);
       refetchBanHistory();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при блокировке пользователя");
     }
   };
@@ -147,7 +147,7 @@ function AdminControlsPanel({
       await unbanUser(userId).unwrap();
       toast.success("Пользователь разблокирован");
       refetchBanHistory();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при разблокировке пользователя");
     }
   };
@@ -177,7 +177,7 @@ function AdminControlsPanel({
       setActivePanel(null);
       refetchTransactions();
       invalidateAuthCache();
-    } catch (error) {
+    } catch {
       toast.error("Ошибка при изменении баланса");
     }
   };
@@ -790,7 +790,7 @@ export default function AdminUserProfilePage() {
   const params = useParams();
   const userId = params.id as string;
 
-  const { data: userData, isLoading, error } = useGetUserByIdQuery(userId);
+  const { data: userData, isLoading } = useGetUserByIdQuery(userId);
   const userProfile = userData?.data ?? null;
 
   useSEO({

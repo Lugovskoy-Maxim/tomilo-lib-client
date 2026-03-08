@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       message: "Письмо для сброса пароля отправлено",
       ...(typeof data === "object" && data !== null ? data : {}),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Ошибка отправки письма для сброса пароля" },
       { status: 500 },
