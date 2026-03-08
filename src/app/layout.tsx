@@ -13,6 +13,7 @@ import CookieConsent from "@/shared/cookie-consent/CookieConsent";
 import TelegramJoinNotification from "@/shared/telegram-join-notification/TelegramJoinNotification";
 import ToastContainer from "@/shared/ui/Toast";
 import ProgressNotificationContainer from "@/shared/ui/ProgressNotificationContainer";
+import NotificationSocketToasts from "@/shared/ui/NotificationSocketToasts";
 import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
 import { MobileFooterSpacer } from "./MobileFooterSpacer";
@@ -407,6 +408,7 @@ export default function RootLayout({
             </Providers>
             <ToastContainer />
             <ProgressNotificationContainer />
+            <NotificationSocketToasts />
           </ProgressNotificationProvider>
         </ToastProvider>
       </body>

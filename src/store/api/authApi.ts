@@ -454,9 +454,24 @@ export const authApi = createApi({
         url: `/users/profile/history/${titleId}/${chapterId}`,
         method: "POST",
       }),
-      transformResponse(response: ApiResponseDto<ReadingProgressResponse>) {
+      transformResponse(response: ApiResponseDto<ReadingProgressResponse> & Record<string, unknown>) {
         // Не бросаем при success: false — обрабатываем в useAuth (retry при версионном конфликте без лога в консоль)
-        return response;
+        if (!response?.data && !response?.progress) return response as ApiResponseDto<ReadingProgressResponse>;
+        // Нормализация: бэкенд может отдавать progress/oldRank/newRank/newAchievements на верхнем уровне ответа
+        const data = response.data ?? (response.user ? { user: response.user } : undefined);
+        const merged = data
+          ? {
+              ...data,
+              progress: data.progress ?? response.progress,
+              oldRank: data.oldRank ?? response.oldRank,
+              newRank: data.newRank ?? response.newRank,
+              newAchievements: data.newAchievements ?? response.newAchievements,
+            }
+          : undefined;
+        return {
+          ...response,
+          data: merged as ReadingProgressResponse,
+        } as ApiResponseDto<ReadingProgressResponse>;
       },
       invalidatesTags: ["ReadingHistory", "Auth"],
     }),

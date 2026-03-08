@@ -12,7 +12,6 @@ import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { Chapter } from "@/types/title";
 import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, ZoomIn } from "lucide-react";
-import { levelToRank } from "@/lib/rank-utils";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
 import {
@@ -90,7 +89,7 @@ function ReadChapterPageContent({
   const router = useRouter();
 
   const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
-  const { showExpGain, showLevelUp, showAchievement } = useProgressNotification();
+  useProgressNotification(); // тосты прогресса приходят по WebSocket
   const {
     readChaptersInRow,
     readingMode,
@@ -475,51 +474,7 @@ function ReadChapterPageContent({
       addToReadingHistory(title._id.toString(), chapter._id.toString())
         .then(result => {
           historyAddedRef.current.add(chapterKey);
-
-          if (result.success && result.progress) {
-            const { progress, oldRank, newRank, newAchievements } = result.progress;
-
-            if (progress?.expGained) {
-              showExpGain(progress.expGained, progress.reason || "Чтение главы");
-            }
-
-            if (progress?.levelUp && progress.oldLevel != null && progress.newLevel != null) {
-              const oldRankInfo = oldRank
-                ? {
-                    rank: oldRank.rank,
-                    stars: oldRank.stars,
-                    name: oldRank.name,
-                    minLevel: oldRank.minLevel,
-                  }
-                : levelToRank(progress.oldLevel);
-              const newRankInfo = newRank
-                ? {
-                    rank: newRank.rank,
-                    stars: newRank.stars,
-                    name: newRank.name,
-                    minLevel: newRank.minLevel,
-                  }
-                : levelToRank(progress.newLevel);
-
-              showLevelUp(progress.oldLevel, progress.newLevel, oldRankInfo, newRankInfo);
-            }
-
-            if (newAchievements && newAchievements.length > 0) {
-              for (const ach of newAchievements) {
-                showAchievement({
-                  id: ach.id,
-                  name: ach.name,
-                  description: ach.description,
-                  icon: ach.icon,
-                  type: ach.type,
-                  rarity: ach.rarity,
-                  unlockedAt: ach.unlockedAt,
-                  progress: ach.progress,
-                  maxProgress: ach.maxProgress,
-                });
-              }
-            }
-          }
+          // Тосты прогресса (опыт, уровень, достижения) приходят по WebSocket из ProgressNotificationContext
         })
         .catch(error => {
           console.error("Error adding to reading history:", error);
@@ -533,9 +488,6 @@ function ReadChapterPageContent({
     incrementChapterViews,
     addToReadingHistory,
     isAuthenticated,
-    showExpGain,
-    showLevelUp,
-    showAchievement,
   ]);
 
   // Обработчик ошибок загрузки изображений с fallback
