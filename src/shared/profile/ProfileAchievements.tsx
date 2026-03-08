@@ -1,9 +1,16 @@
 "use client";
 
 import { UserProfile } from "@/types/user";
-import { 
-  Trophy, BookOpen, Bookmark, Users, Clock, Crown,
-  ChevronRight, ChevronUp, Sparkles
+import {
+  Trophy,
+  BookOpen,
+  Bookmark,
+  Users,
+  Clock,
+  Crown,
+  ChevronRight,
+  ChevronUp,
+  Sparkles,
 } from "lucide-react";
 import { useState, useMemo, memo } from "react";
 
@@ -28,13 +35,17 @@ interface AchievementWithLevels {
 }
 
 function generateAchievements(userProfile: UserProfile): AchievementWithLevels[] {
-  const chaptersRead = userProfile.readingHistory?.reduce(
-    (t, item) => t + (item.chaptersCount ?? item.chapters?.length ?? 0), 0
-  ) ?? 0;
+  const chaptersRead =
+    userProfile.readingHistory?.reduce(
+      (t, item) => t + (item.chaptersCount ?? item.chapters?.length ?? 0),
+      0,
+    ) ?? 0;
   const totalBookmarks = userProfile.bookmarks?.length ?? 0;
   const level = userProfile.level ?? 0;
   const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
-  const daysSinceJoined = joinedDate ? Math.floor((Date.now() - joinedDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+  const daysSinceJoined = joinedDate
+    ? Math.floor((Date.now() - joinedDate.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
   const linkedProviders = userProfile.linkedProviders?.length ?? 0;
   const emailVerified = userProfile.emailVerified ? 1 : 0;
 
@@ -142,8 +153,12 @@ function generateAchievements(userProfile: UserProfile): AchievementWithLevels[]
   });
 }
 
-const AchievementCard = memo(function AchievementCard({ achievement, expanded, onToggle }: { 
-  achievement: AchievementWithLevels; 
+const AchievementCard = memo(function AchievementCard({
+  achievement,
+  expanded,
+  onToggle,
+}: {
+  achievement: AchievementWithLevels;
   expanded: boolean;
   onToggle: () => void;
 }) {
@@ -151,14 +166,13 @@ const AchievementCard = memo(function AchievementCard({ achievement, expanded, o
   const isUnlocked = achievement.currentLevel > 0;
   const currentLevelData = achievement.levels[achievement.currentLevel - 1];
   const nextLevelData = achievement.levels[achievement.currentLevel];
-  
+
   const prevThreshold = currentLevelData?.threshold ?? 0;
-  const nextThreshold = nextLevelData?.threshold ?? achievement.levels[achievement.levels.length - 1].threshold;
+  const nextThreshold =
+    nextLevelData?.threshold ?? achievement.levels[achievement.levels.length - 1].threshold;
   const progressInLevel = achievement.currentValue - prevThreshold;
   const levelRange = nextThreshold - prevThreshold;
-  const progressPercent = nextLevelData 
-    ? Math.min((progressInLevel / levelRange) * 100, 100)
-    : 100;
+  const progressPercent = nextLevelData ? Math.min((progressInLevel / levelRange) * 100, 100) : 100;
 
   const formatValue = (val: number, id: string) => {
     if (id === "veteran") {
@@ -170,10 +184,10 @@ const AchievementCard = memo(function AchievementCard({ achievement, expanded, o
   };
 
   return (
-    <div 
+    <div
       className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
-        isUnlocked 
-          ? "border-[var(--border)]/80 bg-[var(--card)]" 
+        isUnlocked
+          ? "border-[var(--border)]/80 bg-[var(--card)]"
           : "border-[var(--border)]/40 bg-[var(--secondary)]/20 opacity-70"
       }`}
     >
@@ -184,18 +198,18 @@ const AchievementCard = memo(function AchievementCard({ achievement, expanded, o
         className="w-full p-3 min-[360px]:p-3.5 flex items-center gap-2.5 min-[360px]:gap-3 text-left"
       >
         {/* Icon */}
-        <div 
+        <div
           className={`relative shrink-0 w-10 h-10 min-[360px]:w-11 min-[360px]:h-11 rounded-xl flex items-center justify-center ${
             isUnlocked ? `bg-gradient-to-br ${achievement.bgColor}` : "bg-[var(--secondary)]"
           }`}
           style={isUnlocked ? { boxShadow: `0 0 16px ${achievement.color}30` } : undefined}
         >
-          <Icon 
-            className="w-5 h-5 min-[360px]:w-5.5 min-[360px]:h-5.5" 
-            style={{ color: isUnlocked ? achievement.color : "var(--muted-foreground)" }} 
+          <Icon
+            className="w-5 h-5 min-[360px]:w-5.5 min-[360px]:h-5.5"
+            style={{ color: isUnlocked ? achievement.color : "var(--muted-foreground)" }}
           />
           {isUnlocked && (
-            <div 
+            <div
               className="absolute -top-1 -right-1 w-5 h-5 min-[360px]:w-5.5 min-[360px]:h-5.5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
               style={{ backgroundColor: achievement.color }}
             >
@@ -207,28 +221,30 @@ const AchievementCard = memo(function AchievementCard({ achievement, expanded, o
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 min-[360px]:gap-2 mb-0.5">
-            <h3 className={`text-sm font-semibold truncate ${isUnlocked ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}>
+            <h3
+              className={`text-sm font-semibold truncate ${isUnlocked ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
+            >
               {achievement.name}
             </h3>
             {isUnlocked && currentLevelData && (
-              <span 
+              <span
                 className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                style={{ 
+                style={{
                   backgroundColor: `${achievement.color}20`,
-                  color: achievement.color
+                  color: achievement.color,
                 }}
               >
                 {currentLevelData.name}
               </span>
             )}
           </div>
-          
+
           {/* Progress bar */}
           <div className="flex items-center gap-2">
             <div className="flex-1 h-1.5 rounded-full bg-[var(--secondary)] overflow-hidden">
-              <div 
+              <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ 
+                style={{
                   width: `${progressPercent}%`,
                   backgroundColor: achievement.color,
                 }}
@@ -236,7 +252,9 @@ const AchievementCard = memo(function AchievementCard({ achievement, expanded, o
             </div>
             <span className="shrink-0 text-[10px] text-[var(--muted-foreground)] tabular-nums">
               {formatValue(achievement.currentValue, achievement.id)}
-              {nextLevelData && <span className="opacity-60">/{formatValue(nextThreshold, achievement.id)}</span>}
+              {nextLevelData && (
+                <span className="opacity-60">/{formatValue(nextThreshold, achievement.id)}</span>
+              )}
             </span>
           </div>
         </div>
@@ -254,34 +272,40 @@ const AchievementCard = memo(function AchievementCard({ achievement, expanded, o
       {/* Expanded levels */}
       {expanded && (
         <div className="px-3 min-[360px]:px-3.5 pb-3 min-[360px]:pb-3.5 pt-1 border-t border-[var(--border)]/50">
-          <p className="text-[11px] text-[var(--muted-foreground)] mb-2">{achievement.description}</p>
+          <p className="text-[11px] text-[var(--muted-foreground)] mb-2">
+            {achievement.description}
+          </p>
           <div className="grid grid-cols-1 gap-1.5">
             {achievement.levels.map((lvl, idx) => {
               const levelNum = idx + 1;
               const isCompleted = levelNum <= achievement.currentLevel;
               const isCurrent = levelNum === achievement.currentLevel;
               const isNext = levelNum === achievement.currentLevel + 1;
-              
+
               return (
-                <div 
+                <div
                   key={idx}
                   className={`flex items-center gap-2 py-1.5 px-2 rounded-lg text-xs ${
-                    isCompleted 
-                      ? "bg-[var(--secondary)]/60" 
-                      : isNext 
+                    isCompleted
+                      ? "bg-[var(--secondary)]/60"
+                      : isNext
                         ? "bg-[var(--secondary)]/30 border border-dashed border-[var(--border)]"
                         : "opacity-50"
                   }`}
                 >
-                  <div 
+                  <div
                     className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                      isCompleted ? "text-white" : "text-[var(--muted-foreground)] bg-[var(--secondary)]"
+                      isCompleted
+                        ? "text-white"
+                        : "text-[var(--muted-foreground)] bg-[var(--secondary)]"
                     }`}
                     style={isCompleted ? { backgroundColor: achievement.color } : undefined}
                   >
                     {isCompleted ? "✓" : levelNum}
                   </div>
-                  <span className={`flex-1 ${isCompleted ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}>
+                  <span
+                    className={`flex-1 ${isCompleted ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
+                  >
                     {lvl.name}
                   </span>
                   <span className="text-[var(--muted-foreground)] tabular-nums">
@@ -300,9 +324,13 @@ const AchievementCard = memo(function AchievementCard({ achievement, expanded, o
   );
 });
 
-export default function ProfileAchievements({ userProfile, compact = false, isPublicView = false }: ProfileAchievementsProps) {
+export default function ProfileAchievements({
+  userProfile,
+  compact = false,
+  isPublicView = false,
+}: ProfileAchievementsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  
+
   const achievements = useMemo(
     () => generateAchievements(userProfile),
     [
@@ -312,7 +340,7 @@ export default function ProfileAchievements({ userProfile, compact = false, isPu
       userProfile.createdAt,
       userProfile.linkedProviders?.length,
       userProfile.emailVerified,
-    ]
+    ],
   );
 
   const { totalLevels, unlockedLevels, overallPercent } = useMemo(() => {
@@ -327,13 +355,23 @@ export default function ProfileAchievements({ userProfile, compact = false, isPu
 
   // Если это публичный просмотр и пользователь скрыл достижения — не показываем
   const isAchievementsHidden = isPublicView && userProfile.showAchievements === false;
-  
+
   if (isAchievementsHidden) {
     return (
       <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 text-center">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
-          <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <svg
+            className="w-8 h-8 text-[var(--muted-foreground)]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
           </svg>
         </div>
         <p className="text-[var(--foreground)] font-medium mb-1">Достижения скрыты</p>
@@ -347,7 +385,9 @@ export default function ProfileAchievements({ userProfile, compact = false, isPu
   const displayedAchievements = compact ? achievements.slice(0, 3) : achievements;
 
   return (
-    <div className={`rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${compact ? "p-3 min-[360px]:p-3.5" : "p-3 min-[360px]:p-4"}`}>
+    <div
+      className={`rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${compact ? "p-3 min-[360px]:p-3.5" : "p-3 min-[360px]:p-4"}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between gap-2 mb-3 min-[360px]:mb-4">
         <div className="flex items-center gap-2 min-[360px]:gap-2.5 min-w-0">
@@ -355,13 +395,15 @@ export default function ProfileAchievements({ userProfile, compact = false, isPu
             <Trophy className="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-amber-500" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm min-[360px]:text-base font-bold text-[var(--foreground)] truncate">Достижения</h2>
+            <h2 className="text-sm min-[360px]:text-base font-bold text-[var(--foreground)] truncate">
+              Достижения
+            </h2>
             <p className="text-[10px] min-[360px]:text-xs text-[var(--muted-foreground)]">
               {unlockedLevels} из {totalLevels} уровней
             </p>
           </div>
         </div>
-        
+
         {/* Progress ring */}
         <div className="shrink-0 relative w-10 h-10 min-[360px]:w-12 min-[360px]:h-12">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
@@ -396,9 +438,9 @@ export default function ProfileAchievements({ userProfile, compact = false, isPu
 
       {/* Achievements list */}
       <div className="flex flex-col gap-2">
-        {displayedAchievements.map((achievement) => (
-          <AchievementCard 
-            key={achievement.id} 
+        {displayedAchievements.map(achievement => (
+          <AchievementCard
+            key={achievement.id}
             achievement={achievement}
             expanded={expandedId === achievement.id}
             onToggle={() => setExpandedId(expandedId === achievement.id ? null : achievement.id)}

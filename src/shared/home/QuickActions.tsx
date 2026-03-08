@@ -1,16 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  BookOpen, 
-  Bookmark, 
-  Clock, 
-  Bell, 
-  Settings, 
-  User,
-  TrendingUp,
-  Shuffle
-} from "lucide-react";
+import { BookOpen, Bookmark, Clock, Bell, Settings, User, TrendingUp, Shuffle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface QuickActionProps {
@@ -57,23 +48,28 @@ const QUICK_ACTIONS: QuickActionProps[] = [
   },
 ];
 
-function QuickActionCard({ href, icon: Icon, label, description, color, bgColor }: QuickActionProps) {
+function QuickActionCard({
+  href,
+  icon: Icon,
+  label,
+  description,
+  color,
+  bgColor,
+}: QuickActionProps) {
   return (
     <Link
       href={href}
       className={`flex items-center gap-3 p-3 sm:p-4 rounded-xl ${bgColor} border border-transparent hover:border-current/10 transition-all duration-300 group`}
     >
-      <div className={`w-10 h-10 rounded-lg bg-[var(--background)]/50 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+      <div
+        className={`w-10 h-10 rounded-lg bg-[var(--background)]/50 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}
+      >
         <Icon className={`w-5 h-5 ${color}`} />
       </div>
       <div className="min-w-0">
-        <div className="font-medium text-sm text-[var(--foreground)]">
-          {label}
-        </div>
+        <div className="font-medium text-sm text-[var(--foreground)]">{label}</div>
         {description && (
-          <div className="text-xs text-[var(--muted-foreground)] truncate">
-            {description}
-          </div>
+          <div className="text-xs text-[var(--muted-foreground)] truncate">{description}</div>
         )}
       </div>
     </Link>
@@ -97,9 +93,7 @@ export function QuickActions() {
               <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)]">
                 Привет, {user?.username || "читатель"}!
               </h3>
-              <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-                Быстрые действия
-              </p>
+              <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">Быстрые действия</p>
             </div>
           </div>
           <Link

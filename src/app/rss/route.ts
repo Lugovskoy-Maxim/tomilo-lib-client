@@ -36,7 +36,9 @@ interface ApiChapter {
   titleId?: string | { name?: string; slug?: string; _id?: string };
 }
 
-type RssItem = (TitleItem & { itemType: "title" }) | (ChapterItem & { itemType: "chapter"; titleName?: string; titleSlug?: string });
+type RssItem =
+  | (TitleItem & { itemType: "title" })
+  | (ChapterItem & { itemType: "chapter"; titleName?: string; titleSlug?: string });
 
 function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
@@ -77,7 +79,10 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
     url.searchParams.set("sortOrder", "desc");
     url.searchParams.set("limit", "100");
 
-    const res = await fetch(url.toString(), { cache: "no-store", headers: { Accept: "application/json" } });
+    const res = await fetch(url.toString(), {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
     if (!res.ok) return [];
 
     const data = await res.json();
@@ -96,7 +101,9 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
         slug: t.slug ? String(t.slug) : undefined,
         description: t.description ? String(t.description) : undefined,
         genres: Array.isArray(t.genres) ? t.genres.map(g => String(g)) : undefined,
-        type: ["manga", "manhua", "manhwa"].includes(String(t.type || "")) ? (t.type as TitleItem["type"]) : undefined,
+        type: ["manga", "manhua", "manhwa"].includes(String(t.type || ""))
+          ? (t.type as TitleItem["type"])
+          : undefined,
         totalChapters: t.totalChapters != null ? Number(t.totalChapters) : undefined,
         createdAt: String(t.createdAt ?? new Date().toISOString()),
       }))
@@ -106,14 +113,19 @@ async function fetchRecentTitles(): Promise<TitleItem[]> {
   }
 }
 
-async function fetchRecentChapters(): Promise<(ChapterItem & { titleName?: string; titleSlug?: string })[]> {
+async function fetchRecentChapters(): Promise<
+  (ChapterItem & { titleName?: string; titleSlug?: string })[]
+> {
   try {
     const url = new URL(`${API_BASE}/chapters`);
     url.searchParams.set("limit", "80");
     url.searchParams.set("sortBy", "createdAt");
     url.searchParams.set("sortOrder", "desc");
 
-    const res = await fetch(url.toString(), { cache: "no-store", headers: { Accept: "application/json" } });
+    const res = await fetch(url.toString(), {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
     if (!res.ok) return [];
 
     const data = await res.json();
@@ -129,13 +141,9 @@ async function fetchRecentChapters(): Promise<(ChapterItem & { titleName?: strin
       .map((c: ApiChapter) => {
         const titleRef = c.titleId;
         const titleName =
-          typeof titleRef === "object" && titleRef?.name
-            ? String(titleRef.name)
-            : undefined;
+          typeof titleRef === "object" && titleRef?.name ? String(titleRef.name) : undefined;
         const titleSlug =
-          typeof titleRef === "object" && titleRef?.slug
-            ? String(titleRef.slug)
-            : undefined;
+          typeof titleRef === "object" && titleRef?.slug ? String(titleRef.slug) : undefined;
 
         return {
           _id: String(c._id),
@@ -185,14 +193,19 @@ export async function GET() {
         const name = t.name || t.title || "Без названия";
         const slug = t.slug || t._id;
         const link = `${SITE_URL}/titles/${slug}`;
-        let desc = (t.description || "Новый тайтл в библиотеке Tomilo-lib.ru").replace(/<[^>]*>/g, "").substring(0, 250);
+        let desc = (t.description || "Новый тайтл в библиотеке Tomilo-lib.ru")
+          .replace(/<[^>]*>/g, "")
+          .substring(0, 250);
         if (desc.length < (t.description?.length ?? 0)) desc += "...";
         if (t.type) desc += ` | Тип: ${t.type}`;
         if (t.totalChapters != null) desc += ` | Глав: ${t.totalChapters}`;
 
-        const genres =
-          t.genres?.length ?
-            t.genres.slice(0, 3).map(g => `<category>${escapeXml(g)}</category>`).join("") : "";
+        const genres = t.genres?.length
+          ? t.genres
+              .slice(0, 3)
+              .map(g => `<category>${escapeXml(g)}</category>`)
+              .join("")
+          : "";
 
         return `
 <item>

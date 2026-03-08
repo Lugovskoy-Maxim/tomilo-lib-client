@@ -4,7 +4,13 @@ import { UserProfile } from "@/types/user";
 import ProfileAvatar from "@/shared/profile/ProfileAvatar";
 import EditAvatarButton from "@/shared/profile/ProfileEditAvatarButton";
 import RankStarsOverlay from "./RankStarsOverlay";
-import { getRankColor, getRankDisplay, getLevelProgress, levelToRank, RANK_NAMES } from "@/lib/rank-utils";
+import {
+  getRankColor,
+  getRankDisplay,
+  getLevelProgress,
+  levelToRank,
+  RANK_NAMES,
+} from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 import { Pencil, Sparkles, Shield, Coins, Flame, HelpCircle } from "lucide-react";
@@ -66,7 +72,9 @@ export default function ProfileStrip({
         </h1>
         <span
           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
-            isAdmin ? "bg-red-500/15 text-red-600 dark:text-red-400" : "bg-[var(--primary)]/10 text-[var(--primary)]"
+            isAdmin
+              ? "bg-red-500/15 text-red-600 dark:text-red-400"
+              : "bg-[var(--primary)]/10 text-[var(--primary)]"
           }`}
         >
           {isAdmin ? <Shield className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
@@ -79,7 +87,10 @@ export default function ProfileStrip({
         className="profile-strip-level relative flex items-center gap-2 sm:gap-3 py-2 px-3 rounded-xl border border-[var(--border)]/70 min-w-0 z-0 basis-full w-max sm:basis-auto overflow-visible"
         style={{ background: `linear-gradient(135deg, ${rankColor}12 0%, transparent 100%)` }}
       >
-        <span className="absolute inset-0 rounded-xl bg-[var(--card)] opacity-72 dark:opacity-50 pointer-events-none z-0" aria-hidden />
+        <span
+          className="absolute inset-0 rounded-xl bg-[var(--card)] opacity-72 dark:opacity-50 pointer-events-none z-0"
+          aria-hidden
+        />
         <div className="relative z-10 flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
@@ -107,7 +118,8 @@ export default function ProfileStrip({
                   <div className="space-y-2 max-w-[280px]">
                     <p className="font-semibold text-[var(--foreground)]">Уровни и ранги</p>
                     <p className="text-[var(--muted-foreground)]">
-                      Уровень 0–90. XP для следующего уровня растёт с каждым уровнем. 9 рангов по 10 уровней:
+                      Уровень 0–90. XP для следующего уровня растёт с каждым уровнем. 9 рангов по 10
+                      уровней:
                     </p>
                     <ul className="text-[10px] text-[var(--muted-foreground)] space-y-0.5 list-decimal list-inside">
                       {RANK_NAMES.slice(1).map((name, i) => (

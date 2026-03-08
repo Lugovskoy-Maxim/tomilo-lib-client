@@ -69,7 +69,9 @@
   border-radius: 999px;
   background: var(--muted-foreground);
   opacity: 0.25;
-  transition: opacity 0.2s ease, width 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    width 0.2s ease;
 }
 
 .mobile-sheet:hover .mobile-sheet__handle {
@@ -185,7 +187,7 @@
 }
 
 .mobile-sheet__item::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
@@ -271,8 +273,15 @@
 }
 
 @keyframes badge-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
 }
 
 .mobile-sheet__item-arrow {
@@ -330,11 +339,15 @@
 }
 
 .mobile-nav-item::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--chart-1-rgb), 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.15) 0%,
+    rgba(var(--chart-1-rgb), 0.15) 100%
+  );
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -354,7 +367,11 @@
 }
 
 .mobile-nav-item.active {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--chart-1-rgb), 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.1) 0%,
+    rgba(var(--chart-1-rgb), 0.1) 100%
+  );
   border-color: rgba(var(--primary-rgb), 0.3);
   color: var(--primary);
 }
@@ -390,7 +407,9 @@
 
 .mobile-footer-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--primary), 0 0 0 4px var(--background);
+  box-shadow:
+    0 0 0 2px var(--primary),
+    0 0 0 4px var(--background);
 }
 
 @media (min-width: 480px) {
@@ -400,4 +419,3 @@
     min-width: 44px;
   }
 }
-

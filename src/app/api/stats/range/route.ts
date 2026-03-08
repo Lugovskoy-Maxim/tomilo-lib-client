@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   if (!start || !end) {
     return NextResponse.json(
       { success: false, message: "Missing 'start' or 'end' parameter. Format: YYYY-MM-DD" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   if (!dateRegex.test(start) || !dateRegex.test(end)) {
     return NextResponse.json(
       { success: false, message: "Invalid date format. Use YYYY-MM-DD" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       const errorData = await res.json().catch(() => ({ message: "Failed to fetch range stats" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to fetch range stats" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -49,9 +49,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Range stats API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

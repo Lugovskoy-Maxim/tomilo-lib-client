@@ -64,7 +64,10 @@ export const achievementsApi = createApi({
   tagTypes: ["Achievements"],
   endpoints: builder => ({
     getAchievements: builder.query<
-      ApiResponse<{ achievements: Achievement[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
+      ApiResponse<{
+        achievements: Achievement[];
+        pagination: { total: number; page: number; limit: number; pages: number };
+      }>,
       { search?: string; type?: string; rarity?: string; page?: number; limit?: number }
     >({
       query: ({ search = "", type = "", rarity = "", page = 1, limit = 50 }) => ({
@@ -95,7 +98,10 @@ export const achievementsApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: (result, error, { _id }) => [{ type: "Achievements", id: _id }, "Achievements"],
+      invalidatesTags: (result, error, { _id }) => [
+        { type: "Achievements", id: _id },
+        "Achievements",
+      ],
     }),
 
     deleteAchievement: builder.mutation<ApiResponse<void>, string>({
@@ -115,7 +121,10 @@ export const achievementsApi = createApi({
       invalidatesTags: ["Achievements"],
     }),
 
-    revokeAchievement: builder.mutation<ApiResponse<void>, { achievementId: string; userId: string }>({
+    revokeAchievement: builder.mutation<
+      ApiResponse<void>,
+      { achievementId: string; userId: string }
+    >({
       query: data => ({
         url: "/achievements/admin/revoke",
         method: "POST",

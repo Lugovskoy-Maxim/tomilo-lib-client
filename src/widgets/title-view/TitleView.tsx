@@ -36,10 +36,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     data: titleData,
     isLoading: titleLoading,
     error: titleError,
-  } = useGetTitleBySlugQuery(
-    { slug, includeChapters: true },
-    { skip: !slug },
-  );
+  } = useGetTitleBySlugQuery({ slug, includeChapters: true }, { skip: !slug });
 
   const titleId = titleData?._id as string;
   const { data: readingHistoryByTitle } = useGetReadingHistoryByTitle(titleId);
@@ -99,10 +96,13 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
 
   const TITLE_TABS = ["main", "chapters", "comments"] as const;
   type TitleTab = (typeof TITLE_TABS)[number];
-  const isValidTab = (t: string | null): t is TitleTab => Boolean(t && TITLE_TABS.includes(t as TitleTab));
+  const isValidTab = (t: string | null): t is TitleTab =>
+    Boolean(t && TITLE_TABS.includes(t as TitleTab));
 
   const tabFromUrl = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<TitleTab>(isValidTab(tabFromUrl) ? tabFromUrl : "chapters");
+  const [activeTab, setActiveTab] = useState<TitleTab>(
+    isValidTab(tabFromUrl) ? tabFromUrl : "chapters",
+  );
 
   // Синхронизация вкладки с URL (как в админ-панели)
   useEffect(() => {
@@ -116,7 +116,9 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
     if (t === activeTab) return;
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", activeTab);
-    router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
+    router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname, {
+      scroll: false,
+    });
   }, [activeTab, pathname, router, searchParams]);
 
   // При открытии/возврате на страницу тайтла — скролл вверх (иначе после читалки лента остаётся внизу позже нужно найти баг)
@@ -157,7 +159,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
           url: window.location.href,
         });
       } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
+        if ((err as Error).name !== "AbortError") {
           navigator.clipboard.writeText(window.location.href);
           toast.success("Ссылка скопирована в буфер обмена");
         }
@@ -189,22 +191,22 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
                   </div>
                 </div>
               </div>
-              
+
               {/* Skeleton для контента */}
               <div className="w-full lg:w-3/4 space-y-6">
                 {/* Мобильная обложка skeleton */}
                 <div className="lg:hidden w-full max-w-[300px] mx-auto aspect-[2/3] rounded-xl bg-[var(--secondary)] animate-pulse" />
-                
+
                 {/* Заголовок skeleton */}
                 <div className="h-8 w-3/4 mx-auto rounded-lg bg-[var(--secondary)] animate-pulse" />
-                
+
                 {/* Бейджи skeleton */}
                 <div className="flex gap-2 flex-wrap">
                   <div className="h-7 w-20 rounded-full bg-[var(--secondary)] animate-pulse" />
                   <div className="h-7 w-24 rounded-full bg-[var(--secondary)] animate-pulse" />
                   <div className="h-7 w-16 rounded-full bg-[var(--secondary)] animate-pulse" />
                 </div>
-                
+
                 {/* Жанры skeleton */}
                 <div className="flex gap-2 flex-wrap">
                   <div className="h-6 w-16 rounded-full bg-[var(--secondary)] animate-pulse" />
@@ -212,21 +214,25 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
                   <div className="h-6 w-14 rounded-full bg-[var(--secondary)] animate-pulse" />
                   <div className="h-6 w-18 rounded-full bg-[var(--secondary)] animate-pulse" />
                 </div>
-                
+
                 {/* Описание skeleton */}
                 <div className="space-y-2">
                   <div className="h-4 w-full rounded bg-[var(--secondary)] animate-pulse" />
                   <div className="h-4 w-full rounded bg-[var(--secondary)] animate-pulse" />
                   <div className="h-4 w-2/3 rounded bg-[var(--secondary)] animate-pulse" />
                 </div>
-                
+
                 {/* Табы skeleton */}
                 <div className="h-10 rounded-full bg-[var(--secondary)] animate-pulse" />
-                
+
                 {/* Список глав skeleton */}
                 <div className="space-y-2 mt-4">
                   {[...Array(5)].map((_, i) => (
-                    <div key={i} className="h-12 rounded-full bg-[var(--secondary)] animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                    <div
+                      key={i}
+                      className="h-12 rounded-full bg-[var(--secondary)] animate-pulse"
+                      style={{ animationDelay: `${i * 100}ms` }}
+                    />
                   ))}
                 </div>
               </div>
@@ -256,7 +262,10 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
       <>
         <Header />
         <main className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)]">
-          <ErrorState title="Тайтл не найден" message="Запрашиваемый тайтл не существует или был удалён" />
+          <ErrorState
+            title="Тайтл не найден"
+            message="Запрашиваемый тайтл не существует или был удалён"
+          />
         </main>
         <Footer />
       </>
@@ -264,9 +273,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   }
 
   // Формируем URL обложки для фона
-  const coverImageUrl = titleData.coverImage
-    ? getCoverUrls(titleData.coverImage).primary
-    : null;
+  const coverImageUrl = titleData.coverImage ? getCoverUrls(titleData.coverImage).primary : null;
 
   return (
     <main className="relative min-h-screen">
@@ -281,102 +288,100 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
         </div>
       )}
       <div className="relative z-10">
+        {/* JSON-LD разметка генерируется на сервере в page.tsx */}
+        <Header />
+        <div className="container mx-auto px-4 sm:px-5 pb-24 md:pb-20">
+          <div className="max-w-6xl mx-auto pt-6 sm:pt-8">
+            <Breadcrumbs
+              items={[
+                { name: "Главная", href: "/" },
+                { name: "Каталог", href: "/titles" },
+                { name: titleData.name, isCurrent: true },
+              ]}
+            />
+          </div>
+          <div className="max-w-6xl mx-auto mt-4 sm:mt-6">
+            <MobileCover
+              titleData={titleData}
+              chapters={chaptersForReadButton}
+              readingHistory={readingHistoryByTitle?.data}
+              onShare={handleShare}
+              isAdmin={displayIsAdmin}
+              onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
+              onTabChange={setActiveTab}
+            />
 
-      {/* JSON-LD разметка генерируется на сервере в page.tsx */}
-      <Header />
-      <div className="container mx-auto px-4 sm:px-5 pb-24 md:pb-20">
-        <div className="max-w-6xl mx-auto pt-6 sm:pt-8">
-          <Breadcrumbs
-            items={[
-              { name: "Главная", href: "/" },
-              { name: "Каталог", href: "/titles" },
-              { name: titleData.name, isCurrent: true },
-            ]}
-          />
-        </div>
-        <div className="max-w-6xl mx-auto mt-4 sm:mt-6">
-          <MobileCover
-            titleData={titleData}
-            chapters={chaptersForReadButton}
-            readingHistory={readingHistoryByTitle?.data}
-            onShare={handleShare}
-            isAdmin={displayIsAdmin}
-            onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
-            onTabChange={setActiveTab}
-          />
-
-          <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-10">
-            {/* Десктоп: обложка и действия слева (прокручиваются вместе со страницей) */}
-            <div className="hidden lg:block lg:w-[280px] xl:w-[300px] shrink-0">
-              <div className="space-y-6">
-                <LeftSidebar
-                  titleData={titleData}
-                  chapters={chaptersForReadButton}
-                  readingHistory={readingHistoryByTitle?.data}
-                  onShare={handleShare}
-                  isAdmin={displayIsAdmin}
-                  onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
-                  onReportClick={data => {
-                    setReportModalData(data);
-                    setIsReportModalOpen(true);
-                  }}
-                />
+            <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-10">
+              {/* Десктоп: обложка и действия слева (прокручиваются вместе со страницей) */}
+              <div className="hidden lg:block lg:w-[280px] xl:w-[300px] shrink-0">
+                <div className="space-y-6">
+                  <LeftSidebar
+                    titleData={titleData}
+                    chapters={chaptersForReadButton}
+                    readingHistory={readingHistoryByTitle?.data}
+                    onShare={handleShare}
+                    isAdmin={displayIsAdmin}
+                    onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
+                    onReportClick={data => {
+                      setReportModalData(data);
+                      setIsReportModalOpen(true);
+                    }}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="w-full min-w-0 lg:flex-1">
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm p-4 sm:p-5 lg:p-6">
-                <RightContent
-                titleData={titleData}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                isDescriptionExpanded={isDescriptionExpanded}
-                onDescriptionToggle={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                chapters={processedChaptersData}
-                chaptersLoading={chaptersLoading}
-                searchQuery={searchQuery}
-                onSearchChange={handleSearchChange}
-                sortOrder={sortOrder}
-                onSortChange={handleSortChange}
-                titleId={titleId}
-                user={user}
-                slug={titleData.slug}
-              />
+              <div className="w-full min-w-0 lg:flex-1">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm p-4 sm:p-5 lg:p-6">
+                  <RightContent
+                    titleData={titleData}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    isDescriptionExpanded={isDescriptionExpanded}
+                    onDescriptionToggle={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    chapters={processedChaptersData}
+                    chaptersLoading={chaptersLoading}
+                    searchQuery={searchQuery}
+                    onSearchChange={handleSearchChange}
+                    sortOrder={sortOrder}
+                    onSortChange={handleSortChange}
+                    titleId={titleId}
+                    user={user}
+                    slug={titleData.slug}
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <Footer />
+        <Footer />
 
+        {/* Модальное окно для подтверждения возраста */}
+        {isAgeModalOpen && (
+          <AgeVerificationModal
+            isOpen={isAgeModalOpen}
+            onConfirm={() => {
+              setIsAgeModalOpen(false);
+              // После подтверждения возраста, можно продолжить действие, которое требовало подтверждения
+              console.log("Возраст подтвержден");
+            }}
+            onCancel={() => setIsAgeModalOpen(false)}
+          />
+        )}
 
-      {/* Модальное окно для подтверждения возраста */}
-      {isAgeModalOpen && (
-        <AgeVerificationModal
-          isOpen={isAgeModalOpen}
-          onConfirm={() => {
-            setIsAgeModalOpen(false);
-            // После подтверждения возраста, можно продолжить действие, которое требовало подтверждения
-            console.log("Возраст подтвержден");
-          }}
-          onCancel={() => setIsAgeModalOpen(false)}
-        />
-      )}
-
-      {/* Модальное окно для отправки жалобы */}
-      {isReportModalOpen && reportModalData && (
-        <ReportModal
-          isOpen={isReportModalOpen}
-          onClose={() => {
-            setIsReportModalOpen(false);
-            setReportModalData(null);
-          }}
-          entityType={reportModalData.entityType}
-          entityId={reportModalData.entityId}
-          entityTitle={reportModalData.entityTitle}
-          titleId={reportModalData.titleId}
-        />
-      )}
+        {/* Модальное окно для отправки жалобы */}
+        {isReportModalOpen && reportModalData && (
+          <ReportModal
+            isOpen={isReportModalOpen}
+            onClose={() => {
+              setIsReportModalOpen(false);
+              setReportModalData(null);
+            }}
+            entityType={reportModalData.entityType}
+            entityId={reportModalData.entityId}
+            entityTitle={reportModalData.entityTitle}
+            titleId={reportModalData.titleId}
+          />
+        )}
       </div>
     </main>
   );

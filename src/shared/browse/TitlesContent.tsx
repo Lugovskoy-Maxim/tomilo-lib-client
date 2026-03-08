@@ -59,11 +59,11 @@ function buildFiltersKey(filters: Filters): string {
   ].join("|");
 }
 
-function parseFiltersFromSearchParams(params: URLSearchParams | Readonly<URLSearchParams>): Filters {
+function parseFiltersFromSearchParams(
+  params: URLSearchParams | Readonly<URLSearchParams>,
+): Filters {
   const ageLimitsRaw = params.get("ageLimits") ?? params.get("ageLimit");
-  const ageLimits = ageLimitsRaw
-    ? ageLimitsRaw.split(",").filter(Boolean).map(Number)
-    : [];
+  const ageLimits = ageLimitsRaw ? ageLimitsRaw.split(",").filter(Boolean).map(Number) : [];
   const releaseYearFromRaw = params.get("releaseYearFrom");
   const releaseYearToRaw = params.get("releaseYearTo");
   const releaseYearFrom =
@@ -71,9 +71,7 @@ function parseFiltersFromSearchParams(params: URLSearchParams | Readonly<URLSear
       ? Number(releaseYearFromRaw)
       : undefined;
   const releaseYearTo =
-    releaseYearToRaw !== null && releaseYearToRaw !== ""
-      ? Number(releaseYearToRaw)
-      : undefined;
+    releaseYearToRaw !== null && releaseYearToRaw !== "" ? Number(releaseYearToRaw) : undefined;
   return {
     search: params.get("search") || "",
     genres: params.get("genres")?.split(",").filter(Boolean) || [],
@@ -94,10 +92,10 @@ export default function TitlesContent() {
   const searchParams = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const { user } = useAuth();
-  const includeAdult = !user ? true : (user.displaySettings?.isAdult !== false);
+  const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
   const [appliedFilters, setAppliedFilters] = useState<Filters>(() =>
-    parseFiltersFromSearchParams(searchParams)
+    parseFiltersFromSearchParams(searchParams),
   );
 
   // States for load more functionality
@@ -106,7 +104,9 @@ export default function TitlesContent() {
   const [limit, setLimit] = useState(15); // Default to desktop
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [restoredFromCache, setRestoredFromCache] = useState(false);
-  const [cachedTotal, setCachedTotal] = useState<{ total: number; totalPages: number } | null>(null);
+  const [cachedTotal, setCachedTotal] = useState<{ total: number; totalPages: number } | null>(
+    null,
+  );
   const [isFilterTransitioning, setIsFilterTransitioning] = useState(false);
   const scrollRestoreRef = useRef<number | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
@@ -132,8 +132,13 @@ export default function TitlesContent() {
       const currentKey = buildFiltersKey(appliedFilters);
       const hasUrlParams = searchParams.toString().length > 0;
       const canRestoreByKey = filtersKey === currentKey;
-      const canRestoreWithoutUrl = !hasUrlParams && cachedFilters && typeof cachedFilters === "object";
-      if ((canRestoreByKey || canRestoreWithoutUrl) && cachedTitles?.length > 0 && Date.now() - timestamp < CACHE_TTL_MS) {
+      const canRestoreWithoutUrl =
+        !hasUrlParams && cachedFilters && typeof cachedFilters === "object";
+      if (
+        (canRestoreByKey || canRestoreWithoutUrl) &&
+        cachedTitles?.length > 0 &&
+        Date.now() - timestamp < CACHE_TTL_MS
+      ) {
         if (canRestoreWithoutUrl) {
           setAppliedFilters(cachedFilters as Filters);
           setDebouncedSearch((cachedFilters as Filters).search || "");
@@ -198,7 +203,14 @@ export default function TitlesContent() {
 
   // Запрос тайтлов с параметрами (пропускаем при восстановлении из кеша)
   const shouldSkipQuery = restoredFromCache;
-  const { data: titlesData, isLoading, isFetching, isError, error, refetch: refetchTitles } = useSearchTitlesQuery(
+  const {
+    data: titlesData,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch: refetchTitles,
+  } = useSearchTitlesQuery(
     {
       search: debouncedSearch || undefined,
       genres: appliedFilters.genres[0] || undefined,
@@ -210,24 +222,22 @@ export default function TitlesContent() {
         appliedFilters.releaseYears[0] ??
         undefined,
       ageLimits:
-        appliedFilters.ageLimits.length > 0
-          ? appliedFilters.ageLimits.toString()
-          : undefined,
+        appliedFilters.ageLimits.length > 0 ? appliedFilters.ageLimits.toString() : undefined,
       sortBy: appliedFilters.sortBy,
       sortOrder: appliedFilters.sortOrder,
       page: loadMorePage,
       limit,
       includeAdult,
     },
-    { skip: shouldSkipQuery }
+    { skip: shouldSkipQuery },
   );
 
-  const totalTitles = restoredFromCache && cachedTotal
-    ? cachedTotal.total
-    : (titlesData?.data?.total ?? 0);
-  const totalPages = restoredFromCache && cachedTotal
-    ? cachedTotal.totalPages
-    : (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
+  const totalTitles =
+    restoredFromCache && cachedTotal ? cachedTotal.total : (titlesData?.data?.total ?? 0);
+  const totalPages =
+    restoredFromCache && cachedTotal
+      ? cachedTotal.totalPages
+      : (titlesData?.data?.totalPages ?? Math.ceil(totalTitles / limit)) || 1;
   const paginatedTitles = useMemo(() => titlesData?.data?.data ?? [], [titlesData]);
 
   const saveCatalogState = useCallback(() => {
@@ -244,7 +254,7 @@ export default function TitlesContent() {
           totalPages,
           scrollY: window.scrollY,
           timestamp: Date.now(),
-        })
+        }),
       );
     } catch {
       // ignore
@@ -378,7 +388,8 @@ export default function TitlesContent() {
     if (filters.status.length > 0) params.set("status", filters.status.join(","));
     if (filters.ageLimits.length > 0) params.set("ageLimits", filters.ageLimits.join(","));
     if (filters.releaseYears.length > 0) params.set("releaseYears", filters.releaseYears.join(","));
-    if (filters.releaseYearFrom != null) params.set("releaseYearFrom", String(filters.releaseYearFrom));
+    if (filters.releaseYearFrom != null)
+      params.set("releaseYearFrom", String(filters.releaseYearFrom));
     if (filters.releaseYearTo != null) params.set("releaseYearTo", String(filters.releaseYearTo));
     if (filters.tags.length > 0) params.set("tags", filters.tags.join(","));
     if (filters.sortBy !== "averageRating") params.set("sortBy", filters.sortBy);
@@ -406,17 +417,21 @@ export default function TitlesContent() {
 
   // Удаление отдельных фильтров для чипов
   const removeFilter = useCallback(
-    (type: "genre" | "type" | "status" | "ageLimit" | "releaseYear" | "tag", value: string | number) => {
+    (
+      type: "genre" | "type" | "status" | "ageLimit" | "releaseYear" | "tag",
+      value: string | number,
+    ) => {
       const newFilters = { ...appliedFilters };
       if (type === "genre") newFilters.genres = newFilters.genres.filter(g => g !== value);
       if (type === "type") newFilters.types = newFilters.types.filter(t => t !== value);
       if (type === "status") newFilters.status = newFilters.status.filter(s => s !== value);
       if (type === "ageLimit") newFilters.ageLimits = newFilters.ageLimits.filter(a => a !== value);
-      if (type === "releaseYear") newFilters.releaseYears = newFilters.releaseYears.filter(y => y !== value);
+      if (type === "releaseYear")
+        newFilters.releaseYears = newFilters.releaseYears.filter(y => y !== value);
       if (type === "tag") newFilters.tags = newFilters.tags.filter(t => t !== value);
       handleFiltersChange(newFilters);
     },
-    [appliedFilters] // eslint-disable-line react-hooks/exhaustive-deps
+    [appliedFilters], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Обработчик клика по карточке
@@ -428,7 +443,8 @@ export default function TitlesContent() {
 
   const isCatalogLoading =
     isLoading || isFetching || isFilterTransitioning || debouncedSearch !== appliedFilters.search;
-  const showUpdatingOverlay = isCatalogLoading && allTitles.length > 0 && !isLoadingMore && !isError;
+  const showUpdatingOverlay =
+    isCatalogLoading && allTitles.length > 0 && !isLoadingMore && !isError;
   const isFilteringOrSearchingLoading = isCatalogLoading && !isLoadingMore;
   const canShowLoadMoreAction = loadMorePage < totalPages || isLoadingMore;
 
@@ -439,9 +455,7 @@ export default function TitlesContent() {
         {/* Верхняя панель: заголовок + поиск + действия */}
         <header className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)]">
-              Каталог
-            </h1>
+            <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)]">Каталог</h1>
             <span className="text-sm text-[var(--muted-foreground)]">
               {totalTitles} {totalTitles === 1 ? "тайтл" : totalTitles < 5 ? "тайтла" : "тайтлов"}
             </span>

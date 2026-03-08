@@ -10,7 +10,10 @@ export async function POST(request: Request) {
   if (!allowed) {
     return NextResponse.json(
       { success: false, message: "Слишком много попыток. Попробуйте позже." },
-      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+      {
+        status: 429,
+        headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined,
+      },
     );
   }
   try {

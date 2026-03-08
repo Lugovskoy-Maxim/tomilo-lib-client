@@ -13,7 +13,10 @@ export const GridSkeleton: React.FC<GridSkeletonProps> = ({
   title = "Загрузка...",
   variant = "updates",
 }) => (
-  <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" aria-label={title}>
+  <section
+    className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6"
+    aria-label={title}
+  >
     {showTitle && (
       <div className="flex flex-col mb-3 sm:mb-4 md:mb-6">
         <div className="flex items-center gap-2 mb-1">

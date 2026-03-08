@@ -47,7 +47,10 @@ export function CommentForm({
   const MAX_WORDS = 500;
 
   const countWords = (text: string): number => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter(word => word.length > 0).length;
   };
 
   const wordCount = countWords(content);
@@ -56,7 +59,7 @@ export function CommentForm({
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-    
+
     if (newContent.trim()) {
       const words = countWords(newContent);
       if (words > MAX_WORDS) {
@@ -138,18 +141,12 @@ export function CommentForm({
         <textarea
           value={content}
           onChange={handleContentChange}
-          placeholder={
-            editComment
-              ? "Редактировать..."
-              : parentId
-                ? "Ответ..."
-                : "Комментарий..."
-          }
+          placeholder={editComment ? "Редактировать..." : parentId ? "Ответ..." : "Комментарий..."}
           rows={3}
           maxLength={5000}
           className={`w-full px-3 py-2 bg-[var(--background)]/80 border rounded-lg focus:outline-none focus:ring-1 focus:border-transparent resize-none text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] text-[13px] leading-snug ${
-            validationError 
-              ? "border-red-500/80 focus:ring-red-500" 
+            validationError
+              ? "border-red-500/80 focus:ring-red-500"
               : "border-[var(--border)]/80 focus:ring-[var(--primary)]"
           }`}
           required
@@ -161,12 +158,20 @@ export function CommentForm({
           </div>
         )}
         <div className="flex items-center justify-between gap-2">
-          <span className={`text-[10px] ${isOverWordLimit ? "text-red-500" : "text-[var(--muted-foreground)]"}`}>
+          <span
+            className={`text-[10px] ${isOverWordLimit ? "text-red-500" : "text-[var(--muted-foreground)]"}`}
+          >
             {wordCount}/{MAX_WORDS} слов
           </span>
           <div className="flex gap-1.5">
             {onCancel && (
-              <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={onCancel}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={onCancel}
+              >
                 <X className="w-3.5 h-3.5 mr-1" />
                 Отмена
               </Button>
@@ -176,16 +181,12 @@ export function CommentForm({
               variant="primary"
               size="sm"
               className="h-7 px-2.5 text-xs"
-              disabled={!content.trim() || isCreating || isUpdating || !!validationError || isOverWordLimit}
+              disabled={
+                !content.trim() || isCreating || isUpdating || !!validationError || isOverWordLimit
+              }
             >
               <Send className="w-3.5 h-3.5 mr-1" />
-              {editComment
-                ? isUpdating
-                  ? "..."
-                  : "Сохранить"
-                : isCreating
-                  ? "..."
-                  : "Отправить"}
+              {editComment ? (isUpdating ? "..." : "Сохранить") : isCreating ? "..." : "Отправить"}
             </Button>
           </div>
         </div>

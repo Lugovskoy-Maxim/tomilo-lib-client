@@ -56,7 +56,7 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user || null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
   }, [userId, userBirthDate]);
 
   const normalizeImageUrls = (url: string | undefined) => {
@@ -154,16 +154,12 @@ const CardItem = ({ item, showRating = false, showViews = true }: CardItemProps)
               {showViews ? (
                 <span className="flex gap-1 text-xs items-center text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors duration-300">
                   <Eye className="w-3.5 h-3.5" />
-                  <span className="font-medium">
-                    {formatViews(Number(item.views) ?? 0)}
-                  </span>
+                  <span className="font-medium">{formatViews(Number(item.views) ?? 0)}</span>
                 </span>
               ) : (
                 <div />
               )}
-              {showRating && (
-                <RatingBadge rating={item.rating || 0} size="sm" variant="default" />
-              )}
+              {showRating && <RatingBadge rating={item.rating || 0} size="sm" variant="default" />}
             </div>
           </div>
         </div>
@@ -191,13 +187,7 @@ interface ColumnProps {
   showViews?: boolean;
 }
 
-const Column = ({
-  title,
-  href,
-  items,
-  showRating = false,
-  showViews = true,
-}: ColumnProps) => {
+const Column = ({ title, href, items, showRating = false, showViews = true }: ColumnProps) => {
   return (
     <div className="flex flex-col min-w-0">
       <div className="flex items-center justify-between mb-6 group">
@@ -227,14 +217,11 @@ const Column = ({
             </Link>
           </div>
         ) : (
-          items.slice(0, 5).map((item) => (
-            <CardItem
-              key={item.id}
-              item={item}
-              showRating={showRating}
-              showViews={showViews}
-            />
-          ))
+          items
+            .slice(0, 5)
+            .map(item => (
+              <CardItem key={item.id} item={item} showRating={showRating} showViews={showViews} />
+            ))
         )}
       </div>
     </div>
@@ -253,9 +240,7 @@ export default function TopCombinedSection({ data }: TopCombinedSectionProps) {
             <Trophy className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">
-              Топ тайтлов
-            </h2>
+            <h2 className="text-lg md:text-xl font-bold text-[var(--foreground)]">Топ тайтлов</h2>
             <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
               По просмотрам за всё время
             </p>

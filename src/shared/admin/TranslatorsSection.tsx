@@ -60,7 +60,11 @@ export function TranslatorsSection() {
   const [addTitleTeamId, setAddTitleTeamId] = useState<string | null>(null);
   const [titleSearch, setTitleSearch] = useState("");
 
-  const { data: teamsData, isLoading, refetch } = useGetTeamsQuery({
+  const {
+    data: teamsData,
+    isLoading,
+    refetch,
+  } = useGetTeamsQuery({
     page,
     limit: 20,
     search: search.trim() || undefined,
@@ -75,7 +79,7 @@ export function TranslatorsSection() {
 
   const { data: editingTeamData, refetch: refetchEditingTeam } = useGetTeamByIdQuery(
     editingTeam?._id ?? "",
-    { skip: !editingTeam?._id }
+    { skip: !editingTeam?._id },
   );
   const currentTeam = editingTeamData ?? editingTeam;
 
@@ -93,7 +97,7 @@ export function TranslatorsSection() {
         slug: editingTeam.slug ?? "",
         description: editingTeam.description ?? "",
         banner: editingTeam.banner ?? "",
-        members: (editingTeam.members ?? []).map((m) => ({
+        members: (editingTeam.members ?? []).map(m => ({
           name: m.name,
           role: (m.role as TranslatorRole) || "translator",
         })),
@@ -135,7 +139,7 @@ export function TranslatorsSection() {
             slug: form.slug.trim() || undefined,
             description: form.description.trim() || undefined,
             banner: form.banner.trim() || undefined,
-            members: form.members.map((m) => ({
+            members: form.members.map(m => ({
               name: m.name.trim(),
               role: m.role,
             })),
@@ -148,7 +152,7 @@ export function TranslatorsSection() {
           slug: form.slug.trim() || undefined,
           description: form.description.trim() || undefined,
           banner: form.banner.trim() || undefined,
-          members: form.members.map((m) => ({
+          members: form.members.map(m => ({
             name: m.name.trim(),
             role: m.role,
           })),
@@ -163,25 +167,21 @@ export function TranslatorsSection() {
   };
 
   const handleAddMember = () => {
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
       members: [...prev.members, { name: "", role: "translator" }],
     }));
   };
 
   const handleRemoveMember = (index: number) => {
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
       members: prev.members.filter((_, i) => i !== index),
     }));
   };
 
-  const handleMemberChange = (
-    index: number,
-    field: "name" | "role",
-    value: string
-  ) => {
-    setForm((prev) => {
+  const handleMemberChange = (index: number, field: "name" | "role", value: string) => {
+    setForm(prev => {
       const next = [...prev.members];
       next[index] = { ...next[index], [field]: value };
       return { ...prev, members: next };
@@ -213,16 +213,14 @@ export function TranslatorsSection() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">
-          Команды переводчиков
-        </h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Команды переводчиков</h2>
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={e => setSearch(e.target.value)}
               placeholder="Поиск по названию..."
               className="admin-input pl-9 w-48"
             />
@@ -240,16 +238,14 @@ export function TranslatorsSection() {
 
       <div className="rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-[var(--muted-foreground)]">
-            Загрузка...
-          </div>
+          <div className="p-8 text-center text-[var(--muted-foreground)]">Загрузка...</div>
         ) : teams.length === 0 ? (
           <div className="p-8 text-center text-[var(--muted-foreground)]">
             {search ? "Команды не найдены" : "Нет команд. Создайте первую."}
           </div>
         ) : (
           <ul className="divide-y divide-[var(--border)]">
-            {teams.map((team) => (
+            {teams.map(team => (
               <li
                 key={team._id}
                 className="flex flex-wrap items-center justify-between gap-3 p-4 hover:bg-[var(--accent)]/20 transition-colors"
@@ -259,9 +255,7 @@ export function TranslatorsSection() {
                     <Users2 className="w-5 h-5 text-[var(--muted-foreground)]" />
                   </div>
                   <div>
-                    <div className="font-medium text-[var(--foreground)]">
-                      {team.name}
-                    </div>
+                    <div className="font-medium text-[var(--foreground)]">{team.name}</div>
                     <div className="text-sm text-[var(--muted-foreground)] flex items-center gap-3">
                       <span>{team.slug || team._id}</span>
                       <span>{team.members?.length ?? 0} участников</span>
@@ -316,7 +310,7 @@ export function TranslatorsSection() {
             <button
               type="button"
               disabled={pagination.page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
               className="admin-btn admin-btn-secondary disabled:opacity-50"
             >
               Назад
@@ -327,7 +321,7 @@ export function TranslatorsSection() {
             <button
               type="button"
               disabled={pagination.page >= pagination.pages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => setPage(p => p + 1)}
               className="admin-btn admin-btn-secondary disabled:opacity-50"
             >
               Вперёд
@@ -358,7 +352,7 @@ export function TranslatorsSection() {
                 <input
                   type="text"
                   value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                  onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                   className="admin-input w-full"
                   required
                 />
@@ -368,7 +362,7 @@ export function TranslatorsSection() {
                 <input
                   type="text"
                   value={form.slug}
-                  onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
+                  onChange={e => setForm(p => ({ ...p, slug: e.target.value }))}
                   className="admin-input w-full"
                   placeholder="автоматически из названия"
                 />
@@ -399,11 +393,14 @@ export function TranslatorsSection() {
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
                         className="sr-only"
-                        onChange={async (e) => {
+                        onChange={async e => {
                           const file = e.target.files?.[0];
                           if (!file || !editingTeam._id) return;
                           try {
-                            await uploadTeamAvatar({ teamId: editingTeam._id, avatar: file }).unwrap();
+                            await uploadTeamAvatar({
+                              teamId: editingTeam._id,
+                              avatar: file,
+                            }).unwrap();
                             toast.success("Аватар загружен");
                             refetch();
                             refetchEditingTeam();
@@ -415,18 +412,22 @@ export function TranslatorsSection() {
                       />
                     </label>
                   </div>
-                  <p className="text-xs text-[var(--muted-foreground)] mt-1">JPG, PNG или WebP, до 2 МБ</p>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                    JPG, PNG или WebP, до 2 МБ
+                  </p>
                 </div>
               )}
               {!editingTeam && (
-                <p className="text-sm text-[var(--muted-foreground)]">Аватар можно загрузить после создания команды.</p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Аватар можно загрузить после создания команды.
+                </p>
               )}
               <div>
                 <label className="block text-sm font-medium mb-1">Баннер (URL)</label>
                 <input
                   type="url"
                   value={form.banner}
-                  onChange={(e) => setForm((p) => ({ ...p, banner: e.target.value }))}
+                  onChange={e => setForm(p => ({ ...p, banner: e.target.value }))}
                   className="admin-input w-full"
                   placeholder="https://..."
                 />
@@ -435,9 +436,7 @@ export function TranslatorsSection() {
                 <label className="block text-sm font-medium mb-1">Описание</label>
                 <textarea
                   value={form.description}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, description: e.target.value }))
-                  }
+                  onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
                   className="admin-input w-full resize-y min-h-[80px]"
                   rows={3}
                 />
@@ -463,20 +462,16 @@ export function TranslatorsSection() {
                       <input
                         type="text"
                         value={m.name}
-                        onChange={(e) =>
-                          handleMemberChange(i, "name", e.target.value)
-                        }
+                        onChange={e => handleMemberChange(i, "name", e.target.value)}
                         placeholder="Имя"
                         className="admin-input flex-1 min-w-0"
                       />
                       <select
                         value={m.role}
-                        onChange={(e) =>
-                          handleMemberChange(i, "role", e.target.value)
-                        }
+                        onChange={e => handleMemberChange(i, "role", e.target.value)}
                         className="admin-input w-36"
                       >
-                        {ROLES.map((r) => (
+                        {ROLES.map(r => (
                           <option key={r} value={r}>
                             {translatorRoleLabels[r]}
                           </option>
@@ -501,10 +496,7 @@ export function TranslatorsSection() {
                   </label>
                   <ul className="space-y-1">
                     {currentTeam.titleIds!.map((titleId: string) => (
-                      <li
-                        key={titleId}
-                        className="flex items-center justify-between text-sm py-1"
-                      >
+                      <li key={titleId} className="flex items-center justify-between text-sm py-1">
                         <Link
                           href={`/admin/titles/edit/${titleId}`}
                           className="text-[var(--primary)] hover:underline truncate"
@@ -513,9 +505,7 @@ export function TranslatorsSection() {
                         </Link>
                         <button
                           type="button"
-                          onClick={() =>
-                            handleRemoveTitle(currentTeam._id, titleId)
-                          }
+                          onClick={() => handleRemoveTitle(currentTeam._id, titleId)}
                           className="p-1 text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -598,7 +588,7 @@ function AddTitleModal({
 
   const { data: searchData } = useSearchTitlesQuery(
     { search: debounced, limit: 15 },
-    { skip: debounced.length < 2 }
+    { skip: debounced.length < 2 },
   );
   const titles = searchData?.data?.data ?? [];
 
@@ -629,7 +619,7 @@ function AddTitleModal({
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             placeholder="Поиск по названию тайтла..."
             className="admin-input w-full"
             autoFocus

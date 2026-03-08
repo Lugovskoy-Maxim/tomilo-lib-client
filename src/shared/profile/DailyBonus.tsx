@@ -36,7 +36,7 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
   const toast = useToast();
   const [localStreak, setLocalStreak] = useState<number | null>(null);
   const [claimed, setClaimed] = useState(false);
-  
+
   const currentStreak = localStreak ?? userProfile.currentStreak ?? 0;
 
   const { canClaim, nextMilestone, daysToMilestone } = useMemo(() => {
@@ -75,7 +75,7 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
       toast.error(err.data?.message ?? "Ошибка при получении бонуса");
     }
   };
-  
+
   return (
     <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-gradient-to-br from-[var(--card)] to-[var(--card)]/80 overflow-hidden">
       <div className="p-4 sm:p-5">
@@ -85,15 +85,13 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
               <Gift className="w-5 h-5 text-orange-500" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--foreground)]">
-                Ежедневный бонус
-              </h3>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">Ежедневный бонус</h3>
               <p className="text-xs text-[var(--muted-foreground)]">
                 {canClaim ? "Доступен к получению" : "Уже получен сегодня"}
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/30">
             <Flame className="w-4 h-4 text-orange-500" />
             <span className="text-sm font-bold text-orange-500">{currentStreak}</span>
@@ -102,7 +100,7 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
             </span>
           </div>
         </div>
-        
+
         {canClaim ? (
           <button
             type="button"
@@ -124,7 +122,7 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
             <span className="text-sm font-medium">Бонус получен</span>
           </div>
         )}
-        
+
         {nextMilestone && (
           <div className="mt-4 p-3 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50">
             <div className="flex items-center justify-between gap-2 mb-2">
@@ -135,16 +133,17 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
                 </span>
               </div>
               <span className="text-xs text-[var(--muted-foreground)]">
-                ещё {daysToMilestone} {daysToMilestone === 1 ? "день" : daysToMilestone < 5 ? "дня" : "дней"}
+                ещё {daysToMilestone}{" "}
+                {daysToMilestone === 1 ? "день" : daysToMilestone < 5 ? "дня" : "дней"}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <div className="flex-1 h-2 rounded-full bg-[var(--secondary)] overflow-hidden">
-                <div 
+                <div
                   className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
-                  style={{ 
-                    width: `${((nextMilestone.days - daysToMilestone) / nextMilestone.days) * 100}%` 
+                  style={{
+                    width: `${((nextMilestone.days - daysToMilestone) / nextMilestone.days) * 100}%`,
                   }}
                 />
               </div>
@@ -154,27 +153,33 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
             </div>
           </div>
         )}
-        
+
         <div className="mt-4 grid grid-cols-4 gap-2">
-          {STREAK_MILESTONES.map((milestone) => {
+          {STREAK_MILESTONES.map(milestone => {
             const isAchieved = currentStreak >= milestone.days;
             const isCurrent = nextMilestone?.days === milestone.days;
-            
+
             return (
-              <div 
+              <div
                 key={milestone.days}
                 className={`relative flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-300 ${
-                  isAchieved 
-                    ? "bg-green-500/15 border border-green-500/30" 
+                  isAchieved
+                    ? "bg-green-500/15 border border-green-500/30"
                     : isCurrent
                       ? "bg-orange-500/15 border border-orange-500/30 animate-pulse"
                       : "bg-[var(--secondary)]/30 border border-[var(--border)]/40 opacity-50"
                 }`}
               >
                 <span className="text-base">{milestone.icon}</span>
-                <span className={`text-[10px] font-bold ${
-                  isAchieved ? "text-green-500" : isCurrent ? "text-orange-500" : "text-[var(--muted-foreground)]"
-                }`}>
+                <span
+                  className={`text-[10px] font-bold ${
+                    isAchieved
+                      ? "text-green-500"
+                      : isCurrent
+                        ? "text-orange-500"
+                        : "text-[var(--muted-foreground)]"
+                  }`}
+                >
                   {milestone.days}д
                 </span>
                 {isAchieved && (

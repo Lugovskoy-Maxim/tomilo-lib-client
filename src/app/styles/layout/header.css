@@ -8,7 +8,9 @@
 }
 .header-search .search-trigger:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--primary);
 }
 /* На узких экранах скрываем подсказку с горячей клавишей */
 @media (max-width: 380px) {
@@ -51,7 +53,14 @@
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* Аватар в UserBar — размеры на узких экранах */
 @media (max-width: 480px) {
@@ -76,4 +85,3 @@
 .header-mobile-nav-link:hover {
   background: var(--accent);
 }
-

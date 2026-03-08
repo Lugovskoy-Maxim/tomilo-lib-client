@@ -40,9 +40,10 @@ export function ShopTabs({ activeTab, onTabChange }: ShopTabsProps) {
               flex-1 sm:flex-none flex items-center justify-center gap-1.5 shrink-0 min-w-0
               min-h-[44px] sm:min-h-0 sm:min-w-[88px] sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-colors duration-150
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)]
-              ${isActive
-                ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]"
-                : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              ${
+                isActive
+                  ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
               }
             `}
           >

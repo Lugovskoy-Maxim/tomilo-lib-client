@@ -102,7 +102,10 @@ export default function ThemeToggle() {
       title={`Тема: ${currentTheme.label}`}
       disabled={!mounted || isLoadingTheme}
     >
-      <span className={`absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] pointer-events-none -z-0 transition-opacity duration-300 ${isLoadingTheme ? "opacity-10 animate-pulse" : "opacity-0 group-hover:opacity-[0.15]"}`} aria-hidden />
+      <span
+        className={`absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] pointer-events-none -z-0 transition-opacity duration-300 ${isLoadingTheme ? "opacity-10 animate-pulse" : "opacity-0 group-hover:opacity-[0.15]"}`}
+        aria-hidden
+      />
       {isLoadingTheme ? (
         <Loader2 className="theme-toggle-btn__icon theme-toggle-btn__icon--spin relative z-[1] w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 animate-spin" />
       ) : (

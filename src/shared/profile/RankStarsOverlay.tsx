@@ -25,7 +25,7 @@ export default function RankStarsOverlay({ userProfile, size = 144 }: RankStarsO
   const radius = size / 2 + 18; // Wider arc (+10px)
   const centerX = size / 2 - 2; // Чуть влево для визуального центра
   const centerY = size / 2 + 25; // Lower position (+15px total, moved down by 5px more)
-  
+
   // Arc from left-top to right-top (180 to 360 degrees)
   const startAngle = Math.PI; // 180 degrees (left)
   const endAngle = 2 * Math.PI; // 360 degrees (right)
@@ -99,7 +99,8 @@ export default function RankStarsOverlay({ userProfile, size = 144 }: RankStarsO
       ))}
       <style jsx>{`
         @keyframes star-pulse {
-          0%, 100% {
+          0%,
+          100% {
             transform: translate(-50%, -50%) scale(1);
           }
           50% {

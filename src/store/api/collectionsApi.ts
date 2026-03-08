@@ -82,9 +82,7 @@ export const collectionsApi = createApi({
               const coll = collection as Record<string, unknown>;
               const titlesArr = (coll.titles as string[]) || [];
               const titlesCount =
-                (coll.titlesCount as number) ??
-                (coll.titles_count as number) ??
-                titlesArr.length;
+                (coll.titlesCount as number) ?? (coll.titles_count as number) ?? titlesArr.length;
               return {
                 id: (coll.id as string) || (coll._id as string) || "",
                 cover: (coll.cover as string) || (coll.image as string) || "",

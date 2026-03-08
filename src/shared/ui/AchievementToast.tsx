@@ -12,43 +12,46 @@ interface AchievementToastProps {
   duration?: number;
 }
 
-const RARITY_COLORS: Record<AchievementRarity, { 
-  bg: string; 
-  border: string; 
-  text: string; 
-  glow: string;
-  gradient: string;
-}> = {
-  common: { 
-    bg: "bg-slate-500/15", 
+const RARITY_COLORS: Record<
+  AchievementRarity,
+  {
+    bg: string;
+    border: string;
+    text: string;
+    glow: string;
+    gradient: string;
+  }
+> = {
+  common: {
+    bg: "bg-slate-500/15",
     border: "border-slate-400/40",
     text: "text-slate-400",
     glow: "shadow-slate-400/20",
     gradient: "from-slate-500 to-slate-600",
   },
-  uncommon: { 
-    bg: "bg-green-500/15", 
+  uncommon: {
+    bg: "bg-green-500/15",
     border: "border-green-400/40",
     text: "text-green-400",
     glow: "shadow-green-400/30",
     gradient: "from-green-500 to-emerald-600",
   },
-  rare: { 
-    bg: "bg-blue-500/15", 
+  rare: {
+    bg: "bg-blue-500/15",
     border: "border-blue-400/40",
     text: "text-blue-400",
     glow: "shadow-blue-400/30",
     gradient: "from-blue-500 to-cyan-600",
   },
-  epic: { 
-    bg: "bg-purple-500/15", 
+  epic: {
+    bg: "bg-purple-500/15",
     border: "border-purple-400/40",
     text: "text-purple-400",
     glow: "shadow-purple-400/40",
     gradient: "from-purple-500 to-violet-600",
   },
-  legendary: { 
-    bg: "bg-amber-500/15", 
+  legendary: {
+    bg: "bg-amber-500/15",
     border: "border-amber-400/50",
     text: "text-amber-400",
     glow: "shadow-amber-400/50",
@@ -73,10 +76,10 @@ const TYPE_ICONS: Record<AchievementType, React.ElementType> = {
   level: Crown,
 };
 
-export default function AchievementToast({ 
-  event, 
-  onClose, 
-  duration = 6000 
+export default function AchievementToast({
+  event,
+  onClose,
+  duration = 6000,
 }: AchievementToastProps) {
   const { achievement } = event;
   const colors = RARITY_COLORS[achievement.rarity];
@@ -105,7 +108,7 @@ export default function AchievementToast({
       `}
     >
       {/* Background gradient */}
-      <div 
+      <div
         className={`absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-r ${colors.gradient}`}
       />
 
@@ -136,13 +139,13 @@ export default function AchievementToast({
           >
             Достижение получено
           </motion.span>
-          <span 
+          <span
             className={`text-[9px] px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
           >
             {RARITY_LABELS[achievement.rarity]}
           </span>
         </div>
-        
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -151,7 +154,7 @@ export default function AchievementToast({
         >
           {achievement.name}
         </motion.p>
-        
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -42,7 +42,7 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
   const userBirthDate = user?.birthDate ?? null;
   useEffect(() => {
     const verified = checkAgeVerification(user || null);
-    setIsAgeVerified((prev) => (prev === verified ? prev : verified));
+    setIsAgeVerified(prev => (prev === verified ? prev : verified));
   }, [userId, userBirthDate]);
 
   const titlePath = getTitlePath(data);
@@ -68,27 +68,30 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
     setPendingAction(null);
   }, []);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    if (onCardClick) {
-      e.preventDefault();
-      e.stopPropagation();
-      onCardClick(data.id);
-      return;
-    }
-    // Режим «только новая вкладка»: левый клик не переходит (ПКМ и колёсико — как у обычной ссылки)
-    if (openOnlyInNewTab && e.button === 0) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-    if (data.isAdult && !isAgeVerified) {
-      e.preventDefault();
-      e.stopPropagation();
-      setPendingAction(() => performCardAction);
-      setShowAgeModal(true);
-      return;
-    }
-  }, [onCardClick, data.id, data.isAdult, isAgeVerified, performCardAction, openOnlyInNewTab]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (onCardClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        onCardClick(data.id);
+        return;
+      }
+      // Режим «только новая вкладка»: левый клик не переходит (ПКМ и колёсико — как у обычной ссылки)
+      if (openOnlyInNewTab && e.button === 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (data.isAdult && !isAgeVerified) {
+        e.preventDefault();
+        e.stopPropagation();
+        setPendingAction(() => performCardAction);
+        setShowAgeModal(true);
+        return;
+      }
+    },
+    [onCardClick, data.id, data.isAdult, isAgeVerified, performCardAction, openOnlyInNewTab],
+  );
 
   const isAdultContent = data.isAdult;
   // const isBrowsePage = pathname.startsWith("/browse");
@@ -139,7 +142,6 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
 
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
         </div>
 
         {/* Content — место под название до 3 строк, без обрезки по высоте */}
@@ -151,7 +153,6 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
           >
             {data.title}
           </h3>
-          
         </div>
       </div>
 
@@ -192,7 +193,9 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
       className={className}
       onClick={handleClick}
       data-card-click-handler="true"
-      {...(openOnlyInNewTab ? { "aria-label": `Открыть «${data.title}» в новой вкладке: ПКМ или клик колёсиком` } : {})}
+      {...(openOnlyInNewTab
+        ? { "aria-label": `Открыть «${data.title}» в новой вкладке: ПКМ или клик колёсиком` }
+        : {})}
     >
       {cardContent}
     </Link>

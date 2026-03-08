@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { Button } from "@/shared/ui/button";
 import Modal from "@/shared/modal/modal";
 import { useScheduleDeletionMutation } from "@/store/api/authApi";
@@ -34,7 +28,7 @@ export function ProfileModalsProvider({ children }: { children: ReactNode }) {
     try {
       await scheduleDeletion().unwrap();
       toast.success(
-        "Удаление профиля запланировано. До указанной даты вы можете отменить его в настройках."
+        "Удаление профиля запланировано. До указанной даты вы можете отменить его в настройках.",
       );
       setDeleteConfirmOpen(false);
     } catch (e: unknown) {
@@ -50,25 +44,16 @@ export function ProfileModalsProvider({ children }: { children: ReactNode }) {
   return (
     <ProfileModalsContext.Provider value={value}>
       {children}
-      <Modal
-        isOpen={deleteConfirmOpen}
-        onClose={closeDeleteConfirm}
-        title="Удалить профиль?"
-      >
+      <Modal isOpen={deleteConfirmOpen} onClose={closeDeleteConfirm} title="Удалить профиль?">
         <div className="space-y-4">
           <p className="text-sm text-[var(--muted-foreground)]">
-            Будет запланировано удаление вашего аккаунта через 7 дней. До
-            наступления этой даты вы сможете отменить удаление в настройках
-            профиля.
+            Будет запланировано удаление вашего аккаунта через 7 дней. До наступления этой даты вы
+            сможете отменить удаление в настройках профиля.
           </p>
           <p className="text-sm text-[var(--muted-foreground)]">
-            После удаления войти в аккаунт будет невозможно. Данные сохраняются
-            в соответствии с политикой сервиса. Полное удаление данных — по
-            запросу на{" "}
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="text-[var(--primary)] hover:underline"
-            >
+            После удаления войти в аккаунт будет невозможно. Данные сохраняются в соответствии с
+            политикой сервиса. Полное удаление данных — по запросу на{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[var(--primary)] hover:underline">
               {SUPPORT_EMAIL}
             </a>
             .

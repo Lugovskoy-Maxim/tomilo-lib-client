@@ -79,7 +79,9 @@ export const useAuth = () => {
     const currentToken = getToken();
     if (!profileResponse?.success || !profileResponse?.data || !currentToken) return;
 
-    const user = profileResponse.data as StoredUser & { equipped_decorations?: StoredUser["equippedDecorations"] };
+    const user = profileResponse.data as StoredUser & {
+      equipped_decorations?: StoredUser["equippedDecorations"];
+    };
     const userId = user?.id ?? user?._id;
     if (lastAppliedProfileRef.current === profileResponse) return;
     lastAppliedProfileRef.current = profileResponse;
@@ -359,9 +361,7 @@ export const useAuth = () => {
   };
 
   const updateChapterViewsCount = useCallback(
-    async (
-      _chapterId: string,
-    ): Promise<{ success: boolean; error?: string }> => {
+    async (_chapterId: string): Promise<{ success: boolean; error?: string }> => {
       try {
         await incrementChapterViews(_chapterId).unwrap();
         return { success: true };
@@ -377,9 +377,12 @@ export const useAuth = () => {
   );
 
   const addToReadingHistoryFunc = useCallback(
-    async (titleId: string, chapterId: string): Promise<{ 
-      success: boolean; 
-      error?: string; 
+    async (
+      titleId: string,
+      chapterId: string,
+    ): Promise<{
+      success: boolean;
+      error?: string;
       progress?: ReadingProgressResponse;
     }> => {
       const stringifyUnknown = (value: unknown): string | null => {
@@ -400,9 +403,9 @@ export const useAuth = () => {
         msg === "READING_HISTORY_VERSION_CONFLICT" ||
         /no matching document|version \d+|modifiedPaths/i.test(msg);
 
-      const tryAdd = async (): Promise<{ 
-        success: boolean; 
-        error?: string; 
+      const tryAdd = async (): Promise<{
+        success: boolean;
+        error?: string;
         progress?: ReadingProgressResponse;
       }> => {
         const result = await addToReadingHistory({
@@ -438,7 +441,8 @@ export const useAuth = () => {
           error?: unknown;
           status?: unknown;
         };
-        const apiMessage = stringifyUnknown(e?.data?.errors?.[0]) ?? stringifyUnknown(e?.data?.message);
+        const apiMessage =
+          stringifyUnknown(e?.data?.errors?.[0]) ?? stringifyUnknown(e?.data?.message);
         const nativeMessage = stringifyUnknown(e?.message);
         const fallback =
           stringifyUnknown(e?.error) ?? stringifyUnknown(e?.status) ?? stringifyUnknown(err);

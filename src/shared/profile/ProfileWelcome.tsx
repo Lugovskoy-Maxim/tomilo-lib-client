@@ -19,19 +19,27 @@ function getTimeOfDay(): "morning" | "afternoon" | "evening" | "night" {
 
 function getGreeting(timeOfDay: "morning" | "afternoon" | "evening" | "night"): string {
   switch (timeOfDay) {
-    case "morning": return "Доброе утро";
-    case "afternoon": return "Добрый день";
-    case "evening": return "Добрый вечер";
-    case "night": return "Доброй ночи";
+    case "morning":
+      return "Доброе утро";
+    case "afternoon":
+      return "Добрый день";
+    case "evening":
+      return "Добрый вечер";
+    case "night":
+      return "Доброй ночи";
   }
 }
 
 function getTimeIcon(timeOfDay: "morning" | "afternoon" | "evening" | "night"): React.ElementType {
   switch (timeOfDay) {
-    case "morning": return CloudSun;
-    case "afternoon": return Sun;
-    case "evening": return CloudSun;
-    case "night": return Moon;
+    case "morning":
+      return CloudSun;
+    case "afternoon":
+      return Sun;
+    case "evening":
+      return CloudSun;
+    case "night":
+      return Moon;
   }
 }
 
@@ -63,7 +71,7 @@ export default function ProfileWelcome({ userProfile }: ProfileWelcomeProps) {
     const level = userProfile.level ?? 0;
     const streak = userProfile.currentStreak ?? 0;
     const rankInfo = levelToRank(level);
-    
+
     return {
       greeting: getGreeting(timeOfDay),
       TimeIcon: getTimeIcon(timeOfDay),
@@ -71,9 +79,9 @@ export default function ProfileWelcome({ userProfile }: ProfileWelcomeProps) {
       rankColor: getRankColor(rankInfo.rank),
     };
   }, [userProfile.level, userProfile.currentStreak]);
-  
+
   const displayName = userProfile.username || "Культиватор";
-  
+
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="flex items-start gap-3">

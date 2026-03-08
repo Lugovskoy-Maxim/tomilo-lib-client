@@ -148,7 +148,10 @@ function formatSessionTime(chapters: ChapterData[]): string {
 }
 
 function getImageUrls(coverImage: string | undefined) {
-  return getCoverUrls(coverImage, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
+  return getCoverUrls(
+    coverImage,
+    typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src,
+  );
 }
 
 const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
@@ -203,8 +206,12 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
         >
           {session.length === 1 ? (
             <div className="flex items-center justify-between text-xs gap-2">
-              <span className="font-medium text-[var(--foreground)]">Глава {session[0].chapterNumber}</span>
-              <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">{formatSessionTime(session)}</span>
+              <span className="font-medium text-[var(--foreground)]">
+                Глава {session[0].chapterNumber}
+              </span>
+              <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">
+                {formatSessionTime(session)}
+              </span>
               <button
                 onClick={e => {
                   e.stopPropagation();
@@ -219,8 +226,12 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
           ) : (
             <>
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="text-xs font-medium text-[var(--foreground)]">{formatChapterRange(session)}</span>
-                <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">{formatSessionTime(session)}</span>
+                <span className="text-xs font-medium text-[var(--foreground)]">
+                  {formatChapterRange(session)}
+                </span>
+                <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">
+                  {formatSessionTime(session)}
+                </span>
               </div>
               <div className="flex flex-col gap-0.5">
                 {session.map(chapter => (
@@ -231,7 +242,10 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
                     <span className="text-[var(--foreground)]">Глава {chapter.chapterNumber}</span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-[var(--muted-foreground)]">
-                        {new Date(chapter.readAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })}
+                        {new Date(chapter.readAt).toLocaleDateString("ru-RU", {
+                          day: "2-digit",
+                          month: "2-digit",
+                        })}
                       </span>
                       <button
                         onClick={e => {
@@ -272,9 +286,11 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
   onRemoveTitle,
 }: HistoryTitleCardProps) {
   const router = useRouter();
-  
+
   const hasPopulatedTitle = Boolean(
-    group.titleData && (group.titleData.name || group.titleData.title) && group.titleData.coverImage
+    group.titleData &&
+    (group.titleData.name || group.titleData.title) &&
+    group.titleData.coverImage,
   );
 
   const { data: fetchedTitle } = useGetTitleByIdQuery(
@@ -304,34 +320,40 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
 
   const handleCardClick = useCallback(() => {
     if (lastChapter && group.titleId) {
-      router.push(
-        getChapterPath(
-          { id: group.titleId, slug: title?.slug },
-          lastChapter.chapterId,
-        ),
-      );
+      router.push(getChapterPath({ id: group.titleId, slug: title?.slug }, lastChapter.chapterId));
     }
   }, [lastChapter, group.titleId, title?.slug, router]);
 
-  const handleToggleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggleExpand();
-  }, [onToggleExpand]);
+  const handleToggleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onToggleExpand();
+    },
+    [onToggleExpand],
+  );
 
-  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    const titleIdStr = String(group.titleId);
-    if (group.chapters.length === 1) {
-      onRemoveChapter(titleIdStr, sortedSessions[0]?.[0]?.chapterId ?? group.chapters[0].chapterId);
-    } else {
-      onRemoveTitle(titleIdStr, titleName, group.chapters.map(c => c.chapterId));
-    }
-  }, [group.chapters, group.titleId, sortedSessions, onRemoveChapter, onRemoveTitle, titleName]);
+  const handleRemoveClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const titleIdStr = String(group.titleId);
+      if (group.chapters.length === 1) {
+        onRemoveChapter(
+          titleIdStr,
+          sortedSessions[0]?.[0]?.chapterId ?? group.chapters[0].chapterId,
+        );
+      } else {
+        onRemoveTitle(
+          titleIdStr,
+          titleName,
+          group.chapters.map(c => c.chapterId),
+        );
+      }
+    },
+    [group.chapters, group.titleId, sortedSessions, onRemoveChapter, onRemoveTitle, titleName],
+  );
 
   return (
-    <div
-      className="rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--border)]/80 overflow-hidden transition-colors"
-    >
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--border)]/80 overflow-hidden transition-colors">
       <div
         className="p-2.5 sm:p-3 cursor-pointer group/card flex items-stretch gap-2.5 sm:gap-3"
         onClick={handleCardClick}
@@ -369,13 +391,19 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
             className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
             title={isExpandedTitle ? "Свернуть" : "Подробнее"}
           >
-            {isExpandedTitle ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {isExpandedTitle ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
           </button>
           {!isExpandedTitle && (
             <button
               onClick={handleRemoveClick}
               className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
-              title={group.chapters.length === 1 ? "Удалить из истории" : "Удалить тайтл из истории"}
+              title={
+                group.chapters.length === 1 ? "Удалить из истории" : "Удалить тайтл из истории"
+              }
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -394,7 +422,13 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
   );
 });
 
-function ReadingHistorySection({ readingHistory, showAll = false, showSectionHeader = true, historyHref, onShowAllHistory }: ReadingHistorySectionProps) {
+function ReadingHistorySection({
+  readingHistory,
+  showAll = false,
+  showSectionHeader = true,
+  historyHref,
+  onShowAllHistory,
+}: ReadingHistorySectionProps) {
   const { removeFromReadingHistory } = useAuth();
   const [expandedTitles, setExpandedTitles] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(showAll);
@@ -422,7 +456,10 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
       const group = groups.get(titleId)!;
       // Используем chaptersCount из API (в лёгком формате там только lastChapter, но приходит chaptersCount)
       if ((item as HistoryItem).chaptersCount != null) {
-        group.chaptersCount = Math.max(group.chaptersCount ?? 0, (item as HistoryItem).chaptersCount ?? 0);
+        group.chaptersCount = Math.max(
+          group.chaptersCount ?? 0,
+          (item as HistoryItem).chaptersCount ?? 0,
+        );
       }
       // Добавляем главы с преобразованием chapterId (без дубликатов по chapterId)
       const existingIds = new Set(group.chapters.map(c => c.chapterId));
@@ -459,7 +496,6 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
         return new Date(b.lastReadAt).getTime() - new Date(a.lastReadAt).getTime();
       });
   }, [readingHistory]);
-
 
   // Определяем, какие тайтлы показывать
   const defaultLimit = 4;
@@ -509,7 +545,6 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
     }
   };
 
-
   if (!readingHistory || readingHistory.length === 0 || groupedHistory.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 px-4 text-center min-h-[200px]">
@@ -550,7 +585,11 @@ function ReadingHistorySection({ readingHistory, showAll = false, showSectionHea
                 className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
                 title={isExpanded ? "Свернуть" : "Показать все"}
               >
-                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                {isExpanded ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                )}
               </button>
             )}
             {onShowAllHistory ? (

@@ -1,8 +1,8 @@
 /** Типы наград промокода */
-export type PromoCodeRewardType = 
-  | "balance"        // Монеты на баланс
-  | "decoration"     // Декорация (аватар, рамка, фон, карточка)
-  | "premium";       // Премиум-статус на N дней
+export type PromoCodeRewardType =
+  | "balance" // Монеты на баланс
+  | "decoration" // Декорация (аватар, рамка, фон, карточка)
+  | "premium"; // Премиум-статус на N дней
 
 /** Награда промокода */
 export interface PromoCodeReward {

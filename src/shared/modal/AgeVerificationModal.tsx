@@ -60,7 +60,7 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
         localStorage.setItem(AGE_VERIFICATION_KEY, "true");
       }
       onConfirm();
-     router.refresh();
+      router.refresh();
     }
   };
 
@@ -93,10 +93,7 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
         <div className="space-y-2 sm:space-y-3">
           <p className="text-sm sm:text-base text-[var(--primary)] leading-relaxed">
             Содержимое предназначено{" "}
-            <strong className="text-[var(--chart-5)]">
-              только для 18+
-            </strong>
-            .
+            <strong className="text-[var(--chart-5)]">только для 18+</strong>.
           </p>
           <p className="text-xs sm:text-sm text-[var(--primary)]/70">
             Ограничение по законодательству РФ (№436-ФЗ) для защиты несовершеннолетних.
@@ -122,12 +119,14 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
             onChange={e => setIsChecked(e.target.checked)}
             className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 text-[var(--primary)] bg-[var(--background)] border-[var(--border)] rounded focus:ring-[var(--primary)] focus:ring-2 cursor-pointer"
           />
-          <label htmlFor="age-confirm" className="text-xs sm:text-sm text-[var(--primary)] cursor-pointer select-none">
-            <span className="font-medium block mb-0.5 sm:mb-1">
-              Мне исполнилось 18 лет
-            </span>
+          <label
+            htmlFor="age-confirm"
+            className="text-xs sm:text-sm text-[var(--primary)] cursor-pointer select-none"
+          >
+            <span className="font-medium block mb-0.5 sm:mb-1">Мне исполнилось 18 лет</span>
             <span className="text-[10px] sm:text-xs text-[var(--primary)]/60 block leading-tight">
-              Я осознаю содержание материалов и несу ответственность. Ложная информация — нарушение правил.
+              Я осознаю содержание материалов и несу ответственность. Ложная информация — нарушение
+              правил.
             </span>
           </label>
         </div>
@@ -142,16 +141,18 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
           >
             {/* Фоновое заполнение прогресса — pointer-events: none, чтобы клик всегда доходил до кнопки */}
             {isChecked && !isButtonEnabled && (
-              <div 
+              <div
                 className="absolute inset-0 bg-[var(--chart-1)] transition-all duration-1000 ease-linear pointer-events-none"
-                style={{ 
+                style={{
                   width: `${((3 - countdown) / 3) * 100}%`,
-                  opacity: 0.3 + ((3 - countdown) / 3) * 0.7
+                  opacity: 0.3 + ((3 - countdown) / 3) * 0.7,
                 }}
               />
             )}
             {/* Основной фон кнопки */}
-            <div className={`absolute inset-0 pointer-events-none ${isButtonEnabled ? 'bg-[var(--chart-1)]' : 'bg-[var(--chart-1)]/30'} transition-colors duration-300`} />
+            <div
+              className={`absolute inset-0 pointer-events-none ${isButtonEnabled ? "bg-[var(--chart-1)]" : "bg-[var(--chart-1)]/30"} transition-colors duration-300`}
+            />
             {/* Контент кнопки */}
             <span className="relative z-10 flex items-center gap-2 text-[var(--primary-foreground)]">
               {isButtonEnabled ? (

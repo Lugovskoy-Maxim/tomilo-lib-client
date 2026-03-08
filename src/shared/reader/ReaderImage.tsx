@@ -62,7 +62,7 @@ function ReaderImageComponent({
   const handleRetry = useCallback(() => {
     setHasError(false);
     setIsLoaded(false);
-    setRetryCount((c) => c + 1);
+    setRetryCount(c => c + 1);
   }, []);
 
   const handleClick = useCallback(() => {
@@ -88,8 +88,18 @@ function ReaderImageComponent({
           <div className="w-full min-h-[200px] sm:min-h-[280px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
             <div className="text-center max-w-xs">
               <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[var(--destructive)]/10 flex items-center justify-center">
-                <svg className="w-6 h-6 text-[var(--destructive)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-6 h-6 text-[var(--destructive)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
               <p className="text-sm text-[var(--muted-foreground)] mb-3">
@@ -100,7 +110,12 @@ function ReaderImageComponent({
                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
                 Повторить
               </button>

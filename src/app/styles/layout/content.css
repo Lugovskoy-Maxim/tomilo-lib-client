@@ -5,8 +5,12 @@
 }
 
 .content-card {
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.05),
+    0 1px 2px -1px rgb(0 0 0 / 0.05);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 [data-theme="dark"] .content-card,
 .dark .content-card {
@@ -17,7 +21,9 @@
 }
 
 .content-link-primary {
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 .content-link-primary:hover {
   background: color-mix(in oklch, var(--accent) 90%, var(--primary));
@@ -25,7 +31,9 @@
 }
 
 .content-link-outline {
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 .content-link-outline:hover {
   background: var(--accent);
@@ -33,7 +41,9 @@
 }
 
 .btn-lang {
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 .btn-lang:hover {
   background: var(--accent);
@@ -77,10 +87,14 @@
 }
 
 .btn-modern::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--chart-1-rgb), 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.1) 0%,
+    rgba(var(--chart-1-rgb), 0.1) 100%
+  );
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -93,4 +107,3 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
 }
-

@@ -2,7 +2,8 @@
 const s3Origin = process.env.NEXT_PUBLIC_S3_URL?.replace(/\/$/, "") || "";
 
 /** Fallback URL — старый сервер /uploads */
-const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") || "http://localhost:3001/uploads";
+const uploadsOrigin =
+  process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") || "http://localhost:3001/uploads";
 
 /**
  * Нормализует путь для fallback (старый сервер).
@@ -97,7 +98,10 @@ export function getFallbackAssetUrl(p: string): string {
  * Если путь пустой, возвращает fallbackUrl (по умолчанию пустую строку).
  * Если путь уже полный URL (http/https), обрабатывает его для S3.
  */
-export function getCoverUrl(coverPath: string | undefined | null, fallbackUrl: string = ""): string {
+export function getCoverUrl(
+  coverPath: string | undefined | null,
+  fallbackUrl: string = "",
+): string {
   if (!coverPath) return fallbackUrl;
   if (coverPath.startsWith("http://") || coverPath.startsWith("https://")) {
     return getImageUrls(coverPath).primary;
@@ -110,7 +114,10 @@ export function getCoverUrl(coverPath: string | undefined | null, fallbackUrl: s
  * Primary = S3 (если настроен), fallback = старый сервер.
  * Если путь пустой, возвращает placeholderUrl для обоих.
  */
-export function getCoverUrls(coverPath: string | undefined | null, placeholderUrl: string = ""): { primary: string; fallback: string } {
+export function getCoverUrls(
+  coverPath: string | undefined | null,
+  placeholderUrl: string = "",
+): { primary: string; fallback: string } {
   if (!coverPath) return { primary: placeholderUrl, fallback: placeholderUrl };
   return getImageUrls(coverPath);
 }

@@ -51,9 +51,12 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
     }
   };
 
-  const handleToggleSetting = async (setting: "showStats" | "showAchievements" | "showReadingHistory" | "showBookmarks", value: boolean) => {
+  const handleToggleSetting = async (
+    setting: "showStats" | "showAchievements" | "showReadingHistory" | "showBookmarks",
+    value: boolean,
+  ) => {
     if (isLoading) return;
-    
+
     // Оптимистичное обновление — сразу меняем UI
     const setters = {
       showStats: setLocalShowStats,
@@ -62,7 +65,7 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
       showBookmarks: setLocalShowBookmarks,
     };
     setters[setting](value);
-    
+
     try {
       await updateProfile({
         [setting]: value,
@@ -90,9 +93,7 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
             <Lock className="w-5 h-5 text-[var(--chart-1)]" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Приватность
-            </h2>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Приватность</h2>
             <p className="text-[var(--muted-foreground)] text-xs">
               Кто может видеть ваш профиль и историю
             </p>
@@ -119,34 +120,39 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
               <p className="text-sm font-medium text-[var(--foreground)] mb-3">
                 Что видят другие пользователи
               </p>
-              
+
               <div className="space-y-2.5">
                 <div className="flex items-start gap-2">
                   <Eye className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-medium text-[var(--foreground)]">Всегда видно:</p>
                     <p className="text-xs text-[var(--muted-foreground)]">
-                      Имя, аватар, роль, уровень, ранг, дата регистрации, описание (био), любимый жанр, контакты (Telegram, Discord, VK)
+                      Имя, аватар, роль, уровень, ранг, дата регистрации, описание (био), любимый
+                      жанр, контакты (Telegram, Discord, VK)
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-2">
                   <EyeOff className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-medium text-[var(--foreground)]">Всегда скрыто:</p>
                     <p className="text-xs text-[var(--muted-foreground)]">
-                      Баланс монет, email, дата последнего входа, привязанные соцсети (Яндекс, VK ID)
+                      Баланс монет, email, дата последнего входа, привязанные соцсети (Яндекс, VK
+                      ID)
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-2">
                   <Lock className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-medium text-[var(--foreground)]">Настраивается отдельно:</p>
+                    <p className="text-xs font-medium text-[var(--foreground)]">
+                      Настраивается отдельно:
+                    </p>
                     <p className="text-xs text-[var(--muted-foreground)]">
-                      Статистика, достижения, история чтения и закладки — включите или отключите показ каждого раздела ниже.
+                      Статистика, достижения, история чтения и закладки — включите или отключите
+                      показ каждого раздела ниже.
                     </p>
                     <p className="text-xs text-amber-500/90 mt-1">
                       При скрытии статистики вы также исключаетесь из таблицы лидеров.
@@ -215,12 +221,12 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
               onClick={() => handleToggleSetting("showStats", !showStats)}
               disabled={isLoading}
               className={`relative w-11 h-6 rounded-full transition-all ${
-                showStats 
-                  ? "bg-[var(--chart-2)]" 
+                showStats
+                  ? "bg-[var(--chart-2)]"
                   : "bg-[var(--secondary)] border border-[var(--border)]"
               } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <div 
+              <div
                 className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
                   showStats ? "left-[calc(100%-1.375rem)]" : "left-0.5"
                 }`}
@@ -248,12 +254,12 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
               onClick={() => handleToggleSetting("showAchievements", !showAchievements)}
               disabled={isLoading}
               className={`relative w-11 h-6 rounded-full transition-all ${
-                showAchievements 
-                  ? "bg-[var(--chart-2)]" 
+                showAchievements
+                  ? "bg-[var(--chart-2)]"
                   : "bg-[var(--secondary)] border border-[var(--border)]"
               } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <div 
+              <div
                 className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
                   showAchievements ? "left-[calc(100%-1.375rem)]" : "left-0.5"
                 }`}
@@ -271,9 +277,7 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
                 <span className="text-sm font-medium text-[var(--foreground)] block">
                   История чтения
                 </span>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Что вы читаете и читали
-                </p>
+                <p className="text-xs text-[var(--muted-foreground)]">Что вы читаете и читали</p>
               </div>
             </div>
             <button
@@ -281,12 +285,12 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
               onClick={() => handleToggleSetting("showReadingHistory", !showReadingHistory)}
               disabled={isLoading}
               className={`relative w-11 h-6 rounded-full transition-all ${
-                showReadingHistory 
-                  ? "bg-[var(--chart-2)]" 
+                showReadingHistory
+                  ? "bg-[var(--chart-2)]"
                   : "bg-[var(--secondary)] border border-[var(--border)]"
               } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <div 
+              <div
                 className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
                   showReadingHistory ? "left-[calc(100%-1.375rem)]" : "left-0.5"
                 }`}
@@ -301,12 +305,8 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
                 <Bookmark className="w-4 h-4 text-green-500" />
               </div>
               <div>
-                <span className="text-sm font-medium text-[var(--foreground)] block">
-                  Закладки
-                </span>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Ваши закладки и избранное
-                </p>
+                <span className="text-sm font-medium text-[var(--foreground)] block">Закладки</span>
+                <p className="text-xs text-[var(--muted-foreground)]">Ваши закладки и избранное</p>
               </div>
             </div>
             <button
@@ -314,12 +314,12 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
               onClick={() => handleToggleSetting("showBookmarks", !showBookmarks)}
               disabled={isLoading}
               className={`relative w-11 h-6 rounded-full transition-all ${
-                showBookmarks 
-                  ? "bg-[var(--chart-2)]" 
+                showBookmarks
+                  ? "bg-[var(--chart-2)]"
                   : "bg-[var(--secondary)] border border-[var(--border)]"
               } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <div 
+              <div
                 className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
                   showBookmarks ? "left-[calc(100%-1.375rem)]" : "left-0.5"
                 }`}

@@ -77,7 +77,9 @@ export async function generateMetadata({
       (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/?$/, "") ||
       baseUrl;
     const coverImage =
-      titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+      titleData.coverImage ??
+      (titleData as { image?: string }).image ??
+      (titleData as { cover?: string }).cover;
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
     const chapterUrl = `${baseUrl}/titles/${encodeURIComponent(slug)}/chapter/${chapterId}`;
 

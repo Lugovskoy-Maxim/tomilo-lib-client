@@ -25,7 +25,7 @@ const CATEGORY_ORDER: BookmarkCategory[] = [
 ];
 
 function getTitleIdFromHistoryEntry(entry: ReadingHistoryEntry): string {
-  return typeof entry.titleId === "string" ? entry.titleId : entry.titleId?._id ?? "";
+  return typeof entry.titleId === "string" ? entry.titleId : (entry.titleId?._id ?? "");
 }
 
 interface ProfileBookmarksGridProps {
@@ -116,18 +116,14 @@ export default function ProfileBookmarksGrid({
   }, [currentBookmarks]);
 
   const filteredEntries =
-    activeCategory === "all"
-      ? currentBookmarks
-      : byCategory.get(activeCategory) ?? [];
+    activeCategory === "all" ? currentBookmarks : (byCategory.get(activeCategory) ?? []);
 
   const handleRemove = (titleId: string) => {
     setCurrentBookmarks(prev => prev.filter(e => e.titleId !== titleId));
   };
 
   const handleCategoryChange = (titleId: string, category: BookmarkCategory) => {
-    setCurrentBookmarks(prev =>
-      prev.map(e => (e.titleId === titleId ? { ...e, category } : e)),
-    );
+    setCurrentBookmarks(prev => prev.map(e => (e.titleId === titleId ? { ...e, category } : e)));
   };
 
   if (!currentBookmarks.length) {

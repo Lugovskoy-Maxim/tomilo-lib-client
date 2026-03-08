@@ -49,20 +49,21 @@ export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySe
               <Monitor className="w-5 h-5 text-[var(--primary)]" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[var(--foreground)]">
-                Контент
-              </h2>
-              <p className="text-[var(--muted-foreground)] text-xs">
-                Отображение тайтлов 18+
-              </p>
+              <h2 className="text-sm font-bold text-[var(--foreground)]">Контент</h2>
+              <p className="text-[var(--muted-foreground)] text-xs">Отображение тайтлов 18+</p>
             </div>
           </div>
           <Tooltip
             content={
               <div className="space-y-2 max-w-[280px]">
                 <p className="font-medium">Контент для взрослых</p>
-                <p>При включении этой опции в каталоге и поиске будут отображаться тайтлы с возрастным рейтингом 18+.</p>
-                <p className="text-[var(--muted-foreground)]">Эта настройка не влияет на контент, который вы уже добавили в закладки.</p>
+                <p>
+                  При включении этой опции в каталоге и поиске будут отображаться тайтлы с
+                  возрастным рейтингом 18+.
+                </p>
+                <p className="text-[var(--muted-foreground)]">
+                  Эта настройка не влияет на контент, который вы уже добавили в закладки.
+                </p>
               </div>
             }
             position="left"

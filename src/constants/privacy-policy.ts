@@ -87,7 +87,8 @@ const privacyPolicy = {
 
     contact: {
       title: "Контактная информация",
-      description: "По вопросам, связанным с обработкой персональных данных и настоящей Политикой, обращайтесь по адресу",
+      description:
+        "По вопросам, связанным с обработкой персональных данных и настоящей Политикой, обращайтесь по адресу",
       email: "support@tomilo-lib.ru",
     },
 
@@ -112,7 +113,7 @@ const privacyPolicy = {
       general: {
         title: "General Provisions",
         content:
-          "The administration of tomilo-lib.ru (hereinafter — \"we\", \"the Site\") is committed to protecting the privacy of users' personal data. This Policy defines how we collect, store, use, and protect information received from visitors and registered users. Personal data is processed in accordance with the legislation of the Russian Federation.",
+          'The administration of tomilo-lib.ru (hereinafter — "we", "the Site") is committed to protecting the privacy of users\' personal data. This Policy defines how we collect, store, use, and protect information received from visitors and registered users. Personal data is processed in accordance with the legislation of the Russian Federation.',
       },
       dataCollected: {
         title: "What Data We Collect",
@@ -181,7 +182,8 @@ const privacyPolicy = {
 
     contact: {
       title: "Contact Information",
-      description: "For questions regarding the processing of personal data and this Policy, please contact us at",
+      description:
+        "For questions regarding the processing of personal data and this Policy, please contact us at",
       email: "support@tomilo-lib.ru",
     },
 

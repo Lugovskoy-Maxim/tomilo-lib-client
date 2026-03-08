@@ -49,8 +49,11 @@ export const notificationsApi = createApi({
   keepUnusedDataFor: 300, // 5 минут — меньше лишних запросов при навигации
   endpoints: builder => ({
     // Получение уведомлений пользователя с пагинацией
-    getNotifications: builder.query<ApiResponseDto<NotificationsResponse>, { page?: number; limit?: number } | void>({
-      query: (params) => {
+    getNotifications: builder.query<
+      ApiResponseDto<NotificationsResponse>,
+      { page?: number; limit?: number } | void
+    >({
+      query: params => {
         const page = params?.page || 1;
         const limit = params?.limit || 20;
         return `/notifications?page=${page}&limit=${limit}`;
@@ -107,7 +110,10 @@ export const notificationsApi = createApi({
 
     // Admin: Get system notifications history
     getSystemNotifications: builder.query<
-      ApiResponseDto<{ notifications: SystemNotification[]; pagination: { total: number; page: number; limit: number; pages: number } }>,
+      ApiResponseDto<{
+        notifications: SystemNotification[];
+        pagination: { total: number; page: number; limit: number; pages: number };
+      }>,
       { page?: number; limit?: number }
     >({
       query: ({ page = 1, limit = 20 }) => ({
@@ -117,7 +123,10 @@ export const notificationsApi = createApi({
     }),
 
     // Admin: Send system notification
-    sendSystemNotification: builder.mutation<ApiResponseDto<SystemNotification>, SystemNotificationRequest>({
+    sendSystemNotification: builder.mutation<
+      ApiResponseDto<SystemNotification>,
+      SystemNotificationRequest
+    >({
       query: data => ({
         url: "/notifications/admin/system",
         method: "POST",

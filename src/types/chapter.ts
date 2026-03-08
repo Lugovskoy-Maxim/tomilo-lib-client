@@ -11,8 +11,7 @@ export const CHAPTER_ALLOWED_REACTION_EMOJIS = [
   "👏",
 ] as const;
 
-export type ChapterAllowedReactionEmoji =
-  (typeof CHAPTER_ALLOWED_REACTION_EMOJIS)[number];
+export type ChapterAllowedReactionEmoji = (typeof CHAPTER_ALLOWED_REACTION_EMOJIS)[number];
 
 /** Минимальная и максимальная оценка главы (шкала 1–10) */
 export const CHAPTER_RATING_MIN = 1;

@@ -24,7 +24,7 @@ function getStoredFont(): SiteFont {
 function applyFontToDocument(font: SiteFont) {
   if (typeof document === "undefined") return;
   const el = document.documentElement;
-  FONT_CLASSES.forEach((c) => el.classList.remove(`font-${c}`));
+  FONT_CLASSES.forEach(c => el.classList.remove(`font-${c}`));
   if (font !== "exo2") el.classList.add(`font-${font}`);
 }
 
@@ -64,9 +64,5 @@ export function FontProvider({ children }: FontProviderProps) {
     applyFontToDocument(value);
   }, []);
 
-  return (
-    <FontContext.Provider value={{ font, setFont }}>
-      {children}
-    </FontContext.Provider>
-  );
+  return <FontContext.Provider value={{ font, setFont }}>{children}</FontContext.Provider>;
 }

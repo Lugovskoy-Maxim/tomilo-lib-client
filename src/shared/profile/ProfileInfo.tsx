@@ -88,8 +88,8 @@ function UserStats({
         </span>
       )}
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]/50">
-        <Calendar1 className="w-3.5 h-3.5 text-[var(--chart-2)] shrink-0" />
-        С {new Date(userProfile.createdAt).toLocaleDateString("ru-RU")}
+        <Calendar1 className="w-3.5 h-3.5 text-[var(--chart-2)] shrink-0" />С{" "}
+        {new Date(userProfile.createdAt).toLocaleDateString("ru-RU")}
       </span>
     </div>
   );

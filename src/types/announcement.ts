@@ -38,10 +38,7 @@ export interface Announcement {
   updatedAt?: string;
 }
 
-export type CreateAnnouncementDto = Omit<
-  Announcement,
-  "id" | "createdAt" | "updatedAt"
-> & {
+export type CreateAnnouncementDto = Omit<Announcement, "id" | "createdAt" | "updatedAt"> & {
   id?: string;
 };
 

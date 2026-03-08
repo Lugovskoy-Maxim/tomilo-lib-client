@@ -31,12 +31,27 @@ import { AdminCard, AdminModal, ConfirmModal } from "./ui";
 import { useToast } from "@/hooks/useToast";
 import { Pagination } from "@/shared/ui/pagination";
 
-const NOTIFICATION_TYPES: { value: SystemNotificationType; label: string; icon: React.ElementType; color: string }[] = [
+const NOTIFICATION_TYPES: {
+  value: SystemNotificationType;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+}[] = [
   { value: "info", label: "Информация", icon: Info, color: "text-blue-500 bg-blue-500/10" },
   { value: "success", label: "Успех", icon: CheckCircle, color: "text-green-500 bg-green-500/10" },
-  { value: "warning", label: "Предупреждение", icon: AlertTriangle, color: "text-yellow-500 bg-yellow-500/10" },
+  {
+    value: "warning",
+    label: "Предупреждение",
+    icon: AlertTriangle,
+    color: "text-yellow-500 bg-yellow-500/10",
+  },
   { value: "error", label: "Ошибка", icon: XCircle, color: "text-red-500 bg-red-500/10" },
-  { value: "announcement", label: "Объявление", icon: Megaphone, color: "text-purple-500 bg-purple-500/10" },
+  {
+    value: "announcement",
+    label: "Объявление",
+    icon: Megaphone,
+    color: "text-purple-500 bg-purple-500/10",
+  },
 ];
 
 const TARGET_OPTIONS = [
@@ -54,10 +69,31 @@ const emptyForm = {
 };
 
 const NOTIFICATION_TEMPLATES = [
-  { name: "Обновление сайта", title: "Обновление сайта", message: "Мы выпустили новую версию сайта с улучшениями и исправлениями.", type: "info" as SystemNotificationType },
-  { name: "Технические работы", title: "Плановые работы", message: "Сегодня в 02:00 МСК будут проводиться технические работы. Возможны кратковременные перебои.", type: "warning" as SystemNotificationType },
-  { name: "Новый контент", title: "Новые главы!", message: "Добавлены новые главы популярных тайтлов. Приятного чтения!", type: "success" as SystemNotificationType },
-  { name: "Важное событие", title: "Важное объявление", message: "У нас важные новости для сообщества!", type: "announcement" as SystemNotificationType },
+  {
+    name: "Обновление сайта",
+    title: "Обновление сайта",
+    message: "Мы выпустили новую версию сайта с улучшениями и исправлениями.",
+    type: "info" as SystemNotificationType,
+  },
+  {
+    name: "Технические работы",
+    title: "Плановые работы",
+    message:
+      "Сегодня в 02:00 МСК будут проводиться технические работы. Возможны кратковременные перебои.",
+    type: "warning" as SystemNotificationType,
+  },
+  {
+    name: "Новый контент",
+    title: "Новые главы!",
+    message: "Добавлены новые главы популярных тайтлов. Приятного чтения!",
+    type: "success" as SystemNotificationType,
+  },
+  {
+    name: "Важное событие",
+    title: "Важное объявление",
+    message: "У нас важные новости для сообщества!",
+    type: "announcement" as SystemNotificationType,
+  },
 ];
 
 export function NotificationsSection() {
@@ -72,7 +108,11 @@ export function NotificationsSection() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
-  const { data: notificationsData, isLoading, refetch } = useGetSystemNotificationsQuery({
+  const {
+    data: notificationsData,
+    isLoading,
+    refetch,
+  } = useGetSystemNotificationsQuery({
     page: currentPage,
     limit: 20,
   });
@@ -81,41 +121,48 @@ export function NotificationsSection() {
   const [deleteNotification] = useDeleteSystemNotificationMutation();
 
   const allNotifications = notificationsData?.data?.notifications || [];
-  const pagination = notificationsData?.data?.pagination || { total: 0, page: 1, limit: 20, pages: 0 };
+  const pagination = notificationsData?.data?.pagination || {
+    total: 0,
+    page: 1,
+    limit: 20,
+    pages: 0,
+  };
   const stats = statsData?.data;
 
   const notifications = useMemo(() => {
     let filtered = allNotifications;
-    
+
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(n => 
-        n.title.toLowerCase().includes(search) || 
-        n.message.toLowerCase().includes(search)
+      filtered = filtered.filter(
+        n => n.title.toLowerCase().includes(search) || n.message.toLowerCase().includes(search),
       );
     }
-    
+
     if (typeFilter) {
       filtered = filtered.filter(n => n.type === typeFilter);
     }
-    
+
     return filtered;
   }, [allNotifications, searchTerm, typeFilter]);
 
-  const handleResend = useCallback((notification: SystemNotification) => {
-    setForm({
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-      targetUsers: notification.targetUsers === "all" ? "all" : "active",
-      linkUrl: notification.linkUrl || "",
-      expiresAt: "",
-    });
-    setIsFormOpen(true);
-    toast.info("Данные скопированы в форму");
-  }, [toast]);
+  const handleResend = useCallback(
+    (notification: SystemNotification) => {
+      setForm({
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        targetUsers: notification.targetUsers === "all" ? "all" : "active",
+        linkUrl: notification.linkUrl || "",
+        expiresAt: "",
+      });
+      setIsFormOpen(true);
+      toast.info("Данные скопированы в форму");
+    },
+    [toast],
+  );
 
-  const handleUseTemplate = useCallback((template: typeof NOTIFICATION_TEMPLATES[0]) => {
+  const handleUseTemplate = useCallback((template: (typeof NOTIFICATION_TEMPLATES)[0]) => {
     setForm({
       ...emptyForm,
       title: template.title,
@@ -250,7 +297,9 @@ export function NotificationsSection() {
           {/* Templates */}
           {showTemplates && (
             <div className="p-3 sm:p-4 rounded-lg bg-[var(--secondary)] border border-[var(--border)]">
-              <p className="text-xs sm:text-sm font-medium text-[var(--foreground)] mb-2">Быстрые шаблоны</p>
+              <p className="text-xs sm:text-sm font-medium text-[var(--foreground)] mb-2">
+                Быстрые шаблоны
+              </p>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {NOTIFICATION_TEMPLATES.map((template, idx) => (
                   <button
@@ -258,8 +307,12 @@ export function NotificationsSection() {
                     onClick={() => handleUseTemplate(template)}
                     className="p-2 sm:p-3 rounded-lg bg-[var(--card)] border border-[var(--border)] hover:border-[var(--primary)]/50 text-left transition-colors"
                   >
-                    <p className="text-xs sm:text-sm font-medium text-[var(--foreground)] truncate">{template.name}</p>
-                    <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate mt-0.5">{template.title}</p>
+                    <p className="text-xs sm:text-sm font-medium text-[var(--foreground)] truncate">
+                      {template.name}
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate mt-0.5">
+                      {template.title}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -289,7 +342,9 @@ export function NotificationsSection() {
                           <TypeIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">{notification.title}</h4>
+                          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">
+                            {notification.title}
+                          </h4>
                           <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-0.5 sm:mt-1 line-clamp-2">
                             {notification.message}
                           </p>
@@ -302,10 +357,18 @@ export function NotificationsSection() {
                                   ? "Активные"
                                   : `${(notification.targetUsers as string[]).length}`}
                             </span>
-                            <span className="hidden min-[400px]:inline">Отпр: {notification.sentCount}</span>
-                            <span className="hidden min-[400px]:inline">Прочит: {notification.readCount}</span>
-                            <span className="min-[400px]:hidden">{notification.sentCount}/{notification.readCount}</span>
-                            <span className="hidden sm:inline">{formatDate(notification.createdAt)}</span>
+                            <span className="hidden min-[400px]:inline">
+                              Отпр: {notification.sentCount}
+                            </span>
+                            <span className="hidden min-[400px]:inline">
+                              Прочит: {notification.readCount}
+                            </span>
+                            <span className="min-[400px]:hidden">
+                              {notification.sentCount}/{notification.readCount}
+                            </span>
+                            <span className="hidden sm:inline">
+                              {formatDate(notification.createdAt)}
+                            </span>
                             {notification.linkUrl && (
                               <span className="flex items-center gap-1">
                                 <LinkIcon className="w-3 h-3" />
@@ -418,7 +481,9 @@ export function NotificationsSection() {
 
           <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">Тип</label>
+              <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
+                Тип
+              </label>
               <select
                 value={form.type}
                 onChange={e => setForm({ ...form, type: e.target.value as SystemNotificationType })}
@@ -437,7 +502,9 @@ export function NotificationsSection() {
               </label>
               <select
                 value={form.targetUsers}
-                onChange={e => setForm({ ...form, targetUsers: e.target.value as "all" | "active" })}
+                onChange={e =>
+                  setForm({ ...form, targetUsers: e.target.value as "all" | "active" })
+                }
                 className="admin-input w-full text-sm"
               >
                 {TARGET_OPTIONS.map(option => (
@@ -484,10 +551,18 @@ export function NotificationsSection() {
           </div>
 
           <div className="flex justify-end gap-2 pt-3 sm:pt-4">
-            <button type="button" onClick={() => setIsFormOpen(false)} className="admin-btn-secondary text-xs sm:text-sm px-3 py-2">
+            <button
+              type="button"
+              onClick={() => setIsFormOpen(false)}
+              className="admin-btn-secondary text-xs sm:text-sm px-3 py-2"
+            >
               Отмена
             </button>
-            <button type="submit" disabled={isSending} className="admin-btn-primary flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 py-2">
+            <button
+              type="submit"
+              disabled={isSending}
+              className="admin-btn-primary flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 py-2"
+            >
               <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {isSending ? "..." : "Отправить"}
             </button>

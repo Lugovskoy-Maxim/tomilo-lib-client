@@ -81,7 +81,9 @@ if (process.env.ANALYZE === "true") {
     const bundleAnalyzer = require("@next/bundle-analyzer");
     finalConfig = bundleAnalyzer({ enabled: true })(nextConfig);
   } catch {
-    console.warn("⚠️  @next/bundle-analyzer not installed. Run: npm install -D @next/bundle-analyzer");
+    console.warn(
+      "⚠️  @next/bundle-analyzer not installed. Run: npm install -D @next/bundle-analyzer",
+    );
   }
 }
 

@@ -59,12 +59,12 @@ export default function PageThumbnails({
     if (!isOpen || !loadMoreRef.current) return;
 
     observerRef.current = new IntersectionObserver(
-      (entries) => {
+      entries => {
         if (!entries[0]?.isIntersecting) return;
         const total = imagesLengthRef.current;
         setDisplayedCount(prev => (prev < total ? Math.min(total, prev + ITEMS_PER_PAGE) : prev));
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observerRef.current.observe(loadMoreRef.current);
@@ -76,7 +76,7 @@ export default function PageThumbnails({
 
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
@@ -87,13 +87,16 @@ export default function PageThumbnails({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  const handlePageClick = useCallback((page: number) => {
-    onPageSelect(page);
-    onClose();
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate(10);
-    }
-  }, [onPageSelect, onClose]);
+  const handlePageClick = useCallback(
+    (page: number) => {
+      onPageSelect(page);
+      onClose();
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate(10);
+      }
+    },
+    [onPageSelect, onClose],
+  );
 
   const handleImageLoad = useCallback((index: number) => {
     setLoadedImages(prev => new Set(prev).add(index));
@@ -110,12 +113,13 @@ export default function PageThumbnails({
   const displayedImages = images.slice(0, displayedCount);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Сетка страниц главы">
-      <div
-        className="absolute inset-0 bg-black/80"
-        onClick={onClose}
-        aria-hidden
-      />
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Сетка страниц главы"
+    >
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} aria-hidden />
 
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Шапка */}
@@ -148,17 +152,14 @@ export default function PageThumbnails({
 
         {/* Прогресс */}
         <div className="h-1 bg-[var(--muted)]">
-          <div 
+          <div
             className="h-full bg-[var(--primary)] transition-all"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
 
         {/* Сетка */}
-        <div 
-          ref={gridRef}
-          className="flex-1 overflow-y-auto p-2 sm:p-3"
-        >
+        <div ref={gridRef} className="flex-1 overflow-y-auto p-2 sm:p-3">
           <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
             {displayedImages.map((src, index) => {
               const pageNumber = index + 1;
@@ -177,12 +178,14 @@ export default function PageThumbnails({
                   }`}
                 >
                   {/* Placeholder */}
-                  <div className={`absolute inset-0 bg-[var(--muted)] flex items-center justify-center transition-opacity ${
-                    isLoaded ? "opacity-0" : "opacity-100"
-                  }`}>
+                  <div
+                    className={`absolute inset-0 bg-[var(--muted)] flex items-center justify-center transition-opacity ${
+                      isLoaded ? "opacity-0" : "opacity-100"
+                    }`}
+                  >
                     <span className="text-xs text-[var(--muted-foreground)]">{pageNumber}</span>
                   </div>
-                  
+
                   {/* Изображение */}
                   <img
                     src={getThumbUrl(src)}
@@ -193,10 +196,12 @@ export default function PageThumbnails({
                     loading="lazy"
                     onLoad={() => handleImageLoad(index)}
                   />
-                  
+
                   {/* Номер страницы */}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1">
-                    <span className={`text-xs font-bold ${isCurrent ? "text-[var(--primary)]" : "text-white"}`}>
+                    <span
+                      className={`text-xs font-bold ${isCurrent ? "text-[var(--primary)]" : "text-white"}`}
+                    >
                       {pageNumber}
                     </span>
                   </div>
@@ -230,7 +235,7 @@ export default function PageThumbnails({
             <ChevronsLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Начало</span>
           </button>
-          
+
           <div className="flex items-center gap-1">
             <button
               onClick={() => handlePageClick(Math.max(1, currentPage - 10))}
@@ -239,11 +244,11 @@ export default function PageThumbnails({
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            
+
             <span className="text-sm font-medium px-2 min-w-[60px] text-center">
               {currentPage}/{images.length}
             </span>
-            
+
             <button
               onClick={() => handlePageClick(Math.min(images.length, currentPage + 10))}
               disabled={currentPage >= images.length}

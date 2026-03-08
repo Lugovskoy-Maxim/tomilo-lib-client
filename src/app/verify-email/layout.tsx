@@ -5,10 +5,6 @@ export const metadata: Metadata = {
   description: "Подтверждение адреса электронной почты для учётной записи Tomilo-lib.ru",
 };
 
-export default function VerifyEmailLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function VerifyEmailLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

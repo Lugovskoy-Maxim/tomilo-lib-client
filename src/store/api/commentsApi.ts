@@ -12,11 +12,7 @@ import {
 } from "@/types/comment";
 
 /** Рекурсивно подменяет комментарий по _id в списке и во вложенных replies (мутирует массив для Immer). */
-function patchCommentInList(
-  comments: Comment[],
-  commentId: string,
-  updated: Comment
-): void {
+function patchCommentInList(comments: Comment[], commentId: string, updated: Comment): void {
   for (let i = 0; i < comments.length; i++) {
     if (comments[i]._id === commentId) {
       comments[i] = updated;
@@ -33,7 +29,6 @@ export const commentsApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Comments"],
   endpoints: builder => ({
-    // Получить комментарии
     getComments: builder.query<
       ApiResponseDto<CommentsResponse>,
       {
@@ -46,7 +41,14 @@ export const commentsApi = createApi({
         sortOrder?: "newest" | "oldest" | "popular";
       }
     >({
-      query: ({ entityType, entityId, page = 1, limit = 20, includeReplies = false, sortOrder }) => ({
+      query: ({
+        entityType,
+        entityId,
+        page = 1,
+        limit = 20,
+        includeReplies = false,
+        sortOrder,
+      }) => ({
         url: "/comments",
         params: {
           entityType,
@@ -62,13 +64,11 @@ export const commentsApi = createApi({
       ],
     }),
 
-    // Получить один комментарий
     getComment: builder.query<ApiResponseDto<Comment>, string>({
       query: id => `/comments/${id}`,
       providesTags: (result, error, id) => [{ type: "Comments", id }],
     }),
 
-    // Создать комментарий
     createComment: builder.mutation<ApiResponseDto<Comment>, CreateCommentDto>({
       query: commentData => ({
         url: "/comments",
@@ -81,7 +81,6 @@ export const commentsApi = createApi({
       ],
     }),
 
-    // Обновить комментарий
     updateComment: builder.mutation<
       ApiResponseDto<Comment>,
       { id: string; data: UpdateCommentDto }
@@ -94,7 +93,6 @@ export const commentsApi = createApi({
       invalidatesTags: (result, error, arg) => [{ type: "Comments", id: arg.id }],
     }),
 
-    // Удалить комментарий
     deleteComment: builder.mutation<ApiResponseDto<void>, string>({
       query: id => ({
         url: `/comments/${id}`,
@@ -103,7 +101,6 @@ export const commentsApi = createApi({
       invalidatesTags: (result, error, id) => [{ type: "Comments", id }],
     }),
 
-    // Лайкнуть комментарий
     likeComment: builder.mutation<ApiResponseDto<Comment>, string>({
       query: id => ({
         url: `/comments/${id}/like`,
@@ -112,7 +109,6 @@ export const commentsApi = createApi({
       invalidatesTags: (result, error, id) => [{ type: "Comments", id }],
     }),
 
-    // Дизлайкнуть комментарий
     dislikeComment: builder.mutation<ApiResponseDto<Comment>, string>({
       query: id => ({
         url: `/comments/${id}/dislike`,
@@ -121,23 +117,15 @@ export const commentsApi = createApi({
       invalidatesTags: (result, error, id) => [{ type: "Comments", id }],
     }),
 
-    // ——— Реакции (как в Telegram) ———
-
-    // Список разрешённых эмодзи для пикера реакций
     getReactionEmojis: builder.query<ApiResponseDto<string[]>, void>({
       query: () => "/comments/reactions/emojis",
     }),
 
-    // Количество реакций по комментарию
-    getCommentReactionsCount: builder.query<
-      ApiResponseDto<CommentReactionsCountResponse>,
-      string
-    >({
+    getCommentReactionsCount: builder.query<ApiResponseDto<CommentReactionsCountResponse>, string>({
       query: id => `/comments/${id}/reactions/count`,
       providesTags: (result, error, id) => [{ type: "Comments", id }],
     }),
 
-    // Поставить или снять реакцию (повторный запрос с тем же emoji снимает)
     setCommentReaction: builder.mutation<
       ApiResponseDto<Comment>,
       { id: string; body: SetCommentReactionDto }
@@ -154,7 +142,7 @@ export const commentsApi = createApi({
           dispatch(
             commentsApi.util.updateQueryData("getComment", id, draft => {
               draft.data = updated;
-            })
+            }),
           );
           dispatch(
             commentsApi.util.updateQueryData(
@@ -168,8 +156,8 @@ export const commentsApi = createApi({
               },
               draft => {
                 patchCommentInList(draft.data.comments, id, updated);
-              }
-            )
+              },
+            ),
           );
           dispatch(
             commentsApi.util.updateQueryData(
@@ -183,17 +171,12 @@ export const commentsApi = createApi({
               },
               draft => {
                 patchCommentInList(draft.data.comments, id, updated);
-              }
-            )
+              },
+            ),
           );
-        } catch {
-          // при ошибке инвалидация обновит данные при следующем запросе
-        }
+        } catch {}
       },
-      invalidatesTags: (result, error, arg) => [
-        { type: "Comments", id: arg.id },
-        "Comments",
-      ],
+      invalidatesTags: (result, error, arg) => [{ type: "Comments", id: arg.id }, "Comments"],
     }),
   }),
 });

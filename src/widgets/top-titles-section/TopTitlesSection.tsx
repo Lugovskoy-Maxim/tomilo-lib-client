@@ -38,7 +38,10 @@ function Skeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {[...Array(12)].map((_, i) => (
-        <div key={i} className="flex gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]">
+        <div
+          key={i}
+          className="flex gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]"
+        >
           <div className="w-14 h-20 sm:w-20 sm:h-28 rounded-lg bg-[var(--muted)] animate-pulse shrink-0" />
           <div className="flex-1 min-w-0 py-1 space-y-2">
             <div className="h-4 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
@@ -59,12 +62,16 @@ function getColumnsFromWidth(width: number): number {
   return 1;
 }
 
-export default function TopTitlesSection({ standalone = false, limit = DEFAULT_LIMIT }: TopTitlesSectionProps) {
+export default function TopTitlesSection({
+  standalone = false,
+  limit = DEFAULT_LIMIT,
+}: TopTitlesSectionProps) {
   const { activePeriod, setActivePeriod } = usePeriodFilter();
   const { user } = useAuth();
   const { data: profileData } = useGetProfileQuery(undefined, { skip: !user });
   const includeAdult =
-    !user || (profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult) !== false;
+    !user ||
+    (profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult) !== false;
 
   const [columns, setColumns] = useState(3);
   useEffect(() => {
@@ -91,7 +98,8 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
   const list = useMemo(() => {
     return [...rawList].sort((a, b) => {
       const viewsA =
-        (a as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number }).views ??
+        (a as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number })
+          .views ??
         (activePeriod === "day"
           ? (a as { dayViews?: number }).dayViews
           : activePeriod === "week"
@@ -99,7 +107,8 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
             : (a as { monthViews?: number }).monthViews) ??
         0;
       const viewsB =
-        (b as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number }).views ??
+        (b as { views?: number; dayViews?: number; weekViews?: number; monthViews?: number })
+          .views ??
         (activePeriod === "day"
           ? (b as { dayViews?: number }).dayViews
           : activePeriod === "week"
@@ -132,7 +141,11 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
         ) => {
           const periodViews =
             t.views ??
-            (activePeriod === "day" ? t.dayViews : activePeriod === "week" ? t.weekViews : t.monthViews);
+            (activePeriod === "day"
+              ? t.dayViews
+              : activePeriod === "week"
+                ? t.weekViews
+                : t.monthViews);
           return {
             id: t.id,
             slug: t.slug,
@@ -175,7 +188,7 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex gap-1 p-1 rounded-xl bg-[var(--muted)]/30 border border-[var(--border)] w-full sm:w-auto sm:max-w-xs">
-            {PERIODS.map((p) => (
+            {PERIODS.map(p => (
               <button
                 key={p}
                 type="button"
@@ -214,7 +227,7 @@ export default function TopTitlesSection({ standalone = false, limit = DEFAULT_L
         </div>
       ) : (
         <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" role="list">
-          {cards.map((item) => (
+          {cards.map(item => (
             <li key={item.id}>
               <TopTitleCard data={item} />
             </li>

@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { Trophy, Crown, Clock, Star, MessageSquare, Flame, BookOpen } from "lucide-react";
-import { useUserLeaderboardPositions, UserLeaderboardPosition } from "@/hooks/useUserLeaderboardPositions";
+import {
+  useUserLeaderboardPositions,
+  UserLeaderboardPosition,
+} from "@/hooks/useUserLeaderboardPositions";
 import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
 
 const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
@@ -33,7 +36,7 @@ export default function ProfileLeaderboardBadges({ userId }: ProfileLeaderboardB
         </div>
         <h3 className="text-sm font-semibold text-[var(--foreground)]">В Топ-10</h3>
       </div>
-      
+
       <Link href="/leaders" className="block">
         <div className="flex flex-wrap gap-1.5">
           {positions.map(({ category, position, label }: UserLeaderboardPosition) => {

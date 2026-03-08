@@ -92,11 +92,16 @@ export default function BookmarkCard({
   };
 
   const showImage = title.coverImage && !imageError;
-  const categories: BookmarkCategory[] = ["reading", "planned", "completed", "favorites", "dropped"];
+  const categories: BookmarkCategory[] = [
+    "reading",
+    "planned",
+    "completed",
+    "favorites",
+    "dropped",
+  ];
 
   const totalChapters = title.totalChapters ?? 0;
-  const isFullyRead =
-    chaptersRead != null && totalChapters > 0 && chaptersRead >= totalChapters;
+  const isFullyRead = chaptersRead != null && totalChapters > 0 && chaptersRead >= totalChapters;
   const isTwoLeft =
     chaptersRead != null && totalChapters >= 2 && chaptersRead === totalChapters - 2;
   const borderClass = isFullyRead
@@ -156,7 +161,9 @@ export default function BookmarkCard({
                 disabled={isUpdatingCategory}
                 className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/25 transition-colors"
               >
-                <span className="truncate max-w-[72px] sm:max-w-[88px]">{CATEGORY_LABELS[category]}</span>
+                <span className="truncate max-w-[72px] sm:max-w-[88px]">
+                  {CATEGORY_LABELS[category]}
+                </span>
                 <ChevronDown
                   className={`w-3 h-3 flex-shrink-0 transition-transform ${categoryOpen ? "rotate-180" : ""}`}
                 />
@@ -211,16 +218,17 @@ export default function BookmarkCard({
               </span>
             ) : (
               <span>
-                <span className="font-semibold text-[var(--primary)]">{title.totalChapters}</span> глав
+                <span className="font-semibold text-[var(--primary)]">{title.totalChapters}</span>{" "}
+                глав
               </span>
             )}
           </div>
           {chaptersRead != null && chaptersRead > 0 && totalChapters > 0 && (
             <div className="w-full h-1.5 rounded-full bg-[var(--secondary)] overflow-hidden">
-              <div 
+              <div
                 className={`h-full rounded-full transition-all duration-300 ${
-                  isFullyRead 
-                    ? "bg-gradient-to-r from-amber-500 to-yellow-400" 
+                  isFullyRead
+                    ? "bg-gradient-to-r from-amber-500 to-yellow-400"
                     : "bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)]"
                 }`}
                 style={{ width: `${Math.min(100, (chaptersRead / totalChapters) * 100)}%` }}

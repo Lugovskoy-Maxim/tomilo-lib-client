@@ -64,7 +64,9 @@ export default function MobileCover({
       </h1>
 
       {isAdmin && (
-        <p className="text-center mt-2 text-xs text-[var(--muted-foreground)]">ID: {titleData._id}</p>
+        <p className="text-center mt-2 text-xs text-[var(--muted-foreground)]">
+          ID: {titleData._id}
+        </p>
       )}
 
       {/* Кнопки действий */}
@@ -84,7 +86,7 @@ export default function MobileCover({
             className="!p-0 w-12 h-12 min-w-[48px] rounded-xl flex items-center justify-center shrink-0"
           />
         </div>
-        
+
         {/* Вторичные действия: сетка 2 колонки — на мобильном не сжимает кнопки */}
         <div className="grid grid-cols-2 gap-2">
           <SubscribeButton titleId={titleData._id as string} className="min-w-0" />

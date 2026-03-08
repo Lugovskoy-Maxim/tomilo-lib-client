@@ -76,9 +76,9 @@ async function main() {
     results.push({ ...r, path, url });
   }
 
-  const ok = results.filter((r) => r.ok);
-  const notFound = results.filter((r) => r.status === 404);
-  const authOrOther = results.filter((r) => !r.ok && r.status !== 404);
+  const ok = results.filter(r => r.ok);
+  const notFound = results.filter(r => r.status === 404);
+  const authOrOther = results.filter(r => !r.ok && r.status !== 404);
 
   console.log("Результаты:\n");
   for (const r of results) {
@@ -95,16 +95,16 @@ async function main() {
 
   if (notFound.length > 0) {
     console.log("\nЭндпоинты с 404 (возможно не подключены на бэкенде):");
-    notFound.forEach((r) => console.log("  -", r.path, "(", r.name, ")"));
+    notFound.forEach(r => console.log("  -", r.path, "(", r.name, ")"));
   }
 
   if (authOrOther.length > 0) {
     console.log("\nОстальные не-2xx (могут требовать авторизацию или отключены):");
-    authOrOther.forEach((r) => console.log("  -", r.path, "→", r.status ?? r.error));
+    authOrOther.forEach(r => console.log("  -", r.path, "→", r.status ?? r.error));
   }
 }
 
-main().catch((e) => {
+main().catch(e => {
   console.error(e);
   process.exit(1);
 });

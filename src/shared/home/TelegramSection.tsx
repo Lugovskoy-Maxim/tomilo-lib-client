@@ -13,7 +13,6 @@ export function TelegramSection() {
   return (
     <section className="w-full">
       <div className="relative overflow-hidden bg-gradient-to-br from-[#0088cc]/20 via-[#00aaff]/10 to-[#0088cc]/5">
-        
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#0088cc]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#00aaff]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
@@ -22,13 +21,14 @@ export function TelegramSection() {
             <div className="relative flex-shrink-0 group">
               <div className="absolute inset-0 bg-[#0088cc]/20 rounded-full blur-xl group-hover:bg-[#0088cc]/30 transition-colors" />
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32">
-                <Image 
-                  src="/tg/tg.png" 
-                  alt="Telegram" 
+                <Image
+                  src="/tg/tg.png"
+                  alt="Telegram"
                   fill
                   className="object-contain drop-shadow-lg"
-                  style={{ 
-                    filter: "brightness(0) saturate(100%) invert(38%) sepia(98%) saturate(1029%) hue-rotate(175deg) brightness(96%) contrast(101%)" 
+                  style={{
+                    filter:
+                      "brightness(0) saturate(100%) invert(38%) sepia(98%) saturate(1029%) hue-rotate(175deg) brightness(96%) contrast(101%)",
                   }}
                 />
               </div>
@@ -38,14 +38,15 @@ export function TelegramSection() {
               <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-2">
                 Присоединяйтесь к нам в Telegram
               </h3>
-              
+
               <p className="text-sm sm:text-base text-[var(--muted-foreground)] mb-4 max-w-xl">
-                Будьте первыми, кто узнает о новых релизах, участвуйте в обсуждениях и получайте эксклюзивный контент.
+                Будьте первыми, кто узнает о новых релизах, участвуйте в обсуждениях и получайте
+                эксклюзивный контент.
               </p>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-5">
                 {TELEGRAM_FEATURES.map((feature, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="flex items-center gap-1.5 text-xs sm:text-sm text-[var(--muted-foreground)]"
                   >

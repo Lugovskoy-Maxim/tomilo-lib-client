@@ -105,7 +105,11 @@ export default function ChapterEditorPage() {
         isPublished: chapterData.isPublished ?? true,
         isPaid: chapterData.isPaid ?? false,
         unlockPrice: chapterData.unlockPrice ?? 0,
-        freeAt: chapterData.freeAt ? (typeof chapterData.freeAt === "string" ? chapterData.freeAt.slice(0, 16) : new Date(chapterData.freeAt).toISOString().slice(0, 16)) : null,
+        freeAt: chapterData.freeAt
+          ? typeof chapterData.freeAt === "string"
+            ? chapterData.freeAt.slice(0, 16)
+            : new Date(chapterData.freeAt).toISOString().slice(0, 16)
+          : null,
       });
     } else if (apiError) {
       toast.error("Ошибка при загрузке данных главы");
@@ -340,7 +344,10 @@ export default function ChapterEditorPage() {
               { name: "Редактирование", href: `/admin/titles/edit/${titleId}` },
               { name: titleData?.name || "Тайтл", href: `/admin/titles/edit/${titleId}` },
               { name: "Главы", href: `/admin/titles/edit/${titleId}/chapters` },
-              { name: `Глава ${formData.chapterNumber || ""}`.trim() || "Редактирование", isCurrent: true },
+              {
+                name: `Глава ${formData.chapterNumber || ""}`.trim() || "Редактирование",
+                isCurrent: true,
+              },
             ]}
             className="mb-6"
           />
@@ -376,7 +383,9 @@ export default function ChapterEditorPage() {
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">Номер главы</label>
+                  <label className="block mb-1 text-sm font-medium text-[var(--foreground)]">
+                    Номер главы
+                  </label>
                   <input
                     type="number"
                     value={formData.chapterNumber}
@@ -399,7 +408,7 @@ export default function ChapterEditorPage() {
             {/* Секция команды перевода */}
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">Команда перевода</h2>
-              
+
               <div className="pb-4 border-b border-[var(--border)]">
                 <TranslatorTeamSelect
                   titleId={titleId}
@@ -419,7 +428,9 @@ export default function ChapterEditorPage() {
                 </p>
               </div>
 
-              <h3 className="text-sm font-medium text-[var(--foreground)] pt-2">Участники (вручную)</h3>
+              <h3 className="text-sm font-medium text-[var(--foreground)] pt-2">
+                Участники (вручную)
+              </h3>
               <p className="text-xs text-[var(--muted-foreground)] -mt-2">
                 Если команда не зарегистрирована, можно указать участников вручную
               </p>
@@ -471,9 +482,7 @@ export default function ChapterEditorPage() {
                   <input
                     type="checkbox"
                     checked={formData.isPaid ?? false}
-                    onChange={e =>
-                      setFormData(prev => ({ ...prev, isPaid: e.target.checked }))
-                    }
+                    onChange={e => setFormData(prev => ({ ...prev, isPaid: e.target.checked }))}
                     className="rounded border-[var(--border)]"
                   />
                   <span className="text-sm text-[var(--foreground)]">Платная глава</span>

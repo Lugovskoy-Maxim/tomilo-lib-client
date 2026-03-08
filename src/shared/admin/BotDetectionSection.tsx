@@ -16,18 +16,34 @@ function useEmptyBotStats() {
 function useEmptySuspiciousUsers(_opts: { page: number; limit: number }) {
   return { data: undefined, isLoading: false, refetch: () => {} };
 }
-function useEmptyResetBotStatus(): [(id: string) => { unwrap: () => Promise<unknown> }, { isLoading: boolean }] {
+function useEmptyResetBotStatus(): [
+  (id: string) => { unwrap: () => Promise<unknown> },
+  { isLoading: boolean },
+] {
   return [() => ({ unwrap: async () => {} }), { isLoading: false }];
 }
 
-const useGetBotStatsQuerySafe = typeof adminApi.useGetBotStatsQuery === "function" ? adminApi.useGetBotStatsQuery : useEmptyBotStats;
-const useGetSuspiciousUsersQuerySafe = typeof adminApi.useGetSuspiciousUsersQuery === "function" ? adminApi.useGetSuspiciousUsersQuery : useEmptySuspiciousUsers;
-const useResetBotStatusMutationSafe = typeof adminApi.useResetBotStatusMutation === "function" ? adminApi.useResetBotStatusMutation : useEmptyResetBotStatus;
+const useGetBotStatsQuerySafe =
+  typeof adminApi.useGetBotStatsQuery === "function"
+    ? adminApi.useGetBotStatsQuery
+    : useEmptyBotStats;
+const useGetSuspiciousUsersQuerySafe =
+  typeof adminApi.useGetSuspiciousUsersQuery === "function"
+    ? adminApi.useGetSuspiciousUsersQuery
+    : useEmptySuspiciousUsers;
+const useResetBotStatusMutationSafe =
+  typeof adminApi.useResetBotStatusMutation === "function"
+    ? adminApi.useResetBotStatusMutation
+    : useEmptyResetBotStatus;
 
 export function BotDetectionSection() {
   const [page, setPage] = useState(1);
   const { data: statsData } = useGetBotStatsQuerySafe();
-  const { data: usersData, isLoading, refetch } = useGetSuspiciousUsersQuerySafe({ page, limit: PAGE_SIZE });
+  const {
+    data: usersData,
+    isLoading,
+    refetch,
+  } = useGetSuspiciousUsersQuerySafe({ page, limit: PAGE_SIZE });
   const [resetBotStatus, { isLoading: isResetting }] = useResetBotStatusMutationSafe();
   const toast = useToast();
 
@@ -41,7 +57,8 @@ export function BotDetectionSection() {
       toast.success("Статус бота сброшен");
       refetch();
     } catch (e: unknown) {
-      const msg = (e as { data?: { message?: string } })?.data?.message ?? "Не удалось сбросить статус";
+      const msg =
+        (e as { data?: { message?: string } })?.data?.message ?? "Не удалось сбросить статус";
       toast.error(msg);
     }
   };
@@ -79,7 +96,9 @@ export function BotDetectionSection() {
       {/* Список */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="flex items-center justify-between gap-4 p-4 border-b border-[var(--border)]">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Подозрительные пользователи</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            Подозрительные пользователи
+          </h2>
           <button
             type="button"
             onClick={() => refetch()}
@@ -98,23 +117,38 @@ export function BotDetectionSection() {
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             <ShieldCheck className="w-12 h-12 text-[var(--muted-foreground)]/50 mb-3" aria-hidden />
-            <p className="text-[var(--muted-foreground)] font-medium">Нет подозрительных пользователей</p>
-            <p className="text-sm text-[var(--muted-foreground)] mt-1">Пользователи, помеченные системой как подозрительные, появятся здесь.</p>
+            <p className="text-[var(--muted-foreground)] font-medium">
+              Нет подозрительных пользователей
+            </p>
+            <p className="text-sm text-[var(--muted-foreground)] mt-1">
+              Пользователи, помеченные системой как подозрительные, появятся здесь.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                  <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">Пользователь</th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--foreground)] hidden sm:table-cell">Email</th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--foreground)] hidden md:table-cell">Создан</th>
-                  <th className="text-right py-3 px-4 font-medium text-[var(--foreground)]">Действие</th>
+                  <th className="text-left py-3 px-4 font-medium text-[var(--foreground)]">
+                    Пользователь
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-[var(--foreground)] hidden sm:table-cell">
+                    Email
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-[var(--foreground)] hidden md:table-cell">
+                    Создан
+                  </th>
+                  <th className="text-right py-3 px-4 font-medium text-[var(--foreground)]">
+                    Действие
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user._id} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/20">
+                {users.map(user => (
+                  <tr
+                    key={user._id}
+                    className="border-b border-[var(--border)] hover:bg-[var(--muted)]/20"
+                  >
                     <td className="py-3 px-4">
                       <Link
                         href={`/admin?tab=users`}
@@ -165,7 +199,7 @@ export function BotDetectionSection() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page <= 1}
                 className="px-3 py-1.5 rounded-lg text-sm font-medium border border-[var(--border)] bg-[var(--background)] disabled:opacity-50"
               >
@@ -173,7 +207,7 @@ export function BotDetectionSection() {
               </button>
               <button
                 type="button"
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setPage(p => p + 1)}
                 disabled={users.length < PAGE_SIZE}
                 className="px-3 py-1.5 rounded-lg text-sm font-medium border border-[var(--border)] bg-[var(--background)] disabled:opacity-50"
               >

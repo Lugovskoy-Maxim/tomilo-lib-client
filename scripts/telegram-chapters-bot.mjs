@@ -91,15 +91,9 @@ function normalizeChapter(item, options) {
   const urlKey = options.urlKey || "url";
   const dateKey = options.dateKey || "publishedAt";
 
-  const id =
-    String(
-      item[idKey] ??
-        item.guid ??
-        item.link ??
-        item[urlKey] ??
-        item[titleKey] ??
-        "",
-    ).trim();
+  const id = String(
+    item[idKey] ?? item.guid ?? item.link ?? item[urlKey] ?? item[titleKey] ?? "",
+  ).trim();
   const title = String(item[titleKey] ?? item.title ?? "Новая глава").trim();
   const url = String(item[urlKey] ?? item.link ?? "").trim();
   const publishedAtRaw = item[dateKey] ?? item.pubDate ?? item.published ?? item.updated;
@@ -121,9 +115,7 @@ async function fetchChaptersFromJson(config) {
     throw new Error("JSON source must resolve to an array");
   }
 
-  return maybeItems
-    .map((item) => normalizeChapter(item, config))
-    .filter(Boolean);
+  return maybeItems.map(item => normalizeChapter(item, config)).filter(Boolean);
 }
 
 async function fetchChaptersFromRss(config) {
@@ -134,11 +126,11 @@ async function fetchChaptersFromRss(config) {
 
   const xml = await response.text();
   const blocks = [...xml.matchAll(/<(item|entry)\b[\s\S]*?<\/(item|entry)>/gi)].map(
-    (match) => match[0],
+    match => match[0],
   );
 
   return blocks
-    .map((block) => {
+    .map(block => {
       const title = stripXmlCdata(extractRssTag(block, "title") || "Новая глава");
       const guid = stripXmlCdata(extractRssTag(block, "guid"));
       const link = stripXmlCdata(extractRssLink(block));
@@ -160,10 +152,7 @@ async function fetchChaptersFromRss(config) {
 }
 
 function escapeHtml(input) {
-  return input
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+  return input.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
 function buildMessage(chapter) {
@@ -190,19 +179,16 @@ async function writeState(stateFilePath, sentIdsSet) {
 }
 
 async function sendTelegramMessage(config, text) {
-  const response = await fetch(
-    `https://api.telegram.org/bot${config.telegramToken}/sendMessage`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: config.telegramChatId,
-        text,
-        parse_mode: "HTML",
-        disable_web_page_preview: false,
-      }),
-    },
-  );
+  const response = await fetch(`https://api.telegram.org/bot${config.telegramToken}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: config.telegramChatId,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: false,
+    }),
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -223,7 +209,7 @@ async function runOnce(config) {
     return aTime - bTime;
   });
 
-  const fresh = sorted.filter((chapter) => !state.has(chapter.id));
+  const fresh = sorted.filter(chapter => !state.has(chapter.id));
 
   if (!fresh.length) {
     console.log("No new chapters found.");
@@ -262,9 +248,7 @@ function buildConfig() {
     urlKey: getEnv("CHAPTER_JSON_URL_KEY", false, "url"),
     dateKey: getEnv("CHAPTER_JSON_DATE_KEY", false, "publishedAt"),
     pollIntervalSeconds: Number(getEnv("CHAPTER_POLL_INTERVAL_SECONDS", false, "0")),
-    stateFilePath: path.isAbsolute(stateFile)
-      ? stateFile
-      : path.join(process.cwd(), stateFile),
+    stateFilePath: path.isAbsolute(stateFile) ? stateFile : path.join(process.cwd(), stateFile),
   };
 }
 
@@ -278,14 +262,14 @@ async function main() {
   if (Number.isFinite(config.pollIntervalSeconds) && config.pollIntervalSeconds > 0) {
     console.log(`Polling every ${config.pollIntervalSeconds} second(s).`);
     setInterval(() => {
-      runOnce(config).catch((error) => {
+      runOnce(config).catch(error => {
         console.error("Polling error:", error.message);
       });
     }, config.pollIntervalSeconds * 1000);
   }
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error(error.message);
   process.exit(1);
 });

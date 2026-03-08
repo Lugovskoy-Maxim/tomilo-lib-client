@@ -31,8 +31,22 @@
 }
 
 /* Modal overlay and content animations */
-@keyframes modal-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes modal-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modal-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
 
 @keyframes modal-content-in {
   from {
@@ -71,7 +85,9 @@
 
 /* Hover lift effect */
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .hover-lift:hover {
@@ -139,17 +155,39 @@
   animation-delay: var(--grid-delay, 0);
   opacity: 0;
 }
-.grid-item-delay-0 { --grid-delay: 0ms; }
-.grid-item-delay-1 { --grid-delay: 50ms; }
-.grid-item-delay-2 { --grid-delay: 100ms; }
-.grid-item-delay-3 { --grid-delay: 150ms; }
-.grid-item-delay-4 { --grid-delay: 200ms; }
-.grid-item-delay-5 { --grid-delay: 250ms; }
-.grid-item-delay-6 { --grid-delay: 300ms; }
-.grid-item-delay-7 { --grid-delay: 350ms; }
-.grid-item-delay-8 { --grid-delay: 400ms; }
-.grid-item-delay-9 { --grid-delay: 450ms; }
-.grid-item-delay-10 { --grid-delay: 500ms; }
+.grid-item-delay-0 {
+  --grid-delay: 0ms;
+}
+.grid-item-delay-1 {
+  --grid-delay: 50ms;
+}
+.grid-item-delay-2 {
+  --grid-delay: 100ms;
+}
+.grid-item-delay-3 {
+  --grid-delay: 150ms;
+}
+.grid-item-delay-4 {
+  --grid-delay: 200ms;
+}
+.grid-item-delay-5 {
+  --grid-delay: 250ms;
+}
+.grid-item-delay-6 {
+  --grid-delay: 300ms;
+}
+.grid-item-delay-7 {
+  --grid-delay: 350ms;
+}
+.grid-item-delay-8 {
+  --grid-delay: 400ms;
+}
+.grid-item-delay-9 {
+  --grid-delay: 450ms;
+}
+.grid-item-delay-10 {
+  --grid-delay: 500ms;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .grid-item-animate {
@@ -157,4 +195,3 @@
     opacity: 1;
   }
 }
-

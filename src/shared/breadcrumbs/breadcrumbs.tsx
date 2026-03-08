@@ -125,10 +125,16 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
         {generatedItems.map((item, index) => (
           <li key={index} className="breadcrumbs-item flex items-center">
             {item.href && !item.isCurrent ? (
-              <Link href={item.href} className="breadcrumbs-link inline-flex items-center text-[var(--muted-foreground)] no-underline transition-colors duration-150 outline-none hover:text-[var(--primary)] focus-visible:text-[var(--primary)] focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]">
+              <Link
+                href={item.href}
+                className="breadcrumbs-link inline-flex items-center text-[var(--muted-foreground)] no-underline transition-colors duration-150 outline-none hover:text-[var(--primary)] focus-visible:text-[var(--primary)] focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+              >
                 {index === 0 ? (
                   <span className="breadcrumbs-link-inner inline-flex items-center max-w-[120px] sm:max-w-64 md:max-w-80">
-                    <Home className="breadcrumbs-home-icon w-4 h-4 shrink-0 text-[var(--muted-foreground)] hover:text-[var(--primary)]" aria-hidden />
+                    <Home
+                      className="breadcrumbs-home-icon w-4 h-4 shrink-0 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                      aria-hidden
+                    />
                     <span className="sr-only">{item.name}</span>
                   </span>
                 ) : (
@@ -144,7 +150,10 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
               >
                 {index === 0 && !item.href ? (
                   <>
-                    <Home className="breadcrumbs-home-icon w-4 h-4 shrink-0 text-[var(--muted-foreground)]" aria-hidden />
+                    <Home
+                      className="breadcrumbs-home-icon w-4 h-4 shrink-0 text-[var(--muted-foreground)]"
+                      aria-hidden
+                    />
                     <span className="sr-only">{item.name}</span>
                   </>
                 ) : index === 0 ? null : (
@@ -154,7 +163,10 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
             )}
 
             {!item.isCurrent && index < generatedItems.length - 1 && (
-              <ChevronRight className="breadcrumbs-separator w-4 h-4 shrink-0 mx-1.5 opacity-70 text-[var(--muted-foreground)]" aria-hidden />
+              <ChevronRight
+                className="breadcrumbs-separator w-4 h-4 shrink-0 mx-1.5 opacity-70 text-[var(--muted-foreground)]"
+                aria-hidden
+              />
             )}
           </li>
         ))}

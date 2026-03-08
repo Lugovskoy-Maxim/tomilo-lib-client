@@ -17,7 +17,7 @@ export interface UseIntersectionTriggerOptions {
  */
 export function useIntersectionTrigger(
   onIntersect: () => void,
-  options: UseIntersectionTriggerOptions = {}
+  options: UseIntersectionTriggerOptions = {},
 ): (node: HTMLDivElement | null) => void {
   const { rootMargin = "300px", threshold = 0, enabled = true } = options;
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -40,10 +40,10 @@ export function useIntersectionTrigger(
           if (!entry?.isIntersecting || !enabledRef.current) return;
           onIntersectRef.current();
         },
-        { rootMargin, threshold }
+        { rootMargin, threshold },
       );
       observerRef.current.observe(node);
     },
-    [rootMargin, typeof threshold === "number" ? threshold : undefined]
+    [rootMargin, typeof threshold === "number" ? threshold : undefined],
   );
 }

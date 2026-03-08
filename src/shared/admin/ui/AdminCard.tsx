@@ -54,7 +54,8 @@ export function AdminCard({
     default: "bg-[var(--card)] border-[var(--border)]",
     elevated: "bg-[var(--card)] border-[var(--border)] shadow-lg shadow-black/5",
     outlined: "bg-transparent border-[var(--border)] border-dashed",
-    gradient: "bg-gradient-to-br from-[var(--card)] to-[var(--secondary)]/30 border-[var(--border)]",
+    gradient:
+      "bg-gradient-to-br from-[var(--card)] to-[var(--secondary)]/30 border-[var(--border)]",
   };
 
   return (
@@ -63,9 +64,10 @@ export function AdminCard({
       className={cn(
         "rounded-xl border overflow-hidden transition-all duration-200",
         variantStyles[variant],
-        interactive && "cursor-pointer hover:border-[var(--primary)]/50 hover:shadow-md hover:-translate-y-0.5",
+        interactive &&
+          "cursor-pointer hover:border-[var(--primary)]/50 hover:shadow-md hover:-translate-y-0.5",
         onClick && "cursor-pointer",
-        className
+        className,
       )}
     >
       {(title || icon || action) && (
@@ -134,56 +136,64 @@ const colorConfigs = {
   blue: {
     filled: "bg-blue-500/12 text-blue-600 dark:text-blue-400 border-blue-500/25",
     outlined: "border-blue-500/40 text-blue-600 dark:text-blue-400",
-    gradient: "bg-gradient-to-br from-blue-500/15 to-blue-600/5 border-blue-500/25 text-blue-600 dark:text-blue-400",
+    gradient:
+      "bg-gradient-to-br from-blue-500/15 to-blue-600/5 border-blue-500/25 text-blue-600 dark:text-blue-400",
     iconBg: "bg-blue-500/20",
     progressBg: "from-blue-500 to-blue-400",
   },
   green: {
     filled: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border-emerald-500/25",
     outlined: "border-emerald-500/40 text-emerald-600 dark:text-emerald-400",
-    gradient: "bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 border-emerald-500/25 text-emerald-600 dark:text-emerald-400",
+    gradient:
+      "bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 border-emerald-500/25 text-emerald-600 dark:text-emerald-400",
     iconBg: "bg-emerald-500/20",
     progressBg: "from-emerald-500 to-emerald-400",
   },
   purple: {
     filled: "bg-violet-500/12 text-violet-600 dark:text-violet-400 border-violet-500/25",
     outlined: "border-violet-500/40 text-violet-600 dark:text-violet-400",
-    gradient: "bg-gradient-to-br from-violet-500/15 to-violet-600/5 border-violet-500/25 text-violet-600 dark:text-violet-400",
+    gradient:
+      "bg-gradient-to-br from-violet-500/15 to-violet-600/5 border-violet-500/25 text-violet-600 dark:text-violet-400",
     iconBg: "bg-violet-500/20",
     progressBg: "from-violet-500 to-violet-400",
   },
   orange: {
     filled: "bg-orange-500/12 text-orange-600 dark:text-orange-400 border-orange-500/25",
     outlined: "border-orange-500/40 text-orange-600 dark:text-orange-400",
-    gradient: "bg-gradient-to-br from-orange-500/15 to-orange-600/5 border-orange-500/25 text-orange-600 dark:text-orange-400",
+    gradient:
+      "bg-gradient-to-br from-orange-500/15 to-orange-600/5 border-orange-500/25 text-orange-600 dark:text-orange-400",
     iconBg: "bg-orange-500/20",
     progressBg: "from-orange-500 to-orange-400",
   },
   red: {
     filled: "bg-red-500/12 text-red-600 dark:text-red-400 border-red-500/25",
     outlined: "border-red-500/40 text-red-600 dark:text-red-400",
-    gradient: "bg-gradient-to-br from-red-500/15 to-red-600/5 border-red-500/25 text-red-600 dark:text-red-400",
+    gradient:
+      "bg-gradient-to-br from-red-500/15 to-red-600/5 border-red-500/25 text-red-600 dark:text-red-400",
     iconBg: "bg-red-500/20",
     progressBg: "from-red-500 to-red-400",
   },
   cyan: {
     filled: "bg-cyan-500/12 text-cyan-600 dark:text-cyan-400 border-cyan-500/25",
     outlined: "border-cyan-500/40 text-cyan-600 dark:text-cyan-400",
-    gradient: "bg-gradient-to-br from-cyan-500/15 to-cyan-600/5 border-cyan-500/25 text-cyan-600 dark:text-cyan-400",
+    gradient:
+      "bg-gradient-to-br from-cyan-500/15 to-cyan-600/5 border-cyan-500/25 text-cyan-600 dark:text-cyan-400",
     iconBg: "bg-cyan-500/20",
     progressBg: "from-cyan-500 to-cyan-400",
   },
   pink: {
     filled: "bg-pink-500/12 text-pink-600 dark:text-pink-400 border-pink-500/25",
     outlined: "border-pink-500/40 text-pink-600 dark:text-pink-400",
-    gradient: "bg-gradient-to-br from-pink-500/15 to-pink-600/5 border-pink-500/25 text-pink-600 dark:text-pink-400",
+    gradient:
+      "bg-gradient-to-br from-pink-500/15 to-pink-600/5 border-pink-500/25 text-pink-600 dark:text-pink-400",
     iconBg: "bg-pink-500/20",
     progressBg: "from-pink-500 to-pink-400",
   },
   yellow: {
     filled: "bg-amber-500/12 text-amber-600 dark:text-amber-400 border-amber-500/25",
     outlined: "border-amber-500/40 text-amber-600 dark:text-amber-400",
-    gradient: "bg-gradient-to-br from-amber-500/15 to-amber-600/5 border-amber-500/25 text-amber-600 dark:text-amber-400",
+    gradient:
+      "bg-gradient-to-br from-amber-500/15 to-amber-600/5 border-amber-500/25 text-amber-600 dark:text-amber-400",
     iconBg: "bg-amber-500/20",
     progressBg: "from-amber-500 to-amber-400",
   },
@@ -234,7 +244,7 @@ export function StatCard({
         "rounded-xl border transition-all duration-200",
         sizeConfig.padding,
         colorConfig[variant],
-        onClick && "cursor-pointer hover:scale-[1.02] hover:shadow-md active:scale-[0.98]"
+        onClick && "cursor-pointer hover:scale-[1.02] hover:shadow-md active:scale-[0.98]",
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -263,9 +273,9 @@ export function StatCard({
               "inline-flex items-center gap-1 px-2 py-0.5 rounded-full",
               sizeConfig.trend,
               "font-medium",
-              trend.isPositive 
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" 
-                : "bg-red-500/15 text-red-600 dark:text-red-400"
+              trend.isPositive
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "bg-red-500/15 text-red-600 dark:text-red-400",
             )}
           >
             {trend.isPositive ? (
@@ -275,9 +285,7 @@ export function StatCard({
             )}
             {Math.abs(trend.value)}%
           </div>
-          {trend.label && (
-            <span className={cn("opacity-50", sizeConfig.trend)}>{trend.label}</span>
-          )}
+          {trend.label && <span className={cn("opacity-50", sizeConfig.trend)}>{trend.label}</span>}
         </div>
       )}
     </div>
@@ -305,9 +313,11 @@ export function MiniCard({
       className={cn(
         "p-3 rounded-xl border transition-all duration-200",
         "bg-[var(--card)] border-[var(--border)]",
-        hoverable && onClick && "cursor-pointer hover:border-[var(--primary)]/50 hover:shadow-sm hover:-translate-y-0.5",
+        hoverable &&
+          onClick &&
+          "cursor-pointer hover:border-[var(--primary)]/50 hover:shadow-sm hover:-translate-y-0.5",
         active && "border-[var(--primary)] bg-[var(--primary)]/5 shadow-sm",
-        className
+        className,
       )}
     >
       {children}
@@ -380,7 +390,7 @@ export function ActionCard({
         "text-left transition-all duration-200",
         "hover:border-[var(--primary)]/50 hover:shadow-md hover:-translate-y-0.5",
         "active:scale-[0.98]",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+        "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none",
       )}
     >
       <div className="flex items-start gap-3">
@@ -391,16 +401,20 @@ export function ActionCard({
           <div className="flex items-center gap-2">
             <h4 className="font-medium text-[var(--foreground)] text-sm truncate">{title}</h4>
             {badge !== undefined && (
-              <span className={cn(
-                "px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0",
-                badgeColors[badgeColor]
-              )}>
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0",
+                  badgeColors[badgeColor],
+                )}
+              >
                 {badge}
               </span>
             )}
           </div>
           {description && (
-            <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-2">{description}</p>
+            <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-2">
+              {description}
+            </p>
           )}
         </div>
       </div>
@@ -431,18 +445,14 @@ export function InfoRow({ label, value, icon: Icon, copyable }: InfoRowProps) {
         {Icon && <Icon className="w-4 h-4" />}
         <span>{label}</span>
       </div>
-      <div 
+      <div
         className={cn(
           "text-sm font-medium text-[var(--foreground)]",
-          copyable && "cursor-pointer hover:text-[var(--primary)] transition-colors"
+          copyable && "cursor-pointer hover:text-[var(--primary)] transition-colors",
         )}
         onClick={handleCopy}
       >
-        {copied ? (
-          <span className="text-emerald-500">Скопировано!</span>
-        ) : (
-          value
-        )}
+        {copied ? <span className="text-emerald-500">Скопировано!</span> : value}
       </div>
     </div>
   );

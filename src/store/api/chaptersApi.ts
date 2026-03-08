@@ -51,13 +51,9 @@ function normalizeChaptersResponse(
     chapters.length ??
     0;
   const page: number =
-    ((resp.pagination as Record<string, unknown>)?.page as number) ??
-    (resp.page as number) ??
-    1;
+    ((resp.pagination as Record<string, unknown>)?.page as number) ?? (resp.page as number) ?? 1;
   const limit: number =
-    ((resp.pagination as Record<string, unknown>)?.limit as number) ??
-    (resp.limit as number) ??
-    50;
+    ((resp.pagination as Record<string, unknown>)?.limit as number) ?? (resp.limit as number) ?? 50;
   const totalPages: number =
     ((resp.pagination as Record<string, unknown>)?.pages as number) ??
     (resp.totalPages as number) ??
@@ -140,7 +136,10 @@ export const chaptersApi = createApi({
         const fileOrder = sortedPages.map(file => file.name);
         formData.append("fileOrder", JSON.stringify(fileOrder));
         sortedPages.forEach((file, index) => {
-          formData.append(`pages`, new File([file], `${String(index).padStart(6, "0")}_${file.name}`, { type: file.type }));
+          formData.append(
+            `pages`,
+            new File([file], `${String(index).padStart(6, "0")}_${file.name}`, { type: file.type }),
+          );
         });
         return {
           url: "/chapters/upload",
@@ -162,7 +161,10 @@ export const chaptersApi = createApi({
         const fileOrder = sortedPages.map(file => file.name);
         formData.append("fileOrder", JSON.stringify(fileOrder));
         sortedPages.forEach((file, index) => {
-          formData.append(`pages`, new File([file], `${String(index).padStart(6, "0")}_${file.name}`, { type: file.type }));
+          formData.append(
+            `pages`,
+            new File([file], `${String(index).padStart(6, "0")}_${file.name}`, { type: file.type }),
+          );
         });
         return {
           url: `/chapters/${id}/pages`,
@@ -245,10 +247,7 @@ export const chaptersApi = createApi({
     }),
 
     // Сводка по реакциям главы (эмодзи и счётчики)
-    getChapterReactionsCount: builder.query<
-      ApiResponseDto<ChapterReactionsCountResponse>,
-      string
-    >({
+    getChapterReactionsCount: builder.query<ApiResponseDto<ChapterReactionsCountResponse>, string>({
       query: chapterId => `/chapters/${chapterId}/reactions/count`,
       providesTags: (result, error, chapterId) => [
         { type: CHAPTERS_TAG, id: chapterId },

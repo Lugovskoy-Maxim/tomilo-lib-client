@@ -5,10 +5,7 @@ import { Comment, ALLOWED_REACTION_EMOJIS, type CommentReactionCount } from "@/t
 import { useOverlay } from "@/contexts/OverlayContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import {
-  useDeleteCommentMutation,
-  useSetCommentReactionMutation,
-} from "@/store/api/commentsApi";
+import { useDeleteCommentMutation, useSetCommentReactionMutation } from "@/store/api/commentsApi";
 import { Reply, Edit, Trash2, MoreVertical, BadgeCheck, SmilePlus } from "lucide-react";
 import Link from "next/link";
 import UserAvatar from "@/shared/user/avatar";
@@ -48,13 +45,15 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const userData = typeof comment.userId === "object" ? comment.userId : null;
   const isAdmin = userData?.role === "admin";
   const isOwner = user && userData && user._id === userData._id;
-  const profileHref =
-    userData?._id ? (isOwner ? "/profile" : `/user/${encodeURIComponent(userData._id)}`) : null;
+  const profileHref = userData?._id
+    ? isOwner
+      ? "/profile"
+      : `/user/${encodeURIComponent(userData._id)}`
+    : null;
 
   const { badges: top10Badges } = useTop10Badge(userData?._id);
   const isInTop10 = top10Badges.length > 0;
 
-  // Реакции: из comment.reactions или из старых likes/dislikes
   const displayReactions = useMemo((): CommentReactionCount[] => {
     if (comment.reactions && comment.reactions.length > 0) {
       return comment.reactions;
@@ -90,18 +89,12 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     }
   };
 
-  // Рендер пикера в корневой слот оверлея (без портала), чтобы на мобильных
-  // position:fixed не привязывался к панели с transform
   useEffect(() => {
     if (!setOverlayContent) return;
     if (showEmojiPicker && pickerAnchorRect) {
       setOverlayContent(
         <>
-          <div
-            className="fixed inset-0 z-[100]"
-            aria-hidden
-            onClick={closeEmojiPicker}
-          />
+          <div className="fixed inset-0 z-[100]" aria-hidden onClick={closeEmojiPicker} />
           <div
             className="fixed z-[101] p-1.5 rounded-lg bg-[var(--card)] border border-[var(--border)] shadow-lg flex flex-wrap gap-0.5 max-w-[200px]"
             style={{
@@ -110,7 +103,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               transform: "translateY(-100%)",
             }}
           >
-            {ALLOWED_REACTION_EMOJIS.map((e) => (
+            {ALLOWED_REACTION_EMOJIS.map(e => (
               <button
                 key={e}
                 type="button"
@@ -121,7 +114,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               </button>
             ))}
           </div>
-        </>
+        </>,
       );
       return () => setOverlayContent(null);
     }
@@ -169,10 +162,12 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     <article
       id={`comment-${comment._id}`}
       className={`rounded-lg sm:rounded-xl overflow-hidden scroll-mt-4 transition-all ${
-        level > 0 ? "ml-3 sm:ml-5 mt-1.5 sm:mt-2 pl-2 sm:pl-3 border-l border-[var(--primary)]/20" : ""
+        level > 0
+          ? "ml-3 sm:ml-5 mt-1.5 sm:mt-2 pl-2 sm:pl-3 border-l border-[var(--primary)]/20"
+          : ""
       } ${
-        isInTop10 
-          ? "bg-gradient-to-br from-[var(--primary)]/8 via-[var(--primary)]/3 to-transparent border border-[var(--primary)]/15 shadow-sm shadow-[var(--primary)]/5" 
+        isInTop10
+          ? "bg-gradient-to-br from-[var(--primary)]/8 via-[var(--primary)]/3 to-transparent border border-[var(--primary)]/15 shadow-sm shadow-[var(--primary)]/5"
           : ""
       }`}
     >
@@ -184,10 +179,18 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               const avatarUrl = userData?.avatar
                 ? getCoverUrls(userData.avatar).primary
                 : undefined;
-              const equipped = (userData as { equippedDecorations?: EquippedDecorations; equipped_decorations?: EquippedDecorations })
-                ?.equippedDecorations ?? (userData as { equipped_decorations?: EquippedDecorations })?.equipped_decorations;
+              const equipped =
+                (
+                  userData as {
+                    equippedDecorations?: EquippedDecorations;
+                    equipped_decorations?: EquippedDecorations;
+                  }
+                )?.equippedDecorations ??
+                (userData as { equipped_decorations?: EquippedDecorations })?.equipped_decorations;
               const frameUrl = equipped ? getEquippedFrameUrl(equipped) : undefined;
-              const avatarDecorationUrl = equipped ? getEquippedAvatarDecorationUrl(equipped) : undefined;
+              const avatarDecorationUrl = equipped
+                ? getEquippedAvatarDecorationUrl(equipped)
+                : undefined;
               const avatarContent = (
                 <UserAvatar
                   avatarUrl={avatarUrl}
@@ -229,54 +232,61 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                   {isAdmin && (
                     <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" aria-label="Админ" />
                   )}
-                  {userData && isPremiumActive(userData.subscriptionExpiresAt ?? (userData as { subscription_expires_at?: string | null }).subscription_expires_at) && (
-                    <PremiumBadge size="xs" ariaLabel="Премиум" />
-                  )}
+                  {userData &&
+                    isPremiumActive(
+                      userData.subscriptionExpiresAt ??
+                        (userData as { subscription_expires_at?: string | null })
+                          .subscription_expires_at,
+                    ) && <PremiumBadge size="xs" ariaLabel="Премиум" />}
                 </span>
               </span>
-              <span className="text-[var(--muted-foreground)] text-[9px] sm:text-[10px] shrink-0">·</span>
+              <span className="text-[var(--muted-foreground)] text-[9px] sm:text-[10px] shrink-0">
+                ·
+              </span>
               <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] shrink-0">
                 {formatDate(comment.createdAt)}
               </span>
               {comment.isEdited && (
-                <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] italic shrink-0">изм.</span>
+                <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] italic shrink-0">
+                  изм.
+                </span>
               )}
-              
+
               {/* Right side: Top10 badge and owner menu */}
               <div className="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-wrap justify-end">
                 <LeaderTop10Badge userId={userData?._id} />
                 {isOwner && (
                   <div className="relative">
-                  <button
-                    onClick={() => setShowMenu(!showMenu)}
-                    className="p-1 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                    aria-label="Меню"
-                  >
-                    <MoreVertical className="w-3.5 h-3.5" />
-                  </button>
-                  {showMenu && (
-                    <div className="absolute right-0 top-full mt-0.5 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-10 min-w-[120px] overflow-hidden py-0.5">
-                      <button
-                        onClick={() => {
-                          onEdit?.(comment);
-                          setShowMenu(false);
-                        }}
-                        className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-[var(--foreground)]"
-                      >
-                        <Edit className="w-3.5 h-3.5 shrink-0" />
-                        Редактировать
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleDelete();
-                          setShowMenu(false);
-                        }}
-                        className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-red-500"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                        Удалить
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setShowMenu(!showMenu)}
+                      className="p-1 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                      aria-label="Меню"
+                    >
+                      <MoreVertical className="w-3.5 h-3.5" />
+                    </button>
+                    {showMenu && (
+                      <div className="absolute right-0 top-full mt-0.5 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-10 min-w-[120px] overflow-hidden py-0.5">
+                        <button
+                          onClick={() => {
+                            onEdit?.(comment);
+                            setShowMenu(false);
+                          }}
+                          className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-[var(--foreground)]"
+                        >
+                          <Edit className="w-3.5 h-3.5 shrink-0" />
+                          Редактировать
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDelete();
+                            setShowMenu(false);
+                          }}
+                          className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-red-500"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                          Удалить
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -306,9 +316,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               {user && (
                 <button
                   type="button"
-                  onClick={(e) =>
-                    showEmojiPicker ? closeEmojiPicker() : openEmojiPicker(e)
-                  }
+                  onClick={e => (showEmojiPicker ? closeEmojiPicker() : openEmojiPicker(e))}
                   className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
                   aria-label="Добавить реакцию"
                 >

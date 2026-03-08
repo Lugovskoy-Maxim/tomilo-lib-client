@@ -22,7 +22,11 @@ interface PremiumBadgeProps {
 /**
  * Значок премиум-подписчика (корона). Используется рядом с именем или на аватаре.
  */
-export function PremiumBadge({ size = "sm", className = "", ariaLabel = "Премиум" }: PremiumBadgeProps) {
+export function PremiumBadge({
+  size = "sm",
+  className = "",
+  ariaLabel = "Премиум",
+}: PremiumBadgeProps) {
   return (
     <span
       className={`inline-flex items-center justify-center text-amber-500 shrink-0 ${className}`}

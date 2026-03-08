@@ -1,6 +1,20 @@
 /* --- Mobile menu panel --- */
-@keyframes mobile-menu-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes mobile-menu-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes mobile-menu-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mobile-menu-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
 @keyframes mobile-menu-slide-in {
   from {
     opacity: 0;
@@ -40,7 +54,7 @@
 }
 
 .mobile-menu-item::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, var(--chart-1) 0%, var(--primary) 100%);

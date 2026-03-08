@@ -1,5 +1,13 @@
 import { UserProfile } from "@/types/user";
-import { Calendar, Clock, Mail, UserCheck, Share2, MessageCircle, ExternalLink } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Mail,
+  UserCheck,
+  Share2,
+  MessageCircle,
+  ExternalLink,
+} from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +28,8 @@ type PendingVkPayload = {
   device_id?: string;
   state?: string;
 };
-const YANDEX_CLIENT_ID = process.env.NEXT_PUBLIC_YANDEX_CLIENT_ID || "ffd24e1c16544069bc7a1e8c66316f37";
+const YANDEX_CLIENT_ID =
+  process.env.NEXT_PUBLIC_YANDEX_CLIENT_ID || "ffd24e1c16544069bc7a1e8c66316f37";
 
 interface ProfileAdditionalInfoProps {
   userProfile: UserProfile;
@@ -28,7 +37,10 @@ interface ProfileAdditionalInfoProps {
   isPublicView?: boolean;
 }
 
-export default function ProfileAdditionalInfo({ userProfile, isPublicView = false }: ProfileAdditionalInfoProps) {
+export default function ProfileAdditionalInfo({
+  userProfile,
+  isPublicView = false,
+}: ProfileAdditionalInfoProps) {
   const toast = useToast();
   const { user: currentUser, login: authLogin, refetchProfile } = useAuth();
   const [linkVk, { isLoading: isLinkingVk }] = useLinkVkMutation();
@@ -166,23 +178,33 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
         toast.success("VK ID успешно привязан");
       } catch (err: unknown) {
         const status = (err as { status?: number })?.status;
-        const data = (err as {
-          data?: {
+        const data = (
+          err as {
             data?: {
-              conflict?: boolean;
-              existingAccount?: LinkConflictExistingAccount;
-              provider?: "vk" | "vk_id" | "yandex";
+              data?: {
+                conflict?: boolean;
+                existingAccount?: LinkConflictExistingAccount;
+                provider?: "vk" | "vk_id" | "yandex";
+              };
+              message?: string;
+              errors?: Array<string | { message?: string }>;
             };
-            message?: string;
-            errors?: Array<string | { message?: string }>;
-          };
-        })?.data;
+          }
+        )?.data;
         if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
-          const provider = data.data.provider === "vk_id" ? "vk_id" : data.data.provider === "yandex" ? "yandex" : "vk";
+          const provider =
+            data.data.provider === "vk_id"
+              ? "vk_id"
+              : data.data.provider === "yandex"
+                ? "yandex"
+                : "vk";
           const acc = data.data.existingAccount;
           setConflict({
             provider,
-            existingAccount: { id: acc?.id ?? "", username: acc?.username ?? "другой пользователь" },
+            existingAccount: {
+              id: acc?.id ?? "",
+              username: acc?.username ?? "другой пользователь",
+            },
           });
           setPendingVk(payload);
         } else {
@@ -191,7 +213,9 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
           const msg = detailMsg ?? data?.message ?? "Не удалось привязать VK ID";
           const isServerError = status && status >= 500;
           const isCodeExpired =
-            status === 401 && (detailMsg?.toLowerCase().includes("invalid") || detailMsg?.toLowerCase().includes("expired"));
+            status === 401 &&
+            (detailMsg?.toLowerCase().includes("invalid") ||
+              detailMsg?.toLowerCase().includes("expired"));
           const fullMsg = isServerError
             ? "Ошибка сервера при привязке VK. Попробуйте позже или повторите вход через VK."
             : isCodeExpired
@@ -220,12 +244,18 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
         toast.success("Яндекс.ID успешно привязан");
       } catch (err: unknown) {
         const status = (err as { status?: number })?.status;
-        const data = (err as { data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount } } })?.data;
+        const data = (
+          err as {
+            data?: { data?: { conflict?: boolean; existingAccount?: LinkConflictExistingAccount } };
+          }
+        )?.data;
         if (status === 409 && data?.data?.conflict && data?.data?.existingAccount) {
           setConflict({ provider: "yandex", existingAccount: data.data.existingAccount });
           setPendingYandex(access_token ? { access_token } : null);
         } else {
-          const msg = (err as { data?: { message?: string } })?.data?.message ?? "Не удалось привязать Яндекс.ID";
+          const msg =
+            (err as { data?: { message?: string } })?.data?.message ??
+            "Не удалось привязать Яндекс.ID";
           toast.error(msg);
         }
       }
@@ -269,7 +299,9 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
     try {
       sessionStorage.setItem(YANDEX_LINK_MODE_KEY, "1");
       const redirectUri =
-        typeof window !== "undefined" ? `${window.location.origin}/auth/yandex` : "https://tomilo-lib.ru/auth/yandex";
+        typeof window !== "undefined"
+          ? `${window.location.origin}/auth/yandex`
+          : "https://tomilo-lib.ru/auth/yandex";
       const url = `https://oauth.yandex.ru/authorize?response_type=token&client_id=${YANDEX_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}`;
       window.open(url, "yandex_link", "width=500,height=600,scrollbars=yes");
     } catch {
@@ -314,7 +346,9 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
               <Clock className="w-3.5 h-3.5 text-[var(--chart-1)]" />
               Последний вход
             </span>
-            <span className="text-xs font-medium truncate">{userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "—"}</span>
+            <span className="text-xs font-medium truncate">
+              {userProfile.updatedAt ? formatLastLogin(userProfile.updatedAt) : "—"}
+            </span>
           </div>
         )}
 
@@ -323,7 +357,9 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
             <UserCheck className="w-3.5 h-3.5 text-[var(--chart-2)]" />
             Статус
           </span>
-          <span className="text-xs font-medium truncate">{userProfile.role === "admin" ? "Админ" : "Пользователь"}</span>
+          <span className="text-xs font-medium truncate">
+            {userProfile.role === "admin" ? "Админ" : "Пользователь"}
+          </span>
         </div>
 
         {!isPublicView && (
@@ -332,75 +368,103 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
               <Mail className="w-3.5 h-3.5 text-[var(--chart-3)]" />
               Email подтверждён
             </span>
-            <span className="text-xs font-medium truncate">{userProfile.emailVerified === true ? "Да" : "Нет"}</span>
+            <span className="text-xs font-medium truncate">
+              {userProfile.emailVerified === true ? "Да" : "Нет"}
+            </span>
           </div>
         )}
 
-        {userProfile.socialLinks && (userProfile.socialLinks.telegram || userProfile.socialLinks.discord || userProfile.socialLinks.vk) && (
-          <>
-            <p className="text-[11px] font-medium text-[var(--muted-foreground)] mt-3 mb-1.5">Контакты</p>
-            {userProfile.socialLinks.telegram && (
-              <a
-                href={`https://t.me/${userProfile.socialLinks.telegram.replace(/^@/, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-[#229ED9]/10 min-w-0 hover:bg-[#229ED9]/15 transition-colors group"
-              >
-                <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                  <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#229ED9]" />
-                  <span className="text-xs sm:text-sm text-[var(--foreground)]">Telegram</span>
+        {userProfile.socialLinks &&
+          (userProfile.socialLinks.telegram ||
+            userProfile.socialLinks.discord ||
+            userProfile.socialLinks.vk) && (
+            <>
+              <p className="text-[11px] font-medium text-[var(--muted-foreground)] mt-3 mb-1.5">
+                Контакты
+              </p>
+              {userProfile.socialLinks.telegram && (
+                <a
+                  href={`https://t.me/${userProfile.socialLinks.telegram.replace(/^@/, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-[#229ED9]/10 min-w-0 hover:bg-[#229ED9]/15 transition-colors group"
+                >
+                  <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                    <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#229ED9]" />
+                    <span className="text-xs sm:text-sm text-[var(--foreground)]">Telegram</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs sm:text-sm font-medium text-[#229ED9] truncate">
+                      @{userProfile.socialLinks.telegram.replace(/^@/, "")}
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-[#229ED9] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </div>
+                </a>
+              )}
+              {userProfile.socialLinks.discord && (
+                <div className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-[#5865F2]/10 min-w-0">
+                  <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                    <svg
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#5865F2]"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                    </svg>
+                    <span className="text-xs sm:text-sm text-[var(--foreground)]">Discord</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-[#5865F2] truncate">
+                    {userProfile.socialLinks.discord}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-xs sm:text-sm font-medium text-[#229ED9] truncate">@{userProfile.socialLinks.telegram.replace(/^@/, "")}</span>
-                  <ExternalLink className="w-3 h-3 text-[#229ED9] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                </div>
-              </a>
-            )}
-            {userProfile.socialLinks.discord && (
-              <div className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-[#5865F2]/10 min-w-0">
-                <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#5865F2]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                  </svg>
-                  <span className="text-xs sm:text-sm text-[var(--foreground)]">Discord</span>
-                </div>
-                <span className="text-xs sm:text-sm font-medium text-[#5865F2] truncate">{userProfile.socialLinks.discord}</span>
-              </div>
-            )}
-            {userProfile.socialLinks.vk && (
-              <a
-                href={`https://vk.com/${userProfile.socialLinks.vk}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-[#0077FF]/10 min-w-0 hover:bg-[#0077FF]/15 transition-colors group"
-              >
-                <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0077FF]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.408 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.862-.523-2.049-1.712-1.033-1.033-1.49-1.172-1.744-1.172-.356 0-.457.102-.457.592v1.561c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C4.624 10.857 4 8.58 4 8.097c0-.254.102-.492.593-.492h1.744c.44 0 .61.203.78.677.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.204.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.254-1.406 2.151-3.574 2.151-3.574.119-.254.322-.492.763-.492h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.049.17.49-.085.744-.576.744z"/>
-                  </svg>
-                  <span className="text-xs sm:text-sm text-[var(--foreground)]">VK</span>
-                </div>
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-xs sm:text-sm font-medium text-[#0077FF] truncate">{userProfile.socialLinks.vk}</span>
-                  <ExternalLink className="w-3 h-3 text-[#0077FF] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                </div>
-              </a>
-            )}
-          </>
-        )}
+              )}
+              {userProfile.socialLinks.vk && (
+                <a
+                  href={`https://vk.com/${userProfile.socialLinks.vk}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-2 py-2 px-3 rounded-lg bg-[#0077FF]/10 min-w-0 hover:bg-[#0077FF]/15 transition-colors group"
+                >
+                  <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                    <svg
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0077FF]"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.408 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.862-.523-2.049-1.712-1.033-1.033-1.49-1.172-1.744-1.172-.356 0-.457.102-.457.592v1.561c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C4.624 10.857 4 8.58 4 8.097c0-.254.102-.492.593-.492h1.744c.44 0 .61.203.78.677.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.721c-.068-1.186-.695-1.287-.695-1.71 0-.204.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.254-1.406 2.151-3.574 2.151-3.574.119-.254.322-.492.763-.492h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.049.17.49-.085.744-.576.744z" />
+                    </svg>
+                    <span className="text-xs sm:text-sm text-[var(--foreground)]">VK</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs sm:text-sm font-medium text-[#0077FF] truncate">
+                      {userProfile.socialLinks.vk}
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-[#0077FF] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </div>
+                </a>
+              )}
+            </>
+          )}
 
         {!isPublicView && (
           <>
             <p className="text-[11px] font-medium text-[var(--muted-foreground)] mt-3 mb-1.5">
               Вход через
-              {Array.isArray(userProfile.linkedProviders) && userProfile.linkedProviders.length > 0 && (
-                <span className="text-[var(--chart-2)] ml-1">
-                  {[
-                    ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "yandex") ? ["Яндекс"] : []),
-                    ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "vk" || p?.toLowerCase() === "vk_id") ? ["VK"] : []),
-                  ].join(", ")}
-                </span>
-              )}
+              {Array.isArray(userProfile.linkedProviders) &&
+                userProfile.linkedProviders.length > 0 && (
+                  <span className="text-[var(--chart-2)] ml-1">
+                    {[
+                      ...(userProfile.linkedProviders?.some(p => p?.toLowerCase() === "yandex")
+                        ? ["Яндекс"]
+                        : []),
+                      ...(userProfile.linkedProviders?.some(
+                        p => p?.toLowerCase() === "vk" || p?.toLowerCase() === "vk_id",
+                      )
+                        ? ["VK"]
+                        : []),
+                    ].join(", ")}
+                  </span>
+                )}
             </p>
             {(
               [
@@ -410,7 +474,9 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
             ).map(({ id, label, color }) => {
               const linked =
                 Array.isArray(userProfile.linkedProviders) &&
-                userProfile.linkedProviders.some(p => p?.toLowerCase() === id || (id === "vk" && p?.toLowerCase() === "vk_id"));
+                userProfile.linkedProviders.some(
+                  p => p?.toLowerCase() === id || (id === "vk" && p?.toLowerCase() === "vk_id"),
+                );
               return (
                 <div
                   key={id}
@@ -418,7 +484,9 @@ export default function ProfileAdditionalInfo({ userProfile, isPublicView = fals
                 >
                   <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
                     <Share2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${color}`} />
-                    <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">{label}</span>
+                    <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">
+                      {label}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 min-w-0">
                     {linked ? (

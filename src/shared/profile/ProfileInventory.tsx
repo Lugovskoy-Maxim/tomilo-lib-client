@@ -60,7 +60,7 @@ function resolveEquippedToId(value: unknown, list: Decoration[]): string {
   }
   if (!urlToMatch) return "";
   const pathKey = toPathKey(urlToMatch);
-  const found = list.find((d) => {
+  const found = list.find(d => {
     const decUrl = getDecorationImageUrl(d.imageUrl);
     if (!decUrl) return false;
     const decPath = toPathKey(decUrl);
@@ -82,24 +82,34 @@ const TYPE_CONFIG: Record<
 export default function ProfileInventory() {
   const toast = useToast();
   const { user } = useAuth();
-  const { data: userDecorations = [], isLoading: isLoadingUserDecorations, isError, refetch: refetchDecorations } = useGetUserProfileDecorationsQuery();
+  const {
+    data: userDecorations = [],
+    isLoading: isLoadingUserDecorations,
+    isError,
+    refetch: refetchDecorations,
+  } = useGetUserProfileDecorationsQuery();
   const { data: profileData, refetch: refetchProfile } = useGetProfileQuery();
   const ownedFromProfile = useMemo(
-    () => (profileData?.success && profileData.data
-      ? (profileData.data as UserProfile).ownedDecorations
-      : []) ?? [],
-    [profileData]
+    () =>
+      (profileData?.success && profileData.data
+        ? (profileData.data as UserProfile).ownedDecorations
+        : []) ?? [],
+    [profileData],
   );
   const needCatalogFallback = userDecorations.length === 0 && ownedFromProfile.length > 0;
   /** Каталог нужен и для fallback-списка, и для подстановки редкости в userDecorations (в профиле API может не отдавать rarity). */
   const needCatalog = needCatalogFallback || userDecorations.length > 0;
-  const { data: catalogDecorations = [], isLoading: isLoadingCatalog, refetch: refetchCatalog } = useGetDecorationsQuery(undefined, {
+  const {
+    data: catalogDecorations = [],
+    isLoading: isLoadingCatalog,
+    refetch: refetchCatalog,
+  } = useGetDecorationsQuery(undefined, {
     skip: !needCatalog,
     refetchOnMountOrArgChange: 60,
   });
   const isLoading = isLoadingUserDecorations || (needCatalogFallback && isLoadingCatalog);
   const profile = profileData?.success ? profileData.data : null;
-  const profileWithDecorations = profile as (typeof profile) & UserProfile | null;
+  const profileWithDecorations = profile as (typeof profile & UserProfile) | null;
   /** Надетые декорации: из ответа профиля (camelCase/snake_case) или из Auth (уже нормализовано). */
   const equippedRaw = (profileWithDecorations?.equippedDecorations ??
     (profileWithDecorations as unknown as Record<string, unknown>)?.equipped_decorations ??
@@ -107,7 +117,9 @@ export default function ProfileInventory() {
   const [equipDecoration] = useEquipDecorationMutation();
   const [unequipDecoration] = useUnequipDecorationMutation();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<"avatar" | "frame" | "background" | "card" | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<"avatar" | "frame" | "background" | "card" | "all">(
+    "all",
+  );
 
   /** Список для сопоставления URL→id (профиль может вернуть URL вместо id). */
   const resolutionList = useMemo(
@@ -122,16 +134,18 @@ export default function ProfileInventory() {
    */
   const { effectiveOwned, effectiveEquipped } = useMemo(() => {
     let owned: string[] = userDecorations.map((d: Decoration) => String(d.id));
-    let equipped: string[] = userDecorations.filter((d: Decoration) => d.isEquipped).map((d: Decoration) => String(d.id));
+    let equipped: string[] = userDecorations
+      .filter((d: Decoration) => d.isEquipped)
+      .map((d: Decoration) => String(d.id));
 
     if (owned.length === 0 && (profileWithDecorations?.ownedDecorations?.length ?? 0) > 0) {
-      owned = (profileWithDecorations!.ownedDecorations ?? []).map((e) => e.decorationId);
+      owned = (profileWithDecorations!.ownedDecorations ?? []).map(e => e.decorationId);
     }
     if (equipped.length === 0 && equippedRaw) {
       const raw = equippedRaw as Record<string, unknown>;
       const types = ["avatar", "frame", "background", "card"] as const;
       equipped = types
-        .map((type) => {
+        .map(type => {
           const val = raw[type] ?? raw[`${type}_id`];
           return resolveEquippedToId(val, resolutionList) || getEquippedId(val);
         })
@@ -159,22 +173,30 @@ export default function ProfileInventory() {
       if (dec) {
         return [{ ...dec, type, rarity: normalizeRarity(dec.rarity) }];
       }
-      return [{
-        id: entry.decorationId,
-        name: "",
-        description: "",
-        price: 0,
-        imageUrl: "",
-        type,
-        rarity: "common",
-      }];
+      return [
+        {
+          id: entry.decorationId,
+          name: "",
+          description: "",
+          price: 0,
+          imageUrl: "",
+          type,
+          rarity: "common",
+        },
+      ];
     });
   }, [userDecorations, ownedFromProfile, catalogDecorations]);
 
   /** Если в профиле есть купленные декорации, которых нет в каталоге (например, только что добавленные), подтягиваем каталог. */
   const hasRefetchedForMissing = useRef(false);
   useEffect(() => {
-    if (!needCatalog || catalogDecorations.length === 0 || ownedFromProfile.length === 0 || hasRefetchedForMissing.current) return;
+    if (
+      !needCatalog ||
+      catalogDecorations.length === 0 ||
+      ownedFromProfile.length === 0 ||
+      hasRefetchedForMissing.current
+    )
+      return;
     const catalogIds = new Set(catalogDecorations.map(d => d.id));
     const missing = ownedFromProfile.some(e => !catalogIds.has(e.decorationId));
     if (missing) {
@@ -207,7 +229,10 @@ export default function ProfileInventory() {
     return { total, equipped, byType, byRarity };
   }, [displayList, effectiveEquipped]);
 
-  const handleEquip = async (type: "avatar" | "frame" | "background" | "card", decorationId: string) => {
+  const handleEquip = async (
+    type: "avatar" | "frame" | "background" | "card",
+    decorationId: string,
+  ) => {
     setActionLoading(decorationId);
     try {
       await equipDecoration({ type, decorationId }).unwrap();
@@ -250,11 +275,15 @@ export default function ProfileInventory() {
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-[var(--foreground)]">
-                Инвентарь
-              </h2>
+              <h2 className="text-sm font-semibold text-[var(--foreground)]">Инвентарь</h2>
               <p className="text-[var(--muted-foreground)] text-sm">
-                {inventoryStats.total} {inventoryStats.total === 1 ? "предмет" : inventoryStats.total < 5 ? "предмета" : "предметов"} • {inventoryStats.equipped} надето
+                {inventoryStats.total}{" "}
+                {inventoryStats.total === 1
+                  ? "предмет"
+                  : inventoryStats.total < 5
+                    ? "предмета"
+                    : "предметов"}{" "}
+                • {inventoryStats.equipped} надето
               </p>
             </div>
           </div>
@@ -262,8 +291,7 @@ export default function ProfileInventory() {
             href="/tomilo-shop"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md shrink-0"
           >
-            <ShoppingBag className="w-4 h-4" />
-            В магазин
+            <ShoppingBag className="w-4 h-4" />В магазин
           </Link>
         </div>
 
@@ -272,32 +300,40 @@ export default function ProfileInventory() {
             {inventoryStats.byRarity.legendary > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
                 <Crown className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-medium text-amber-500">{inventoryStats.byRarity.legendary} легенд.</span>
+                <span className="text-xs font-medium text-amber-500">
+                  {inventoryStats.byRarity.legendary} легенд.
+                </span>
               </div>
             )}
             {inventoryStats.byRarity.epic > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
                 <Sparkles className="w-4 h-4 text-purple-500" />
-                <span className="text-xs font-medium text-purple-500">{inventoryStats.byRarity.epic} эпич.</span>
+                <span className="text-xs font-medium text-purple-500">
+                  {inventoryStats.byRarity.epic} эпич.
+                </span>
               </div>
             )}
             {inventoryStats.byRarity.rare > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
                 <Package className="w-4 h-4 text-blue-500" />
-                <span className="text-xs font-medium text-blue-500">{inventoryStats.byRarity.rare} редких</span>
+                <span className="text-xs font-medium text-blue-500">
+                  {inventoryStats.byRarity.rare} редких
+                </span>
               </div>
             )}
             {inventoryStats.byRarity.common > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60">
                 <Package className="w-4 h-4 text-[var(--muted-foreground)]" />
-                <span className="text-xs font-medium text-[var(--muted-foreground)]">{inventoryStats.byRarity.common} обычных</span>
+                <span className="text-xs font-medium text-[var(--muted-foreground)]">
+                  {inventoryStats.byRarity.common} обычных
+                </span>
               </div>
             )}
           </div>
         )}
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {(["all", "avatar", "frame", "background", "card"] as const).map((t) => {
+          {(["all", "avatar", "frame", "background", "card"] as const).map(t => {
             const config = t === "all" ? null : TYPE_CONFIG[t];
             return (
               <button
@@ -310,7 +346,14 @@ export default function ProfileInventory() {
                     : "bg-[var(--secondary)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
                 }`}
               >
-                {t === "all" ? "Все" : config && <span className="flex items-center gap-2"><config.icon className="w-4 h-4" />{config.label}</span>}
+                {t === "all"
+                  ? "Все"
+                  : config && (
+                      <span className="flex items-center gap-2">
+                        <config.icon className="w-4 h-4" />
+                        {config.label}
+                      </span>
+                    )}
               </button>
             );
           })}
@@ -329,13 +372,17 @@ export default function ProfileInventory() {
               )}
             </div>
             <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
-              {isError ? "Ошибка загрузки" : displayList.length === 0 ? "Инвентарь пуст" : "Категория пуста"}
+              {isError
+                ? "Ошибка загрузки"
+                : displayList.length === 0
+                  ? "Инвентарь пуст"
+                  : "Категория пуста"}
             </h3>
             <p className="text-sm text-[var(--muted-foreground)] max-w-sm mb-5">
-              {isError 
-                ? "Не удалось загрузить инвентарь. Проверьте подключение и попробуйте снова." 
-                : displayList.length === 0 
-                  ? "Украсьте свой профиль уникальными рамками, аватарами и фонами из магазина!" 
+              {isError
+                ? "Не удалось загрузить инвентарь. Проверьте подключение и попробуйте снова."
+                : displayList.length === 0
+                  ? "Украсьте свой профиль уникальными рамками, аватарами и фонами из магазина!"
                   : "В этой категории пока ничего нет. Посетите магазин за новыми предметами."}
             </p>
             {isError ? (
@@ -382,9 +429,14 @@ export default function ProfileInventory() {
                   isEquipped={effectiveEquipped.includes(decoration.id)}
                   onEquip={() => handleEquip(decoration.type, decoration.id)}
                   onUnequip={
-                    effectiveEquipped.includes(decoration.id) ? () => handleUnequip(decoration.type) : undefined
+                    effectiveEquipped.includes(decoration.id)
+                      ? () => handleUnequip(decoration.type)
+                      : undefined
                   }
-                  isLoading={actionLoading === decoration.id || actionLoading === `unequip-${decoration.type}`}
+                  isLoading={
+                    actionLoading === decoration.id ||
+                    actionLoading === `unequip-${decoration.type}`
+                  }
                   hidePurchase
                 />
               </div>

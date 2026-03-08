@@ -39,8 +39,11 @@ export function ChartsSection() {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
+          {[1, 2, 3, 4].map(i => (
+            <div
+              key={i}
+              className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6"
+            >
               <div className="h-4 bg-[var(--muted)] rounded animate-pulse mb-4"></div>
               <div className="h-64 bg-[var(--muted)] rounded animate-pulse"></div>
             </div>
@@ -66,7 +69,7 @@ export function ChartsSection() {
     { name: "Всего", value: stats.totalTitles, color: COLORS.chart3 },
   ];
 
-  const popularTitlesChart = stats.popularTitles.slice(0, 10).map((title) => ({
+  const popularTitlesChart = stats.popularTitles.slice(0, 10).map(title => ({
     name: title.name.length > 20 ? title.name.substring(0, 20) + "..." : title.name,
     views: title.views,
     dayViews: title.dayViews,
@@ -124,7 +127,7 @@ export function ChartsSection() {
             { key: "daily", label: "Сегодня" },
             { key: "weekly", label: "Неделя" },
             { key: "monthly", label: "Месяц" },
-          ].map((period) => (
+          ].map(period => (
             <button
               key={period.key}
               onClick={() => setSelectedPeriod(period.key as typeof selectedPeriod)}
@@ -239,7 +242,13 @@ export function ChartsSection() {
         <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
           <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-[var(--primary)]" />
-            Активность ({selectedPeriod === "daily" ? "сегодня" : selectedPeriod === "weekly" ? "за неделю" : "за месяц"})
+            Активность (
+            {selectedPeriod === "daily"
+              ? "сегодня"
+              : selectedPeriod === "weekly"
+                ? "за неделю"
+                : "за месяц"}
+            )
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={activityData}>
@@ -274,9 +283,15 @@ export function ChartsSection() {
             <Eye className="w-5 h-5 text-blue-500" />
             <span className="text-sm font-medium text-[var(--foreground)]">Просмотры</span>
           </div>
-          <p className="text-2xl font-bold text-[var(--foreground)]">{periodData.views.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-[var(--foreground)]">
+            {periodData.views.toLocaleString()}
+          </p>
           <p className="text-xs text-[var(--muted-foreground)]">
-            {selectedPeriod === "daily" ? "сегодня" : selectedPeriod === "weekly" ? "за неделю" : "за месяц"}
+            {selectedPeriod === "daily"
+              ? "сегодня"
+              : selectedPeriod === "weekly"
+                ? "за неделю"
+                : "за месяц"}
           </p>
         </div>
 
@@ -287,7 +302,11 @@ export function ChartsSection() {
           </div>
           <p className="text-2xl font-bold text-[var(--foreground)]">{periodData.newUsers}</p>
           <p className="text-xs text-[var(--muted-foreground)]">
-            {selectedPeriod === "daily" ? "сегодня" : selectedPeriod === "weekly" ? "за неделю" : "за месяц"}
+            {selectedPeriod === "daily"
+              ? "сегодня"
+              : selectedPeriod === "weekly"
+                ? "за неделю"
+                : "за месяц"}
           </p>
         </div>
 
@@ -298,7 +317,11 @@ export function ChartsSection() {
           </div>
           <p className="text-2xl font-bold text-[var(--foreground)]">{periodData.newTitles}</p>
           <p className="text-xs text-[var(--muted-foreground)]">
-            {selectedPeriod === "daily" ? "сегодня" : selectedPeriod === "weekly" ? "за неделю" : "за месяц"}
+            {selectedPeriod === "daily"
+              ? "сегодня"
+              : selectedPeriod === "weekly"
+                ? "за неделю"
+                : "за месяц"}
           </p>
         </div>
 
@@ -309,7 +332,11 @@ export function ChartsSection() {
           </div>
           <p className="text-2xl font-bold text-[var(--foreground)]">{periodData.newChapters}</p>
           <p className="text-xs text-[var(--muted-foreground)]">
-            {selectedPeriod === "daily" ? "сегодня" : selectedPeriod === "weekly" ? "за неделю" : "за месяц"}
+            {selectedPeriod === "daily"
+              ? "сегодня"
+              : selectedPeriod === "weekly"
+                ? "за неделю"
+                : "за месяц"}
           </p>
         </div>
       </div>

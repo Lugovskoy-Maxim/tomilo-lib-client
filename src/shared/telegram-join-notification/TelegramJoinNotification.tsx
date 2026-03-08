@@ -33,7 +33,7 @@ const TelegramJoinNotification: React.FC = () => {
       <div className="bg-[var(--card)] border-2 border-[#0088cc]/30 rounded-xl p-4 shadow-2xl hover-lift relative overflow-hidden">
         {/* Decorative gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0088cc]/10 via-transparent to-[#00a8e6]/10 pointer-events-none" />
-        
+
         {/* Close button */}
         <button
           onClick={handleClose}
@@ -56,9 +56,10 @@ const TelegramJoinNotification: React.FC = () => {
               Наш Telegram канал
             </h3>
             <p className="text-xs text-[var(--muted-foreground)] leading-relaxed mb-3">
-              Получайте уведомления о новых главах, участвуйте в обсуждениях и будьте в курсе всех обновлений!
+              Получайте уведомления о новых главах, участвуйте в обсуждениях и будьте в курсе всех
+              обновлений!
             </p>
-            
+
             {/* Action button */}
             <button
               onClick={handleJoin}

@@ -77,7 +77,9 @@ export function ReadButton({
     };
   };
 
-  const getLastReadChapter = (historyItem: ReadingHistoryEntry | null): LastReadChapterLike | null => {
+  const getLastReadChapter = (
+    historyItem: ReadingHistoryEntry | null,
+  ): LastReadChapterLike | null => {
     if (!historyItem) return null;
 
     if (Array.isArray(historyItem.chapters) && historyItem.chapters.length > 0) {
@@ -140,7 +142,11 @@ export function ReadButton({
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfReadDay = new Date(readDate.getFullYear(), readDate.getMonth(), readDate.getDate());
+    const startOfReadDay = new Date(
+      readDate.getFullYear(),
+      readDate.getMonth(),
+      readDate.getDate(),
+    );
     const dayDiff = Math.floor(
       (startOfToday.getTime() - startOfReadDay.getTime()) / (24 * 60 * 60 * 1000),
     );
@@ -229,7 +235,9 @@ export function ReadButton({
           return nextChapter;
         }
 
-        const currentChapter = sortedChapters.find(ch => (ch.chapterNumber ?? 0) === lastReadNumber);
+        const currentChapter = sortedChapters.find(
+          ch => (ch.chapterNumber ?? 0) === lastReadNumber,
+        );
         if (currentChapter) {
           return currentChapter;
         }

@@ -2,7 +2,9 @@
  * Объединяет классы с условной логикой
  * Позволяет условно добавлять классы
  */
-export function cn(...inputs: (string | undefined | null | false | Record<string, boolean>)[]): string {
+export function cn(
+  ...inputs: (string | undefined | null | false | Record<string, boolean>)[]
+): string {
   const classes: string[] = [];
 
   for (const input of inputs) {
@@ -66,7 +68,7 @@ export function formatDateTime(date: string | Date): string {
  */
 export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {

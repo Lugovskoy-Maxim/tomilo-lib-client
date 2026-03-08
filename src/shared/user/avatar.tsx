@@ -70,10 +70,7 @@ export default function UserAvatar({
     );
 
   const wrapper = (
-    <div
-      className="relative shrink-0 overflow-visible"
-      style={{ width: size, height: size }}
-    >
+    <div className="relative shrink-0 overflow-visible" style={{ width: size, height: size }}>
       <div
         className="absolute inset-0 overflow-hidden rounded-full"
         style={{ borderRadius: "50%" }}

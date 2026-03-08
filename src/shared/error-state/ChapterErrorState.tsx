@@ -67,8 +67,7 @@ export default function ChapterErrorState({
                 href={`/titles/${slug}`}
                 className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 transition-colors font-medium min-w-[180px]"
               >
-                <BookOpen className="w-5 h-5 shrink-0" />
-                К тайтлу
+                <BookOpen className="w-5 h-5 shrink-0" />К тайтлу
               </Link>
             )}
             <button

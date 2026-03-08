@@ -8,11 +8,17 @@ const AUTH_RATE_LIMIT = { max: 5, windowSec: 15 * 60 };
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const { allowed, retryAfterSec } = checkRateLimit(`auth-send-verification:${ip}`, AUTH_RATE_LIMIT);
+  const { allowed, retryAfterSec } = checkRateLimit(
+    `auth-send-verification:${ip}`,
+    AUTH_RATE_LIMIT,
+  );
   if (!allowed) {
     return NextResponse.json(
       { success: false, message: "Слишком много попыток. Попробуйте позже." },
-      { status: 429, headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined },
+      {
+        status: 429,
+        headers: retryAfterSec ? { "Retry-After": String(retryAfterSec) } : undefined,
+      },
     );
   }
   try {
@@ -35,7 +41,10 @@ export async function POST(request: Request) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       return NextResponse.json(
-        { success: false, message: (data as { message?: string }).message || "Ошибка отправки письма" },
+        {
+          success: false,
+          message: (data as { message?: string }).message || "Ошибка отправки письма",
+        },
         { status: res.status >= 400 ? res.status : 500 },
       );
     }

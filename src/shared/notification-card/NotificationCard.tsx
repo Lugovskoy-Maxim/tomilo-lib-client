@@ -17,7 +17,11 @@ import {
 } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
-import { useMarkAsReadMutation, useMarkAsUnreadMutation, useDeleteNotificationMutation } from "@/store/api/notificationsApi";
+import {
+  useMarkAsReadMutation,
+  useMarkAsUnreadMutation,
+  useDeleteNotificationMutation,
+} from "@/store/api/notificationsApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
 import { Notification } from "@/types/notifications";
@@ -132,13 +136,13 @@ export default function NotificationCard({
   const titleIdFromChapter =
     typeof chapterTitleIdRaw === "string"
       ? chapterTitleIdRaw
-      : (chapterTitleIdRaw as unknown as { _id?: string })?._id ?? "";
+      : ((chapterTitleIdRaw as unknown as { _id?: string })?._id ?? "");
 
   const titleIdToFetch = titleIdForFetch || titleIdFromChapter || "";
 
   const { data: fetchedTitle } = useGetTitleByIdQuery(
     { id: titleIdToFetch },
-    { skip: !titleIdToFetch }
+    { skip: !titleIdToFetch },
   );
 
   const chapterData = fetchedChapter;
@@ -177,7 +181,7 @@ export default function NotificationCard({
           : entityType === "title" && entityId
             ? entityId
             : entityType === "chapter"
-              ? chapterNavTitleId ?? titleIdFromChapter
+              ? (chapterNavTitleId ?? titleIdFromChapter)
               : null;
 
     const slug =
@@ -192,12 +196,11 @@ export default function NotificationCard({
     if (isCommentNotification && (navTitleId || metadata?.titleId)) {
       const targetTitleId = navTitleId || metadata?.titleId;
       const targetChapterId =
-        entityType === "chapter"
-          ? (metadata?.chapterId || entityId || notifChapterId)
-          : null;
+        entityType === "chapter" ? metadata?.chapterId || entityId || notifChapterId : null;
       if (targetChapterId && entityType === "chapter") {
         router.push(
-          getChapterPath({ id: targetTitleId!, slug: slug ?? undefined }, targetChapterId) + commentHash
+          getChapterPath({ id: targetTitleId!, slug: slug ?? undefined }, targetChapterId) +
+            commentHash,
         );
       } else if (targetTitleId) {
         const titlePath = getTitlePath({ id: targetTitleId, slug: slug ?? undefined });
@@ -265,7 +268,9 @@ export default function NotificationCard({
   const effectiveTitleId =
     typeof notification.titleId === "object" && notification.titleId?._id
       ? notification.titleId._id
-      : fetchedTitle?._id ?? titleIdFromChapter ?? (entityType === "title" ? entityId : undefined);
+      : (fetchedTitle?._id ??
+        titleIdFromChapter ??
+        (entityType === "title" ? entityId : undefined));
 
   const getCoverImage = () => {
     if (typeof notification.titleId === "object" && notification.titleId?._id) {
@@ -285,11 +290,10 @@ export default function NotificationCard({
   };
 
   const resolvedEntityName =
-    entityName ||
-    fetchedTitle?.name ||
-    (chapterData?.titleInfo as { name?: string })?.name;
+    entityName || fetchedTitle?.name || (chapterData?.titleInfo as { name?: string })?.name;
 
-  const safeName = typeof resolvedEntityName === "string" ? resolvedEntityName.replace(/\$/g, "$$") : "";
+  const safeName =
+    typeof resolvedEntityName === "string" ? resolvedEntityName.replace(/\$/g, "$$") : "";
 
   const isReportType =
     notification.type === "report_response" ||
@@ -317,15 +321,12 @@ export default function NotificationCard({
     metadata?.resolutionMessage || metadata?.reportResponse || metadata?.response;
 
   if (isReportType && resolutionText && displayMessage.includes("Ответ модератора:")) {
-    displayMessage = displayMessage
-      .replace(/\s*Ответ модератора:[\s\S]*$/i, "")
-      .trim();
+    displayMessage = displayMessage.replace(/\s*Ответ модератора:[\s\S]*$/i, "").trim();
   }
 
   const showResolutionBlock = Boolean(resolutionText);
 
-  const showEntitySubline =
-    isReportType && (resolvedEntityName || chapterDisplayName);
+  const showEntitySubline = isReportType && (resolvedEntityName || chapterDisplayName);
 
   if (isDeleting) return null;
 
@@ -335,9 +336,10 @@ export default function NotificationCard({
     <div
       className={`
         relative w-full rounded-xl border transition-all duration-150
-        ${notification.isRead
-          ? "bg-[var(--card)] border-[var(--border)]"
-          : "bg-[var(--card)] border-[var(--primary)]/20"
+        ${
+          notification.isRead
+            ? "bg-[var(--card)] border-[var(--border)]"
+            : "bg-[var(--card)] border-[var(--primary)]/20"
         }
         ${isSelected ? "ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]" : ""}
         hover:border-[var(--border)] hover:bg-[var(--accent)]/30
@@ -361,10 +363,7 @@ export default function NotificationCard({
 
       <div className="flex items-stretch min-h-[88px] gap-0">
         {selectionMode && (
-          <div
-            className="flex items-center pl-3 pr-2"
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="flex items-center pl-3 pr-2" onClick={e => e.stopPropagation()}>
             <input
               type="checkbox"
               checked={isSelected}
@@ -406,7 +405,9 @@ export default function NotificationCard({
               </div>
               <h3
                 className={`font-medium text-sm leading-snug mt-0.5 line-clamp-1 ${
-                  notification.isRead ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"
+                  notification.isRead
+                    ? "text-[var(--muted-foreground)]"
+                    : "text-[var(--foreground)]"
                 }`}
               >
                 {notification.title}
@@ -419,7 +420,9 @@ export default function NotificationCard({
               )}
               <p
                 className={`text-xs line-clamp-2 mt-0.5 leading-relaxed ${
-                  notification.isRead ? "text-[var(--muted-foreground)]/80" : "text-[var(--foreground)]/80"
+                  notification.isRead
+                    ? "text-[var(--muted-foreground)]/80"
+                    : "text-[var(--foreground)]/80"
                 }`}
               >
                 {displayMessage}

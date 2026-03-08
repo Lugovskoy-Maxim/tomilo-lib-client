@@ -12,7 +12,7 @@
 }
 
 .footer-link::before {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -25,12 +25,14 @@
 }
 
 .footer-link::after {
-  content: '→';
+  content: "→";
   position: absolute;
   right: -1.25rem;
   opacity: 0;
   transform: translateX(-8px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
   color: var(--primary);
   font-size: 0.875rem;
 }
@@ -66,11 +68,14 @@
   padding: 0.375rem 0.75rem;
   margin: -0.375rem -0.75rem;
   border-radius: 0.5rem;
-  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.3s ease;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.3s ease;
 }
 
 .footer-contact-link::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, var(--primary) 0%, var(--chart-1) 100%);
@@ -93,12 +98,22 @@
   animation: icon-bounce 0.5s ease;
 }
 
-@keyframes icon-bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+@keyframes icon-bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
 
 .footer-contact-link:focus-visible {
   color: var(--foreground);
   outline: none;
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--primary);
 }
 
 .footer-contact-link:focus-visible::before {
@@ -115,5 +130,13 @@
   animation: footer-back-to-top-in 0.25s ease-out;
 }
 
-@keyframes footer-back-to-top-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
+@keyframes footer-back-to-top-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -84,20 +84,23 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     }
 
     const rootMarginValue = lowPriority ? "300px 0px" : "800px 0px";
-    const forceLoadTimeout = window.setTimeout(() => {
-      setShouldLoad(true);
-    }, lowPriority ? 3000 : 1200);
+    const forceLoadTimeout = window.setTimeout(
+      () => {
+        setShouldLoad(true);
+      },
+      lowPriority ? 3000 : 1200,
+    );
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           if (entry.isIntersecting) {
             setShouldLoad(true);
             observer.disconnect();
           }
         });
       },
-      { rootMargin: rootMarginValue, threshold: 0.01 }
+      { rootMargin: rootMarginValue, threshold: 0.01 },
     );
 
     observer.observe(containerRef.current);
@@ -171,7 +174,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   if (hasError) return renderError();
 
   const showImage = isLoaded && visible;
-  
+
   // В dev-режиме next/image optimization может вызывать timeout при обращении к удалённым серверам.
   // Используем unoptimized для всех http/https URL чтобы избежать проблем.
   // Next.js Image Optimization лучше работает в production с правильно настроенным CDN.
@@ -189,13 +192,18 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   };
 
   return (
-    <div ref={containerRef} className={fill ? "relative w-full h-full" : undefined} style={!fill ? style : undefined}>
+    <div
+      ref={containerRef}
+      className={fill ? "relative w-full h-full" : undefined}
+      style={!fill ? style : undefined}
+    >
       {/* Placeholder */}
       {!isLoaded && renderPlaceholder()}
 
       {/* Основное изображение */}
-      {shouldLoad && currentSrc && (
-        fill ? (
+      {shouldLoad &&
+        currentSrc &&
+        (fill ? (
           <Image
             src={currentSrc}
             alt={alt}
@@ -227,8 +235,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             onDragStart={handleDragStart}
             unoptimized={shouldUnoptimize}
           />
-        )
-      )}
+        ))}
     </div>
   );
 };

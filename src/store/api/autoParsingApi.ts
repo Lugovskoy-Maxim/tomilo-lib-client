@@ -25,19 +25,16 @@ export const autoParsingApi = createApi({
   }),
   tagTypes: ["AutoParsing"],
   endpoints: builder => ({
-    // Get all auto-parsing jobs
     getAutoParsingJobs: builder.query<AutoParsingJob[], void>({
       query: () => "/auto-parsing",
       providesTags: ["AutoParsing"],
     }),
 
-    // Get single auto-parsing job
     getAutoParsingJob: builder.query<AutoParsingJob, string>({
       query: id => `/auto-parsing/${id}`,
       providesTags: ["AutoParsing"],
     }),
 
-    // Create auto-parsing job
     createAutoParsingJob: builder.mutation<AutoParsingJob, CreateAutoParsingJobDto>({
       query: data => ({
         url: "/auto-parsing",
@@ -47,7 +44,6 @@ export const autoParsingApi = createApi({
       invalidatesTags: ["AutoParsing"],
     }),
 
-    // Update auto-parsing job
     updateAutoParsingJob: builder.mutation<
       AutoParsingJob,
       { id: string; data: UpdateAutoParsingJobDto }
@@ -60,7 +56,6 @@ export const autoParsingApi = createApi({
       invalidatesTags: ["AutoParsing"],
     }),
 
-    // Delete auto-parsing job
     deleteAutoParsingJob: builder.mutation<{ message: string }, string>({
       query: id => ({
         url: `/auto-parsing/${id}`,
@@ -69,7 +64,6 @@ export const autoParsingApi = createApi({
       invalidatesTags: ["AutoParsing"],
     }),
 
-    // Check for new chapters
     checkNewChapters: builder.mutation<CheckNewChaptersResponse, string>({
       query: id => ({
         url: `/auto-parsing/${id}/check`,

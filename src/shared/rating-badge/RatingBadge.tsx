@@ -16,9 +16,7 @@ const formatRating = (value?: number) => {
   return num.toFixed(1).replace(/\.0$/, "");
 };
 
-const RatingIcon = ({ className }: { className?: string }) => (
-  <Sparkles className={className} />
-);
+const RatingIcon = ({ className }: { className?: string }) => <Sparkles className={className} />;
 
 export default function RatingBadge({
   rating,

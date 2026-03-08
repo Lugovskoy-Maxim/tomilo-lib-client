@@ -1,11 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import { AuthResponse, User, LinkResolve } from "@/types/auth";
-import {
-  LoginData,
-  SendRegistrationCodeData,
-  RegisterWithCodeData,
-} from "@/types/form";
+import { LoginData, SendRegistrationCodeData, RegisterWithCodeData } from "@/types/form";
 import { ApiResponseDto } from "@/types/api";
 import { ReadingHistoryEntry, ReadingHistoryChapter, AvatarResponse } from "@/types/store";
 import { BookmarkEntry, BookmarkCategory } from "@/types/user";
@@ -58,7 +54,10 @@ function normalizeHistoryItem(item: RawHistoryItem): ReadingHistoryEntry {
   const chapters: ReadingHistoryEntry["chapters"] =
     Array.isArray(item.chapters) && item.chapters.length > 0
       ? item.chapters.map(ch => ({
-          chapterId: typeof ch.chapterId === "object" && ch.chapterId != null ? (ch.chapterId as { _id: string })._id : String(ch.chapterId),
+          chapterId:
+            typeof ch.chapterId === "object" && ch.chapterId != null
+              ? (ch.chapterId as { _id: string })._id
+              : String(ch.chapterId),
           chapterNumber: ch.chapterNumber,
           chapterTitle: (ch as { chapterTitle?: string | null }).chapterTitle ?? null,
           readAt: ch.readAt,
@@ -127,22 +126,18 @@ export const authApi = createApi({
       invalidatesTags: ["Auth"],
     }),
 
-    vkAuth: builder.mutation<
-      ApiResponseDto<AuthResponse>,
-      { code: string; redirect_uri?: string }
-    >({
-      query: ({ code, redirect_uri }) => ({
-        url: "/auth/vk-token",
-        method: "POST",
-        body: { code, redirect_uri },
-      }),
-      invalidatesTags: ["Auth"],
-    }),
+    vkAuth: builder.mutation<ApiResponseDto<AuthResponse>, { code: string; redirect_uri?: string }>(
+      {
+        query: ({ code, redirect_uri }) => ({
+          url: "/auth/vk-token",
+          method: "POST",
+          body: { code, redirect_uri },
+        }),
+        invalidatesTags: ["Auth"],
+      },
+    ),
 
-    vkAuthWithToken: builder.mutation<
-      ApiResponseDto<AuthResponse>,
-      { access_token: string }
-    >({
+    vkAuthWithToken: builder.mutation<ApiResponseDto<AuthResponse>, { access_token: string }>({
       query: ({ access_token }) => ({
         url: "/auth/vk-token",
         method: "POST",
@@ -242,7 +237,12 @@ export const authApi = createApi({
     getProfileByUsername: builder.query<ApiResponseDto<User>, string>({
       query: username => `/users/username/${encodeURIComponent(username)}`,
       transformResponse(response: ApiResponseDto<User> | User): ApiResponseDto<User> {
-        if (response && typeof response === "object" && "success" in response && "data" in response) {
+        if (
+          response &&
+          typeof response === "object" &&
+          "success" in response &&
+          "data" in response
+        ) {
           return response as ApiResponseDto<User>;
         }
         if (response && typeof response === "object" && ("_id" in response || "id" in response)) {
@@ -255,7 +255,12 @@ export const authApi = createApi({
     getProfileById: builder.query<ApiResponseDto<User>, string>({
       query: userId => `/users/${encodeURIComponent(userId)}`,
       transformResponse(response: ApiResponseDto<User> | User): ApiResponseDto<User> {
-        if (response && typeof response === "object" && "success" in response && "data" in response) {
+        if (
+          response &&
+          typeof response === "object" &&
+          "success" in response &&
+          "data" in response
+        ) {
           return response as ApiResponseDto<User>;
         }
         if (response && typeof response === "object" && ("_id" in response || "id" in response)) {
@@ -343,7 +348,7 @@ export const authApi = createApi({
       ApiResponseDto<BookmarkEntry[] | Record<BookmarkCategory, BookmarkEntry[]>>,
       { category?: BookmarkCategory; grouped?: boolean } | void
     >({
-      query: (params) => {
+      query: params => {
         const searchParams = new URLSearchParams();
         if (params?.category) searchParams.set("category", params.category);
         if (params?.grouped === true) searchParams.set("grouped", "true");
@@ -359,7 +364,7 @@ export const authApi = createApi({
       ApiResponseDto<ReadingHistoryEntry[]>,
       { page?: number; limit?: number; light?: boolean } | void
     >({
-      query: (params) => {
+      query: params => {
         const searchParams = new URLSearchParams();
         if (params?.page != null) searchParams.set("page", String(params.page));
         if (params?.limit != null) searchParams.set("limit", String(params.limit));
@@ -370,7 +375,10 @@ export const authApi = createApi({
       transformResponse(
         response: ApiResponseDto<
           | ReadingHistoryEntry[]
-          | { items: RawHistoryItem[]; pagination?: { page: number; limit: number; total: number; pages: number } }
+          | {
+              items: RawHistoryItem[];
+              pagination?: { page: number; limit: number; total: number; pages: number };
+            }
         >,
       ): ApiResponseDto<ReadingHistoryEntry[]> {
         if (!response?.data) {
@@ -406,7 +414,10 @@ export const authApi = createApi({
             data: {
               titleId,
               chapters: raw.map(ch => ({
-                chapterId: typeof ch.chapterId === "object" && ch.chapterId != null ? (ch.chapterId as { _id: string })._id : String(ch.chapterId),
+                chapterId:
+                  typeof ch.chapterId === "object" && ch.chapterId != null
+                    ? (ch.chapterId as { _id: string })._id
+                    : String(ch.chapterId),
                 chapterNumber: ch.chapterNumber,
                 chapterTitle: (ch as { chapterTitle?: string | null }).chapterTitle ?? null,
                 readAt: ch.readAt,
@@ -464,11 +475,10 @@ export const authApi = createApi({
         if (response && (response as { success?: boolean }).success === false) {
           const r = response as { message?: string; errors?: string[] };
           const raw = r.errors?.[0] ?? r.message ?? "Failed to remove from reading history";
-          const isVersionConflict =
-            /no matching document|version \d+|modifiedPaths/i.test(String(raw));
-          throw new Error(
-            isVersionConflict ? "READING_HISTORY_VERSION_CONFLICT" : raw
+          const isVersionConflict = /no matching document|version \d+|modifiedPaths/i.test(
+            String(raw),
           );
+          throw new Error(isVersionConflict ? "READING_HISTORY_VERSION_CONFLICT" : raw);
         }
         return response;
       },
@@ -484,11 +494,10 @@ export const authApi = createApi({
         if (response && (response as { success?: boolean }).success === false) {
           const r = response as { message?: string; errors?: string[] };
           const raw = r.errors?.[0] ?? r.message ?? "Failed to clear reading history";
-          const isVersionConflict =
-            /no matching document|version \d+|modifiedPaths/i.test(String(raw));
-          throw new Error(
-            isVersionConflict ? "READING_HISTORY_VERSION_CONFLICT" : raw
+          const isVersionConflict = /no matching document|version \d+|modifiedPaths/i.test(
+            String(raw),
           );
+          throw new Error(isVersionConflict ? "READING_HISTORY_VERSION_CONFLICT" : raw);
         }
         return response;
       },
@@ -520,8 +529,8 @@ export const authApi = createApi({
 
     // Ежедневный бонус / стрик
     claimDailyBonus: builder.mutation<
-      ApiResponseDto<{ 
-        success: boolean; 
+      ApiResponseDto<{
+        success: boolean;
         message: string;
         currentStreak: number;
         experienceGained: number;
@@ -557,31 +566,19 @@ export const authApi = createApi({
     }),
 
     // Проверка статуса закладки (добавлен ли тайтл и в какой категории)
-    getBookmarkStatus: builder.query<
-      ApiResponseDto<BookmarkStatusResponse>,
-      string
-    >({
+    getBookmarkStatus: builder.query<ApiResponseDto<BookmarkStatusResponse>, string>({
       query: titleId => `/users/profile/bookmarks/${titleId}/status`,
-      providesTags: (result, error, titleId) => [
-        { type: "Bookmarks", id: titleId },
-        "Bookmarks",
-      ],
+      providesTags: (result, error, titleId) => [{ type: "Bookmarks", id: titleId }, "Bookmarks"],
     }),
 
     // Количество закладок по категориям
-    getBookmarkCounts: builder.query<
-      ApiResponseDto<BookmarkCountsResponse>,
-      void
-    >({
+    getBookmarkCounts: builder.query<ApiResponseDto<BookmarkCountsResponse>, void>({
       query: () => "/users/profile/bookmarks/counts",
       providesTags: ["Bookmarks"],
     }),
 
     // Прогресс чтения тайтла
-    getTitleProgress: builder.query<
-      ApiResponseDto<TitleProgressResponse>,
-      string
-    >({
+    getTitleProgress: builder.query<ApiResponseDto<TitleProgressResponse>, string>({
       query: titleId => `/users/profile/progress/${titleId}`,
       providesTags: (result, error, titleId) => [
         { type: "ReadingHistory", id: titleId },

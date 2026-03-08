@@ -1,12 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  type ProfileTab,
-  tabMeta,
-  PROFILE_TABS,
-  isValidProfileTab,
-} from "./profileTabConfig";
+import { type ProfileTab, tabMeta, PROFILE_TABS, isValidProfileTab } from "./profileTabConfig";
 
 interface ProfileNavProps {
   /** Вызывается при клике по пункту (например, закрыть мобильное меню) */
@@ -19,7 +14,7 @@ export function ProfileNav({ onNavigate, hideTabs }: ProfileNavProps) {
   const visibleTabs = hideTabs?.length
     ? PROFILE_TABS.filter(t => !hideTabs.includes(t))
     : PROFILE_TABS;
-  
+
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();

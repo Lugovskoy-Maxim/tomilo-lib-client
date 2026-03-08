@@ -22,9 +22,7 @@ export default function ProfileFontSettings() {
             <Type className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Шрифт
-            </h2>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Шрифт</h2>
             <p className="text-[var(--muted-foreground)] text-xs">
               Выбор шрифта интерфейса (сохраняется в браузере)
             </p>
@@ -34,7 +32,10 @@ export default function ProfileFontSettings() {
           content={
             <div className="space-y-2 max-w-[280px]">
               <p className="font-medium">Шрифт интерфейса</p>
-              <p>Выберите шрифт для отображения текста на сайте. Настройка сохраняется в браузере и применяется только на этом устройстве.</p>
+              <p>
+                Выберите шрифт для отображения текста на сайте. Настройка сохраняется в браузере и
+                применяется только на этом устройстве.
+              </p>
             </div>
           }
           position="left"

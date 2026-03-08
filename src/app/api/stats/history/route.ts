@@ -12,15 +12,18 @@ export async function GET(req: NextRequest) {
   // Validate required params
   if (!type || !["daily", "monthly", "yearly"].includes(type)) {
     return NextResponse.json(
-      { success: false, message: "Invalid or missing 'type' parameter. Must be 'daily', 'monthly', or 'yearly'" },
-      { status: 400 }
+      {
+        success: false,
+        message: "Invalid or missing 'type' parameter. Must be 'daily', 'monthly', or 'yearly'",
+      },
+      { status: 400 },
     );
   }
 
   try {
     const url = new URL("/stats/history", API_BASE);
     url.searchParams.set("type", type);
-    
+
     if (days) url.searchParams.set("days", days);
     if (year) url.searchParams.set("year", year);
     if (month) url.searchParams.set("month", month);
@@ -34,10 +37,12 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ message: "Failed to fetch stats history" }));
+      const errorData = await res
+        .json()
+        .catch(() => ({ message: "Failed to fetch stats history" }));
       return NextResponse.json(
         { success: false, message: errorData.message || "Failed to fetch stats history" },
-        { status: res.status }
+        { status: res.status },
       );
     }
 
@@ -45,9 +50,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("Stats history API error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

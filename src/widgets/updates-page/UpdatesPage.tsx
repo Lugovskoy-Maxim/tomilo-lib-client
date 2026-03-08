@@ -23,18 +23,24 @@ export default function UpdatesPage() {
 
   const { user } = useAuth();
   const { data: profileData } = useGetProfileQuery(undefined, { skip: !user });
-  const displayAdult = profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult;
-  const includeAdult = !user ? true : (displayAdult !== false);
+  const displayAdult =
+    profileData?.data?.displaySettings?.isAdult ?? user?.displaySettings?.isAdult;
+  const includeAdult = !user ? true : displayAdult !== false;
 
-  const { data: latestUpdatesData, isLoading, isFetching, error } = useGetLatestUpdatesQuery(
+  const {
+    data: latestUpdatesData,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetLatestUpdatesQuery(
     { page, limit: UPDATES_PAGE_SIZE, includeAdult },
-    { refetchOnMountOrArgChange: true, refetchOnFocus: true }
+    { refetchOnMountOrArgChange: true, refetchOnFocus: true },
   );
 
   const rawPageData = latestUpdatesData?.data;
   const pageList: UpdateItem[] = Array.isArray(rawPageData)
     ? rawPageData
-    : (rawPageData as { data?: UpdateItem[] } | undefined)?.data ?? [];
+    : ((rawPageData as { data?: UpdateItem[] } | undefined)?.data ?? []);
 
   useEffect(() => {
     if (pageList.length === 0) return;
@@ -52,12 +58,7 @@ export default function UpdatesPage() {
 
   const hasMore = pageList.length >= UPDATES_PAGE_SIZE;
   const isLoadingMore = isFetching && page > 1;
-  const displayData =
-    accumulatedData.length > 0
-      ? accumulatedData
-      : page === 1
-        ? pageList
-        : [];
+  const displayData = accumulatedData.length > 0 ? accumulatedData : page === 1 ? pageList : [];
 
   // SEO для страницы ленты обновлений
   useSEO({
@@ -152,14 +153,14 @@ export default function UpdatesPage() {
               <Clock className="w-14 h-14 text-[var(--muted-foreground)]/50 mb-4" />
               <p className="text-[var(--muted-foreground)] text-lg mb-2">Нет новых обновлений</p>
               <p className="text-[var(--muted-foreground)] text-sm mb-6 max-w-md">
-                Свежие главы появятся здесь после выхода новых релизов. Загляните в каталог, чтобы выбрать тайтлы для чтения.
+                Свежие главы появятся здесь после выхода новых релизов. Загляните в каталог, чтобы
+                выбрать тайтлы для чтения.
               </p>
               <Link
                 href="/browse"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-xl hover:opacity-90 transition-opacity font-medium text-sm"
               >
-                <BookOpen className="w-4 h-4" />
-                В каталог
+                <BookOpen className="w-4 h-4" />В каталог
               </Link>
             </div>
           </div>

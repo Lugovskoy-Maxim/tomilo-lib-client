@@ -52,12 +52,7 @@ export interface RankInfoFromServer {
   minLevel: number;
 }
 
-export type AchievementRarityFromServer =
-  | "common"
-  | "uncommon"
-  | "rare"
-  | "epic"
-  | "legendary";
+export type AchievementRarityFromServer = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 export type AchievementTypeFromServer =
   | "reading"

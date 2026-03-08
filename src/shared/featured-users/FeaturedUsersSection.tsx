@@ -3,7 +3,11 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { ShieldCheck, TrendingUp } from "lucide-react";
-import { HomepageActiveUser, useGetHomepageActiveUsersQuery, useGetUsersQuery } from "@/store/api/usersApi";
+import {
+  HomepageActiveUser,
+  useGetHomepageActiveUsersQuery,
+  useGetUsersQuery,
+} from "@/store/api/usersApi";
 import { getCoverUrls } from "@/lib/asset-url";
 
 type FeaturedUser = {
@@ -119,7 +123,9 @@ function toFeaturedUsersFromHomepageEndpoint(users: HomepageActiveUser[]): Featu
     const lastActiveDays =
       typeof user.lastActiveDays === "number"
         ? user.lastActiveDays
-        : getDaysSince(user.lastActivityAt || user.lastActiveAt || user.updatedAt || user.createdAt);
+        : getDaysSince(
+            user.lastActivityAt || user.lastActiveAt || user.updatedAt || user.createdAt,
+          );
     const userLevel = user.level || 1;
 
     return {
@@ -130,7 +136,9 @@ function toFeaturedUsersFromHomepageEndpoint(users: HomepageActiveUser[]): Featu
       role: user.role,
       lastActiveDays,
       activityScore:
-        typeof user.activityScore === "number" ? clampScore(user.activityScore) : clampScore(100 - lastActiveDays * 4),
+        typeof user.activityScore === "number"
+          ? clampScore(user.activityScore)
+          : clampScore(100 - lastActiveDays * 4),
       reputationScore:
         typeof user.reputationScore === "number"
           ? clampScore(user.reputationScore)
@@ -140,15 +148,17 @@ function toFeaturedUsersFromHomepageEndpoint(users: HomepageActiveUser[]): Featu
   });
 }
 
-function toFeaturedUsersFromAdminUsers(users: {
-  _id: string;
-  username: string;
-  avatar?: string;
-  role?: string;
-  level?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}[]): FeaturedUser[] {
+function toFeaturedUsersFromAdminUsers(
+  users: {
+    _id: string;
+    username: string;
+    avatar?: string;
+    role?: string;
+    level?: number;
+    createdAt?: string;
+    updatedAt?: string;
+  }[],
+): FeaturedUser[] {
   return users.map(user => {
     const lastActiveDays = getDaysSince(user.updatedAt || user.createdAt);
     const userLevel = user.level || 1;
@@ -167,9 +177,9 @@ function toFeaturedUsersFromAdminUsers(users: {
   });
 }
 
-function extractHomepageUsers(
-  response?: { data?: HomepageActiveUser[] | { users?: HomepageActiveUser[] } },
-): HomepageActiveUser[] {
+function extractHomepageUsers(response?: {
+  data?: HomepageActiveUser[] | { users?: HomepageActiveUser[] };
+}): HomepageActiveUser[] {
   const payload = response?.data;
   if (!payload) return [];
   if (Array.isArray(payload)) return payload;
@@ -259,7 +269,9 @@ export default function FeaturedUsersSection() {
           Показываем активных и качественных пользователей.
         </p>
         {isLoading && (
-          <p className="text-xs text-[var(--muted-foreground)]">Загружаем пользователей с сервера...</p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Загружаем пользователей с сервера...
+          </p>
         )}
         {isUsingFallback && !isLoading && (
           <p className="text-xs text-[var(--muted-foreground)]">
@@ -284,7 +296,9 @@ export default function FeaturedUsersSection() {
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-[var(--secondary)] flex items-center justify-center border border-[var(--border)]">
-                  <span className="font-semibold text-[var(--foreground)]">{getInitial(user.username)}</span>
+                  <span className="font-semibold text-[var(--foreground)]">
+                    {getInitial(user.username)}
+                  </span>
                 </div>
               )}
 
@@ -294,7 +308,8 @@ export default function FeaturedUsersSection() {
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                 </div>
                 <p className="text-xs text-[var(--muted-foreground)]">
-                  Активен {user.lastActiveDays === 0 ? "сегодня" : `${user.lastActiveDays} дн. назад`}
+                  Активен{" "}
+                  {user.lastActiveDays === 0 ? "сегодня" : `${user.lastActiveDays} дн. назад`}
                 </p>
               </div>
             </div>
@@ -309,7 +324,6 @@ export default function FeaturedUsersSection() {
                 Репутация {user.reputationScore}
               </span>
             </div>
-
           </Link>
         ))}
       </div>

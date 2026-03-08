@@ -25,11 +25,24 @@ export const announcementsApi = createApi({
     >({
       query: (params = {}) => ({
         url: "/announcements",
-        params: { page: params?.page, limit: params?.limit, tag: params?.tag, isPinned: params?.isPinned },
+        params: {
+          page: params?.page,
+          limit: params?.limit,
+          tag: params?.tag,
+          isPinned: params?.isPinned,
+        },
       }),
       providesTags: [ANNOUNCEMENTS_TAG],
       transformResponse: (response: ApiResponseDto<unknown>) => {
-        const data = response?.data as { announcements?: unknown[]; total?: number; page?: number; limit?: number; totalPages?: number } | undefined;
+        const data = response?.data as
+          | {
+              announcements?: unknown[];
+              total?: number;
+              page?: number;
+              limit?: number;
+              totalPages?: number;
+            }
+          | undefined;
         const raw = data?.announcements ?? (Array.isArray(data) ? data : []);
         const announcements = (raw as Record<string, unknown>[]).map(a => ({
           ...a,
@@ -73,7 +86,15 @@ export const announcementsApi = createApi({
       }),
       providesTags: [ANNOUNCEMENTS_TAG],
       transformResponse: (response: ApiResponseDto<unknown>) => {
-        const data = response?.data as { announcements?: unknown[]; total?: number; page?: number; limit?: number; totalPages?: number } | undefined;
+        const data = response?.data as
+          | {
+              announcements?: unknown[];
+              total?: number;
+              page?: number;
+              limit?: number;
+              totalPages?: number;
+            }
+          | undefined;
         const raw = data?.announcements ?? (Array.isArray(data) ? data : []);
         const announcements = (raw as Record<string, unknown>[]).map(a => ({
           ...a,

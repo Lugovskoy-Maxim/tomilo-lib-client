@@ -59,7 +59,10 @@ export function CharactersSection({ titleId }: CharactersSectionProps) {
         </div>
         <div className="flex gap-3 overflow-hidden">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="animate-pulse flex flex-col items-center gap-2 p-3 min-w-[120px]">
+            <div
+              key={i}
+              className="animate-pulse flex flex-col items-center gap-2 p-3 min-w-[120px]"
+            >
               <div className="w-16 h-16 rounded-full bg-[var(--background)]/50" />
               <div className="w-20 h-4 rounded bg-[var(--background)]/50" />
             </div>
@@ -82,7 +85,12 @@ export function CharactersSection({ titleId }: CharactersSectionProps) {
   const antagonists = characters.filter(c => c.role === "antagonist");
   const minorCharacters = characters.filter(c => c.role === "minor");
 
-  const sortedCharacters = [...mainCharacters, ...antagonists, ...supportingCharacters, ...minorCharacters];
+  const sortedCharacters = [
+    ...mainCharacters,
+    ...antagonists,
+    ...supportingCharacters,
+    ...minorCharacters,
+  ];
 
   return (
     <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
@@ -100,12 +108,16 @@ export function CharactersSection({ titleId }: CharactersSectionProps) {
             className="flex items-center gap-1 text-sm text-[var(--primary)] hover:text-[var(--primary)]/80 transition-colors"
           >
             {showAll ? "Свернуть" : "Все персонажи"}
-            <ChevronRight className={`w-4 h-4 transition-transform ${showAll ? "rotate-90" : ""}`} />
+            <ChevronRight
+              className={`w-4 h-4 transition-transform ${showAll ? "rotate-90" : ""}`}
+            />
           </button>
         )}
       </div>
 
-      <div className={`flex gap-3 ${showAll ? "flex-wrap" : "overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[var(--primary)]/20 scrollbar-track-transparent"}`}>
+      <div
+        className={`flex gap-3 ${showAll ? "flex-wrap" : "overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[var(--primary)]/20 scrollbar-track-transparent"}`}
+      >
         {(showAll ? sortedCharacters : displayedCharacters).map(character => (
           <CharacterCard key={character._id} character={character} />
         ))}

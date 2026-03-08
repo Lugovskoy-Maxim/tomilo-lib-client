@@ -85,14 +85,16 @@ export function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
         config.bg,
         config.text,
         config.border,
-        size === "sm" ? "text-[10px]" : "text-xs"
+        size === "sm" ? "text-[10px]" : "text-xs",
       )}
     >
-      <span className={cn(
-        "rounded-full",
-        config.bg.replace("/15", ""),
-        size === "sm" ? "w-1.5 h-1.5" : "w-2 h-2"
-      )} />
+      <span
+        className={cn(
+          "rounded-full",
+          config.bg.replace("/15", ""),
+          size === "sm" ? "w-1.5 h-1.5" : "w-2 h-2",
+        )}
+      />
       {config.label}
     </span>
   );
@@ -119,7 +121,7 @@ export function TypeBadge({ type, color = "gray", size = "sm" }: TypeBadgeProps)
       className={cn(
         "inline-block px-2 py-0.5 rounded-md font-medium",
         typeBadgeColors[color],
-        size === "sm" ? "text-[10px]" : "text-xs"
+        size === "sm" ? "text-[10px]" : "text-xs",
       )}
     >
       {type}
@@ -182,9 +184,7 @@ export function EntityCard({
   };
 
   const shouldTruncate = expandable && content.length > 200;
-  const displayContent = shouldTruncate && !isExpanded 
-    ? content.slice(0, 200) + "..." 
-    : content;
+  const displayContent = shouldTruncate && !isExpanded ? content.slice(0, 200) + "..." : content;
 
   return (
     <article
@@ -192,7 +192,7 @@ export function EntityCard({
         "group relative rounded-xl border border-[var(--border)] bg-[var(--card)]",
         "overflow-hidden transition-all duration-200",
         "hover:border-[var(--primary)]/30 hover:shadow-md",
-        className
+        className,
       )}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
@@ -200,9 +200,7 @@ export function EntityCard({
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0 flex-1">
-            {typeBadge && (
-              <TypeBadge type={typeBadge.label} color={typeBadge.color} />
-            )}
+            {typeBadge && <TypeBadge type={typeBadge.label} color={typeBadge.color} />}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 {author && (
@@ -237,7 +235,7 @@ export function EntityCard({
             <div
               className={cn(
                 "flex items-center gap-1 transition-opacity duration-200",
-                showActions ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                showActions ? "opacity-100" : "opacity-0 group-hover:opacity-100",
               )}
             >
               {actions}
@@ -274,9 +272,7 @@ export function EntityCard({
             <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-1.5">
               Ответ администратора
             </p>
-            <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">
-              {response}
-            </p>
+            <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap">{response}</p>
           </div>
         )}
 
@@ -363,7 +359,7 @@ export function ActionButton({
         "p-2 rounded-lg transition-all duration-150",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         "active:scale-95",
-        actionVariants[variant]
+        actionVariants[variant],
       )}
     >
       {loading ? (
@@ -402,7 +398,12 @@ export function ReplyCard({ author, content, createdAt, onDelete, isDeleting }: 
               <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
             ) : (
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             )}
           </button>

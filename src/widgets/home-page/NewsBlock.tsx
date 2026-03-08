@@ -27,7 +27,9 @@ function AnnouncementImage({ src, className }: { src: string | undefined; classN
 
   if (!imageSrc) {
     return (
-      <div className={`${className} bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center`}>
+      <div
+        className={`${className} bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center`}
+      >
         <Megaphone className="w-10 h-10 text-[var(--primary)]/40" />
       </div>
     );
@@ -50,7 +52,12 @@ function AnnouncementImage({ src, className }: { src: string | undefined; classN
 const NEWS_LIMIT = 6;
 
 function getItemId(a: Announcement): string {
-  return (a as Announcement & { _id?: string }).id ?? (a as Announcement & { _id?: string })._id ?? a.slug ?? "";
+  return (
+    (a as Announcement & { _id?: string }).id ??
+    (a as Announcement & { _id?: string })._id ??
+    a.slug ??
+    ""
+  );
 }
 
 export default function NewsBlock() {
@@ -76,7 +83,10 @@ export default function NewsBlock() {
 
   if (isLoading) {
     return (
-      <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" aria-label="Новости">
+      <section
+        className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6"
+        aria-label="Новости"
+      >
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
@@ -87,7 +97,10 @@ export default function NewsBlock() {
         </div>
         <div className="flex gap-3 overflow-hidden">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="flex-shrink-0 w-[172px] sm:w-[220px] rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div
+              key={i}
+              className="flex-shrink-0 w-[172px] sm:w-[220px] rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden"
+            >
               <div className="aspect-[4/3] bg-[var(--muted)] animate-pulse" />
               <div className="p-2.5 space-y-2">
                 <div className="h-3 w-14 bg-[var(--muted)] rounded animate-pulse" />
@@ -112,7 +125,10 @@ export default function NewsBlock() {
   if (!announcements.length) return null;
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6" aria-label="Новости">
+    <section
+      className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6"
+      aria-label="Новости"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3 sm:mb-4">
         <div className="flex items-center gap-2 min-w-0">
           <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">

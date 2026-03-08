@@ -65,7 +65,13 @@ export default function BookmarkGridCard({
     chaptersRead != null && totalChapters > 0
       ? Math.min(100, (chaptersRead / totalChapters) * 100)
       : 0;
-  const categories: BookmarkCategory[] = ["reading", "planned", "completed", "favorites", "dropped"];
+  const categories: BookmarkCategory[] = [
+    "reading",
+    "planned",
+    "completed",
+    "favorites",
+    "dropped",
+  ];
 
   const handleRemove = async (e: React.MouseEvent) => {
     e.preventDefault();

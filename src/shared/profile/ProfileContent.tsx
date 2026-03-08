@@ -83,7 +83,9 @@ export default function ProfileContent({
         <ProfileBookmarksLibrary
           bookmarks={userProfile.bookmarks}
           readingHistory={userProfile.readingHistory}
-          allBookmarksHref={onShowBookmarks ? undefined : (allBookmarksHref ?? "/profile/bookmarks")}
+          allBookmarksHref={
+            onShowBookmarks ? undefined : (allBookmarksHref ?? "/profile/bookmarks")
+          }
           onShowAllBookmarks={onShowBookmarks}
           maxItems={10}
           emptyStateMessage={bookmarksEmptyStateMessage}

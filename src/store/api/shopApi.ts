@@ -9,10 +9,7 @@ const SHOP_TAG = "Shop" as const;
 type DecorationType = "avatar" | "frame" | "background" | "card";
 
 /** Нормализует элемент: _id → id, добавляет type если передан массив по типу */
-function normalizeDecoration(
-  item: Record<string, unknown>,
-  type?: DecorationType,
-): Decoration {
+function normalizeDecoration(item: Record<string, unknown>, type?: DecorationType): Decoration {
   const id = (item.id ?? item._id) as string;
   const stock = (item.stock ?? item.quantity_remaining) as number | undefined;
   const isSoldOut = (item.isSoldOut ?? item.is_sold_out ?? item.sold_out) as boolean | undefined;
@@ -21,7 +18,7 @@ function normalizeDecoration(
     name: (item.name as string) ?? "",
     description: (item.description as string) ?? "",
     price: (item.price as number) ?? 0,
-    imageUrl: (item.imageUrl ?? item.image_url) as string ?? "",
+    imageUrl: ((item.imageUrl ?? item.image_url) as string) ?? "",
     type: (type ?? item.type) as DecorationType,
     rarity: normalizeRarity(item.rarity ?? item.rarity_level),
     isAvailable: item.isAvailable as boolean | undefined,
@@ -29,7 +26,9 @@ function normalizeDecoration(
     stock: stock != null ? Number(stock) : undefined,
     isSoldOut: isSoldOut ?? (stock != null && Number(stock) <= 0),
     subscriptionPrice: (item.subscriptionPrice ?? item.subscription_price) as number | undefined,
-    onlyWithSubscription: (item.onlyWithSubscription ?? item.only_with_subscription) as boolean | undefined,
+    onlyWithSubscription: (item.onlyWithSubscription ?? item.only_with_subscription) as
+      | boolean
+      | undefined,
     bonus: (item.bonus as number | undefined) ?? undefined,
   };
 }
@@ -56,10 +55,7 @@ function parseDecorationsResponse(response: unknown): Decoration[] {
     const backgrounds = (inner.backgrounds as unknown[]) ?? [];
     const cards = (inner.cards as unknown[]) ?? [];
     if (avatars.length > 0 || frames.length > 0 || backgrounds.length > 0 || cards.length > 0) {
-      const withType = (
-        arr: unknown[],
-        type: DecorationType,
-      ): Decoration[] =>
+      const withType = (arr: unknown[], type: DecorationType): Decoration[] =>
         arr
           .filter((x): x is Record<string, unknown> => x != null && typeof x === "object")
           .map(x => normalizeDecoration(x, type));
@@ -108,10 +104,7 @@ export const shopApi = createApi({
       transformResponse: parseDecorationsResponse,
       providesTags: result =>
         Array.isArray(result)
-          ? [
-              ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
-              { type: SHOP_TAG, id: "LIST" },
-            ]
+          ? [...result.map(({ id }) => ({ type: SHOP_TAG, id })), { type: SHOP_TAG, id: "LIST" }]
           : [{ type: SHOP_TAG, id: "LIST" }],
     }),
 
@@ -120,10 +113,7 @@ export const shopApi = createApi({
       transformResponse: parseDecorationsResponse,
       providesTags: result =>
         Array.isArray(result)
-          ? [
-              ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
-              { type: SHOP_TAG, id: "LIST" },
-            ]
+          ? [...result.map(({ id }) => ({ type: SHOP_TAG, id })), { type: SHOP_TAG, id: "LIST" }]
           : [{ type: SHOP_TAG, id: "LIST" }],
     }),
 
@@ -135,10 +125,7 @@ export const shopApi = createApi({
       transformResponse: parseDecorationsResponse,
       providesTags: result =>
         Array.isArray(result)
-          ? [
-              ...result.map(({ id }) => ({ type: SHOP_TAG, id })),
-              { type: SHOP_TAG, id: "LIST" },
-            ]
+          ? [...result.map(({ id }) => ({ type: SHOP_TAG, id })), { type: SHOP_TAG, id: "LIST" }]
           : [{ type: SHOP_TAG, id: "LIST" }],
     }),
 
@@ -172,7 +159,8 @@ export const shopApi = createApi({
         formData.append("file", file, file.name || "image");
         formData.append("type", type);
         if (name !== undefined && name !== "") formData.append("name", name);
-        if (description !== undefined && description !== "") formData.append("description", description);
+        if (description !== undefined && description !== "")
+          formData.append("description", description);
         if (price !== undefined) formData.append("price", String(price));
         if (rarity !== undefined) formData.append("rarity", rarity);
         if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
@@ -186,10 +174,7 @@ export const shopApi = createApi({
       invalidatesTags: [{ type: SHOP_TAG, id: "LIST" }],
     }),
 
-    updateDecoration: builder.mutation<
-      Decoration,
-      { id: string; dto: UpdateDecorationDto }
-    >({
+    updateDecoration: builder.mutation<Decoration, { id: string; dto: UpdateDecorationDto }>({
       query: ({ id, dto }) => ({
         url: `/shop/admin/decorations/${id}`,
         method: "PATCH",
@@ -265,7 +250,10 @@ export const shopApi = createApi({
         url: `/shop/equip/${type}/${decorationId}`,
         method: "PUT",
       }),
-      invalidatesTags: [{ type: SHOP_TAG, id: "PROFILE" }, { type: SHOP_TAG, id: "LIST" }],
+      invalidatesTags: [
+        { type: SHOP_TAG, id: "PROFILE" },
+        { type: SHOP_TAG, id: "LIST" },
+      ],
     }),
 
     unequipDecoration: builder.mutation<
@@ -276,7 +264,10 @@ export const shopApi = createApi({
         url: `/shop/equip/${type}`,
         method: "DELETE",
       }),
-      invalidatesTags: [{ type: SHOP_TAG, id: "PROFILE" }, { type: SHOP_TAG, id: "LIST" }],
+      invalidatesTags: [
+        { type: SHOP_TAG, id: "PROFILE" },
+        { type: SHOP_TAG, id: "LIST" },
+      ],
     }),
   }),
 });

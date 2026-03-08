@@ -75,9 +75,7 @@ const MOBILE_MENU_SECTIONS = [
   },
   {
     title: "Социальные сети",
-    items: [
-      { href: TELEGRAM_HREF, label: "Telegram канал", icon: Send, external: true },
-    ],
+    items: [{ href: TELEGRAM_HREF, label: "Telegram канал", icon: Send, external: true }],
   },
 ];
 
@@ -105,10 +103,10 @@ export default function Footer() {
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [sheetTranslateY, setSheetTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [isTabVisible, setIsTabVisible] = useState(
-    () => (typeof document !== "undefined" ? document.visibilityState === "visible" : true)
+  const [isTabVisible, setIsTabVisible] = useState(() =>
+    typeof document !== "undefined" ? document.visibilityState === "visible" : true,
   );
-  
+
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
   const currentY = useRef(0);
@@ -131,7 +129,7 @@ export default function Footer() {
     setSheetTranslateY(0);
     setIsMoreOpen(true);
   }, []);
-  
+
   const closeMore = useCallback(() => {
     setIsMoreOpen(false);
     setSheetTranslateY(0);
@@ -147,14 +145,17 @@ export default function Footer() {
     setIsDragging(true);
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const deltaY = e.touches[0].clientY - dragStartY.current;
-    if (deltaY > 0) {
-      currentY.current = deltaY;
-      setSheetTranslateY(deltaY);
-    }
-  }, [isDragging]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging) return;
+      const deltaY = e.touches[0].clientY - dragStartY.current;
+      if (deltaY > 0) {
+        currentY.current = deltaY;
+        setSheetTranslateY(deltaY);
+      }
+    },
+    [isDragging],
+  );
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -191,7 +192,9 @@ export default function Footer() {
   useEffect(() => {
     if (isMoreOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isMoreOpen]);
 
   useEffect(() => {
@@ -208,7 +211,11 @@ export default function Footer() {
   return (
     <footer className="relative w-full">
       {/* Десктопный футер */}
-      <div className="footer-desktop w-full mt-auto hidden lg:block bg-white dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[16px] border-t border-[rgba(var(--border-rgb),0.65)] dark:border-[rgba(255,255,255,0.06)]" role="contentinfo" aria-label="Подвал сайта">
+      <div
+        className="footer-desktop w-full mt-auto hidden lg:block bg-white dark:bg-[rgba(8,8,12,0.92)] backdrop-blur-[16px] border-t border-[rgba(var(--border-rgb),0.65)] dark:border-[rgba(255,255,255,0.06)]"
+        role="contentinfo"
+        aria-label="Подвал сайта"
+      >
         <div className="footer-desktop-inner min-w-0 w-full max-w-7xl mx-auto px-4 py-10 sm:px-6 md:px-8 lg:px-10 xl:py-12">
           <div className="footer-desktop-grid min-w-0 grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-10 mb-10 [&>*]:min-w-0">
             {/* Колонка 1: Логотип */}
@@ -223,12 +230,19 @@ export default function Footer() {
 
             {/* Колонка 2: Сайт */}
             <div className="footer-col flex flex-col items-start min-w-0">
-              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Сайт</h3>
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">
+                Сайт
+              </h3>
               <div className="footer-col__body flex flex-col gap-3 w-full">
                 <ul className="footer-col__list list-none m-0 p-0 flex flex-col gap-0.5">
                   {FOOTER_NAV_GROUPS[0].items.map(({ href, label }) => (
                     <li key={href}>
-                      <Link href={href} className="break-words leading-[1.35] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[rgba(var(--primary-rgb),0.06)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:bg-[rgba(var(--primary-rgb),0.08)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-0.5 py-0.5 -mx-0.5 transition-colors duration-200">{label}</Link>
+                      <Link
+                        href={href}
+                        className="break-words leading-[1.35] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[rgba(var(--primary-rgb),0.06)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:bg-[rgba(var(--primary-rgb),0.08)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-0.5 py-0.5 -mx-0.5 transition-colors duration-200"
+                      >
+                        {label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -237,12 +251,19 @@ export default function Footer() {
 
             {/* Колонка 3: Документы */}
             <div className="footer-col flex flex-col items-start min-w-0">
-              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Документы</h3>
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">
+                Документы
+              </h3>
               <div className="footer-col__body flex flex-col gap-3 w-full">
                 <ul className="footer-col__list list-none m-0 p-0 flex flex-col gap-0.5">
                   {FOOTER_NAV_GROUPS[1].items.map(({ href, label }) => (
                     <li key={href}>
-                      <Link href={href} className="break-words leading-[1.35] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[rgba(var(--primary-rgb),0.06)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:bg-[rgba(var(--primary-rgb),0.08)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-0.5 py-0.5 -mx-0.5 transition-colors duration-200">{label}</Link>
+                      <Link
+                        href={href}
+                        className="break-words leading-[1.35] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[rgba(var(--primary-rgb),0.06)] focus-visible:outline-none focus-visible:text-[var(--foreground)] focus-visible:bg-[rgba(var(--primary-rgb),0.08)] focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-0.5 py-0.5 -mx-0.5 transition-colors duration-200"
+                      >
+                        {label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -251,7 +272,9 @@ export default function Footer() {
 
             {/* Колонка 4: Контакты */}
             <div className="footer-col flex flex-col items-start min-w-0">
-              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">Контакты</h3>
+              <h3 className="footer-col__title m-0 mb-3 text-[0.6875rem] font-semibold tracking-[0.08em] uppercase text-[var(--muted-foreground)]">
+                Контакты
+              </h3>
               <div className="footer-col__body flex flex-col gap-3 w-full">
                 <p className="footer-col__text m-0 text-[0.8125rem] leading-normal text-[var(--muted-foreground)] max-w-full">
                   По вопросам нарушения авторских прав и сотрудничества:
@@ -272,7 +295,10 @@ export default function Footer() {
                     aria-label="Мы в Telegram (открывается в новой вкладке)"
                   >
                     Мы в Telegram
-                    <ExternalLink className="footer-col__contact-icon w-3 h-3 opacity-70 shrink-0" aria-hidden />
+                    <ExternalLink
+                      className="footer-col__contact-icon w-3 h-3 opacity-70 shrink-0"
+                      aria-hidden
+                    />
                   </Link>
                 </div>
               </div>
@@ -280,10 +306,13 @@ export default function Footer() {
           </div>
 
           {stats && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 py-4 text-xs text-[var(--muted-foreground)]" role="status" aria-label="Краткая статистика библиотеки">
+            <div
+              className="flex flex-wrap items-center gap-x-4 gap-y-1 py-4 text-xs text-[var(--muted-foreground)]"
+              role="status"
+              aria-label="Краткая статистика библиотеки"
+            >
               <span className="inline-flex items-center gap-1.5">
-                <BarChart3 className="w-3.5 h-3.5 opacity-70" aria-hidden />
-                В библиотеке:
+                <BarChart3 className="w-3.5 h-3.5 opacity-70" aria-hidden />В библиотеке:
               </span>
               <span>{stats.totalTitles.toLocaleString("ru-RU")} тайтлов</span>
               <span aria-hidden>·</span>
@@ -299,11 +328,17 @@ export default function Footer() {
             </div>
           )}
 
-          <div className="h-px my-8 opacity-50 [background:linear-gradient(90deg,transparent_0%,var(--border)_20%,var(--primary)_50%,var(--border)_80%,transparent_100%)]" aria-hidden />
+          <div
+            className="h-px my-8 opacity-50 [background:linear-gradient(90deg,transparent_0%,var(--border)_20%,var(--primary)_50%,var(--border)_80%,transparent_100%)]"
+            aria-hidden
+          />
 
           <div className="footer-desktop-bottom flex flex-col items-center gap-5 sm:flex-row sm:justify-between sm:items-center text-[var(--muted-foreground)] text-sm">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 sm:justify-start">
-              <span className="inline-flex items-center gap-1.5" aria-label={`Авторские права 2025–${currentYear} Tomilo-lib.ru`}>
+              <span
+                className="inline-flex items-center gap-1.5"
+                aria-label={`Авторские права 2025–${currentYear} Tomilo-lib.ru`}
+              >
                 <Copyright className="w-4 h-4 flex-shrink-0" aria-hidden />
                 2025–{currentYear} «Tomilo-lib.ru»
               </span>
@@ -319,7 +354,9 @@ export default function Footer() {
                 Сайт разработан: @TomiloDev
                 <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
-              <span className="py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)] bg-gradient-to-br from-[rgba(var(--primary-rgb),0.12)] to-[rgba(var(--primary-rgb),0.06)] border border-[rgba(var(--border-rgb),0.6)] dark:border-[rgba(var(--border-rgb),0.6)]">Версия 03032025</span>
+              <span className="py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)] bg-gradient-to-br from-[rgba(var(--primary-rgb),0.12)] to-[rgba(var(--primary-rgb),0.06)] border border-[rgba(var(--border-rgb),0.6)] dark:border-[rgba(var(--border-rgb),0.6)]">
+                Версия 03032025
+              </span>
             </div>
           </div>
         </div>
@@ -338,14 +375,12 @@ export default function Footer() {
       )}
 
       {/* Мобильная нижняя панель — переработанный дизайн */}
-      <div
-        className="mobile-footer fixed bottom-0 left-0 right-0 lg:hidden z-50 transition-all duration-300 ease-out translate-y-0 opacity-100"
-      >
+      <div className="mobile-footer fixed bottom-0 left-0 right-0 lg:hidden z-50 transition-all duration-300 ease-out translate-y-0 opacity-100">
         <div className="mobile-footer__container">
           <nav className="mobile-footer__nav" aria-label="Основная навигация">
             {MOBILE_NAV_ITEMS.map(({ href, label, icon: Icon, isMain }) => {
               const active = isActivePath(pathname, href);
-              
+
               if (isMain) {
                 return (
                   <Link
@@ -369,15 +404,19 @@ export default function Footer() {
                   </Link>
                 );
               }
-              
+
               const isNotifications = href === "/notifications";
-              
+
               return (
                 <Link
                   key={href}
                   href={href}
                   className={`mobile-footer__item ${active ? "mobile-footer__item--active" : ""}`}
-                  aria-label={isNotifications && notificationCount > 0 ? `${label} (${notificationCount} новых)` : label}
+                  aria-label={
+                    isNotifications && notificationCount > 0
+                      ? `${label} (${notificationCount} новых)`
+                      : label
+                  }
                   aria-current={active ? "page" : undefined}
                 >
                   <span className="mobile-footer__icon-container">
@@ -398,7 +437,7 @@ export default function Footer() {
                 </Link>
               );
             })}
-            
+
             <button
               type="button"
               onClick={openMore}
@@ -426,9 +465,7 @@ export default function Footer() {
         ref={sheetRef}
         className={`mobile-sheet ${isMoreOpen ? "mobile-sheet--open" : ""}`}
         style={{
-          transform: isMoreOpen 
-            ? `translateY(${sheetTranslateY}px)` 
-            : "translateY(100%)",
+          transform: isMoreOpen ? `translateY(${sheetTranslateY}px)` : "translateY(100%)",
           transition: isDragging ? "none" : undefined,
         }}
         role="dialog"
@@ -439,10 +476,7 @@ export default function Footer() {
         onTouchEnd={handleTouchEnd}
       >
         <div className="mobile-sheet__header">
-          <div 
-            className="mobile-sheet__handle" 
-            aria-hidden 
-          />
+          <div className="mobile-sheet__handle" aria-hidden />
           <div className="mobile-sheet__title-row">
             <div className="mobile-sheet__title-content">
               <Sparkles className="mobile-sheet__title-icon" aria-hidden />
@@ -458,20 +492,20 @@ export default function Footer() {
             </button>
           </div>
         </div>
-        
+
         <div className="mobile-sheet__content">
           {MOBILE_MENU_SECTIONS.map((section, sectionIndex) => (
             <div key={section.title} className="mobile-sheet__section">
               <h3 className="mobile-sheet__section-title">{section.title}</h3>
               <div className="mobile-sheet__section-items">
-                {section.items.map((item) => {
+                {section.items.map(item => {
                   const Icon = item.icon;
-                  const isExternal = 'external' in item && item.external;
-                  const ItemComponent = isExternal ? 'a' : Link;
-                  const linkProps = isExternal 
+                  const isExternal = "external" in item && item.external;
+                  const ItemComponent = isExternal ? "a" : Link;
+                  const linkProps = isExternal
                     ? { href: item.href, target: "_blank", rel: "noopener noreferrer" }
                     : { href: item.href };
-                  
+
                   return (
                     <ItemComponent
                       key={item.href}
@@ -484,7 +518,7 @@ export default function Footer() {
                       </span>
                       <span className="mobile-sheet__item-content">
                         <span className="mobile-sheet__item-label">{item.label}</span>
-                        {'badge' in item && item.badge && (
+                        {"badge" in item && item.badge && (
                           <span className="mobile-sheet__item-badge">{item.badge}</span>
                         )}
                       </span>
@@ -502,11 +536,9 @@ export default function Footer() {
             </div>
           ))}
         </div>
-        
+
         <div className="mobile-sheet__footer">
-          <p className="mobile-sheet__copyright">
-            © 2025–{currentYear} Tomilo-lib.ru
-          </p>
+          <p className="mobile-sheet__copyright">© 2025–{currentYear} Tomilo-lib.ru</p>
         </div>
       </div>
     </footer>

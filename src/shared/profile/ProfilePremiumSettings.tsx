@@ -30,12 +30,8 @@ export default function ProfilePremiumSettings({ userProfile }: ProfilePremiumSe
             <Crown className="w-5 h-5 text-amber-500" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Премиум-подписка
-            </h2>
-            <p className="text-[var(--muted-foreground)] text-xs">
-              Статус подписки и преимущества
-            </p>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Премиум-подписка</h2>
+            <p className="text-[var(--muted-foreground)] text-xs">Статус подписки и преимущества</p>
           </div>
         </div>
       </div>
@@ -55,9 +51,7 @@ export default function ProfilePremiumSettings({ userProfile }: ProfilePremiumSe
             <Crown className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
           )}
           <span className="text-sm font-medium">
-            {active
-              ? `Подписка активна до ${formattedEnd}`
-              : "У вас нет активной премиум-подписки"}
+            {active ? `Подписка активна до ${formattedEnd}` : "У вас нет активной премиум-подписки"}
           </span>
         </div>
       </div>
@@ -79,9 +73,7 @@ export default function ProfilePremiumSettings({ userProfile }: ProfilePremiumSe
 
       {/* Заглушка оплаты */}
       <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--secondary)]/30 p-4 text-center">
-        <p className="text-sm text-[var(--muted-foreground)]">
-          Оплата подписки — в разработке
-        </p>
+        <p className="text-sm text-[var(--muted-foreground)]">Оплата подписки — в разработке</p>
         <p className="text-xs text-[var(--muted-foreground)] mt-1">
           Скоро здесь можно будет оформить или продлить премиум
         </p>

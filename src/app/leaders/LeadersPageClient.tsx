@@ -3,7 +3,22 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { TrendingUp, Star, Users, Flame, Search, Eye, EyeOff, Calendar, MessageSquare, X, User, BookOpen, Trophy, Heart } from "lucide-react";
+import {
+  TrendingUp,
+  Star,
+  Users,
+  Flame,
+  Search,
+  Eye,
+  EyeOff,
+  Calendar,
+  MessageSquare,
+  X,
+  User,
+  BookOpen,
+  Trophy,
+  Heart,
+} from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
 import LoadingSkeleton from "@/shared/skeleton/skeleton";
@@ -21,7 +36,13 @@ import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useMounted } from "@/hooks/useMounted";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions";
-import { getDecorationImageUrl, getEquippedAvatarDecorationUrl, getEquippedFrameUrl, getEquippedCardUrl, type DecorationRarity } from "@/api/shop";
+import {
+  getDecorationImageUrl,
+  getEquippedAvatarDecorationUrl,
+  getEquippedFrameUrl,
+  getEquippedCardUrl,
+  type DecorationRarity,
+} from "@/api/shop";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
@@ -119,7 +140,11 @@ interface TransformableUser {
   subscriptionExpiresAt?: string | null;
 }
 
-type DecorationValue = string | { id?: string; _id?: string; imageUrl?: string; image_url?: string; rarity?: DecorationRarity } | null | undefined;
+type DecorationValue =
+  | string
+  | { id?: string; _id?: string; imageUrl?: string; image_url?: string; rarity?: DecorationRarity }
+  | null
+  | undefined;
 type DecorationMapEntry = { imageUrl: string; rarity: DecorationRarity; type: string };
 
 interface ResolvedDecoration {
@@ -129,48 +154,54 @@ interface ResolvedDecoration {
 
 function resolveDecorationValue(
   value: DecorationValue,
-  decorationsMap: Map<string, DecorationMapEntry>
+  decorationsMap: Map<string, DecorationMapEntry>,
 ): ResolvedDecoration {
   if (value == null) return { url: null, rarity: null };
-  
+
   if (typeof value === "object") {
-    const obj = value as { id?: string; _id?: string; imageUrl?: string; image_url?: string; rarity?: DecorationRarity };
+    const obj = value as {
+      id?: string;
+      _id?: string;
+      imageUrl?: string;
+      image_url?: string;
+      rarity?: DecorationRarity;
+    };
     const imageUrl = obj.imageUrl ?? obj.image_url;
     if (imageUrl) {
-      return { 
+      return {
         url: getDecorationImageUrl(imageUrl) || imageUrl,
-        rarity: obj.rarity ?? null
+        rarity: obj.rarity ?? null,
       };
     }
     const id = obj.id ?? obj._id;
     if (id && decorationsMap.has(id)) {
       const entry = decorationsMap.get(id)!;
-      return { 
+      return {
         url: getDecorationImageUrl(entry.imageUrl) || entry.imageUrl,
-        rarity: entry.rarity
+        rarity: entry.rarity,
       };
     }
     return { url: null, rarity: null };
   }
-  
+
   const trimmed = value.trim();
   if (!trimmed) return { url: null, rarity: null };
-  
+
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
     return { url: getDecorationImageUrl(trimmed) || trimmed, rarity: null };
   }
-  
+
   if (/^[a-f0-9]{24}$/i.test(trimmed)) {
     const entry = decorationsMap.get(trimmed);
     if (entry) {
-      return { 
+      return {
         url: getDecorationImageUrl(entry.imageUrl) || entry.imageUrl,
-        rarity: entry.rarity
+        rarity: entry.rarity,
       };
     }
     return { url: null, rarity: null };
   }
-  
+
   return { url: getDecorationImageUrl(trimmed) || null, rarity: null };
 }
 
@@ -186,15 +217,15 @@ interface ResolvedEquippedDecorations {
 
 function resolveEquippedDecorations(
   equipped: TransformableUserEquipped | null | undefined,
-  decorationsMap: Map<string, DecorationMapEntry>
+  decorationsMap: Map<string, DecorationMapEntry>,
 ): ResolvedEquippedDecorations | null {
   if (!equipped) return null;
-  
+
   const avatar = resolveDecorationValue(equipped.avatar, decorationsMap);
   const frame = resolveDecorationValue(equipped.frame, decorationsMap);
   const card = resolveDecorationValue(equipped.card, decorationsMap);
   const background = resolveDecorationValue(equipped.background, decorationsMap);
-  
+
   return {
     avatar: avatar.url,
     frame: frame.url,
@@ -209,16 +240,14 @@ function resolveEquippedDecorations(
 function transformUsersToLeaderboard(
   users: TransformableUser[],
   category: LeaderboardCategory,
-  decorationsMap: Map<string, DecorationMapEntry>
+  decorationsMap: Map<string, DecorationMapEntry>,
 ): LeaderboardUser[] {
   const visibleUsers = users.filter(user => user.showStats !== false);
-  
+
   const mappedUsers = visibleUsers.map(user => {
-    const chaptersReadFromHistory = user.readingHistory?.reduce(
-      (total, item) => total + (item.chapters?.length || 0),
-      0
-    ) ?? 0;
-    
+    const chaptersReadFromHistory =
+      user.readingHistory?.reduce((total, item) => total + (item.chapters?.length || 0), 0) ?? 0;
+
     const chaptersRead = user.chaptersRead ?? chaptersReadFromHistory;
 
     return {
@@ -231,7 +260,10 @@ function transformUsersToLeaderboard(
       readingTime: user.readingTimeMinutes ?? chaptersRead * 2,
       readingTimeMinutes: user.readingTimeMinutes ?? chaptersRead * 2,
       chaptersRead,
-      ratingsCount: user.ratingsCount ?? user.bookmarks?.length ?? Math.floor((user.reputationScore ?? 0) * 0.5),
+      ratingsCount:
+        user.ratingsCount ??
+        user.bookmarks?.length ??
+        Math.floor((user.reputationScore ?? 0) * 0.5),
       commentsCount: user.commentsCount ?? Math.floor((user.activityScore ?? 0) * 0.3),
       currentStreak: user.currentStreak ?? 0,
       longestStreak: user.longestStreak ?? 0,
@@ -258,7 +290,10 @@ function transformUsersToLeaderboard(
       case "comments":
         return (b.commentsCount ?? 0) - (a.commentsCount ?? 0);
       case "streak":
-        return (b.currentStreak ?? 0) - (a.currentStreak ?? 0) || (b.longestStreak ?? 0) - (a.longestStreak ?? 0);
+        return (
+          (b.currentStreak ?? 0) - (a.currentStreak ?? 0) ||
+          (b.longestStreak ?? 0) - (a.longestStreak ?? 0)
+        );
       default:
         return 0;
     }
@@ -278,23 +313,55 @@ function getLeaderFrameUrl(u: LeaderboardUser): string | null {
   return getEquippedFrameUrl(u.equippedDecorations as EquippedDecorations | null);
 }
 
-const VALID_CATEGORIES: LeaderboardCategory[] = ["level", "chaptersRead", "ratings", "comments", "streak"];
+const VALID_CATEGORIES: LeaderboardCategory[] = [
+  "level",
+  "chaptersRead",
+  "ratings",
+  "comments",
+  "streak",
+];
 
 /** Поля статистики и профиля для слияния из обоих источников (leaderboard + homepage), чтобы карточки были полными во всех топах */
 const MERGE_STAT_KEYS: (keyof TransformableUser)[] = [
-  "avatar", "role", "level", "experience", "chaptersRead", "readingTimeMinutes",
-  "ratingsCount", "commentsCount", "currentStreak", "longestStreak", "lastStreakDate",
-  "titlesReadCount", "completedTitlesCount", "likesReceivedCount", "showStats",
-  "readingHistory", "bookmarks", "activityScore", "reputationScore",
-  "equippedDecorations", "lastActiveAt",
+  "avatar",
+  "role",
+  "level",
+  "experience",
+  "chaptersRead",
+  "readingTimeMinutes",
+  "ratingsCount",
+  "commentsCount",
+  "currentStreak",
+  "longestStreak",
+  "lastStreakDate",
+  "titlesReadCount",
+  "completedTitlesCount",
+  "likesReceivedCount",
+  "showStats",
+  "readingHistory",
+  "bookmarks",
+  "activityScore",
+  "reputationScore",
+  "equippedDecorations",
+  "lastActiveAt",
 ];
 
 const MERGE_EXTRA_KEYS = ["readingTime"] as const;
 
 const NUMERIC_MERGE_KEYS = new Set([
-  "level", "experience", "chaptersRead", "readingTimeMinutes", "ratingsCount", "commentsCount",
-  "currentStreak", "longestStreak", "titlesReadCount", "completedTitlesCount", "likesReceivedCount",
-  "activityScore", "reputationScore",
+  "level",
+  "experience",
+  "chaptersRead",
+  "readingTimeMinutes",
+  "ratingsCount",
+  "commentsCount",
+  "currentStreak",
+  "longestStreak",
+  "titlesReadCount",
+  "completedTitlesCount",
+  "likesReceivedCount",
+  "activityScore",
+  "reputationScore",
 ]);
 
 /** snake_case варианты полей из API (лидерборд/профиль могут приходить в snake_case) */
@@ -326,7 +393,7 @@ function getMergeVal(record: Record<string, unknown>, key: string): unknown {
 
 function mergeLeaderboardWithHomepage(
   leaderboardUser: Record<string, unknown>,
-  homepageUser: Record<string, unknown> | undefined
+  homepageUser: Record<string, unknown> | undefined,
 ): TransformableUser {
   const merged = { ...leaderboardUser } as Record<string, unknown>;
   if (homepageUser) {
@@ -337,8 +404,13 @@ function mergeLeaderboardWithHomepage(
       const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
       const useHome =
         leaderVal === undefined || leaderVal === null
-          ? (homeVal !== undefined && homeVal !== null && (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0)))
-          : (typeof leaderVal === "number" && leaderVal === 0 && typeof homeVal === "number" && (homeVal as number) > 0);
+          ? homeVal !== undefined &&
+            homeVal !== null &&
+            (!isNumeric || (typeof homeVal === "number" && (homeVal as number) > 0))
+          : typeof leaderVal === "number" &&
+            leaderVal === 0 &&
+            typeof homeVal === "number" &&
+            (homeVal as number) > 0;
       if (useHome && homeVal !== undefined && homeVal !== null) {
         merged[key] = homeVal;
       }
@@ -349,7 +421,11 @@ function mergeLeaderboardWithHomepage(
       merged[key] = merged[MERGE_KEY_SNAKE[key]];
     }
   }
-  if (merged.readingTimeMinutes == null && merged.readingTime != null && typeof merged.readingTime === "number") {
+  if (
+    merged.readingTimeMinutes == null &&
+    merged.readingTime != null &&
+    typeof merged.readingTime === "number"
+  ) {
     merged.readingTimeMinutes = merged.readingTime;
   }
   return merged as unknown as TransformableUser;
@@ -376,7 +452,10 @@ export default function LeadersPageClient() {
   const [activePeriod, setActivePeriod] = useState<LeaderboardPeriod>("month");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAdmins, setShowAdmins] = useState(true);
-  const [leaderModalState, setLeaderModalState] = useState<{ user: LeaderboardUser; rank: number } | null>(null);
+  const [leaderModalState, setLeaderModalState] = useState<{
+    user: LeaderboardUser;
+    rank: number;
+  } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const supportsPeriod = activeCategory === "ratings" || activeCategory === "comments";
@@ -386,18 +465,18 @@ export default function LeadersPageClient() {
     isLoading: leaderboardLoading,
     isFetching: leaderboardFetching,
     error: leaderboardError,
-  } = useGetLeaderboardQuery({ 
-    category: activeCategory, 
-    period: supportsPeriod ? activePeriod : "all",
-    limit: 50 
-  }, {
-    refetchOnMountOrArgChange: true,
-  });
+  } = useGetLeaderboardQuery(
+    {
+      category: activeCategory,
+      period: supportsPeriod ? activePeriod : "all",
+      limit: 50,
+    },
+    {
+      refetchOnMountOrArgChange: true,
+    },
+  );
 
-  const {
-    data: homepageUsersData,
-    isLoading: homepageLoading,
-  } = useGetHomepageActiveUsersQuery({
+  const { data: homepageUsersData, isLoading: homepageLoading } = useGetHomepageActiveUsersQuery({
     limit: 100,
     days: 9999,
     sortBy: "level",
@@ -454,16 +533,16 @@ export default function LeadersPageClient() {
 
   const filteredUsers = useMemo(() => {
     let users = leaderboardUsers;
-    
+
     if (!showAdmins) {
       users = users.filter(u => u.role !== "admin" && u.role !== "moderator");
     }
-    
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       users = users.filter(u => u.username.toLowerCase().includes(query));
     }
-    
+
     return users;
   }, [leaderboardUsers, searchQuery, showAdmins]);
 
@@ -530,7 +609,9 @@ export default function LeadersPageClient() {
                     router.replace(`${pathname}?${params.toString()}`);
                   }}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    isActive ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    isActive
+                      ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -588,7 +669,9 @@ export default function LeadersPageClient() {
               type="button"
               onClick={() => setShowAdmins(!showAdmins)}
               className={`shrink-0 p-2 rounded-lg border border-[var(--border)] transition-colors ${
-                showAdmins ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                showAdmins
+                  ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                  : "bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
               }`}
               title={showAdmins ? "Скрыть админов" : "Показать админов"}
               aria-pressed={!showAdmins}
@@ -621,17 +704,35 @@ export default function LeadersPageClient() {
               {!searchQuery && filteredUsers.slice(0, 3).length > 0 && (
                 <div className="mb-6 max-w-lg mx-auto pb-2">
                   <div className="flex items-end justify-center gap-0 sm:gap-1">
-                    {[2, 1, 3].map((rank) => {
+                    {[2, 1, 3].map(rank => {
                       const idx = rank - 1;
                       const u = filteredUsers[idx];
                       if (!u) return null;
-                      const blockHeight = rank === 1 ? "h-24 sm:h-28 md:h-32" : rank === 2 ? "h-20 sm:h-24 md:h-26" : "h-16 sm:h-20 md:h-24";
-                      const avatarWrapperSize = rank === 1 ? "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]" : rank === 2 ? "w-[4.5rem] sm:w-[6rem] md:w-[7rem]" : "w-16 sm:w-20 md:w-[5.5rem]";
-                      const borderClass = rank === 1 ? "border-yellow-400" : rank === 2 ? "border-slate-400" : "border-amber-500";
+                      const blockHeight =
+                        rank === 1
+                          ? "h-24 sm:h-28 md:h-32"
+                          : rank === 2
+                            ? "h-20 sm:h-24 md:h-26"
+                            : "h-16 sm:h-20 md:h-24";
+                      const avatarWrapperSize =
+                        rank === 1
+                          ? "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]"
+                          : rank === 2
+                            ? "w-[4.5rem] sm:w-[6rem] md:w-[7rem]"
+                            : "w-16 sm:w-20 md:w-[5.5rem]";
+                      const borderClass =
+                        rank === 1
+                          ? "border-yellow-400"
+                          : rank === 2
+                            ? "border-slate-400"
+                            : "border-amber-500";
                       const StatIcon = getCategoryIcon(activeCategory);
                       const frameUrl = getLeaderFrameUrl(u);
                       return (
-                        <div key={u._id} className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]">
+                        <div
+                          key={u._id}
+                          className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]"
+                        >
                           <div className="flex items-center justify-center gap-1 w-full mb-0.5 px-0.5 -mt-0.5">
                             <p
                               className={`text-xs sm:text-sm font-semibold truncate text-center ${isPremiumActive(u.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
@@ -640,11 +741,20 @@ export default function LeadersPageClient() {
                               {u.username}
                             </p>
                             {isPremiumActive(u.subscriptionExpiresAt) && (
-                              <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
+                              <PremiumBadge
+                                size="xs"
+                                className="shrink-0"
+                                ariaLabel="Премиум-подписчик"
+                              />
                             )}
                           </div>
-                          <div className={`relative ${avatarWrapperSize} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}>
-                            <div className="relative w-full aspect-square max-w-full shrink-0 min-w-0 transition-transform duration-200 hover:scale-105 origin-center cursor-pointer" style={{ aspectRatio: "1 / 1" }}>
+                          <div
+                            className={`relative ${avatarWrapperSize} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}
+                          >
+                            <div
+                              className="relative w-full aspect-square max-w-full shrink-0 min-w-0 transition-transform duration-200 hover:scale-105 origin-center cursor-pointer"
+                              style={{ aspectRatio: "1 / 1" }}
+                            >
                               <button
                                 type="button"
                                 onClick={() => setLeaderModalState({ user: u, rank })}
@@ -654,7 +764,9 @@ export default function LeadersPageClient() {
                                   src={getLeaderAvatarUrl(u)}
                                   alt={u.username}
                                   className="w-full h-full object-cover aspect-square min-w-full min-h-full"
-                                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
+                                  onError={e => {
+                                    (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                                  }}
                                 />
                               </button>
                               {frameUrl && (
@@ -670,16 +782,26 @@ export default function LeadersPageClient() {
                           </div>
                           <div
                             className={`w-full ${blockHeight} mt-0 flex flex-col rounded-t-lg overflow-hidden shadow-md border border-b-0 border-rose-600/80 bg-rose-500/90 dark:bg-rose-600/80 dark:border-rose-500/70`}
-                            style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 6px -1px rgba(0,0,0,0.2)" }}
+                            style={{
+                              boxShadow:
+                                "inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 6px -1px rgba(0,0,0,0.2)",
+                            }}
                           >
                             <div className="flex-1 flex items-center justify-center min-h-0 pt-1">
-                              <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-md select-none" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+                              <span
+                                className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-md select-none"
+                                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+                              >
                                 {rank}
                               </span>
                             </div>
                             <div className="px-1.5 pb-1.5 pt-1 flex items-center justify-center gap-1 min-h-0 bg-rose-700/50 dark:bg-rose-800/50 backdrop-blur-[1px]">
                               <StatIcon className="w-3.5 h-3.5 shrink-0 text-white" />
-                              <span className="text-[10px] sm:text-xs font-semibold text-white truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }} title={getCategoryDisplayValue(u, activeCategory)}>
+                              <span
+                                className="text-[10px] sm:text-xs font-semibold text-white truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+                                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                                title={getCategoryDisplayValue(u, activeCategory)}
+                              >
                                 {getCategoryDisplayValue(u, activeCategory)}
                               </span>
                             </div>
@@ -694,7 +816,7 @@ export default function LeadersPageClient() {
               {(searchQuery ? filteredUsers : filteredUsers.slice(3)).length > 0 && (
                 <div className="space-y-2">
                   {(searchQuery ? filteredUsers : filteredUsers.slice(3)).map((userData, index) => {
-                    const actualRank = searchQuery 
+                    const actualRank = searchQuery
                       ? (userRankMap.get(userData._id) ?? index + 1)
                       : index + 4;
                     return (
@@ -739,7 +861,9 @@ export default function LeadersPageClient() {
                   <span className="text-[var(--primary-foreground)] text-xs">?</span>
                 </div>
               </div>
-              <p className="text-[var(--muted-foreground)] font-medium">Нет данных для отображения</p>
+              <p className="text-[var(--muted-foreground)] font-medium">
+                Нет данных для отображения
+              </p>
               <p className="text-sm text-[var(--muted-foreground)] mt-2">
                 Скоро здесь появятся лидеры сообщества
               </p>
@@ -770,10 +894,21 @@ function getRarityGlowClass(rarity: DecorationRarity | null | undefined): string
 
 /** Поля статистики для подстановки из профиля, если в лидерборде их нет (вкладки «По оценкам» / «По комментариям») */
 const MODAL_STAT_KEYS: (keyof LeaderboardUser)[] = [
-  "level", "experience", "chaptersRead", "readingTimeMinutes", "readingTime",
-  "ratingsCount", "commentsCount", "titlesReadCount", "completedTitlesCount",
-  "currentStreak", "longestStreak", "likesReceivedCount",
-  "avatar", "equippedDecorations", "subscriptionExpiresAt",
+  "level",
+  "experience",
+  "chaptersRead",
+  "readingTimeMinutes",
+  "readingTime",
+  "ratingsCount",
+  "commentsCount",
+  "titlesReadCount",
+  "completedTitlesCount",
+  "currentStreak",
+  "longestStreak",
+  "likesReceivedCount",
+  "avatar",
+  "equippedDecorations",
+  "subscriptionExpiresAt",
 ];
 
 /** Соответствие camelCase → snake_case для полей из API (профиль может приходить в snake_case) */
@@ -824,9 +959,13 @@ function getProfileVal(profile: Record<string, unknown>, key: string): unknown {
     if (ev !== undefined && ev !== null) return ev;
   }
   if (key === "commentsCount") {
-    const fromCounts = (profile.counts as Record<string, unknown>)?.comments ?? (profile.counts as Record<string, unknown>)?.comments_count;
+    const fromCounts =
+      (profile.counts as Record<string, unknown>)?.comments ??
+      (profile.counts as Record<string, unknown>)?.comments_count;
     if (fromCounts !== undefined && fromCounts !== null) return fromCounts;
-    const fromActivity = (profile.activity as Record<string, unknown>)?.commentsCount ?? (profile.activity as Record<string, unknown>)?.comments_count;
+    const fromActivity =
+      (profile.activity as Record<string, unknown>)?.commentsCount ??
+      (profile.activity as Record<string, unknown>)?.comments_count;
     if (fromActivity !== undefined && fromActivity !== null) return fromActivity;
   }
   return undefined;
@@ -845,12 +984,24 @@ function getChaptersReadFromProfile(profile: Record<string, unknown>): number | 
 }
 
 const NUMERIC_MODAL_STAT_KEYS = new Set([
-  "level", "experience", "chaptersRead", "readingTimeMinutes", "readingTime",
-  "ratingsCount", "commentsCount", "titlesReadCount", "completedTitlesCount",
-  "currentStreak", "longestStreak", "likesReceivedCount",
+  "level",
+  "experience",
+  "chaptersRead",
+  "readingTimeMinutes",
+  "readingTime",
+  "ratingsCount",
+  "commentsCount",
+  "titlesReadCount",
+  "completedTitlesCount",
+  "currentStreak",
+  "longestStreak",
+  "likesReceivedCount",
 ]);
 
-function mergeLeaderForModal(leader: LeaderboardUser, profile: Record<string, unknown> | undefined): LeaderboardUser {
+function mergeLeaderForModal(
+  leader: LeaderboardUser,
+  profile: Record<string, unknown> | undefined,
+): LeaderboardUser {
   if (!profile) return leader;
   const merged = { ...leader } as Record<string, unknown>;
   for (const key of MODAL_STAT_KEYS) {
@@ -867,7 +1018,8 @@ function mergeLeaderForModal(leader: LeaderboardUser, profile: Record<string, un
     const leaderMissing = leaderVal === undefined || leaderVal === null;
     const leaderZero = isNumeric && typeof leaderVal === "number" && leaderVal === 0;
     const profileHasValue = profileVal !== undefined && profileVal !== null;
-    const profilePositive = !isNumeric || (typeof profileVal === "number" && (profileVal as number) > 0);
+    const profilePositive =
+      !isNumeric || (typeof profileVal === "number" && (profileVal as number) > 0);
     if (profileHasValue && (leaderMissing || (leaderZero && profilePositive))) {
       merged[key] = profileVal;
     }
@@ -904,46 +1056,116 @@ function PodiumUserModal({
       document.body.style.overflow = prevOverflow;
     };
   }, [onClose]);
-  const profileData = profileResponse?.success && profileResponse?.data ? (profileResponse.data as unknown as Record<string, unknown>) : undefined;
+  const profileData =
+    profileResponse?.success && profileResponse?.data
+      ? (profileResponse.data as unknown as Record<string, unknown>)
+      : undefined;
   const displayUser = useMemo(() => mergeLeaderForModal(user, profileData), [user, profileData]);
 
   const { positions: allPositions } = useUserLeaderboardPositions(user._id);
   const topPositionByCategory = useMemo(() => {
     const map = new Map<LeaderboardCategory, number>();
     map.set(category, rank);
-    allPositions.forEach((p) => map.set(p.category, p.position));
+    allPositions.forEach(p => map.set(p.category, p.position));
     return map;
   }, [category, rank, allPositions]);
 
   const isTop3 = rank >= 1 && rank <= 3;
   const borderClass = isTop3
-    ? rank === 1 ? "border-yellow-400" : rank === 2 ? "border-slate-400" : "border-amber-500"
+    ? rank === 1
+      ? "border-yellow-400"
+      : rank === 2
+        ? "border-slate-400"
+        : "border-amber-500"
     : "border-[var(--border)]";
   const badgeBgClass = isTop3
-    ? rank === 1 ? "from-yellow-400/90 to-amber-500/90" : rank === 2 ? "from-slate-400/90 to-slate-500/90" : "from-amber-500/90 to-orange-600/90"
+    ? rank === 1
+      ? "from-yellow-400/90 to-amber-500/90"
+      : rank === 2
+        ? "from-slate-400/90 to-slate-500/90"
+        : "from-amber-500/90 to-orange-600/90"
     : "from-[var(--muted)] to-[var(--muted)]";
   const badgeTextClass = isTop3 ? "text-white" : "text-[var(--foreground)]";
   const level = displayUser.level ?? 0;
   const cardUrl = getEquippedCardUrl(displayUser.equippedDecorations as EquippedDecorations | null);
   const frameUrl = getLeaderFrameUrl(displayUser);
-  const cardRarity = displayUser.equippedDecorations?.cardRarity ?? displayUser.equippedDecorations?.frameRarity ?? null;
+  const cardRarity =
+    displayUser.equippedDecorations?.cardRarity ??
+    displayUser.equippedDecorations?.frameRarity ??
+    null;
   const rarityGlowClass = getRarityGlowClass(cardRarity);
 
-  type StatItem = { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; category?: LeaderboardCategory; categories?: LeaderboardCategory[] };
+  type StatItem = {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    value: string | number;
+    category?: LeaderboardCategory;
+    categories?: LeaderboardCategory[];
+  };
   const stats: StatItem[] = [];
-  if (displayUser.level != null) stats.push({ icon: Trophy, label: "Уровень", value: displayUser.level, category: "level" });
-  if (displayUser.experience != null) stats.push({ icon: TrendingUp, label: "Опыт", value: displayUser.experience.toLocaleString("ru") + " XP" });
+  if (displayUser.level != null)
+    stats.push({ icon: Trophy, label: "Уровень", value: displayUser.level, category: "level" });
+  if (displayUser.experience != null)
+    stats.push({
+      icon: TrendingUp,
+      label: "Опыт",
+      value: displayUser.experience.toLocaleString("ru") + " XP",
+    });
   if (displayUser.chaptersRead != null) {
     const chapters = displayUser.chaptersRead ?? 0;
-    stats.push({ icon: BookOpen, label: "Глав прочитано", value: `${chapters.toLocaleString("ru")} глав`, categories: ["chaptersRead"] });
+    stats.push({
+      icon: BookOpen,
+      label: "Глав прочитано",
+      value: `${chapters.toLocaleString("ru")} глав`,
+      categories: ["chaptersRead"],
+    });
   }
-  if (displayUser.ratingsCount != null) stats.push({ icon: Star, label: "Оценок", value: displayUser.ratingsCount.toLocaleString("ru"), category: "ratings" });
-  if (displayUser.commentsCount != null) stats.push({ icon: MessageSquare, label: "Комментариев", value: displayUser.commentsCount.toLocaleString("ru"), category: "comments" });
-  if (displayUser.titlesReadCount != null) stats.push({ icon: BookOpen, label: "Тайтлов прочитано", value: displayUser.titlesReadCount.toLocaleString("ru") });
-  if (displayUser.completedTitlesCount != null && displayUser.completedTitlesCount > 0) stats.push({ icon: Trophy, label: "Завершено тайтлов", value: displayUser.completedTitlesCount.toLocaleString("ru") });
-  if (displayUser.currentStreak != null && displayUser.currentStreak > 0) stats.push({ icon: Flame, label: "Серия дней", value: `${displayUser.currentStreak} ${displayUser.currentStreak === 1 ? "день" : displayUser.currentStreak < 5 ? "дня" : "дней"}`, category: "streak" });
-  if (displayUser.longestStreak != null && displayUser.longestStreak > 0) stats.push({ icon: Flame, label: "Рекорд серии", value: `${displayUser.longestStreak} дн.`, category: "streak" });
-  if (displayUser.likesReceivedCount != null && displayUser.likesReceivedCount > 0) stats.push({ icon: Heart, label: "Лайков получено", value: displayUser.likesReceivedCount.toLocaleString("ru") });
+  if (displayUser.ratingsCount != null)
+    stats.push({
+      icon: Star,
+      label: "Оценок",
+      value: displayUser.ratingsCount.toLocaleString("ru"),
+      category: "ratings",
+    });
+  if (displayUser.commentsCount != null)
+    stats.push({
+      icon: MessageSquare,
+      label: "Комментариев",
+      value: displayUser.commentsCount.toLocaleString("ru"),
+      category: "comments",
+    });
+  if (displayUser.titlesReadCount != null)
+    stats.push({
+      icon: BookOpen,
+      label: "Тайтлов прочитано",
+      value: displayUser.titlesReadCount.toLocaleString("ru"),
+    });
+  if (displayUser.completedTitlesCount != null && displayUser.completedTitlesCount > 0)
+    stats.push({
+      icon: Trophy,
+      label: "Завершено тайтлов",
+      value: displayUser.completedTitlesCount.toLocaleString("ru"),
+    });
+  if (displayUser.currentStreak != null && displayUser.currentStreak > 0)
+    stats.push({
+      icon: Flame,
+      label: "Серия дней",
+      value: `${displayUser.currentStreak} ${displayUser.currentStreak === 1 ? "день" : displayUser.currentStreak < 5 ? "дня" : "дней"}`,
+      category: "streak",
+    });
+  if (displayUser.longestStreak != null && displayUser.longestStreak > 0)
+    stats.push({
+      icon: Flame,
+      label: "Рекорд серии",
+      value: `${displayUser.longestStreak} дн.`,
+      category: "streak",
+    });
+  if (displayUser.likesReceivedCount != null && displayUser.likesReceivedCount > 0)
+    stats.push({
+      icon: Heart,
+      label: "Лайков получено",
+      value: displayUser.likesReceivedCount.toLocaleString("ru"),
+    });
 
   return (
     <div
@@ -956,7 +1178,7 @@ function PodiumUserModal({
       <div
         className={`relative w-auto min-w-[260px] max-w-[min(400px,calc(100vw-2rem))] rounded-2xl border shadow-xl aspect-[9/19] flex flex-col overflow-hidden bg-[var(--card)] ${rarityGlowClass} ${cardRarity && cardRarity !== "common" ? "border-2" : ""} ${cardRarity === "legendary" ? "border-amber-400/80" : cardRarity === "epic" ? "border-purple-500/70" : cardRarity === "rare" ? "border-blue-500/70" : "border-[var(--border)]"}`}
         style={{ height: "clamp(400px, 85vh, 85vh)", maxHeight: "calc(100dvh - 2rem)" }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {cardUrl && (
           <div
@@ -967,14 +1189,16 @@ function PodiumUserModal({
         )}
         <header className="relative z-10 flex items-center justify-between gap-2 px-3 pt-2 pb-0.5 shrink-0 bg-transparent">
           {!showCardOnly && (
-            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r ${badgeBgClass} ${badgeTextClass} shadow-sm shrink-0`}>
+            <div
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r ${badgeBgClass} ${badgeTextClass} shadow-sm shrink-0`}
+            >
               <span className="text-xs font-bold">{rank}</span>
             </div>
           )}
           <div className="flex items-center gap-1 ml-auto">
             <button
               type="button"
-              onClick={() => setShowCardOnly((v) => !v)}
+              onClick={() => setShowCardOnly(v => !v)}
               className="p-1.5 rounded-md bg-[var(--card)]/80 backdrop-blur-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors shrink-0"
               aria-label={showCardOnly ? "Показать всё" : "Только карточка"}
               title={showCardOnly ? "Показать всё" : "Только карточка"}
@@ -993,105 +1217,131 @@ function PodiumUserModal({
         </header>
 
         {!showCardOnly && (
-        <div
-          ref={scrollRef}
-          className="relative z-10 flex flex-col flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth custom-scrollbar"
-        >
-          <div className="flex flex-col items-center text-center pt-0 px-3 pb-2 bg-transparent shrink-0">
-            <div className="p-4 shrink-0">
-              <div className="relative w-20 h-20 shrink-0">
-                <div className="absolute inset-0 overflow-hidden rounded-full">
-                  <img
-                    src={getLeaderAvatarUrl(displayUser)}
-                    alt=""
-                    className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${borderClass} shadow-md bg-[var(--secondary)]`}
-                    onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_AVATAR; }}
-                  />
-                </div>
-                {frameUrl && (
-                  <img
-                    src={frameUrl}
-                    alt=""
-                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] pointer-events-none object-contain z-10"
-                    style={{ maxWidth: "none", maxHeight: "none" }}
-                    aria-hidden
-                  />
-                )}
-              </div>
-            </div>
-            <h2 id="podium-modal-title" className="mt-1.5 text-lg font-semibold max-w-full px-1 min-w-0">
-              <span
-                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm max-w-full min-w-0 ${isPremiumActive(displayUser.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
-                title={displayUser.username}
-              >
-                <span className="truncate">{displayUser.username}</span>
-                {isPremiumActive(displayUser.subscriptionExpiresAt) && (
-                  <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
-                )}
-              </span>
-            </h2>
-            {displayUser.role && displayUser.role !== "user" && (
-              <span className="mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] capitalize">
-                {displayUser.role}
-              </span>
-            )}
-            <p className="mt-1 text-[11px] text-[var(--muted-foreground)] max-w-full min-w-0">
-              <span className="inline-block max-w-full truncate px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm" title={getRankDisplay(level).split("  ")[0]}>
-                {getRankDisplay(level).split("  ")[0]}
-              </span>
-            </p>
-          </div>
-
-          <div className="flex-1 min-h-0" aria-hidden />
-
-          <div className="relative z-10 px-3 pb-6 pt-2 flex flex-col gap-3 shrink-0">
-            {stats.length > 0 && (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5 min-w-0 overflow-hidden">
-                <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1.5 px-0.5">
-                  Показатели
-                </p>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
-                  {stats.map(({ icon: Icon, label, value, category: statCategory, categories: statCategories }) => {
-                    const cats = statCategories ?? (statCategory ? [statCategory] : []);
-                    const positions = cats.map((c) => topPositionByCategory.get(c)).filter((p): p is number => p != null);
-                    const bestPos = positions.length > 0 ? Math.min(...positions) : null;
-                    return (
-                      <div key={label} className="flex items-start gap-1.5 min-w-0">
-                        <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
-                        <div className="min-w-0 flex-1 text-left overflow-hidden">
-                          <p className="text-[10px] text-[var(--muted-foreground)] leading-tight truncate" title={label}>{label}</p>
-                          <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0">
-                            <span className="truncate">{value}</span>
-                            {bestPos != null && (
-                              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-medium shrink-0" title={`Топ ${bestPos}`}>
-                                <Trophy className="w-2.5 h-2.5" aria-hidden />
-                                {bestPos}
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+          <div
+            ref={scrollRef}
+            className="relative z-10 flex flex-col flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth custom-scrollbar"
+          >
+            <div className="flex flex-col items-center text-center pt-0 px-3 pb-2 bg-transparent shrink-0">
+              <div className="p-4 shrink-0">
+                <div className="relative w-20 h-20 shrink-0">
+                  <div className="absolute inset-0 overflow-hidden rounded-full">
+                    <img
+                      src={getLeaderAvatarUrl(displayUser)}
+                      alt=""
+                      className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${borderClass} shadow-md bg-[var(--secondary)]`}
+                      onError={e => {
+                        (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                      }}
+                    />
+                  </div>
+                  {frameUrl && (
+                    <img
+                      src={frameUrl}
+                      alt=""
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] pointer-events-none object-contain z-10"
+                      style={{ maxWidth: "none", maxHeight: "none" }}
+                      aria-hidden
+                    />
+                  )}
                 </div>
               </div>
-            )}
-
-            <div className="flex flex-col items-center gap-1">
-              <Link
-                href={`/user/${displayUser._id}`}
-                onClick={onClose}
-                className="flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity text-sm"
+              <h2
+                id="podium-modal-title"
+                className="mt-1.5 text-lg font-semibold max-w-full px-1 min-w-0"
               >
-                <User className="w-3.5 h-3.5 shrink-0" />
-                Посмотреть профиль
-              </Link>
-              {isCurrentUser && (
-                <span className="text-[11px] text-[var(--muted-foreground)]">Это вы</span>
+                <span
+                  className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm max-w-full min-w-0 ${isPremiumActive(displayUser.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
+                  title={displayUser.username}
+                >
+                  <span className="truncate">{displayUser.username}</span>
+                  {isPremiumActive(displayUser.subscriptionExpiresAt) && (
+                    <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
+                  )}
+                </span>
+              </h2>
+              {displayUser.role && displayUser.role !== "user" && (
+                <span className="mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] capitalize">
+                  {displayUser.role}
+                </span>
               )}
+              <p className="mt-1 text-[11px] text-[var(--muted-foreground)] max-w-full min-w-0">
+                <span
+                  className="inline-block max-w-full truncate px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm"
+                  title={getRankDisplay(level).split("  ")[0]}
+                >
+                  {getRankDisplay(level).split("  ")[0]}
+                </span>
+              </p>
+            </div>
+
+            <div className="flex-1 min-h-0" aria-hidden />
+
+            <div className="relative z-10 px-3 pb-6 pt-2 flex flex-col gap-3 shrink-0">
+              {stats.length > 0 && (
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm px-3 py-2.5 min-w-0 overflow-hidden">
+                  <p className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-1.5 px-0.5">
+                    Показатели
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
+                    {stats.map(
+                      ({
+                        icon: Icon,
+                        label,
+                        value,
+                        category: statCategory,
+                        categories: statCategories,
+                      }) => {
+                        const cats = statCategories ?? (statCategory ? [statCategory] : []);
+                        const positions = cats
+                          .map(c => topPositionByCategory.get(c))
+                          .filter((p): p is number => p != null);
+                        const bestPos = positions.length > 0 ? Math.min(...positions) : null;
+                        return (
+                          <div key={label} className="flex items-start gap-1.5 min-w-0">
+                            <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
+                            <div className="min-w-0 flex-1 text-left overflow-hidden">
+                              <p
+                                className="text-[10px] text-[var(--muted-foreground)] leading-tight truncate"
+                                title={label}
+                              >
+                                {label}
+                              </p>
+                              <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0">
+                                <span className="truncate">{value}</span>
+                                {bestPos != null && (
+                                  <span
+                                    className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-medium shrink-0"
+                                    title={`Топ ${bestPos}`}
+                                  >
+                                    <Trophy className="w-2.5 h-2.5" aria-hidden />
+                                    {bestPos}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      },
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col items-center gap-1">
+                <Link
+                  href={`/user/${displayUser._id}`}
+                  onClick={onClose}
+                  className="flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity text-sm"
+                >
+                  <User className="w-3.5 h-3.5 shrink-0" />
+                  Посмотреть профиль
+                </Link>
+                {isCurrentUser && (
+                  <span className="text-[11px] text-[var(--muted-foreground)]">Это вы</span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
         )}
       </div>
     </div>
@@ -1131,7 +1381,11 @@ function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCat
 }
 
 function LeaderboardSkeleton() {
-  const podiumBlockHeight = ["h-20 sm:h-24 md:h-26", "h-24 sm:h-28 md:h-32", "h-16 sm:h-20 md:h-24"];
+  const podiumBlockHeight = [
+    "h-20 sm:h-24 md:h-26",
+    "h-24 sm:h-28 md:h-32",
+    "h-16 sm:h-20 md:h-24",
+  ];
   const avatarWrapperSize = [
     "w-[4.5rem] sm:w-[6rem] md:w-[7rem]",
     "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]",
@@ -1141,10 +1395,15 @@ function LeaderboardSkeleton() {
     <div className="space-y-4 animate-pulse">
       <div className="mb-6 max-w-lg mx-auto pb-2">
         <div className="flex items-end justify-center gap-0 sm:gap-1">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]">
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]"
+            >
               <div className="h-3 w-16 sm:w-20 bg-[var(--muted)] rounded mb-0.5 mx-0.5" />
-              <div className={`relative ${avatarWrapperSize[i]} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}>
+              <div
+                className={`relative ${avatarWrapperSize[i]} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}
+              >
                 <div className="w-full aspect-square rounded-full bg-[var(--muted)] max-w-full shrink-0" />
               </div>
               <div
@@ -1163,8 +1422,11 @@ function LeaderboardSkeleton() {
         </div>
       </div>
       <div className="space-y-2">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4">
+        {[0, 1, 2, 3, 4].map(i => (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4"
+          >
             <div className="w-9 h-9 rounded-lg bg-[var(--muted)] shrink-0" />
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[var(--muted)] shrink-0" />
             <div className="flex-1 min-w-0">

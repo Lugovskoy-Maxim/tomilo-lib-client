@@ -34,10 +34,8 @@ export function SubscribeButton({ titleId, onLoginRequired, className }: Subscri
   const toast = useToast();
   const [showSettings, setShowSettings] = useState(false);
 
-  const { data: subscriptionData, isLoading: checkingSubscription } = useCheckTitleSubscriptionQuery(
-    titleId,
-    { skip: !user }
-  );
+  const { data: subscriptionData, isLoading: checkingSubscription } =
+    useCheckTitleSubscriptionQuery(titleId, { skip: !user });
   const { data: subscribersCount } = useGetTitleSubscribersCountQuery(titleId);
 
   const [subscribe, { isLoading: subscribing }] = useSubscribeToTitleMutation();
@@ -65,20 +63,23 @@ export function SubscribeButton({ titleId, onLoginRequired, className }: Subscri
     } catch (error) {
       const message = getSubscriptionErrorMessage(
         error,
-        "Не удалось оформить подписку. Попробуйте позже."
+        "Не удалось оформить подписку. Попробуйте позже.",
       );
       toast.error(message);
     }
   };
 
-  const handleUpdateSettings = async (key: "notifyOnNewChapter" | "notifyOnAnnouncement", value: boolean) => {
+  const handleUpdateSettings = async (
+    key: "notifyOnNewChapter" | "notifyOnAnnouncement",
+    value: boolean,
+  ) => {
     if (!subscription) return;
 
     try {
       await updateSubscription({ titleId, [key]: value }).unwrap();
     } catch (error) {
       toast.error(
-        getSubscriptionErrorMessage(error, "Не удалось сохранить настройки уведомлений.")
+        getSubscriptionErrorMessage(error, "Не удалось сохранить настройки уведомлений."),
       );
     }
   };
@@ -105,12 +106,12 @@ export function SubscribeButton({ titleId, onLoginRequired, className }: Subscri
           ) : (
             <Bell className="w-4 h-4 shrink-0" />
           )}
-          <span>
-            {isSubscribed ? "Подписка" : "Подписаться"}
-          </span>
+          <span>{isSubscribed ? "Подписка" : "Подписаться"}</span>
           {typeof subscribersCount === "number" && subscribersCount > 0 && (
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-              {subscribersCount > 999 ? `${(subscribersCount / 1000).toFixed(1)}k` : subscribersCount}
+              {subscribersCount > 999
+                ? `${(subscribersCount / 1000).toFixed(1)}k`
+                : subscribersCount}
             </span>
           )}
         </button>
@@ -128,10 +129,7 @@ export function SubscribeButton({ titleId, onLoginRequired, className }: Subscri
 
       {showSettings && isSubscribed && subscription && (
         <>
-          <div 
-            className="fixed inset-0 z-40" 
-            onClick={() => setShowSettings(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
           <div className="absolute top-full right-0 mt-2 w-72 bg-[var(--card)] rounded-xl p-4 z-50 shadow-2xl border border-[var(--border)]/30 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium text-[var(--foreground)]">Настройки уведомлений</h4>
@@ -150,22 +148,28 @@ export function SubscribeButton({ titleId, onLoginRequired, className }: Subscri
                     <Bell className="w-4 h-4 text-[var(--primary)]" />
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-[var(--foreground)]">Новые главы</span>
-                    <p className="text-xs text-[var(--muted-foreground)]">Уведомлять о выходе глав</p>
+                    <span className="text-sm font-medium text-[var(--foreground)]">
+                      Новые главы
+                    </span>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      Уведомлять о выходе глав
+                    </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => handleUpdateSettings("notifyOnNewChapter", !subscription.notifyOnNewChapter)}
+                  onClick={() =>
+                    handleUpdateSettings("notifyOnNewChapter", !subscription.notifyOnNewChapter)
+                  }
                   disabled={updating}
                   className={`w-10 h-6 rounded-full transition-colors relative ${
-                    subscription.notifyOnNewChapter
-                      ? "bg-[var(--primary)]"
-                      : "bg-[var(--border)]"
+                    subscription.notifyOnNewChapter ? "bg-[var(--primary)]" : "bg-[var(--border)]"
                   }`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                    subscription.notifyOnNewChapter ? "translate-x-5" : "translate-x-1"
-                  }`} />
+                  <div
+                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                      subscription.notifyOnNewChapter ? "translate-x-5" : "translate-x-1"
+                    }`}
+                  />
                 </button>
               </label>
 
@@ -180,17 +184,19 @@ export function SubscribeButton({ titleId, onLoginRequired, className }: Subscri
                   </div>
                 </div>
                 <button
-                  onClick={() => handleUpdateSettings("notifyOnAnnouncement", !subscription.notifyOnAnnouncement)}
+                  onClick={() =>
+                    handleUpdateSettings("notifyOnAnnouncement", !subscription.notifyOnAnnouncement)
+                  }
                   disabled={updating}
                   className={`w-10 h-6 rounded-full transition-colors relative ${
-                    subscription.notifyOnAnnouncement
-                      ? "bg-[var(--primary)]"
-                      : "bg-[var(--border)]"
+                    subscription.notifyOnAnnouncement ? "bg-[var(--primary)]" : "bg-[var(--border)]"
                   }`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                    subscription.notifyOnAnnouncement ? "translate-x-5" : "translate-x-1"
-                  }`} />
+                  <div
+                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                      subscription.notifyOnAnnouncement ? "translate-x-5" : "translate-x-1"
+                    }`}
+                  />
                 </button>
               </label>
             </div>

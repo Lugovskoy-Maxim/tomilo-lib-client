@@ -45,25 +45,26 @@ export const charactersApi = createApi({
       },
     }),
 
-    createCharacterWithImage: builder.mutation<Character, { data: CreateCharacterDto; image: File }>(
-      {
-        query: ({ data, image }) => {
-          const formData = new FormData();
-          formData.append("data", JSON.stringify(data));
-          formData.append("image", image);
-          return {
-            url: "/characters/with-image",
-            method: "POST",
-            body: formData,
-          };
-        },
-        invalidatesTags: (result, error, { data }) => [{ type: CHARACTERS_TAG, id: data.titleId }],
-        transformResponse: (response: ApiResponseDto<Character>) => {
-          if (!response.data) throw new Error("Failed to create character");
-          return response.data;
-        },
+    createCharacterWithImage: builder.mutation<
+      Character,
+      { data: CreateCharacterDto; image: File }
+    >({
+      query: ({ data, image }) => {
+        const formData = new FormData();
+        formData.append("data", JSON.stringify(data));
+        formData.append("image", image);
+        return {
+          url: "/characters/with-image",
+          method: "POST",
+          body: formData,
+        };
       },
-    ),
+      invalidatesTags: (result, error, { data }) => [{ type: CHARACTERS_TAG, id: data.titleId }],
+      transformResponse: (response: ApiResponseDto<Character>) => {
+        if (!response.data) throw new Error("Failed to create character");
+        return response.data;
+      },
+    }),
 
     updateCharacter: builder.mutation<Character, { id: string; data: UpdateCharacterDto }>({
       query: ({ id, data }) => ({

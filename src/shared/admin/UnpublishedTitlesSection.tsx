@@ -47,9 +47,7 @@ export function UnpublishedTitlesSection() {
 
       <div className="rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-[var(--muted-foreground)]">
-            Загрузка...
-          </div>
+          <div className="p-8 text-center text-[var(--muted-foreground)]">Загрузка...</div>
         ) : isError ? (
           <div className="p-8 text-center text-[var(--destructive)]">
             Не удалось загрузить список. Попробуйте обновить.
@@ -65,10 +63,14 @@ export function UnpublishedTitlesSection() {
                 <thead>
                   <tr className="border-b border-[var(--border)] bg-[var(--secondary)]/50">
                     <th className="text-left p-3 font-medium text-[var(--foreground)]">Название</th>
-                    <th className="text-left p-3 font-medium text-[var(--foreground)] hidden sm:table-cell">Slug</th>
+                    <th className="text-left p-3 font-medium text-[var(--foreground)] hidden sm:table-cell">
+                      Slug
+                    </th>
                     <th className="text-left p-3 font-medium text-[var(--foreground)]">Статус</th>
                     <th className="text-right p-3 font-medium text-[var(--foreground)]">Главы</th>
-                    <th className="text-right p-3 font-medium text-[var(--foreground)] hidden md:table-cell">Обновлён</th>
+                    <th className="text-right p-3 font-medium text-[var(--foreground)] hidden md:table-cell">
+                      Обновлён
+                    </th>
                     <th className="w-24 p-3" aria-label="Действия" />
                   </tr>
                 </thead>

@@ -31,7 +31,9 @@ function NewsCardImage({ src, className }: { src: string | undefined; className?
 
   if (!imageSrc) {
     return (
-      <div className={`${className} bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center`}>
+      <div
+        className={`${className} bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center`}
+      >
         <Megaphone className="w-12 h-12 text-[var(--primary)]/40" />
       </div>
     );
@@ -52,7 +54,9 @@ function NewsCardImage({ src, className }: { src: string | undefined; className?
 }
 
 function NewsCard({ announcement }: { announcement: Announcement }) {
-  const dateStr = formatDate(announcement.publishedAt ?? announcement.updatedAt ?? announcement.createdAt);
+  const dateStr = formatDate(
+    announcement.publishedAt ?? announcement.updatedAt ?? announcement.createdAt,
+  );
 
   return (
     <Link
@@ -193,11 +197,7 @@ export default function NewsPageClient() {
 
               {totalPages > 1 && (
                 <div className="flex justify-center pt-8">
-                  <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    onPageChange={setPage}
-                  />
+                  <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
                 </div>
               )}
             </>

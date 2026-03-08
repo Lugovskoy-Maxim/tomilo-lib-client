@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 
 export function useServiceWorkerRegistration() {
   const [isRegistered, setIsRegistered] = useState(false);
-  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
@@ -16,7 +18,7 @@ export function useServiceWorkerRegistration() {
 
     navigator.serviceWorker
       .register("/sw.js", { scope: "/" })
-      .then((reg) => {
+      .then(reg => {
         setIsRegistered(true);
         reg.update().catch(() => {});
       })

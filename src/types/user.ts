@@ -107,7 +107,7 @@ export interface UserProfile {
   linkedProviders?: string[];
   /** Полученные достижения пользователя */
   achievements?: UserAchievement[];
-  
+
   // Статистика пользователя
   /** Количество уникальных прочитанных тайтлов */
   titlesReadCount?: number;
@@ -125,7 +125,7 @@ export interface UserProfile {
   lastStreakDate?: string;
   /** Количество завершённых тайтлов */
   completedTitlesCount?: number;
-  
+
   // Кастомизация профиля
   /** Краткое описание / статус (до 200 символов) */
   bio?: string;
@@ -150,13 +150,13 @@ export interface UserProfile {
 }
 
 /** Типы достижений */
-export type AchievementType = 
-  | "reading"      // За чтение глав
-  | "collection"   // За закладки
-  | "social"       // За привязку соцсетей
-  | "veteran"      // За время на сайте
-  | "special"      // Особые достижения
-  | "level";       // За уровень
+export type AchievementType =
+  | "reading" // За чтение глав
+  | "collection" // За закладки
+  | "social" // За привязку соцсетей
+  | "veteran" // За время на сайте
+  | "special" // Особые достижения
+  | "level"; // За уровень
 
 /** Редкость достижения */
 export type AchievementRarity = "common" | "uncommon" | "rare" | "epic" | "legendary";

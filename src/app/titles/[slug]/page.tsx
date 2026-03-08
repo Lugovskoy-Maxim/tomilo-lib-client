@@ -89,11 +89,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/?$/, "") ||
       baseUrl;
     const coverImage =
-      titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+      titleData.coverImage ??
+      (titleData as { image?: string }).image ??
+      (titleData as { cover?: string }).cover;
     // Абсолютный URL — Telegram не подставляет домен к относительным путям в og:image
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
     // Санитизация для meta: апостроф/кавычки в названии не ломают парсер Telegram (не показывается Sil%26)
-    const safeTitle = sanitizeMetaString(`Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`);
+    const safeTitle = sanitizeMetaString(
+      `Читать ${titleName} - ${titleTypeTranslate} - Tomilo-lib.ru`,
+    );
     const safeDescription = sanitizeMetaString(shortDescription);
     const canonicalUrl = `${baseUrl}/titles/${encodeURIComponent(slug)}`;
     const publishedTime =
@@ -173,7 +177,9 @@ function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, t
     (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/?$/, "") ||
     baseUrl;
   const cover =
-    titleData.coverImage ?? (titleData as { image?: string }).image ?? (titleData as { cover?: string }).cover;
+    titleData.coverImage ??
+    (titleData as { image?: string }).image ??
+    (titleData as { cover?: string }).cover;
   const image =
     cover && typeof cover === "string"
       ? cover.startsWith("http")
@@ -183,7 +189,9 @@ function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, t
   const type = String(titleData.type ?? "other");
   const isBook = type === "novel" || type === "light_novel";
   const description = titleData.description
-    ? String(titleData.description).replace(/<[^>]*>/g, "").substring(0, 500)
+    ? String(titleData.description)
+        .replace(/<[^>]*>/g, "")
+        .substring(0, 500)
     : `Читать ${titleName} онлайн на Tomilo-lib.ru`;
 
   const mainEntity = {
@@ -194,9 +202,7 @@ function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, t
     url,
     image,
     inLanguage: "ru",
-    author: titleData.author
-      ? { "@type": "Person", name: String(titleData.author) }
-      : undefined,
+    author: titleData.author ? { "@type": "Person", name: String(titleData.author) } : undefined,
     publisher: { "@type": "Organization", name: "Tomilo-lib.ru", url: baseUrl },
     datePublished: titleData.createdAt || undefined,
     dateModified: titleData.updatedAt || undefined,
@@ -234,7 +240,11 @@ export default async function TitlePageRoute({ params }: PageProps) {
   let jsonLdScripts: React.ReactNode = null;
   if (titleData) {
     const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
-    const { mainEntity, breadcrumb } = buildTitleJsonLd(baseUrl, titleData as Record<string, unknown>, titleName);
+    const { mainEntity, breadcrumb } = buildTitleJsonLd(
+      baseUrl,
+      titleData as Record<string, unknown>,
+      titleName,
+    );
     jsonLdScripts = (
       <>
         <script

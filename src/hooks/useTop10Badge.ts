@@ -34,34 +34,28 @@ const ALL_CATEGORIES: LeaderboardCategory[] = [
 const CATEGORIES_WITH_PERIOD: LeaderboardCategory[] = ["ratings", "comments"];
 
 export function useTop10Badge(userId: string | undefined) {
-  const levelQuery = useGetLeaderboardQuery(
-    { category: "level", limit: 10 },
-    { skip: !userId }
-  );
+  const levelQuery = useGetLeaderboardQuery({ category: "level", limit: 10 }, { skip: !userId });
   const chaptersReadQuery = useGetLeaderboardQuery(
     { category: "chaptersRead", limit: 10 },
-    { skip: !userId }
+    { skip: !userId },
   );
   const ratingsQuery = useGetLeaderboardQuery(
     { category: "ratings", limit: 10, period: "all" },
-    { skip: !userId }
+    { skip: !userId },
   );
   const ratingsMonthQuery = useGetLeaderboardQuery(
     { category: "ratings", limit: 10, period: "month" },
-    { skip: !userId }
+    { skip: !userId },
   );
   const commentsQuery = useGetLeaderboardQuery(
     { category: "comments", limit: 10, period: "all" },
-    { skip: !userId }
+    { skip: !userId },
   );
   const commentsMonthQuery = useGetLeaderboardQuery(
     { category: "comments", limit: 10, period: "month" },
-    { skip: !userId }
+    { skip: !userId },
   );
-  const streakQuery = useGetLeaderboardQuery(
-    { category: "streak", limit: 10 },
-    { skip: !userId }
-  );
+  const streakQuery = useGetLeaderboardQuery({ category: "streak", limit: 10 }, { skip: !userId });
 
   interface QueryInfo {
     query: typeof levelQuery;
@@ -92,7 +86,7 @@ export function useTop10Badge(userId: string | undefined) {
     streakQuery,
   ];
 
-  const isLoading = allQueries.some((q) => q.isLoading);
+  const isLoading = allQueries.some(q => q.isLoading);
 
   const allBadges = useMemo((): Top10BadgeInfo[] => {
     if (!userId) return [];
@@ -103,7 +97,7 @@ export function useTop10Badge(userId: string | undefined) {
       const queryInfo = queriesAll[category];
       const users = queryInfo.query.data?.data?.users;
       if (users) {
-        const index = users.findIndex((u) => u._id === userId);
+        const index = users.findIndex(u => u._id === userId);
         if (index !== -1 && index < 10) {
           badges.push({
             category,
@@ -119,10 +113,10 @@ export function useTop10Badge(userId: string | undefined) {
         if (monthQueryInfo) {
           const monthUsers = monthQueryInfo.query.data?.data?.users;
           if (monthUsers) {
-            const monthIndex = monthUsers.findIndex((u) => u._id === userId);
+            const monthIndex = monthUsers.findIndex(u => u._id === userId);
             if (monthIndex !== -1 && monthIndex < 10) {
               const existingAllTime = badges.find(
-                (b) => b.category === category && b.period === "all"
+                b => b.category === category && b.period === "all",
               );
               if (!existingAllTime || monthIndex + 1 < existingAllTime.position) {
                 if (existingAllTime) {

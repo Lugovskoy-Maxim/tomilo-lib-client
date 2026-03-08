@@ -92,7 +92,7 @@ export function buildServerSEOMetadata(params: ServerSEOParams): Metadata {
     description,
     ...(keywords && { keywords }),
     ...(category && { category }),
-    ...(authors?.length && { authors: authors.map((a) => ({ name: a })) }),
+    ...(authors?.length && { authors: authors.map(a => ({ name: a })) }),
     ...(creator && { creator }),
     ...(publisher && { publisher }),
     robots: noindex

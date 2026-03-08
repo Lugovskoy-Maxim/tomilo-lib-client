@@ -1,4 +1,17 @@
-import { Shield, Database, Target, Cookie, Share2, Clock, Lock, UserCheck, Users, FileEdit, Mail, Languages } from "lucide-react";
+import {
+  Shield,
+  Database,
+  Target,
+  Cookie,
+  Share2,
+  Clock,
+  Lock,
+  UserCheck,
+  Users,
+  FileEdit,
+  Mail,
+  Languages,
+} from "lucide-react";
 import { Footer, Header } from "@/widgets";
 import BackButton from "@/shared/back-button/BackButton";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
@@ -9,7 +22,9 @@ interface PrivacyPolicyPageProps {
   searchParams: Promise<{ lang?: string }>;
 }
 
-export async function generateMetadata({ searchParams }: PrivacyPolicyPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: PrivacyPolicyPageProps): Promise<Metadata> {
   const params = await searchParams;
   const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";
   const currentContent = privacyPolicy[language];
@@ -32,8 +47,13 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
         <Breadcrumbs className="mb-6" />
         <div className="content-card bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 sm:p-8 sm:rounded-2xl mb-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <div className="text-sm text-[var(--muted-foreground)]">{currentContent.lastUpdated}</div>
-            <a href={`?lang=${language === "ru" ? "en" : "ru"}`} className="btn-lang inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] no-underline">
+            <div className="text-sm text-[var(--muted-foreground)]">
+              {currentContent.lastUpdated}
+            </div>
+            <a
+              href={`?lang=${language === "ru" ? "en" : "ru"}`}
+              className="btn-lang inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] no-underline"
+            >
               <Languages className="w-4 h-4" />
               {currentContent.languageButton}
             </a>
@@ -45,14 +65,21 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
             {language === "ru" ? "tomilo-lib.ru | " : ""}
             {currentContent.title}
           </h1>
-          <p className="text-[1.0625rem] text-[var(--muted-foreground)] max-w-3xl mx-auto leading-relaxed">{currentContent.description}</p>
+          <p className="text-[1.0625rem] text-[var(--muted-foreground)] max-w-3xl mx-auto leading-relaxed">
+            {currentContent.description}
+          </p>
         </div>
 
         <div className="info-alert rounded-2xl p-5 px-6 mb-8">
-          <h3 className="text-[1.0625rem] font-semibold mb-3 text-[var(--foreground)]">{language === "ru" ? "Важная информация" : "Important Information"}</h3>
+          <h3 className="text-[1.0625rem] font-semibold mb-3 text-[var(--foreground)]">
+            {language === "ru" ? "Важная информация" : "Important Information"}
+          </h3>
           <ul className="list-none p-0 space-y-2">
             {currentContent.importantNotes.map((note, index) => (
-              <li key={index} className="flex items-start gap-2 text-[0.9375rem] leading-normal [&_svg]:mt-0.5 [&_svg]:shrink-0">
+              <li
+                key={index}
+                className="flex items-start gap-2 text-[0.9375rem] leading-normal [&_svg]:mt-0.5 [&_svg]:shrink-0"
+              >
                 <Shield className="w-4 h-4" />
                 <span>{note}</span>
               </li>
@@ -67,7 +94,9 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
                 <Shield className="w-6 h-6" />
                 {currentContent.sections.general.title}
               </h2>
-              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">{currentContent.sections.general.content}</p>
+              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">
+                {currentContent.sections.general.content}
+              </p>
             </div>
 
             <div id="dataCollected">
@@ -99,7 +128,9 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
                 <Cookie className="w-6 h-6" />
                 {currentContent.sections.cookies.title}
               </h2>
-              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">{currentContent.sections.cookies.content}</p>
+              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">
+                {currentContent.sections.cookies.content}
+              </p>
             </div>
 
             <div id="thirdParties">
@@ -119,7 +150,9 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
                 <Clock className="w-6 h-6" />
                 {currentContent.sections.retention.title}
               </h2>
-              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">{currentContent.sections.retention.content}</p>
+              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">
+                {currentContent.sections.retention.content}
+              </p>
             </div>
 
             <div id="security">
@@ -127,7 +160,9 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
                 <Lock className="w-6 h-6" />
                 {currentContent.sections.security.title}
               </h2>
-              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">{currentContent.sections.security.content}</p>
+              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">
+                {currentContent.sections.security.content}
+              </p>
             </div>
 
             <div id="userRights">
@@ -147,7 +182,9 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
                 <Users className="w-6 h-6" />
                 {currentContent.sections.children.title}
               </h2>
-              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">{currentContent.sections.children.content}</p>
+              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">
+                {currentContent.sections.children.content}
+              </p>
             </div>
 
             <div id="changes">
@@ -155,7 +192,9 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
                 <FileEdit className="w-6 h-6" />
                 {currentContent.sections.changes.title}
               </h2>
-              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">{currentContent.sections.changes.content}</p>
+              <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed">
+                {currentContent.sections.changes.content}
+              </p>
             </div>
           </div>
         </div>
@@ -165,14 +204,18 @@ export default async function PrivacyPolicyPage({ searchParams }: PrivacyPolicyP
             <Mail className="w-6 h-6" />
             {currentContent.contact.title}
           </h3>
-          <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed mb-2">{currentContent.contact.description}</p>
+          <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed mb-2">
+            {currentContent.contact.description}
+          </p>
           <div className="content-contact-email inline-block py-3 px-5 rounded-lg mt-2 bg-[var(--accent)]">
             <a href={`mailto:${currentContent.contact.email}`}>{currentContent.contact.email}</a>
           </div>
         </div>
 
         <div className="content-card bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 sm:p-8 sm:rounded-2xl mb-8">
-          <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed text-center">{currentContent.consentNote}</p>
+          <p className="content-card-body text-[var(--muted-foreground)] leading-relaxed text-center">
+            {currentContent.consentNote}
+          </p>
         </div>
 
         <BackButton />

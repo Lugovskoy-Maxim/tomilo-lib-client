@@ -11,11 +11,7 @@ interface ExpGainToastProps {
   duration?: number;
 }
 
-export default function ExpGainToast({ 
-  event, 
-  onClose, 
-  duration = 3000 
-}: ExpGainToastProps) {
+export default function ExpGainToast({ event, onClose, duration = 3000 }: ExpGainToastProps) {
   useEffect(() => {
     if (duration <= 0) return;
     const timer = setTimeout(() => {
@@ -95,10 +91,10 @@ interface GroupedExpGainToastProps {
   duration?: number;
 }
 
-export function GroupedExpGainToast({ 
-  events, 
-  onClose, 
-  duration = 4000 
+export function GroupedExpGainToast({
+  events,
+  onClose,
+  duration = 4000,
 }: GroupedExpGainToastProps) {
   const totalAmount = events.reduce((sum, e) => sum + e.amount, 0);
   const eventsKey = events.map(e => e.id).join(",");
@@ -159,9 +155,7 @@ export function GroupedExpGainToast({
           transition={{ delay: 0.2 }}
           className="text-xs text-[var(--muted-foreground)] truncate"
         >
-          {events.length === 1 
-            ? events[0].reason 
-            : `${events.length} начислений`}
+          {events.length === 1 ? events[0].reason : `${events.length} начислений`}
         </motion.p>
       </div>
 

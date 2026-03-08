@@ -44,7 +44,13 @@ export interface AdminChartData {
 /** Последние действия в системе */
 export interface AdminActivity {
   id: string;
-  type: "user_registered" | "title_created" | "chapter_published" | "comment_created" | "rating_added" | "bookmark_added";
+  type:
+    | "user_registered"
+    | "title_created"
+    | "chapter_published"
+    | "comment_created"
+    | "rating_added"
+    | "bookmark_added";
   description: string;
   userId?: string;
   username?: string;

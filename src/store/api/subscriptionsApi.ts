@@ -59,7 +59,9 @@ export const subscriptionsApi = createApi({
       string
     >({
       query: titleId => `/subscriptions/titles/${titleId}/check`,
-      providesTags: (result, error, titleId) => [{ type: SUBSCRIPTIONS_TAG, id: `title-${titleId}` }],
+      providesTags: (result, error, titleId) => [
+        { type: SUBSCRIPTIONS_TAG, id: `title-${titleId}` },
+      ],
       transformResponse: (
         response: ApiResponseDto<{ isSubscribed: boolean; subscription?: TitleSubscription }>,
       ) => {

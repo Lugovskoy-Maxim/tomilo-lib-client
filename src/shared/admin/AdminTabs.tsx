@@ -74,10 +74,10 @@ export const ADMIN_TABS: AdminTab[] = [
   "unpublished-titles",
   "chapters",
   "collections",
-      "announcements",
-      "translator-teams",
-      "genres",
-      "achievements",
+  "announcements",
+  "translator-teams",
+  "genres",
+  "achievements",
   "comments",
   "users",
   "bots",
@@ -344,7 +344,9 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
         `}
         title={isCollapsed ? tab.label : undefined}
       >
-        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-[var(--primary-foreground)]" : ""}`} />
+        <Icon
+          className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-[var(--primary-foreground)]" : ""}`}
+        />
         {!isCollapsed && (
           <>
             <span className="truncate flex-1 text-left">
@@ -383,7 +385,10 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   };
 
   const sidebarContent = (
-    <nav ref={navRef} className="flex flex-col gap-2 p-3 h-full overflow-y-auto admin-sidebar-scroll">
+    <nav
+      ref={navRef}
+      className="flex flex-col gap-2 p-3 h-full overflow-y-auto admin-sidebar-scroll"
+    >
       {!isCollapsed && (
         <div className="px-1 mb-2">
           <div className="relative">
@@ -413,7 +418,9 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
               Закрепленные
             </span>
           </div>
-          <div className="flex flex-col gap-0.5">{pinnedTabItems.map(tab => renderTabButton(tab, false))}</div>
+          <div className="flex flex-col gap-0.5">
+            {pinnedTabItems.map(tab => renderTabButton(tab, false))}
+          </div>
           <div className="my-3 border-t border-[var(--border)]" />
         </div>
       )}
@@ -479,7 +486,11 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
         style={{ top: "calc(var(--header-height) + 12px)", left: 12 }}
         aria-label={isMobileOpen ? "Закрыть меню" : "Открыть меню"}
       >
-        {isMobileOpen ? <X className="w-5 h-5 text-[var(--foreground)]" /> : <Menu className="w-5 h-5 text-[var(--foreground)]" />}
+        {isMobileOpen ? (
+          <X className="w-5 h-5 text-[var(--foreground)]" />
+        ) : (
+          <Menu className="w-5 h-5 text-[var(--foreground)]" />
+        )}
       </button>
 
       {isMobileOpen && (
@@ -519,14 +530,20 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
               className="hidden lg:flex p-2 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors"
               title={isCollapsed ? "Развернуть" : "Свернуть"}
             >
-              {isCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+              {isCollapsed ? (
+                <PanelLeft className="w-4 h-4" />
+              ) : (
+                <PanelLeftClose className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">{sidebarContent}</div>
 
-        <div className={`flex-shrink-0 p-3 border-t border-[var(--border)] ${isCollapsed ? "px-2" : ""}`}>
+        <div
+          className={`flex-shrink-0 p-3 border-t border-[var(--border)] ${isCollapsed ? "px-2" : ""}`}
+        >
           <Link
             href="/"
             className={`

@@ -23,7 +23,10 @@ function transformUserToProfile(user: User): UserProfile | null {
     balance: user.balance,
     subscriptionExpiresAt:
       (user as User & { subscriptionExpiresAt?: string | null }).subscriptionExpiresAt ??
-      (user as unknown as Record<string, unknown>).subscription_expires_at as string | null | undefined,
+      ((user as unknown as Record<string, unknown>).subscription_expires_at as
+        | string
+        | null
+        | undefined),
     bookmarks: normalizeBookmarks(user.bookmarks as unknown),
     readingHistory: Array.isArray(user.readingHistory)
       ? transformReadingHistory(user.readingHistory)
@@ -37,9 +40,13 @@ function transformUserToProfile(user: User): UserProfile | null {
     privacy: user.privacy,
     displaySettings: user.displaySettings,
     linkedProviders: getLinkedProvidersFromUser(user),
-    equippedDecorations: (user as User & { equippedDecorations?: UserProfile["equippedDecorations"] }).equippedDecorations ??
-      (user as unknown as Record<string, unknown>).equipped_decorations as UserProfile["equippedDecorations"],
-    ownedDecorations: (user as User & { ownedDecorations?: UserProfile["ownedDecorations"] }).ownedDecorations,
+    equippedDecorations:
+      (user as User & { equippedDecorations?: UserProfile["equippedDecorations"] })
+        .equippedDecorations ??
+      ((user as unknown as Record<string, unknown>)
+        .equipped_decorations as UserProfile["equippedDecorations"]),
+    ownedDecorations: (user as User & { ownedDecorations?: UserProfile["ownedDecorations"] })
+      .ownedDecorations,
     // Кастомизация профиля
     bio: user.bio,
     favoriteGenre: user.favoriteGenre,
@@ -49,7 +56,8 @@ function transformUserToProfile(user: User): UserProfile | null {
     showFavoriteCharacters: user.showFavoriteCharacters,
     showReadingHistory: user.showReadingHistory,
     showBookmarks: user.showBookmarks,
-    scheduledDeletionAt: (user as User & { scheduledDeletionAt?: string | null }).scheduledDeletionAt ?? undefined,
+    scheduledDeletionAt:
+      (user as User & { scheduledDeletionAt?: string | null }).scheduledDeletionAt ?? undefined,
     deletedAt: (user as User & { deletedAt?: string | null }).deletedAt ?? undefined,
     // Статистика
     titlesReadCount: user.titlesReadCount,
@@ -83,20 +91,30 @@ export function useProfile() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const prevTitleRef = useRef<string | null>(null);
 
-  const { data: profileData, isLoading: profileLoading, refetch: refetchProfile } = useGetProfileQuery(undefined, {
+  const {
+    data: profileData,
+    isLoading: profileLoading,
+    refetch: refetchProfile,
+  } = useGetProfileQuery(undefined, {
     skip: !isAuthenticated && !authLoading,
   });
 
-  const { data: readingHistoryData, isLoading: readingHistoryLoading, refetch: refetchReadingHistory } =
-    useGetReadingHistoryQuery({ limit: 200, light: false }, {
+  const {
+    data: readingHistoryData,
+    isLoading: readingHistoryLoading,
+    refetch: refetchReadingHistory,
+  } = useGetReadingHistoryQuery(
+    { limit: 200, light: false },
+    {
       skip: !isAuthenticated && !authLoading,
-    });
+    },
+  );
 
   const userProfile = useMemo(() => {
     if (!profileData?.success || !profileData.data) {
       return null;
     }
-    
+
     const profile = transformUserToProfile(profileData.data);
     if (profile && readingHistoryData?.success && readingHistoryData.data) {
       profile.readingHistory = transformReadingHistory(readingHistoryData.data);
@@ -104,17 +122,18 @@ export function useProfile() {
     return profile;
   }, [profileData, readingHistoryData]);
 
-  const handleAvatarUpdate = useCallback((newAvatarUrl: string) => {
-    if (userProfile) {
-      userProfile.avatar = newAvatarUrl;
-    }
-  }, [userProfile]);
+  const handleAvatarUpdate = useCallback(
+    (newAvatarUrl: string) => {
+      if (userProfile) {
+        userProfile.avatar = newAvatarUrl;
+      }
+    },
+    [userProfile],
+  );
 
   useEffect(() => {
-    const newTitle = userProfile 
-      ? `Профиль ${userProfile.username}` 
-      : "Профиль пользователя";
-    
+    const newTitle = userProfile ? `Профиль ${userProfile.username}` : "Профиль пользователя";
+
     if (prevTitleRef.current !== newTitle) {
       prevTitleRef.current = newTitle;
       pageTitle.setTitlePage(newTitle);

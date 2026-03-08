@@ -54,12 +54,8 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
             <Shield className="w-4 h-4 text-[var(--primary)]" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Безопасность
-            </h2>
-            <p className="text-[var(--muted-foreground)] text-xs">
-              Смена пароля аккаунта
-            </p>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Безопасность</h2>
+            <p className="text-[var(--muted-foreground)] text-xs">Смена пароля аккаунта</p>
           </div>
         </div>
         <Tooltip
@@ -67,7 +63,10 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
             <div className="space-y-2 max-w-[280px]">
               <p className="font-medium">Смена пароля</p>
               <p>Для смены пароля введите текущий пароль и новый пароль дважды.</p>
-              <p className="text-[var(--muted-foreground)]">Рекомендуем использовать пароль длиной не менее 8 символов, содержащий буквы, цифры и специальные символы.</p>
+              <p className="text-[var(--muted-foreground)]">
+                Рекомендуем использовать пароль длиной не менее 8 символов, содержащий буквы, цифры
+                и специальные символы.
+              </p>
             </div>
           }
           position="left"

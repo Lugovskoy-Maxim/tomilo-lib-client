@@ -107,9 +107,11 @@ export default function Tooltip({
 
   const arrowClasses = {
     top: "top-full left-1/2 -translate-x-1/2 border-t-[var(--card)] border-x-transparent border-b-transparent",
-    bottom: "bottom-full left-1/2 -translate-x-1/2 border-b-[var(--card)] border-x-transparent border-t-transparent",
+    bottom:
+      "bottom-full left-1/2 -translate-x-1/2 border-b-[var(--card)] border-x-transparent border-t-transparent",
     left: "left-full top-1/2 -translate-y-1/2 border-l-[var(--card)] border-y-transparent border-r-transparent",
-    right: "right-full top-1/2 -translate-y-1/2 border-r-[var(--card)] border-y-transparent border-l-transparent",
+    right:
+      "right-full top-1/2 -translate-y-1/2 border-r-[var(--card)] border-y-transparent border-l-transparent",
   };
 
   const handleMouseEnter = () => {
@@ -152,9 +154,7 @@ export default function Tooltip({
         >
           {content}
         </div>
-        <div
-          className={`absolute w-0 h-0 border-4 ${arrowClasses[position]}`}
-        />
+        <div className={`absolute w-0 h-0 border-4 ${arrowClasses[position]}`} />
       </div>
     ) : null;
 

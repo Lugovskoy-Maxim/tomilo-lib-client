@@ -41,7 +41,10 @@ export default function ReadingCard({ data }: ReadingCardProps) {
     router.push(getTitlePath(data));
   };
 
-  const { primary: imageUrl, fallback: imageFallback } = getCoverUrls(data.cover, typeof IMAGE_HOLDER === 'string' ? IMAGE_HOLDER : IMAGE_HOLDER.src);
+  const { primary: imageUrl, fallback: imageFallback } = getCoverUrls(
+    data.cover,
+    typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src,
+  );
 
   return (
     <div
@@ -77,7 +80,6 @@ export default function ReadingCard({ data }: ReadingCardProps) {
               {translateTitleType(data.type || "")}
             </div>
           </div>
-          
         </div>
 
         {/* Content section — единые отступы */}
@@ -92,9 +94,7 @@ export default function ReadingCard({ data }: ReadingCardProps) {
             {data.newChaptersSinceLastRead > 0 ? (
               <div className="flex items-center gap-1.5 text-[var(--chart-1)] bg-[var(--chart-1)]/10 px-2 py-0.5 rounded-md border border-[var(--chart-1)]/20">
                 <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-[var(--chart-1)]" />
-                <span className="font-medium">
-                  {data.newChaptersSinceLastRead} новых
-                </span>
+                <span className="font-medium">{data.newChaptersSinceLastRead} новых</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
@@ -117,7 +117,8 @@ export default function ReadingCard({ data }: ReadingCardProps) {
                 {getProgressPercentage(
                   data.readingHistory?.chapterNumber || data.currentChapter,
                   data.totalChapters,
-                )}%
+                )}
+                %
               </span>
             </div>
 

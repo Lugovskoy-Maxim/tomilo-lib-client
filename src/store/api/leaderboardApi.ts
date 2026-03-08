@@ -3,7 +3,13 @@ import { ApiResponse } from "@/types/api";
 
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 
-export type LeaderboardCategory = "level" | "readingTime" | "ratings" | "comments" | "streak" | "chaptersRead";
+export type LeaderboardCategory =
+  | "level"
+  | "readingTime"
+  | "ratings"
+  | "comments"
+  | "streak"
+  | "chaptersRead";
 export type LeaderboardPeriod = "all" | "month";
 
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";

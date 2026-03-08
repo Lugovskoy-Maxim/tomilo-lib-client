@@ -66,9 +66,9 @@ export default function CardTiltEffect() {
       const fromCard = (event.target as Element)?.closest(CARD_SELECTOR) as HTMLElement | null;
       if (!fromCard) return;
 
-      const toCard = (event.relatedTarget as Element | null)?.closest(CARD_SELECTOR) as
-        | HTMLElement
-        | null;
+      const toCard = (event.relatedTarget as Element | null)?.closest(
+        CARD_SELECTOR,
+      ) as HTMLElement | null;
 
       if (fromCard !== toCard) {
         resetCard(fromCard);

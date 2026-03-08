@@ -27,9 +27,7 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="search-highlight">
-        {text.slice(idx, idx + query.trim().length)}
-      </mark>
+      <mark className="search-highlight">{text.slice(idx, idx + query.trim().length)}</mark>
       {text.slice(idx + query.trim().length)}
     </>
   );
@@ -81,7 +79,7 @@ export default function SearchResults({
             <span>Недавние запросы</span>
           </div>
           <div className="search-recent-list">
-            {recentSearches.map((query) => (
+            {recentSearches.map(query => (
               <div key={query} className="search-recent-chip">
                 <button
                   type="button"
@@ -93,7 +91,7 @@ export default function SearchResults({
                 {onRecentRemove && (
                   <button
                     type="button"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       onRecentRemove(query);
                     }}
@@ -132,7 +130,7 @@ export default function SearchResults({
           <span>Ищем по каталогу...</span>
         </div>
         <div className="search-skeleton-list">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {[1, 2, 3, 4, 5].map(i => (
             <SkeletonCard key={i} />
           ))}
         </div>
@@ -181,7 +179,7 @@ export default function SearchResults({
         <span>Найдено: {results.length}</span>
       </div>
       <ul className="search-results-list" data-testid="search-results" role="list">
-        {results.map((result) => (
+        {results.map(result => (
           <li key={result.id}>
             <Link
               href={getTitlePath(result)}
@@ -212,9 +210,7 @@ export default function SearchResults({
                 </span>
                 <span className="search-result-meta">
                   {result.type && (
-                    <span className="search-result-badge">
-                      {translateTitleType(result.type)}
-                    </span>
+                    <span className="search-result-badge">{translateTitleType(result.type)}</span>
                   )}
                   {result.releaseYear != null && (
                     <span className="search-result-meta-item">{result.releaseYear}</span>
@@ -229,9 +225,7 @@ export default function SearchResults({
                     <span className="search-result-meta-item">{result.totalChapters} гл.</span>
                   )}
                 </span>
-                {result.description && (
-                  <p className="search-result-desc">{result.description}</p>
-                )}
+                {result.description && <p className="search-result-desc">{result.description}</p>}
               </span>
             </Link>
           </li>

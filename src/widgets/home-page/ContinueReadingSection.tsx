@@ -2,12 +2,7 @@
 
 import React, { useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import {
-  BookOpen,
-  ChevronRight,
-  Clock,
-  Sparkles,
-} from "lucide-react";
+import { BookOpen, ChevronRight, Clock, Sparkles } from "lucide-react";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { ReadingHistoryEntry } from "@/types/store";
@@ -62,8 +57,7 @@ interface ContinueItem {
 }
 
 function normalizeEntry(entry: ReadingHistoryEntry): ContinueItem | null {
-  const isPopulated =
-    typeof entry.titleId === "object" && entry.titleId !== null;
+  const isPopulated = typeof entry.titleId === "object" && entry.titleId !== null;
   const titleData = isPopulated
     ? (entry.titleId as {
         _id: string;
@@ -77,13 +71,10 @@ function normalizeEntry(entry: ReadingHistoryEntry): ContinueItem | null {
     : null;
 
   const titleId = isPopulated ? titleData!._id : (entry.titleId as string);
-  const name =
-    (isPopulated
-      ? (titleData!.name || titleData!.title)
-      : null) || `Тайтл #${titleId}`;
+  const name = (isPopulated ? titleData!.name || titleData!.title : null) || `Тайтл #${titleId}`;
   const slug = isPopulated ? titleData!.slug : undefined;
-  const coverImage = isPopulated ? titleData!.coverImage ?? null : null;
-  const type = isPopulated ? titleData!.type ?? "" : "";
+  const coverImage = isPopulated ? (titleData!.coverImage ?? null) : null;
+  const type = isPopulated ? (titleData!.type ?? "") : "";
 
   const titleChapters = isPopulated ? titleData!.chapters : undefined;
   // totalChapters — только из тайтла (всего глав в произведении). chaptersCount = прочитано, не подставляем!
@@ -97,9 +88,8 @@ function normalizeEntry(entry: ReadingHistoryEntry): ContinueItem | null {
   if (chapters.length === 0) return null;
 
   const lastChapter = chapters.reduce(
-    (latest, ch) =>
-      new Date(ch.readAt) > new Date(latest.readAt) ? ch : latest,
-    chapters[0]
+    (latest, ch) => (new Date(ch.readAt) > new Date(latest.readAt) ? ch : latest),
+    chapters[0],
   );
   const chapterId =
     typeof lastChapter.chapterId === "object" && lastChapter.chapterId != null
@@ -136,22 +126,18 @@ function ContinueCard({ item }: { item: ContinueItem }) {
   const shouldFetch = needsTitleFetch(item);
   const { data: titleData, isLoading: titleLoading } = useGetTitleByIdQuery(
     { id: item.titleId, includeChapters: true },
-    { skip: !shouldFetch }
+    { skip: !shouldFetch },
   );
   const progressLoading = shouldFetch && titleLoading && !titleData;
 
-  const name = shouldFetch && titleData
-    ? (titleData.name ?? (titleData as { title?: string }).title ?? item.name)
-    : item.name;
-  const coverImage = shouldFetch && titleData
-    ? (titleData.coverImage ?? item.coverImage)
-    : item.coverImage;
-  const type = shouldFetch && titleData
-    ? (titleData.type ?? item.type)
-    : item.type;
-  const slug = shouldFetch && titleData
-    ? (titleData.slug ?? item.slug)
-    : item.slug;
+  const name =
+    shouldFetch && titleData
+      ? (titleData.name ?? (titleData as { title?: string }).title ?? item.name)
+      : item.name;
+  const coverImage =
+    shouldFetch && titleData ? (titleData.coverImage ?? item.coverImage) : item.coverImage;
+  const type = shouldFetch && titleData ? (titleData.type ?? item.type) : item.type;
+  const slug = shouldFetch && titleData ? (titleData.slug ?? item.slug) : item.slug;
   const totalChapters =
     item.totalChapters > 0
       ? item.totalChapters
@@ -168,10 +154,10 @@ function ContinueCard({ item }: { item: ContinueItem }) {
       coverImage
         ? getCoverUrls(
             coverImage,
-            typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src
+            typeof IMAGE_HOLDER === "string" ? IMAGE_HOLDER : IMAGE_HOLDER.src,
           )
         : null,
-    [coverImage]
+    [coverImage],
   );
 
   const t = item.lastChapter.chapterTitle?.trim();
@@ -181,10 +167,7 @@ function ContinueCard({ item }: { item: ContinueItem }) {
   return (
     <div className="flex flex-col flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px] h-full">
       <div className="group relative flex-1 min-h-0 rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-300">
-        <Link
-          href={chapterHref}
-          className="flex items-stretch gap-3 p-3 sm:p-4 block h-full"
-        >
+        <Link href={chapterHref} className="flex items-stretch gap-3 p-3 sm:p-4 block h-full">
           <div className="relative w-[90px] h-[129px] sm:w-24 sm:h-32 rounded-xl overflow-hidden shrink-0 bg-[var(--muted)]">
             {imageUrls ? (
               <OptimizedImage
@@ -246,7 +229,9 @@ function ContinueCard({ item }: { item: ContinueItem }) {
                 ) : (
                   <>
                     <p className="text-[10px] font-medium text-[var(--muted-foreground)]">
-                      {progressLoading ? "Загрузка прогресса…" : `Прочитано глав: ${item.chaptersRead}`}
+                      {progressLoading
+                        ? "Загрузка прогресса…"
+                        : `Прочитано глав: ${item.chaptersRead}`}
                     </p>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 rounded-full bg-[var(--muted)] overflow-hidden min-w-0">
@@ -264,7 +249,6 @@ function ContinueCard({ item }: { item: ContinueItem }) {
               </div>
             </div>
           </div>
-
         </Link>
       </div>
     </div>
@@ -278,9 +262,7 @@ function EmptyState() {
       <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
         <BookOpen className="w-7 h-7 text-[var(--primary)]" />
       </div>
-      <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
-        Продолжить чтение
-      </h3>
+      <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">Продолжить чтение</h3>
       <p className="text-sm text-[var(--muted-foreground)] max-w-sm mx-auto mb-5">
         Здесь появятся тайтлы, которые вы начнёте читать. Откройте любой тайтл и нажмите «Читать».
       </p>
@@ -305,10 +287,7 @@ export default function ContinueReadingSection() {
     data: historyResponse,
     isLoading,
     error,
-  } = useGetReadingHistoryQuery(
-    { limit: 50 },
-    { skip: !hasAuth }
-  );
+  } = useGetReadingHistoryQuery({ limit: 50 }, { skip: !hasAuth });
 
   const items = useMemo(() => {
     const list = Array.isArray(historyResponse?.data) ? historyResponse.data : [];
@@ -317,8 +296,7 @@ export default function ContinueReadingSection() {
       .filter((x): x is ContinueItem => x != null)
       .sort(
         (a, b) =>
-          new Date(b.lastChapter.readAt).getTime() -
-          new Date(a.lastChapter.readAt).getTime()
+          new Date(b.lastChapter.readAt).getTime() - new Date(a.lastChapter.readAt).getTime(),
       );
   }, [historyResponse?.data]);
 
@@ -337,23 +315,28 @@ export default function ContinueReadingSection() {
     if (el) startScrollLeftRef.current = el.scrollLeft;
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const dx = Math.abs(e.pageX - startXRef.current);
-    if (dx > 8) {
-      dragOccurredRef.current = true;
-      e.preventDefault();
-    }
-    const el = scrollRef.current;
-    if (el && dx > 0) {
-      el.scrollLeft = startScrollLeftRef.current - (e.pageX - startXRef.current);
-    }
-  }, [isDragging]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      const dx = Math.abs(e.pageX - startXRef.current);
+      if (dx > 8) {
+        dragOccurredRef.current = true;
+        e.preventDefault();
+      }
+      const el = scrollRef.current;
+      if (el && dx > 0) {
+        el.scrollLeft = startScrollLeftRef.current - (e.pageX - startXRef.current);
+      }
+    },
+    [isDragging],
+  );
 
   const handleMouseUp = useCallback(() => {
     if (!isDragging) return;
     setIsDragging(false);
-    setTimeout(() => { dragOccurredRef.current = false; }, 300);
+    setTimeout(() => {
+      dragOccurredRef.current = false;
+    }, 300);
   }, [isDragging]);
 
   const handleMouseLeave = useCallback(() => {
@@ -433,7 +416,7 @@ export default function ContinueReadingSection() {
           onMouseLeave={handleMouseLeave}
           onClickCapture={handleClickCapture}
         >
-          {items.map((item) => (
+          {items.map(item => (
             <ContinueCard key={item.titleId} item={item} />
           ))}
         </div>

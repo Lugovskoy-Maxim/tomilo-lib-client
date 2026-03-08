@@ -1,12 +1,19 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { 
-  ProgressEvent, 
-  LevelUpEvent, 
-  AchievementEvent, 
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  ProgressEvent,
+  LevelUpEvent,
+  AchievementEvent,
   ExpGainEvent,
-  ProgressHistory 
+  ProgressHistory,
 } from "@/types/progress";
 import { RankInfo } from "@/lib/rank-utils";
 import { UserAchievement } from "@/types/user";
@@ -28,7 +35,9 @@ interface ProgressNotificationContextType {
   clearHistory: () => void;
 }
 
-const ProgressNotificationContext = createContext<ProgressNotificationContextType | undefined>(undefined);
+const ProgressNotificationContext = createContext<ProgressNotificationContextType | undefined>(
+  undefined,
+);
 
 export function useProgressNotification() {
   const context = useContext(ProgressNotificationContext);
@@ -91,47 +100,51 @@ export function ProgressNotificationProvider({ children }: ProgressNotificationP
     });
   }, []);
 
-  const showLevelUp = useCallback((
-    oldLevel: number, 
-    newLevel: number, 
-    oldRank: RankInfo, 
-    newRank: RankInfo
-  ) => {
-    const event: LevelUpEvent = {
-      id: generateId(),
-      type: "level_up",
-      oldLevel,
-      newLevel,
-      oldRank,
-      newRank,
-      timestamp: new Date().toISOString(),
-    };
-    setLevelUpEvent(event);
-    addToHistory(event);
-  }, [addToHistory]);
+  const showLevelUp = useCallback(
+    (oldLevel: number, newLevel: number, oldRank: RankInfo, newRank: RankInfo) => {
+      const event: LevelUpEvent = {
+        id: generateId(),
+        type: "level_up",
+        oldLevel,
+        newLevel,
+        oldRank,
+        newRank,
+        timestamp: new Date().toISOString(),
+      };
+      setLevelUpEvent(event);
+      addToHistory(event);
+    },
+    [addToHistory],
+  );
 
-  const showAchievement = useCallback((achievement: UserAchievement) => {
-    const event: AchievementEvent = {
-      id: generateId(),
-      type: "achievement",
-      achievement,
-      timestamp: new Date().toISOString(),
-    };
-    setAchievementEvents(prev => [...prev, event]);
-    addToHistory(event);
-  }, [addToHistory]);
+  const showAchievement = useCallback(
+    (achievement: UserAchievement) => {
+      const event: AchievementEvent = {
+        id: generateId(),
+        type: "achievement",
+        achievement,
+        timestamp: new Date().toISOString(),
+      };
+      setAchievementEvents(prev => [...prev, event]);
+      addToHistory(event);
+    },
+    [addToHistory],
+  );
 
-  const showExpGain = useCallback((amount: number, reason: string) => {
-    const event: ExpGainEvent = {
-      id: generateId(),
-      type: "exp_gain",
-      amount,
-      reason,
-      timestamp: new Date().toISOString(),
-    };
-    setExpGainEvents(prev => [...prev, event]);
-    addToHistory(event);
-  }, [addToHistory]);
+  const showExpGain = useCallback(
+    (amount: number, reason: string) => {
+      const event: ExpGainEvent = {
+        id: generateId(),
+        type: "exp_gain",
+        amount,
+        reason,
+        timestamp: new Date().toISOString(),
+      };
+      setExpGainEvents(prev => [...prev, event]);
+      addToHistory(event);
+    },
+    [addToHistory],
+  );
 
   const dismissLevelUp = useCallback(() => {
     setLevelUpEvent(null);

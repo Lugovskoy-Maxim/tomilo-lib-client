@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User as UserIcon, Shield, Lock, Home, AlertTriangle, Calendar } from "lucide-react";
+import {
+  ArrowLeft,
+  User as UserIcon,
+  Shield,
+  Lock,
+  Home,
+  AlertTriangle,
+  Calendar,
+} from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { Footer, Header } from "@/widgets";
 import ProfileStrip from "@/shared/profile/ProfileStrip";
@@ -101,9 +109,7 @@ export default function ProfileShell({
               <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--muted)]/50 text-[var(--muted-foreground)]">
                 <Lock className="h-8 w-8 shrink-0" strokeWidth={1.5} aria-hidden />
               </div>
-              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
-                Профиль скрыт
-              </h2>
+              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Профиль скрыт</h2>
               <p className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-6">
                 Владелец профиля ограничил доступ. Вы можете вернуться назад или на главную.
               </p>
@@ -131,11 +137,10 @@ export default function ProfileShell({
     }
     return (
       <div className="flex flex-1 flex-col items-center justify-center min-h-[50vh] px-4">
-        <p className="text-[var(--foreground)] font-medium mb-2">{emptyStateMessage ?? "Профиль не найден"}</p>
-        <Link
-          href="/"
-          className="text-sm text-[var(--primary)] hover:underline"
-        >
+        <p className="text-[var(--foreground)] font-medium mb-2">
+          {emptyStateMessage ?? "Профиль не найден"}
+        </p>
+        <Link href="/" className="text-sm text-[var(--primary)] hover:underline">
           На главную
         </Link>
       </div>
@@ -229,34 +234,46 @@ export default function ProfileShell({
         <div className="flex-1 min-h-0 flex flex-col gap-4 profile-shell-content">
           {userProfile?.deletedAt && (
             <div className="rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
-              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" aria-hidden />
+              <AlertTriangle
+                className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5"
+                aria-hidden
+              />
               <div>
                 <p className="font-medium">Профиль удалён</p>
-                <p className="text-[var(--muted-foreground)] mt-0.5">Данные учётной записи сохранены, но не используются.</p>
-              </div>
-            </div>
-          )}
-          {userProfile?.scheduledDeletionAt && !userProfile?.deletedAt && new Date(userProfile.scheduledDeletionAt).getTime() > Date.now() && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
-              <Calendar className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" aria-hidden />
-              <div>
-                <p className="font-medium">Запланировано удаление профиля</p>
                 <p className="text-[var(--muted-foreground)] mt-0.5">
-                  Удаление запланировано на {new Date(userProfile.scheduledDeletionAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}. До этой даты владелец может отменить удаление в настройках.
+                  Данные учётной записи сохранены, но не используются.
                 </p>
               </div>
             </div>
           )}
+          {userProfile?.scheduledDeletionAt &&
+            !userProfile?.deletedAt &&
+            new Date(userProfile.scheduledDeletionAt).getTime() > Date.now() && (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
+                <Calendar
+                  className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
+                  aria-hidden
+                />
+                <div>
+                  <p className="font-medium">Запланировано удаление профиля</p>
+                  <p className="text-[var(--muted-foreground)] mt-0.5">
+                    Удаление запланировано на{" "}
+                    {new Date(userProfile.scheduledDeletionAt).toLocaleDateString("ru-RU", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                    . До этой даты владелец может отменить удаление в настройках.
+                  </p>
+                </div>
+              </div>
+            )}
           {hasPrivacyNotice && (
             <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-[var(--foreground)]">
               Часть данных скрыта настройками приватности.
             </div>
           )}
-          {variant === "admin" && adminControls && (
-            <div className="shrink-0">
-              {adminControls}
-            </div>
-          )}
+          {variant === "admin" && adminControls && <div className="shrink-0">{adminControls}</div>}
           <div className="flex-1 min-h-0 min-w-0 rounded-2xl border border-[color-mix(in_oklch,var(--border)_70%,transparent)] overflow-hidden flex flex-col bg-[color-mix(in_oklch,var(--card)_88%,transparent)] dark:bg-[color-mix(in_oklch,var(--card)_58%,transparent)] backdrop-blur-[14px] shadow-[0_4px_24px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]">
             <ProfileTabs
               userProfile={userProfile}
@@ -278,9 +295,7 @@ export default function ProfileShell({
     <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
       <Header />
       {wrapWithProvider ? (
-        <ProfileProvider value={profileContextValue}>
-          {content}
-        </ProfileProvider>
+        <ProfileProvider value={profileContextValue}>{content}</ProfileProvider>
       ) : (
         content
       )}

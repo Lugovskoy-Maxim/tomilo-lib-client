@@ -21,7 +21,7 @@ interface FireworkParticle {
 function generateFireworks(rankColor: string): FireworkParticle[] {
   const particles: FireworkParticle[] = [];
   const colors = [rankColor, "#FFD700", "#FF6B35", "#F7931E", "#FFCC00", "#FF4500", "#FFA500"];
-  
+
   for (let i = 0; i < 60; i++) {
     const type = i < 20 ? "star" : i < 40 ? "spark" : "confetti";
     particles.push({
@@ -29,14 +29,19 @@ function generateFireworks(rankColor: string): FireworkParticle[] {
       x: Math.random() * 100,
       y: Math.random() * 100,
       color: colors[Math.floor(Math.random() * colors.length)],
-      size: type === "star" ? 16 + Math.random() * 12 : type === "spark" ? 6 + Math.random() * 8 : 8 + Math.random() * 6,
+      size:
+        type === "star"
+          ? 16 + Math.random() * 12
+          : type === "spark"
+            ? 6 + Math.random() * 8
+            : 8 + Math.random() * 6,
       delay: Math.random() * 0.8,
       duration: 1.5 + Math.random() * 2,
       type,
       rotation: Math.random() * 360,
     });
   }
-  
+
   return particles;
 }
 
@@ -46,11 +51,7 @@ interface LevelUpModalProps {
   autoCloseDelay?: number;
 }
 
-export default function LevelUpModal({ 
-  event, 
-  onClose, 
-  autoCloseDelay = 8000 
-}: LevelUpModalProps) {
+export default function LevelUpModal({ event, onClose, autoCloseDelay = 8000 }: LevelUpModalProps) {
   const [isClosing, setIsClosing] = useState(false);
 
   const newRankColor = event ? getRankColor(event.newRank.rank) : "#FFD700";
@@ -61,7 +62,7 @@ export default function LevelUpModal({
 
   useEffect(() => {
     if (!event) return;
-    
+
     const timer = setTimeout(() => {
       handleClose();
     }, autoCloseDelay);
@@ -92,17 +93,20 @@ export default function LevelUpModal({
         >
           {/* Fullscreen fireworks */}
           <div className="fixed inset-0 pointer-events-none overflow-hidden z-[99]">
-            {fireworks.map((particle) => (
+            {fireworks.map(particle => (
               <motion.div
                 key={particle.id}
-                initial={{ 
-                  opacity: 0, 
+                initial={{
+                  opacity: 0,
                   scale: 0,
                 }}
-                animate={{ 
+                animate={{
                   opacity: [0, 1, 1, 0],
                   scale: [0, 1.2, 1, 0.5],
-                  rotate: particle.type === "confetti" ? [0, particle.rotation, particle.rotation * 2] : 0,
+                  rotate:
+                    particle.type === "confetti"
+                      ? [0, particle.rotation, particle.rotation * 2]
+                      : 0,
                 }}
                 transition={{
                   duration: particle.duration,
@@ -118,9 +122,9 @@ export default function LevelUpModal({
               >
                 {particle.type === "star" ? (
                   <Star
-                    style={{ 
-                      width: particle.size, 
-                      height: particle.size, 
+                    style={{
+                      width: particle.size,
+                      height: particle.size,
                       color: particle.color,
                       filter: `drop-shadow(0 0 ${particle.size / 2}px ${particle.color})`,
                     }}
@@ -128,9 +132,9 @@ export default function LevelUpModal({
                   />
                 ) : particle.type === "spark" ? (
                   <Sparkles
-                    style={{ 
-                      width: particle.size, 
-                      height: particle.size, 
+                    style={{
+                      width: particle.size,
+                      height: particle.size,
                       color: particle.color,
                       filter: `drop-shadow(0 0 ${particle.size / 3}px ${particle.color})`,
                     }}
@@ -148,7 +152,7 @@ export default function LevelUpModal({
                 )}
               </motion.div>
             ))}
-            
+
             {/* Radial burst effect - center glow */}
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
@@ -161,21 +165,21 @@ export default function LevelUpModal({
             />
           </div>
 
-        <motion.div
+          <motion.div
             initial={{ scale: 0.5, opacity: 0, y: 50 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: -30 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
+            transition={{
+              type: "spring",
+              stiffness: 300,
               damping: 25,
-              delay: 0.1
+              delay: 0.1,
             }}
             className="relative max-w-md w-full mx-4 p-8 rounded-3xl bg-gradient-to-b from-[var(--card)] to-[var(--background)] border border-[var(--border)] shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             {/* Background glow */}
-            <div 
+            <div
               className="absolute inset-0 opacity-30 pointer-events-none"
               style={{
                 background: `radial-gradient(circle at 50% 30%, ${newRankColor} 0%, transparent 70%)`,
@@ -187,11 +191,11 @@ export default function LevelUpModal({
               {[...Array(20)].map((_, i) => (
                 <motion.div
                   key={i}
-                  initial={{ 
-                    opacity: 0, 
+                  initial={{
+                    opacity: 0,
                     scale: 0,
                   }}
-                  animate={{ 
+                  animate={{
                     opacity: [0, 1, 0],
                     scale: [0, 1, 0.5],
                     x: [`50%`, `${Math.random() * 100}%`],
@@ -209,8 +213,8 @@ export default function LevelUpModal({
                     height: 8 + Math.random() * 8,
                   }}
                 >
-                  <Sparkles 
-                    className="w-full h-full" 
+                  <Sparkles
+                    className="w-full h-full"
                     style={{ color: i % 2 === 0 ? newRankColor : "#FFD700" }}
                   />
                 </motion.div>
@@ -252,9 +256,9 @@ export default function LevelUpModal({
               >
                 {/* Old level */}
                 <div className="text-center opacity-60">
-                  <div 
+                  <div
                     className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold mb-2"
-                    style={{ 
+                    style={{
                       backgroundColor: `${oldRankColor}20`,
                       color: oldRankColor,
                     }}
@@ -274,15 +278,15 @@ export default function LevelUpModal({
                 </motion.div>
 
                 {/* New level */}
-                <motion.div 
+                <motion.div
                   className="text-center"
                   initial={{ scale: 1 }}
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ delay: 0.8, duration: 0.5 }}
                 >
-                  <div 
+                  <div
                     className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold mb-2 shadow-lg"
-                    style={{ 
+                    style={{
                       backgroundColor: `${newRankColor}30`,
                       color: newRankColor,
                       boxShadow: `0 0 30px ${newRankColor}40`,
@@ -301,7 +305,7 @@ export default function LevelUpModal({
                 transition={{ delay: 0.7 }}
                 className="mb-6"
               >
-                <div 
+                <div
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
                   style={{
                     backgroundColor: `${newRankColor}15`,
@@ -309,10 +313,7 @@ export default function LevelUpModal({
                   }}
                 >
                   <Crown className="w-5 h-5" style={{ color: newRankColor }} />
-                  <span 
-                    className="font-bold"
-                    style={{ color: newRankColor }}
-                  >
+                  <span className="font-bold" style={{ color: newRankColor }}>
                     {event.newRank.name}
                   </span>
                 </div>
@@ -328,13 +329,13 @@ export default function LevelUpModal({
                 {[...Array(9)].map((_, i) => {
                   const isFilled = i < event.newRank.stars;
                   const isNew = i >= event.oldRank.stars && i < event.newRank.stars;
-                  
+
                   return (
                     <motion.div
                       key={i}
                       initial={isNew ? { scale: 0, rotate: -180 } : {}}
                       animate={isNew ? { scale: 1, rotate: 0 } : {}}
-                      transition={{ 
+                      transition={{
                         delay: 1 + i * 0.1,
                         type: "spring",
                         stiffness: 300,
@@ -358,9 +359,7 @@ export default function LevelUpModal({
                   transition={{ delay: 1.2, type: "spring" }}
                   className="mb-6 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
                 >
-                  <p className="text-sm font-semibold text-purple-400">
-                    Вы достигли нового ранга!
-                  </p>
+                  <p className="text-sm font-semibold text-purple-400">Вы достигли нового ранга!</p>
                   <p className="text-xs text-[var(--muted-foreground)] mt-1">
                     {event.oldRank.name} → {event.newRank.name}
                   </p>

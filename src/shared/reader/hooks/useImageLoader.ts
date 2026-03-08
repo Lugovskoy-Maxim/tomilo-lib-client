@@ -50,9 +50,7 @@ export function useImageLoader({
   maxRetries = 2,
   quality = "auto",
 }: UseImageLoaderOptions): UseImageLoaderReturn {
-  const [imageStates, setImageStates] = useState<Map<number, ImageLoadState>>(
-    () => new Map()
-  );
+  const [imageStates, setImageStates] = useState<Map<number, ImageLoadState>>(() => new Map());
   const preloadedRef = useRef<Set<number>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
   const imageElementsRef = useRef<Map<number, HTMLImageElement>>(new Map());
@@ -89,11 +87,11 @@ export function useImageLoader({
 
       return primary;
     },
-    [images, imageStates]
+    [images, imageStates],
   );
 
   const handleImageLoad = useCallback((index: number) => {
-    setImageStates((prev) => {
+    setImageStates(prev => {
       const newMap = new Map(prev);
       const state = newMap.get(index);
       if (state) {
@@ -105,7 +103,7 @@ export function useImageLoader({
 
   const handleImageError = useCallback(
     (index: number) => {
-      setImageStates((prev) => {
+      setImageStates(prev => {
         const newMap = new Map(prev);
         const state = newMap.get(index);
         if (!state) return prev;
@@ -127,11 +125,11 @@ export function useImageLoader({
         return newMap;
       });
     },
-    [images, maxRetries]
+    [images, maxRetries],
   );
 
   const retryImage = useCallback((index: number) => {
-    setImageStates((prev) => {
+    setImageStates(prev => {
       const newMap = new Map(prev);
       newMap.set(index, {
         loaded: false,
@@ -144,7 +142,7 @@ export function useImageLoader({
   }, []);
 
   const retryAllFailed = useCallback(() => {
-    setImageStates((prev) => {
+    setImageStates(prev => {
       const newMap = new Map(prev);
       prev.forEach((state, index) => {
         if (state.error) {
@@ -162,7 +160,7 @@ export function useImageLoader({
 
   const preloadImages = useCallback(
     (indexes: number[]) => {
-      indexes.forEach((index) => {
+      indexes.forEach(index => {
         if (preloadedRef.current.has(index)) return;
         if (index < 0 || index >= images.length) return;
 
@@ -178,7 +176,7 @@ export function useImageLoader({
         preloadedRef.current.add(index);
       });
     },
-    [images.length, getImageUrl, handleImageLoad, handleImageError]
+    [images.length, getImageUrl, handleImageLoad, handleImageError],
   );
 
   useEffect(() => {
@@ -197,13 +195,11 @@ export function useImageLoader({
     (index: number) => {
       if (strategy === "eager") return true;
       if (strategy === "preload-nearby") {
-        return (
-          index >= currentPage - 2 && index <= currentPage + preloadCount + 1
-        );
+        return index >= currentPage - 2 && index <= currentPage + preloadCount + 1;
       }
       return index >= currentPage - 1 && index <= currentPage + 1;
     },
-    [strategy, currentPage, preloadCount]
+    [strategy, currentPage, preloadCount],
   );
 
   const getLoadingPriority = useCallback(
@@ -213,12 +209,12 @@ export function useImageLoader({
       if (distance <= 2) return "medium";
       return "low";
     },
-    [currentPage]
+    [currentPage],
   );
 
   const loadedCount = useMemo(() => {
     let count = 0;
-    imageStates.forEach((state) => {
+    imageStates.forEach(state => {
       if (state.loaded) count++;
     });
     return count;
@@ -226,7 +222,7 @@ export function useImageLoader({
 
   const errorCount = useMemo(() => {
     let count = 0;
-    imageStates.forEach((state) => {
+    imageStates.forEach(state => {
       if (state.error) count++;
     });
     return count;

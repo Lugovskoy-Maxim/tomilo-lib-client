@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Plus, Edit, Trash2, Search, Trophy, Eye, EyeOff, Copy, Filter, Download } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  Trophy,
+  Eye,
+  EyeOff,
+  Copy,
+  Filter,
+  Download,
+} from "lucide-react";
 import {
   useGetAchievementsQuery,
   useCreateAchievementMutation,
@@ -64,7 +75,12 @@ export function AchievementsSection() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: achievementsData, isLoading, error, refetch } = useGetAchievementsQuery({
+  const {
+    data: achievementsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetAchievementsQuery({
     search: debouncedSearch,
     type: typeFilter,
     rarity: rarityFilter || undefined,
@@ -77,13 +93,21 @@ export function AchievementsSection() {
   const [deleteAchievement] = useDeleteAchievementMutation();
 
   const achievements = achievementsData?.data?.achievements || [];
-  const pagination = achievementsData?.data?.pagination || { total: 0, page: 1, limit: 50, pages: 0 };
+  const pagination = achievementsData?.data?.pagination || {
+    total: 0,
+    page: 1,
+    limit: 50,
+    pages: 0,
+  };
 
   const stats = useMemo(() => {
-    const byRarity = RARITY_OPTIONS.reduce((acc, r) => {
-      acc[r.value] = achievements.filter(a => a.rarity === r.value).length;
-      return acc;
-    }, {} as Record<string, number>);
+    const byRarity = RARITY_OPTIONS.reduce(
+      (acc, r) => {
+        acc[r.value] = achievements.filter(a => a.rarity === r.value).length;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
     const hidden = achievements.filter(a => a.isHidden).length;
     return { byRarity, hidden, total: pagination.total };
   }, [achievements, pagination.total]);
@@ -114,7 +138,7 @@ export function AchievementsSection() {
       a.maxProgress || "",
       a.isHidden ? "Да" : "Нет",
     ]);
-    
+
     const csvContent = [
       headers.join(","),
       ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
@@ -242,10 +266,15 @@ export function AchievementsSection() {
       <div className="grid grid-cols-2 min-[480px]:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
         <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
           <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Всего</p>
-          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--foreground)]">{stats.total}</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--foreground)]">
+            {stats.total}
+          </p>
         </div>
         {RARITY_OPTIONS.slice(0, 4).map(rarity => (
-          <div key={rarity.value} className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
+          <div
+            key={rarity.value}
+            className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]"
+          >
             <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">{rarity.label}</p>
             <p className={`mt-1 text-lg sm:text-xl font-bold ${rarity.color.split(" ")[0]}`}>
               {stats.byRarity[rarity.value] || 0}
@@ -254,7 +283,9 @@ export function AchievementsSection() {
         ))}
         <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
           <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">Скрытых</p>
-          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--muted-foreground)]">{stats.hidden}</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-[var(--muted-foreground)]">
+            {stats.hidden}
+          </p>
         </div>
       </div>
 
@@ -278,7 +309,10 @@ export function AchievementsSection() {
             >
               <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
-            <button onClick={openCreate} className="admin-btn-primary flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm">
+            <button
+              onClick={openCreate}
+              className="admin-btn-primary flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
+            >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden min-[400px]:inline">Добавить</span>
             </button>
@@ -325,9 +359,14 @@ export function AchievementsSection() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs sm:text-sm text-[var(--muted-foreground)]">Редкость:</span>
                 <button
-                  onClick={() => { setRarityFilter(""); setCurrentPage(1); }}
+                  onClick={() => {
+                    setRarityFilter("");
+                    setCurrentPage(1);
+                  }}
                   className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm transition-colors ${
-                    rarityFilter === "" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--card)] hover:bg-[var(--accent)]"
+                    rarityFilter === ""
+                      ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                      : "bg-[var(--card)] hover:bg-[var(--accent)]"
                   }`}
                 >
                   Все
@@ -335,7 +374,10 @@ export function AchievementsSection() {
                 {RARITY_OPTIONS.map(rarity => (
                   <button
                     key={rarity.value}
-                    onClick={() => { setRarityFilter(rarity.value); setCurrentPage(1); }}
+                    onClick={() => {
+                      setRarityFilter(rarity.value);
+                      setCurrentPage(1);
+                    }}
                     className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm transition-colors ${
                       rarityFilter === rarity.value
                         ? `${rarity.color}`
@@ -379,14 +421,18 @@ export function AchievementsSection() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 sm:gap-2">
-                          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">{achievement.name}</h4>
+                          <h4 className="text-sm sm:text-base font-medium text-[var(--foreground)] truncate">
+                            {achievement.name}
+                          </h4>
                           {achievement.isHidden && (
                             <span title="Скрытое" className="flex-shrink-0">
                               <EyeOff className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[var(--muted-foreground)]" />
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">{achievement.id}</p>
+                        <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] truncate">
+                          {achievement.id}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -417,7 +463,9 @@ export function AchievementsSection() {
                     {achievement.description}
                   </p>
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                    <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium ${getRarityStyle(achievement.rarity)}`}>
+                    <span
+                      className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium ${getRarityStyle(achievement.rarity)}`}
+                    >
                       {RARITY_OPTIONS.find(r => r.value === achievement.rarity)?.label}
                     </span>
                     <span className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs bg-[var(--card)] text-[var(--muted-foreground)]">
@@ -521,7 +569,9 @@ export function AchievementsSection() {
                       src={form.icon}
                       alt="Preview"
                       className="w-6 h-6 object-contain"
-                      onError={e => { (e.target as HTMLImageElement).src = ""; }}
+                      onError={e => {
+                        (e.target as HTMLImageElement).src = "";
+                      }}
                     />
                   ) : form.icon ? (
                     <span className="text-lg">{form.icon}</span>
@@ -548,7 +598,9 @@ export function AchievementsSection() {
 
           <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">Тип</label>
+              <label className="block text-xs sm:text-sm font-medium text-[var(--foreground)] mb-1">
+                Тип
+              </label>
               <select
                 value={form.type}
                 onChange={e => setForm({ ...form, type: e.target.value as AchievementType })}
@@ -593,10 +645,18 @@ export function AchievementsSection() {
           </div>
 
           <div className="flex justify-end gap-2 pt-3 sm:pt-4">
-            <button type="button" onClick={() => setIsFormOpen(false)} className="admin-btn-secondary text-xs sm:text-sm px-3 py-2">
+            <button
+              type="button"
+              onClick={() => setIsFormOpen(false)}
+              className="admin-btn-secondary text-xs sm:text-sm px-3 py-2"
+            >
               Отмена
             </button>
-            <button type="submit" disabled={isCreating || isUpdating} className="admin-btn-primary text-xs sm:text-sm px-3 py-2">
+            <button
+              type="submit"
+              disabled={isCreating || isUpdating}
+              className="admin-btn-primary text-xs sm:text-sm px-3 py-2"
+            >
               {isCreating || isUpdating ? "..." : editingAchievement ? "Сохранить" : "Создать"}
             </button>
           </div>

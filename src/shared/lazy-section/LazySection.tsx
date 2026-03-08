@@ -42,7 +42,7 @@ export default function LazySection({
           onVisible(sectionId);
         }
       },
-      { rootMargin, threshold: 0 }
+      { rootMargin, threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();

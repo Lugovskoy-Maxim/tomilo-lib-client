@@ -24,10 +24,7 @@ export default function ProfileNotificationsSettings({
   const prefs: NotificationPreferences =
     userProfile.notificationPreferences ?? DEFAULT_NOTIFICATIONS;
 
-  const handleChange = async (
-    key: keyof NotificationPreferences,
-    enabled: boolean,
-  ) => {
+  const handleChange = async (key: keyof NotificationPreferences, enabled: boolean) => {
     if (isLoading) return;
     try {
       await updateProfile({
@@ -51,9 +48,7 @@ export default function ProfileNotificationsSettings({
             <Bell className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">
-              Уведомления
-            </h2>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Уведомления</h2>
             <p className="text-[var(--muted-foreground)] text-xs">
               Настройте, о чём получать уведомления
             </p>
@@ -65,11 +60,20 @@ export default function ProfileNotificationsSettings({
               <p className="font-medium">О уведомлениях</p>
               <p>Управляйте тем, какие уведомления вы хотите получать:</p>
               <ul className="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
-                <li><strong>Новые главы</strong> — уведомления о выходе глав в тайтлах из ваших закладок</li>
-                <li><strong>Комментарии</strong> — ответы на ваши комментарии и упоминания</li>
-                <li><strong>Рекомендации</strong> — персональные подборки тайтлов</li>
+                <li>
+                  <strong>Новые главы</strong> — уведомления о выходе глав в тайтлах из ваших
+                  закладок
+                </li>
+                <li>
+                  <strong>Комментарии</strong> — ответы на ваши комментарии и упоминания
+                </li>
+                <li>
+                  <strong>Рекомендации</strong> — персональные подборки тайтлов
+                </li>
               </ul>
-              <p className="text-[var(--muted-foreground)] text-[10px]">Системные уведомления о безопасности отключить нельзя.</p>
+              <p className="text-[var(--muted-foreground)] text-[10px]">
+                Системные уведомления о безопасности отключить нельзя.
+              </p>
             </div>
           }
           position="left"
@@ -191,7 +195,9 @@ export default function ProfileNotificationsSettings({
         </div>
 
         <div className="pt-2">
-          <span className="text-[11px] text-[var(--muted-foreground)] uppercase tracking-wider block mb-2">Браузер</span>
+          <span className="text-[11px] text-[var(--muted-foreground)] uppercase tracking-wider block mb-2">
+            Браузер
+          </span>
           <PushSubscribeButton />
         </div>
       </div>

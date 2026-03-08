@@ -41,9 +41,7 @@ async function fetchAllTitles(): Promise<{ slug?: string; updatedAt?: string; _i
   return all;
 }
 
-async function fetchAllCollections(): Promise<
-  { id?: string; _id?: string; updatedAt?: string }[]
-> {
+async function fetchAllCollections(): Promise<{ id?: string; _id?: string; updatedAt?: string }[]> {
   const all: { id?: string; _id?: string; updatedAt?: string }[] = [];
   let page = 1;
   let hasMore = true;
@@ -125,18 +123,58 @@ async function fetchAllAnnouncements(): Promise<
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
-    { url: `${BASE_URL}/titles`, lastModified: new Date(), changeFrequency: "daily", priority: 0.95 },
-    { url: `${BASE_URL}/collections`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+    {
+      url: `${BASE_URL}/titles`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.95,
+    },
+    {
+      url: `${BASE_URL}/collections`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
     { url: `${BASE_URL}/top`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${BASE_URL}/updates`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
-    { url: `${BASE_URL}/leaders`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
+    {
+      url: `${BASE_URL}/updates`,
+      lastModified: new Date(),
+      changeFrequency: "hourly",
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/leaders`,
+      lastModified: new Date(),
+      changeFrequency: "hourly",
+      priority: 0.85,
+    },
     { url: `${BASE_URL}/news`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE_URL}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    {
+      url: `${BASE_URL}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
     { url: `${BASE_URL}/dmca`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE_URL}/terms-of-use`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE_URL}/privacy-policy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    {
+      url: `${BASE_URL}/terms-of-use`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${BASE_URL}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
   ];
 
   try {
@@ -168,7 +206,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .filter(a => a.slug)
       .map(a => ({
         url: `${BASE_URL}/news/${encodeURIComponent(a.slug!)}`,
-        lastModified: a.updatedAt ? new Date(a.updatedAt) : (a.publishedAt ? new Date(a.publishedAt) : new Date()),
+        lastModified: a.updatedAt
+          ? new Date(a.updatedAt)
+          : a.publishedAt
+            ? new Date(a.publishedAt)
+            : new Date(),
         changeFrequency: "monthly" as const,
         priority: 0.6,
       }));

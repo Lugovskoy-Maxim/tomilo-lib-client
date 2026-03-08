@@ -10,20 +10,17 @@ const variantSizes = {
   header: {
     width: 100,
     height: 50,
-    className:
-      "w-16 h-8 sm:w-20 sm:h-10 md:w-[100px] md:h-[50px] object-contain object-left",
+    className: "w-16 h-8 sm:w-20 sm:h-10 md:w-[100px] md:h-[50px] object-contain object-left",
   },
   footer: {
     width: 120,
     height: 60,
-    className:
-      "w-20 h-10 sm:w-24 sm:h-12 md:w-[120px] md:h-[60px] object-contain object-left",
+    className: "w-20 h-10 sm:w-24 sm:h-12 md:w-[120px] md:h-[60px] object-contain object-left",
   },
   default: {
     width: 100,
     height: 50,
-    className:
-      "w-20 h-10 sm:w-[100px] sm:h-[50px] object-contain object-left",
+    className: "w-20 h-10 sm:w-[100px] sm:h-[50px] object-contain object-left",
   },
 } satisfies Record<LogoVariant, { width: number; height: number; className: string }>;
 

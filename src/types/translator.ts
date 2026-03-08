@@ -1,4 +1,10 @@
-export type TranslatorRole = "translator" | "editor" | "proofreader" | "cleaner" | "typesetter" | "leader";
+export type TranslatorRole =
+  | "translator"
+  | "editor"
+  | "proofreader"
+  | "cleaner"
+  | "typesetter"
+  | "leader";
 
 export interface TranslatorTeamMember {
   _id: string;

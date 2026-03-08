@@ -151,7 +151,11 @@ export function ParserSection() {
             });
           };
 
-          if (progress.status === "started" && pending.mode === "chapter_import" && pending.titleId) {
+          if (
+            progress.status === "started" &&
+            pending.mode === "chapter_import" &&
+            pending.titleId
+          ) {
             createTask(pending.titleId);
           }
           if (
@@ -327,10 +331,7 @@ export function ParserSection() {
             </h3>
             <p className="text-[var(--muted-foreground)] mb-6">{modalContent.message}</p>
             <div className="flex justify-end">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="admin-btn admin-btn-primary"
-              >
+              <button onClick={() => setIsModalOpen(false)} className="admin-btn admin-btn-primary">
                 Закрыть
               </button>
             </div>
@@ -682,7 +683,9 @@ export function ParserSection() {
           </button>
         </div>
         {!canStartParsing && (
-          <p className="mt-2 text-right text-xs text-[var(--muted-foreground)]">{startDisabledReason}</p>
+          <p className="mt-2 text-right text-xs text-[var(--muted-foreground)]">
+            {startDisabledReason}
+          </p>
         )}
       </div>
     </div>

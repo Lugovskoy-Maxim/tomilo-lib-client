@@ -1,5 +1,20 @@
 import React, { useState } from "react";
-import { Trash2, Eye, Shield, Crown, User, Calendar, TrendingUp, MoreHorizontal, Copy, Check, Ban, UserCheck, MessageCircle, Edit } from "lucide-react";
+import {
+  Trash2,
+  Eye,
+  Shield,
+  Crown,
+  User,
+  Calendar,
+  TrendingUp,
+  MoreHorizontal,
+  Copy,
+  Check,
+  Ban,
+  UserCheck,
+  MessageCircle,
+  Edit,
+} from "lucide-react";
 import { UserProfile } from "@/types/user";
 import Image from "next/image";
 import { isPremiumActive } from "@/lib/premium";
@@ -40,11 +55,22 @@ const roleConfig = {
     bgClass: "bg-[var(--secondary)]/50",
     textClass: "text-[var(--muted-foreground)]",
     borderClass: "border-[var(--border)]",
-    badgeClass: "bg-[var(--secondary)] text-[var(--muted-foreground)] border border-[var(--border)]",
+    badgeClass:
+      "bg-[var(--secondary)] text-[var(--muted-foreground)] border border-[var(--border)]",
   },
 };
 
-export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDeleteComments, normalizeUrl, formatDate }: UserCardProps) {
+export function UserCard({
+  user,
+  onView,
+  onDelete,
+  onEdit,
+  onBan,
+  onUnban,
+  onDeleteComments,
+  normalizeUrl,
+  formatDate,
+}: UserCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -79,18 +105,24 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
         setShowActions(false);
       }}
     >
-      <div className={`absolute inset-0 opacity-50 ${isBanned ? "bg-gradient-to-r from-red-500/10 to-red-500/5" : config.bgClass}`} />
-      
+      <div
+        className={`absolute inset-0 opacity-50 ${isBanned ? "bg-gradient-to-r from-red-500/10 to-red-500/5" : config.bgClass}`}
+      />
+
       <div className="relative p-4">
         <div className="flex items-start gap-3">
           <div className="relative flex-shrink-0">
-            <div className={`
+            <div
+              className={`
               w-12 h-12 rounded-xl overflow-hidden
               ring-2 ring-offset-2 ring-offset-[var(--card)]
               transition-all duration-300
               ${isHovered ? "ring-[var(--primary)]/50 scale-105" : "ring-transparent"}
-            `}>
-              {user.avatar && !user.avatar.includes("undefined") && !user.avatar.includes("null") ? (
+            `}
+            >
+              {user.avatar &&
+              !user.avatar.includes("undefined") &&
+              !user.avatar.includes("null") ? (
                 <Image
                   src={normalizeUrl(user.avatar)}
                   alt={user.username}
@@ -107,13 +139,15 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
                 </div>
               )}
             </div>
-            
-            <div className={`
+
+            <div
+              className={`
               absolute -bottom-1 -right-1 w-5 h-5 rounded-full
               flex items-center justify-center
               ${isBanned ? "bg-red-500 text-white" : config.badgeClass}
               shadow-sm
-            `}>
+            `}
+            >
               {isBanned ? <Ban className="w-3 h-3" /> : <RoleIcon className="w-3 h-3" />}
             </div>
           </div>
@@ -138,15 +172,16 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
                   {user.email}
                 </p>
               </div>
-              
+
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   onClick={() => setShowActions(!showActions)}
                   className={`
                     p-1.5 rounded-lg transition-all duration-200
-                    ${showActions 
-                      ? "bg-[var(--accent)] text-[var(--foreground)]" 
-                      : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                    ${
+                      showActions
+                        ? "bg-[var(--accent)] text-[var(--foreground)]"
+                        : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
                     }
                   `}
                 >
@@ -155,7 +190,7 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
               </div>
             </div>
 
-            <div 
+            <div
               className={`
                 flex items-center gap-1 mt-1.5 text-[10px] font-mono text-[var(--muted-foreground)]
                 cursor-pointer hover:text-[var(--foreground)] transition-colors
@@ -178,7 +213,7 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
           </div>
         </div>
 
-        <div 
+        <div
           className={`
             overflow-hidden transition-all duration-300 ease-out
             ${showActions ? "max-h-32 opacity-100 mt-3" : "max-h-0 opacity-0"}
@@ -279,11 +314,9 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
             <div className="flex items-center justify-center gap-1 mb-0.5">
               <RoleIcon className={`w-3 h-3 ${config.textClass}`} />
             </div>
-            <span className={`text-[10px] font-medium ${config.textClass}`}>
-              {config.label}
-            </span>
+            <span className={`text-[10px] font-medium ${config.textClass}`}>{config.label}</span>
           </div>
-          
+
           <div className="rounded-lg bg-[var(--secondary)]/50 px-2.5 py-2 text-center">
             <div className="flex items-center justify-center gap-1 mb-0.5">
               <TrendingUp className="w-3 h-3 text-[var(--primary)]" />
@@ -293,7 +326,7 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
               <span className="text-[9px] text-[var(--muted-foreground)]">ур.</span>
             </div>
           </div>
-          
+
           <div className="rounded-lg bg-[var(--secondary)]/50 px-2.5 py-2 text-center">
             <div className="flex items-center justify-center gap-1 mb-0.5">
               <Calendar className="w-3 h-3 text-[var(--muted-foreground)]" />
@@ -307,10 +340,12 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
         <div className="mt-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9px] text-[var(--muted-foreground)]">Прогресс уровня</span>
-            <span className="text-[9px] font-medium text-[var(--foreground)]">{levelProgress}%</span>
+            <span className="text-[9px] font-medium text-[var(--foreground)]">
+              {levelProgress}%
+            </span>
           </div>
           <div className="h-1 bg-[var(--secondary)] rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] rounded-full transition-all duration-500"
               style={{ width: `${levelProgress}%` }}
             />
@@ -318,7 +353,7 @@ export function UserCard({ user, onView, onDelete, onEdit, onBan, onUnban, onDel
         </div>
       </div>
 
-      <div 
+      <div
         className={`
           absolute inset-0 pointer-events-none
           bg-gradient-to-t from-[var(--primary)]/5 to-transparent

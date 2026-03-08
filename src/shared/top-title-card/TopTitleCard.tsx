@@ -75,7 +75,10 @@ export default function TopTitleCard({ data }: TopTitleCardProps) {
                 sizes="96px"
                 className={`object-cover object-center transition-transform duration-300 group-hover:scale-105 ${data.isAdult && !isAgeVerified ? "blur-md" : ""}`}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" aria-hidden />
+              <div
+                className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--card)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                aria-hidden
+              />
             </div>
             <div className="min-w-0 flex-1 flex flex-col justify-center gap-1.5">
               <div className="flex flex-wrap items-center gap-1.5 gap-y-1">
@@ -96,20 +99,20 @@ export default function TopTitleCard({ data }: TopTitleCardProps) {
               >
                 {data.title}
               </h3>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--muted-foreground)]">
-              <span>{translateTitleType(data.type)}</span>
-              <span aria-hidden>·</span>
-              <span>{data.year}</span>
-              <span aria-hidden>·</span>
-              <RatingBadge rating={data.rating} size="xs" variant="default" />
-              <span aria-hidden>·</span>
-              <span className="flex items-center gap-1" title="Просмотры">
-                <Eye className="w-3 h-3 shrink-0" />
-                {formatViews(data.views)}
-              </span>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[var(--muted-foreground)]">
+                <span>{translateTitleType(data.type)}</span>
+                <span aria-hidden>·</span>
+                <span>{data.year}</span>
+                <span aria-hidden>·</span>
+                <RatingBadge rating={data.rating} size="xs" variant="default" />
+                <span aria-hidden>·</span>
+                <span className="flex items-center gap-1" title="Просмотры">
+                  <Eye className="w-3 h-3 shrink-0" />
+                  {formatViews(data.views)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </button>
       <AgeVerificationModal

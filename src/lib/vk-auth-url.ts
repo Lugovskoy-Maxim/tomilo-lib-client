@@ -33,7 +33,9 @@ async function sha256Base64Url(str: string): Promise<string> {
  */
 export async function getVkAuthUrl(linkMode = false): Promise<string> {
   const redirectUri =
-    typeof window !== "undefined" ? `${window.location.origin}/auth/vk` : "https://tomilo-lib.ru/auth/vk";
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/vk`
+      : "https://tomilo-lib.ru/auth/vk";
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await sha256Base64Url(codeVerifier);
   const stateRaw = generateState();

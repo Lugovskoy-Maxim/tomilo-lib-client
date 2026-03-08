@@ -64,7 +64,9 @@ export function ShopManagementSection() {
 
   /** Запрос выполняется только при NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=true (бэкенд должен реализовать GET /api/shop/admin/decorations). Иначе показываем пустой список без 404. */
   const skipAdminDecorations = process.env.NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED !== "true";
-  const adminDecorationsQuery = useGetAdminDecorationsQuery(undefined, { skip: skipAdminDecorations });
+  const adminDecorationsQuery = useGetAdminDecorationsQuery(undefined, {
+    skip: skipAdminDecorations,
+  });
   const decorations = adminDecorationsQuery.data ?? [];
   const isLoading = adminDecorationsQuery.isLoading;
   const error = adminDecorationsQuery.error;
@@ -136,8 +138,16 @@ export function ShopManagementSection() {
     e.preventDefault();
     if (!form.name.trim() || form.price < 0) return;
 
-    const stockValue = form.stock === "" ? undefined : (typeof form.stock === "number" ? form.stock : parseInt(String(form.stock), 10));
-    const stockParam = stockValue !== undefined && !Number.isNaN(stockValue) && stockValue >= 0 ? stockValue : undefined;
+    const stockValue =
+      form.stock === ""
+        ? undefined
+        : typeof form.stock === "number"
+          ? form.stock
+          : parseInt(String(form.stock), 10);
+    const stockParam =
+      stockValue !== undefined && !Number.isNaN(stockValue) && stockValue >= 0
+        ? stockValue
+        : undefined;
 
     try {
       if (editingDecoration) {
@@ -206,10 +216,14 @@ export function ShopManagementSection() {
       }
     } catch (e) {
       const err = e as { data?: unknown; error?: unknown; status?: unknown };
-      const data = err?.data as { errors?: Array<string | { message?: string }>; message?: string } | undefined;
+      const data = err?.data as
+        | { errors?: Array<string | { message?: string }>; message?: string }
+        | undefined;
       const firstError =
         Array.isArray(data?.errors) && data.errors.length > 0
-          ? (typeof data.errors[0] === "string" ? data.errors[0] : data.errors[0]?.message)
+          ? typeof data.errors[0] === "string"
+            ? data.errors[0]
+            : data.errors[0]?.message
           : undefined;
       const msg =
         (typeof data?.message === "string" && data.message) ||
@@ -246,8 +260,7 @@ export function ShopManagementSection() {
     }
   };
 
-  const typeLabel = (t: DecorationType) =>
-    DECORATION_TYPES.find(x => x.value === t)?.label ?? t;
+  const typeLabel = (t: DecorationType) => DECORATION_TYPES.find(x => x.value === t)?.label ?? t;
 
   // 404: backend does not have GET /api/shop/admin/decorations — show section with empty list and a note (no retry)
   const is404 = Boolean(
@@ -264,11 +277,7 @@ export function ShopManagementSection() {
       <div className="space-y-4">
         <SharedErrorState title="Ошибка загрузки" message={errMsg} />
         <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="admin-btn admin-btn-primary"
-          >
+          <button type="button" onClick={() => refetch()} className="admin-btn admin-btn-primary">
             Повторить попытку
           </button>
         </div>
@@ -280,15 +289,16 @@ export function ShopManagementSection() {
     <div className="space-y-6">
       {is404 && (
         <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 px-4 py-3 text-sm text-[var(--muted-foreground)]">
-          Эндпоинт <code className="rounded bg-[var(--muted)] px-1">GET /api/shop/admin/decorations</code> не найден (404). Возможно, модуль магазина не подключён на бэкенде. Список украшений недоступен.
+          Эндпоинт{" "}
+          <code className="rounded bg-[var(--muted)] px-1">GET /api/shop/admin/decorations</code> не
+          найден (404). Возможно, модуль магазина не подключён на бэкенде. Список украшений
+          недоступен.
         </div>
       )}
       <AdminCard className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">
-              Украшения магазина
-            </h2>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Украшения магазина</h2>
             <p className="text-sm text-[var(--muted-foreground)]">
               Добавляйте и редактируйте аватары, фоны и карточки для магазина
             </p>
@@ -354,7 +364,8 @@ export function ShopManagementSection() {
               : "Нет украшений выбранного типа."}
             {skipAdminDecorations && (
               <p className="text-xs max-w-md mx-auto pt-2">
-                Чтобы загружать список с бэкенда, реализуйте GET /api/shop/admin/decorations и задайте NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=true.
+                Чтобы загружать список с бэкенда, реализуйте GET /api/shop/admin/decorations и
+                задайте NEXT_PUBLIC_SHOP_ADMIN_DECORATIONS_ENABLED=true.
               </p>
             )}
           </div>
@@ -406,9 +417,7 @@ export function ShopManagementSection() {
                       </div>
                     </td>
                     <td className="py-2 px-2">
-                      <span className="font-medium text-[var(--foreground)]">
-                        {d.name}
-                      </span>
+                      <span className="font-medium text-[var(--foreground)]">{d.name}</span>
                       {d.description && (
                         <p className="text-xs text-[var(--muted-foreground)] line-clamp-1 mt-0.5">
                           {d.description}
@@ -418,9 +427,7 @@ export function ShopManagementSection() {
                     <td className="py-2 px-2 text-[var(--muted-foreground)]">
                       {typeLabel(d.type)}
                     </td>
-                    <td className="py-2 px-2 text-right font-medium">
-                      {d.price} монет
-                    </td>
+                    <td className="py-2 px-2 text-right font-medium">{d.price} монет</td>
                     <td className="py-2 px-2 text-center">
                       {d.stock !== undefined ? (
                         d.isSoldOut || d.stock <= 0 ? (
@@ -470,11 +477,7 @@ export function ShopManagementSection() {
         size="lg"
         footer={
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={closeForm}
-              className="admin-btn admin-btn-secondary"
-            >
+            <button type="button" onClick={closeForm} className="admin-btn admin-btn-secondary">
               Отмена
             </button>
             <button
@@ -492,11 +495,7 @@ export function ShopManagementSection() {
           </div>
         }
       >
-        <form
-          id="shop-decoration-form"
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
+        <form id="shop-decoration-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
               Название
@@ -531,21 +530,15 @@ export function ShopManagementSection() {
                 type="number"
                 min={0}
                 value={form.price}
-                onChange={e =>
-                  setForm(f => ({ ...f, price: parseInt(e.target.value, 10) || 0 }))
-                }
+                onChange={e => setForm(f => ({ ...f, price: parseInt(e.target.value, 10) || 0 }))}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-                Тип
-              </label>
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Тип</label>
               <select
                 value={form.type}
-                onChange={e =>
-                  setForm(f => ({ ...f, type: e.target.value as DecorationType }))
-                }
+                onChange={e => setForm(f => ({ ...f, type: e.target.value as DecorationType }))}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               >
                 {DECORATION_TYPES.map(({ value, label }) => (
@@ -561,9 +554,7 @@ export function ShopManagementSection() {
               </label>
               <select
                 value={form.rarity}
-                onChange={e =>
-                  setForm(f => ({ ...f, rarity: e.target.value as DecorationRarity }))
-                }
+                onChange={e => setForm(f => ({ ...f, rarity: e.target.value as DecorationRarity }))}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               >
                 {RARITY_OPTIONS.map(({ value, label }) => (
@@ -602,7 +593,8 @@ export function ShopManagementSection() {
                 placeholder="Без лимита"
               />
               <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Оставьте пустым для неограниченного количества. Иначе — макс. число товара в магазине.
+                Оставьте пустым для неограниченного количества. Иначе — макс. число товара в
+                магазине.
               </p>
             </div>
           </div>

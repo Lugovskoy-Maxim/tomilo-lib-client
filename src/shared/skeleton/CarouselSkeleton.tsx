@@ -25,7 +25,10 @@ export const CarouselSkeleton: React.FC<CarouselSkeletonProps> = ({
         <div className="h-7 bg-[var(--muted)] rounded w-48 shimmer" aria-hidden />
       </div>
       {showDescription && (
-        <div className="h-4 bg-[var(--muted)] rounded w-80 max-w-[85%] shimmer mb-3 sm:mb-4" aria-hidden />
+        <div
+          className="h-4 bg-[var(--muted)] rounded w-80 max-w-[85%] shimmer mb-3 sm:mb-4"
+          aria-hidden
+        />
       )}
     </div>
     <div className="flex gap-3 sm:gap-4 overflow-hidden items-stretch py-2 sm:py-4">

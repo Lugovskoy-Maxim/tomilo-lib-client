@@ -78,7 +78,10 @@ export default function SettingsPage() {
                   content={
                     <div className="space-y-2 max-w-[260px]">
                       <p className="font-medium">Тема оформления</p>
-                      <p>Выберите светлую, тёмную или системную тему. Системная тема автоматически переключается в зависимости от настроек вашего устройства.</p>
+                      <p>
+                        Выберите светлую, тёмную или системную тему. Системная тема автоматически
+                        переключается в зависимости от настроек вашего устройства.
+                      </p>
                     </div>
                   }
                   position="left"
@@ -114,8 +117,13 @@ export default function SettingsPage() {
                   content={
                     <div className="space-y-2 max-w-[260px]">
                       <p className="font-medium">Контент 18+</p>
-                      <p>При включении в каталоге и поиске будут отображаться тайтлы с возрастным ограничением 18+.</p>
-                      <p className="text-[var(--muted-foreground)]">Эта настройка не влияет на уже добавленные закладки.</p>
+                      <p>
+                        При включении в каталоге и поиске будут отображаться тайтлы с возрастным
+                        ограничением 18+.
+                      </p>
+                      <p className="text-[var(--muted-foreground)]">
+                        Эта настройка не влияет на уже добавленные закладки.
+                      </p>
                     </div>
                   }
                   position="left"
@@ -166,8 +174,14 @@ export default function SettingsPage() {
                   content={
                     <div className="space-y-2 max-w-[260px]">
                       <p className="font-medium">Уведомления</p>
-                      <p>Управляйте уведомлениями о новых главах и комментариях. Подробные настройки доступны в профиле.</p>
-                      <Link href="/faq#notifications" className="text-[var(--primary)] hover:underline block mt-2">
+                      <p>
+                        Управляйте уведомлениями о новых главах и комментариях. Подробные настройки
+                        доступны в профиле.
+                      </p>
+                      <Link
+                        href="/faq#notifications"
+                        className="text-[var(--primary)] hover:underline block mt-2"
+                      >
                         Подробнее в FAQ →
                       </Link>
                     </div>
@@ -232,7 +246,9 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <HelpCircle className="w-5 h-5 text-[var(--primary)]" />
                 <div>
-                  <span className="text-sm font-medium text-[var(--foreground)]">Остались вопросы?</span>
+                  <span className="text-sm font-medium text-[var(--foreground)]">
+                    Остались вопросы?
+                  </span>
                   <p className="text-xs text-[var(--muted-foreground)]">
                     Загляните в раздел частых вопросов
                   </p>

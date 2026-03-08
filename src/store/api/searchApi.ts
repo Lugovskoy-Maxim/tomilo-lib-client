@@ -30,10 +30,7 @@ export const searchApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: [SEARCH_TAG],
   endpoints: builder => ({
-    getAutocomplete: builder.query<
-      ApiResponseDto<AutocompleteResult[]>,
-      AutocompleteParams
-    >({
+    getAutocomplete: builder.query<ApiResponseDto<AutocompleteResult[]>, AutocompleteParams>({
       query: ({ q, limit = 10, includeAdult }) => ({
         url: "/titles",
         params: {
@@ -42,16 +39,20 @@ export const searchApi = createApi({
           includeAdult: includeAdult || undefined,
         },
       }),
-      transformResponse: (response: ApiResponseDto<{ titles: Array<{
-        _id: string;
-        name: string;
-        slug: string;
-        coverImage?: string;
-        type: TitleType | string;
-        releaseYear?: number;
-        averageRating?: number;
-        totalChapters?: number;
-      }> }>) => {
+      transformResponse: (
+        response: ApiResponseDto<{
+          titles: Array<{
+            _id: string;
+            name: string;
+            slug: string;
+            coverImage?: string;
+            type: TitleType | string;
+            releaseYear?: number;
+            averageRating?: number;
+            totalChapters?: number;
+          }>;
+        }>,
+      ) => {
         const titles = response.data?.titles || [];
         return {
           ...response,

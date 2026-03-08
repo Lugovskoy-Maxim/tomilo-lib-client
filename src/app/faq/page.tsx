@@ -31,7 +31,7 @@ const faqPageJsonLd = {
         "@type": "Answer",
         text: item.answer,
       },
-    }))
+    })),
   ),
 };
 
