@@ -2,12 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useUpdateRatingMutation } from "@/store/api/titlesApi";
 import {
   useGetChapterRatingQuery,
   useGetChapterReactionsCountQuery,
 } from "@/store/api/chaptersApi";
+import { useGetReadingHistoryReadIdsQuery } from "@/store/api/authApi";
 import {
   BookOpen,
   Calendar,
@@ -238,6 +239,26 @@ export function ChaptersTab({
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  const { data: readIdsData } = useGetReadingHistoryReadIdsQuery(titleId, {
+    skip: !user || !titleId,
+  });
+  const readChapterIds = useMemo(() => {
+    if (readIdsData?.data?.chapterIds?.length) {
+      return new Set(readIdsData.data.chapterIds);
+    }
+    if (!user?.readingHistory?.length) return new Set<string>();
+    const entry = user.readingHistory.find(
+      item => (typeof item.titleId === "string" ? item.titleId : item.titleId?._id) === titleId,
+    );
+    if (!entry?.chapters?.length) return new Set<string>();
+    return new Set(
+      entry.chapters.map(ch => {
+        const id = ch.chapterId;
+        return typeof id === "object" && id !== null ? (id as { _id: string })._id : String(id);
+      }),
+    );
+  }, [titleId, user?.readingHistory, readIdsData?.data?.chapterIds]);
+
   useEffect(() => {
     if (loading || !hasMore) return;
     observerRef.current = new IntersectionObserver(entries => {
@@ -277,7 +298,13 @@ export function ChaptersTab({
             className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <ChapterItem chapter={chapter} titleId={titleId} slug={slug} user={user} />
+            <ChapterItem
+              chapter={chapter}
+              titleId={titleId}
+              slug={slug}
+              user={user}
+              isRead={readChapterIds.has(chapter._id)}
+            />
           </div>
         ))}
 
@@ -301,16 +328,20 @@ export function ChapterItem({
   chapter,
   titleId,
   slug,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- user передаётся с родителя
+  user,
+  isRead,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- rest не используется
   ..._rest
 }: {
   chapter: Chapter;
   titleId: string;
   slug?: string;
   user: User | null;
+  /** прочитана ли глава (из read-ids или user.readingHistory в ChaptersTab) */
+  isRead: boolean;
 }) {
   const chapterHref = getChapterPath({ _id: titleId, slug }, chapter._id);
-  const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
+  const { removeFromReadingHistory } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -358,27 +389,6 @@ export function ChapterItem({
     0;
   const hasRating = averageRating != null && ratingCount > 0;
   const hasReactions = totalReactions > 0;
-
-  // Получаем историю чтения только для текущего тайтла
-  const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
-
-  // Проверяем, прочитана ли глава (data — ReadingHistoryEntry с полем chapters; chapterId может быть строкой или { _id })
-  const entry = readingHistoryData?.data as unknown as {
-    chapters?: Array<{
-      chapterId?: { _id: string } | string | null;
-      chapterNumber: number;
-      readAt: string;
-    }>;
-  } | undefined;
-  const chaptersList = entry?.chapters ?? [];
-  const isRead = chaptersList.some(ch => {
-    if (!ch.chapterId) return false;
-    const id =
-      typeof ch.chapterId === "object" && ch.chapterId !== null
-        ? (ch.chapterId as { _id: string })._id
-        : String(ch.chapterId);
-    return id === chapter._id;
-  });
 
   // Функция для удаления из истории чтения
   const handleRemoveFromHistory = async (e: React.MouseEvent) => {

@@ -20,7 +20,7 @@ import { ReportModal } from "@/shared/report/ReportModal";
 export default function TitleView({ slug: slugProp }: { slug: string }) {
   const params = useParams();
   const slug = (typeof params?.slug === "string" ? params.slug : slugProp) ?? slugProp;
-  const { user, useGetReadingHistoryByTitle } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -39,7 +39,15 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   } = useGetTitleBySlugQuery({ slug, includeChapters: true }, { skip: !slug });
 
   const titleId = titleData?._id as string;
-  const { data: readingHistoryByTitle } = useGetReadingHistoryByTitle(titleId);
+
+  // История по тайтлу — из общего списка useAuth (GET /history?limit=200), без отдельного GET /history/:titleId
+  const readingHistoryForTitle = useMemo(() => {
+    if (!titleId || !user?.readingHistory?.length) return undefined;
+    return user.readingHistory.find(
+      item =>
+        (typeof item.titleId === "string" ? item.titleId : item.titleId?._id) === titleId,
+    );
+  }, [titleId, user?.readingHistory]);
 
   // RTK Query hooks - загружаем все главы одним запросом
   const [searchQuery, setSearchQuery] = useState("");
@@ -304,7 +312,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
             <MobileCover
               titleData={titleData}
               chapters={chaptersForReadButton}
-              readingHistory={readingHistoryByTitle?.data}
+              readingHistory={readingHistoryForTitle}
               onShare={handleShare}
               isAdmin={displayIsAdmin}
               onAgeVerificationRequired={() => setIsAgeModalOpen(true)}
@@ -318,7 +326,7 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
                   <LeftSidebar
                     titleData={titleData}
                     chapters={chaptersForReadButton}
-                    readingHistory={readingHistoryByTitle?.data}
+                    readingHistory={readingHistoryForTitle}
                     onShare={handleShare}
                     isAdmin={displayIsAdmin}
                     onAgeVerificationRequired={() => setIsAgeModalOpen(true)}

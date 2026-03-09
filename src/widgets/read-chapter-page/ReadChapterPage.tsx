@@ -196,7 +196,18 @@ function ReadChapterPageContent({
           };
           setLoadedChapters(prev => [...prev, mappedChapter]);
           setLoadedChapterIds(prev => new Set([...prev, mappedChapter._id]));
-          if (isAuthenticated) addToReadingHistory(titleId, mappedChapter._id);
+          if (isAuthenticated) {
+            const key = `${titleId}-${mappedChapter._id}`;
+            if (!historyAddedRef.current.has(key) && !historyPendingRef.current.has(key)) {
+              historyPendingRef.current.add(key);
+              addToReadingHistory(titleId, mappedChapter._id)
+                .then(() => {
+                  historyAddedRef.current.add(key);
+                  historyPendingRef.current.delete(key);
+                })
+                .catch(() => historyPendingRef.current.delete(key));
+            }
+          }
         }
       })
       .catch(() => {
@@ -314,6 +325,7 @@ function ReadChapterPageContent({
 
   // Refs для предотвращения повторных вызовов
   const historyAddedRef = useRef<Set<string>>(new Set());
+  const historyPendingRef = useRef<Set<string>>(new Set());
   const historyRetryAttemptedRef = useRef<Set<string>>(new Set());
   const viewsUpdatedRef = useRef<Set<string>>(new Set());
   const menuHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -470,11 +482,13 @@ function ReadChapterPageContent({
     // Добавляем в историю чтения только для авторизованных пользователей
     if (!isAuthenticated) return;
 
-    if (!historyAddedRef.current.has(chapterKey)) {
+    if (!historyAddedRef.current.has(chapterKey) && !historyPendingRef.current.has(chapterKey)) {
+      historyPendingRef.current.add(chapterKey);
       const doAdd = () =>
         addToReadingHistory(title._id.toString(), chapter._id.toString())
           .then(() => {
             historyAddedRef.current.add(chapterKey);
+            historyPendingRef.current.delete(chapterKey);
             // Тосты опыта/уровня/достижений показываются только из WebSocket (ProgressNotificationContext),
             // чтобы не дублировать при одновременной отправке с сервера по сокету и в ответе API.
           })
@@ -484,6 +498,8 @@ function ReadChapterPageContent({
             if (!historyRetryAttemptedRef.current.has(chapterKey)) {
               historyRetryAttemptedRef.current.add(chapterKey);
               setTimeout(() => doAdd(), 2000);
+            } else {
+              historyPendingRef.current.delete(chapterKey);
             }
           });
       doAdd();
