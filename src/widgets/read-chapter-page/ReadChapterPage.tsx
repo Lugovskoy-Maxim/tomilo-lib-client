@@ -314,6 +314,7 @@ function ReadChapterPageContent({
 
   // Refs для предотвращения повторных вызовов
   const historyAddedRef = useRef<Set<string>>(new Set());
+  const historyRetryAttemptedRef = useRef<Set<string>>(new Set());
   const viewsUpdatedRef = useRef<Set<string>>(new Set());
   const menuHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -470,15 +471,22 @@ function ReadChapterPageContent({
     if (!isAuthenticated) return;
 
     if (!historyAddedRef.current.has(chapterKey)) {
-      addToReadingHistory(title._id.toString(), chapter._id.toString())
-        .then(() => {
-          historyAddedRef.current.add(chapterKey);
-          // Тосты опыта/уровня/достижений показываются только из WebSocket (ProgressNotificationContext),
-          // чтобы не дублировать при одновременной отправке с сервера по сокету и в ответе API.
-        })
-        .catch(error => {
-          console.error("Error adding to reading history:", error);
-        });
+      const doAdd = () =>
+        addToReadingHistory(title._id.toString(), chapter._id.toString())
+          .then(() => {
+            historyAddedRef.current.add(chapterKey);
+            // Тосты опыта/уровня/достижений показываются только из WebSocket (ProgressNotificationContext),
+            // чтобы не дублировать при одновременной отправке с сервера по сокету и в ответе API.
+          })
+          .catch(error => {
+            console.error("Error adding to reading history:", error);
+            // Одна повторная попытка через 2 с (сетевые сбои, 401 до refresh)
+            if (!historyRetryAttemptedRef.current.has(chapterKey)) {
+              historyRetryAttemptedRef.current.add(chapterKey);
+              setTimeout(() => doAdd(), 2000);
+            }
+          });
+      doAdd();
     }
   }, [
     chapter._id,

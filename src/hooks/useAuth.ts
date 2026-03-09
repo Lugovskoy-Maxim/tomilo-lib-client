@@ -57,6 +57,7 @@ export const useAuth = () => {
     data: readingHistoryData,
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
+    refetch: refetchReadingHistory,
   } = useGetReadingHistoryQuery(
     { limit: 200, light: false },
     {
@@ -442,6 +443,11 @@ export const useAuth = () => {
           } catch {
             // Profile query may be skipped on this page (RTK: "has not been started") — add succeeded
           }
+          try {
+            await refetchReadingHistory();
+          } catch {
+            // Обновляем список истории явно, чтобы UI не оставался устаревшим у части пользователей
+          }
         }
         return { success: true, progress: result.data };
       };
@@ -546,9 +552,7 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
-    // token не добавляем — используется внутри RTK/API, стабильность через addToReadingHistory
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [addToReadingHistory, refetchProfile],
+    [addToReadingHistory, refetchProfile, refetchReadingHistory],
   );
 
   const removeFromReadingHistoryFunc = async (
