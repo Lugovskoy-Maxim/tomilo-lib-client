@@ -461,6 +461,8 @@ export const authApi = createApi({
       query: ({ titleId, chapterId }) => ({
         url: `/users/profile/history/${titleId}/${chapterId}`,
         method: "POST",
+        // Позволяет браузеру завершить запрос при закрытии вкладки/переходе (в т.ч. Android)
+        keepalive: true,
       }),
       transformResponse(response: ApiResponseDto<ReadingProgressResponse> & Record<string, unknown>) {
         // Не бросаем при success: false — обрабатываем в useAuth (retry при версионном конфликте без лога в консоль)

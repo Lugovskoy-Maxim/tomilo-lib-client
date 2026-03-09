@@ -111,8 +111,9 @@ export function RightContent({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
+  const [markingChapterId, setMarkingChapterId] = useState<string | null>(null);
 
-  const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
+  const { addToReadingHistory, removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
   const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
@@ -250,6 +251,25 @@ export function RightContent({
       }
     },
     [titleId, removeFromReadingHistory, removingChapterId],
+  );
+
+  // Отметить главу прочитанной без перехода в читалку
+  const handleMarkAsRead = useCallback(
+    async (chapterId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!user || markingChapterId) return;
+
+      setMarkingChapterId(chapterId);
+      try {
+        await addToReadingHistory(titleId, chapterId);
+      } catch (error) {
+        console.error("Failed to mark chapter as read:", error);
+      } finally {
+        setMarkingChapterId(null);
+      }
+    },
+    [titleId, addToReadingHistory, user, markingChapterId],
   );
 
   const handleAgeVerificationClick = () => {
@@ -861,17 +881,12 @@ export function RightContent({
                     className="group flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-[var(--secondary)]/50 hover:bg-[var(--secondary)]/80 rounded-lg sm:rounded-xl border border-[var(--border)]/30 hover:border-[var(--border)]/60 transition-colors cursor-pointer active:scale-[0.99]"
                     style={{ animationDelay: `${index * 30}ms` }}
                   >
-                    {/* Статус прочтения — компактно на мобиле */}
+                    {/* Статус прочтения — компактно на мобиле; клик по иконке: отметить прочитанной / удалить из истории */}
                     <div
                       className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-[var(--background)]/40 flex-shrink-0"
                       onMouseEnter={() => setHoveredChapterId(chapter._id || null)}
                       onMouseLeave={() => setHoveredChapterId(null)}
-                      onClick={e => {
-                        e.stopPropagation();
-                        if (read && hoveredChapterId === chapter._id) {
-                          handleRemoveFromHistory(chapter._id || "", e);
-                        }
-                      }}
+                      onClick={e => e.stopPropagation()}
                     >
                       {read && hoveredChapterId === chapter._id ? (
                         <button
@@ -891,6 +906,20 @@ export function RightContent({
                             <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[var(--foreground)]/20 border-t-[var(--chart-1)] rounded-full animate-spin" />
                           ) : (
                             <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
+                          )}
+                        </button>
+                      ) : !read && user ? (
+                        <button
+                          type="button"
+                          onClick={e => handleMarkAsRead(chapter._id || "", e)}
+                          disabled={markingChapterId === chapter._id}
+                          className="flex items-center justify-center text-[var(--foreground)]/25 hover:text-green-500 focus:text-green-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                          title="Отметить прочитанной"
+                        >
+                          {markingChapterId === chapter._id ? (
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[var(--foreground)]/20 border-t-green-500 rounded-full animate-spin" />
+                          ) : (
+                            <Eye className="w-4 h-4 sm:w-5 sm:h-5 transition-colors" />
                           )}
                         </button>
                       ) : (
