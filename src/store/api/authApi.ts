@@ -481,7 +481,10 @@ export const authApi = createApi({
           data: merged as ReadingProgressResponse,
         } as ApiResponseDto<ReadingProgressResponse>;
       },
-      invalidatesTags: ["ReadingHistory", "Auth"],
+      invalidatesTags: (result, error, arg) =>
+        arg?.titleId
+          ? [{ type: "ReadingHistory", id: arg.titleId }, "ReadingHistory", "Auth"]
+          : ["ReadingHistory", "Auth"],
     }),
 
     removeFromReadingHistory: builder.mutation<

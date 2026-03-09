@@ -355,16 +355,22 @@ export function ChapterItem({
   // Получаем историю чтения только для текущего тайтла
   const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
 
-  // Проверяем, прочитана ли глава
-  // API возвращает массив напрямую, но тип говорит ReadingHistoryEntry
-  const historyArray = (readingHistoryData?.data || []) as unknown as Array<{
-    chapterId?: { _id: string } | null | undefined;
-    chapterNumber: number;
-    readAt: string;
-  }>;
-  const isRead = historyArray.some(ch => {
+  // Проверяем, прочитана ли глава (data — ReadingHistoryEntry с полем chapters; chapterId может быть строкой или { _id })
+  const entry = readingHistoryData?.data as unknown as {
+    chapters?: Array<{
+      chapterId?: { _id: string } | string | null;
+      chapterNumber: number;
+      readAt: string;
+    }>;
+  } | undefined;
+  const chaptersList = entry?.chapters ?? [];
+  const isRead = chaptersList.some(ch => {
     if (!ch.chapterId) return false;
-    return ch.chapterId._id === chapter._id;
+    const id =
+      typeof ch.chapterId === "object" && ch.chapterId !== null
+        ? (ch.chapterId as { _id: string })._id
+        : String(ch.chapterId);
+    return id === chapter._id;
   });
 
   // Функция для удаления из истории чтения
