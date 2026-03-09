@@ -1974,7 +1974,10 @@ function ReadChapterPageContent({
             */}
 
                 {/* Реакции на главу */}
-                <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
+                <div
+                  className="mx-auto px-0 sm:px-4 mt-8"
+                  style={{ maxWidth: isMobile ? "100%" : `${imageWidth}px` }}
+                >
                   <ChapterReactions
                     chapterId={displayChapter._id}
                     titleId={titleId}
@@ -2001,7 +2004,6 @@ function ReadChapterPageContent({
                   <ChapterTranslatorInfo titleId={titleId} />
                 </div>
 
-                {/* Секция комментариев */}
                 <ChapterCommentsSection chapterId={displayChapter._id} />
 
                 {/* Футер главы с кнопками навигации */}
@@ -2249,7 +2251,10 @@ function ReadChapterPageContent({
                         </div>
 
                         {/* Реакции на загруженную главу */}
-                        <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-8">
+                        <div
+                          className="mx-auto px-0 sm:px-4 mt-8"
+                          style={{ maxWidth: isMobile ? "100%" : `${imageWidth}px` }}
+                        >
                           <ChapterReactions
                             chapterId={loadedChapter._id}
                             titleId={titleId}
@@ -2271,7 +2276,6 @@ function ReadChapterPageContent({
                           />
                         </div>
 
-                        {/* Комментарии загруженной главы */}
                         <ChapterCommentsSection chapterId={loadedChapter._id} />
 
                         {/* Триггер и индикатор для последней загруженной главы */}

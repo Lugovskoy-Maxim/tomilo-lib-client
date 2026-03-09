@@ -8,7 +8,20 @@ import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { useMemo, useState, useEffect } from "react";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getChapterPath, getTitlePath } from "@/lib/title-paths";
+import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
+
+/** Пытается получить строку названия из объекта тайтла (API может отдавать name, title, titleName и т.д.) */
+function getTitleNameFromPopulated(
+  titleData: { name?: string; title?: string; [key: string]: unknown } | null,
+): string | null {
+  if (!titleData || typeof titleData !== "object") return null;
+  const name =
+    titleData.name ??
+    titleData.title ??
+    (titleData.titleName as string | undefined);
+  return typeof name === "string" && name.trim() ? name.trim() : null;
+}
 
 interface ContinueReadingProps {
   userProfile: UserProfile;
@@ -66,8 +79,16 @@ function getLastReadInfo(entry: ReadingHistoryEntry): {
 
   const titleId = isPopulated ? titleData!._id : (entry.titleId as string);
   const titleSlug = isPopulated ? titleData!.slug : undefined;
+  const nameFromPopulated = isPopulated ? getTitleNameFromPopulated(titleData!) : null;
   const titleName =
-    (isPopulated ? titleData!.name || titleData!.title : null) || "Неизвестный тайтл";
+    nameFromPopulated ||
+    (titleSlug && titleSlug.trim()
+      ? titleSlug
+          .split("-")
+          .map(w => (w.length ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
+          .join(" ")
+      : null) ||
+    "Неизвестный тайтл";
   const coverImage = isPopulated ? (titleData!.coverImage ?? null) : null;
 
   const titleChapters = isPopulated
@@ -127,6 +148,18 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
 
     return getLastReadInfo(sorted[0]);
   }, [readingHistory]);
+
+  const needsTitleFetch =
+    lastRead && lastRead.titleName === "Неизвестный тайтл" && lastRead.titleId;
+  const { data: fetchedTitle } = useGetTitleByIdQuery(
+    { id: lastRead?.titleId ?? "" },
+    { skip: !needsTitleFetch },
+  );
+  const displayTitleName =
+    needsTitleFetch && fetchedTitle
+      ? (fetchedTitle.name || fetchedTitle.title || lastRead!.titleName).trim() ||
+        lastRead!.titleName
+      : lastRead?.titleName ?? "";
 
   const coverImage = lastRead?.coverImage;
 
@@ -195,7 +228,7 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
               <OptimizedImage
                 src={imageUrls.primary}
                 fallbackSrc={imageUrls.fallback}
-                alt={lastRead.titleName}
+                alt={displayTitleName}
                 className="w-full h-full object-cover"
                 width={80}
                 height={112}
@@ -217,7 +250,7 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
           <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
             <div>
               <h4 className="text-sm font-semibold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
-                {lastRead.titleName}
+                {displayTitleName}
               </h4>
               <p className="text-xs text-[var(--muted-foreground)] mt-1">
                 Глава {lastRead.lastChapterNumber}

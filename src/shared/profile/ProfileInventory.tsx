@@ -253,8 +253,17 @@ export default function ProfileInventory() {
       await unequipDecoration({ type }).unwrap();
       toast.success("Предмет снят");
       await Promise.all([refetchProfile(), refetchDecorations()]);
-    } catch {
-      toast.error("Не удалось снять предмет");
+    } catch (err: unknown) {
+      const status =
+        err && typeof err === "object" && "status" in err
+          ? (err as { status: number }).status
+          : undefined;
+      if (status === 404) {
+        toast.success("Предмет снят");
+        await Promise.all([refetchProfile(), refetchDecorations()]);
+      } else {
+        toast.error("Не удалось снять предмет");
+      }
     } finally {
       setActionLoading(null);
     }
@@ -440,6 +449,7 @@ export default function ProfileInventory() {
                     actionLoading === `unequip-${decoration.type}`
                   }
                   hidePurchase
+                  showActionToast={false}
                 />
               </div>
             ))}

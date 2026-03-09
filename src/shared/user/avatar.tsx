@@ -62,7 +62,7 @@ export default function UserAvatar({
         alt={`Аватар ${username || "пользователя"}`}
         width={size}
         height={size}
-        className={`rounded-full object-cover h-10 w-10 ${className}`}
+        className={`rounded-full object-cover w-full h-full max-w-full max-h-full ${className}`}
         onError={() => setImageError(true)}
         priority={size > 60}
         hidePlaceholder={true}

@@ -12,7 +12,12 @@ const API_BASE =
     ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
     : "";
 
-export function PushSubscribeButton() {
+interface PushSubscribeButtonProps {
+  /** Встроенный вид: без своей карточки, для единого списка в настройках */
+  embedded?: boolean;
+}
+
+export function PushSubscribeButton({ embedded }: PushSubscribeButtonProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission | null>(null);
   const toast = useToast();
@@ -120,11 +125,11 @@ export function PushSubscribeButton() {
   const isGranted = permission === "granted";
   const isDenied = permission === "denied";
 
-  return (
-    <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-      <div className="flex items-center gap-3 min-w-0">
-        <Bell className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
-        <div>
+  const content = (
+    <>
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {!embedded && <Bell className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />}
+        <div className="min-w-0">
           <span className="text-sm font-semibold text-[var(--foreground)] block">
             Push в браузере
           </span>
@@ -138,21 +143,33 @@ export function PushSubscribeButton() {
         </div>
       </div>
       {!isDenied && (
-        <button
-          type="button"
-          onClick={handleSubscribe}
-          disabled={isLoading || isGranted}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 min-w-[4.5rem] justify-center"
-        >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : isGranted ? (
-            "Включено"
-          ) : (
-            "Включить"
-          )}
-        </button>
+        <div className="shrink-0" style={{ minWidth: 44 }}>
+          <button
+            type="button"
+            onClick={handleSubscribe}
+            disabled={isLoading || isGranted}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 flex items-center gap-1.5 min-w-[4.5rem] justify-center"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isGranted ? (
+              "Включено"
+            ) : (
+              "Включить"
+            )}
+          </button>
+        </div>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="flex items-center justify-between gap-4 w-full min-w-0">{content}</div>;
+  }
+
+  return (
+    <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+      {content}
     </div>
   );
 }

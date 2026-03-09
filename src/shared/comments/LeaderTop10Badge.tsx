@@ -68,10 +68,16 @@ export function LeaderTop10Badge({ userId }: LeaderTop10BadgeProps) {
     return null;
   }
 
+  // На мобильных показываем только лучший топ (первый в списке), на sm+ — все
   return (
     <div className="inline-flex items-center gap-0.5 sm:gap-1 flex-wrap min-w-0 max-w-full">
-      {badges.map(badge => (
-        <LeaderTop10BadgeContent key={`${badge.category}-${badge.period}`} badge={badge} />
+      {badges.map((badge, index) => (
+        <span
+          key={`${badge.category}-${badge.period}`}
+          className={index === 0 ? "inline-flex" : "hidden sm:inline-flex"}
+        >
+          <LeaderTop10BadgeContent badge={badge} />
+        </span>
       ))}
     </div>
   );

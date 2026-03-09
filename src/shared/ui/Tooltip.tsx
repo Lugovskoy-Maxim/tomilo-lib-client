@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useLayoutEffect, ReactNode, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { HelpCircle } from "lucide-react";
 
 const GAP = 8;
@@ -137,26 +138,29 @@ export default function Tooltip({
   };
 
   const tooltipContent =
-    isVisible && typeof document !== "undefined" ? (
-      <div
-        ref={tooltipRef}
-        className="fixed z-[9999] animate-fade-in"
-        style={
-          coords
-            ? { top: coords.top, left: coords.left }
-            : { visibility: "hidden" as const, top: 0, left: 0 }
-        }
-        onMouseEnter={trigger === "hover" ? handleMouseEnter : undefined}
-        onMouseLeave={trigger === "hover" ? handleMouseLeave : undefined}
-      >
-        <div
-          className={`px-3 py-2 text-xs text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-w-xs ${className}`}
-        >
-          {content}
-        </div>
-        <div className={`absolute w-0 h-0 border-4 ${arrowClasses[position]}`} />
-      </div>
-    ) : null;
+    isVisible && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            ref={tooltipRef}
+            className="fixed z-[99999] animate-fade-in"
+            style={
+              coords
+                ? { top: coords.top, left: coords.left }
+                : { visibility: "hidden" as const, top: 0, left: 0 }
+            }
+            onMouseEnter={trigger === "hover" ? handleMouseEnter : undefined}
+            onMouseLeave={trigger === "hover" ? handleMouseLeave : undefined}
+          >
+            <div
+              className={`px-3 py-2 text-xs text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg max-w-xs ${className}`}
+            >
+              {content}
+            </div>
+            <div className={`absolute w-0 h-0 border-4 ${arrowClasses[position]}`} />
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <>

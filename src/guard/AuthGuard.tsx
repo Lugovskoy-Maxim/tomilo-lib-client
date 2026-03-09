@@ -32,33 +32,40 @@ export function AuthGuard({
     }
   }, [isAuthenticated, isLoading, requireAuth, redirectTo, router, hasMounted]);
 
+  // Same outer wrapper as layout content area so server/client HTML structure matches (avoids hydration mismatch)
+  const contentWrapperClass = "max-lg:pb-[var(--mobile-footer-bar-height)]";
+
   if (!hasMounted) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className={contentWrapperClass}>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        </div>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className={contentWrapperClass}>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        </div>
       </div>
     );
   }
 
   if (requireAuth && !isAuthenticated) {
-    return null;
+    return <div className={contentWrapperClass} />;
   }
 
   if (!requireAuth && isAuthenticated) {
-    return null;
+    return <div className={contentWrapperClass} />;
   }
 
   if (requiredRole && user && user.role !== requiredRole) {
-    return null;
+    return <div className={contentWrapperClass} />;
   }
 
-  return <>{children}</>;
+  return <div className={contentWrapperClass}>{children}</div>;
 }

@@ -6,6 +6,8 @@ import { isPremiumActive, formatSubscriptionEnd } from "@/lib/premium";
 
 interface ProfilePremiumSettingsProps {
   userProfile: UserProfile;
+  /** Встроенный вид: без карточки, только контент */
+  embedded?: boolean;
 }
 
 const PREMIUM_BENEFITS = [
@@ -14,28 +16,16 @@ const PREMIUM_BENEFITS = [
   { icon: BadgeCheck, text: "Премиум-значок в профиле" },
 ];
 
-export default function ProfilePremiumSettings({ userProfile }: ProfilePremiumSettingsProps) {
+export default function ProfilePremiumSettings({
+  userProfile,
+  embedded,
+}: ProfilePremiumSettingsProps) {
   const expiresAt = userProfile.subscriptionExpiresAt ?? null;
   const active = isPremiumActive(expiresAt);
   const formattedEnd = formatSubscriptionEnd(expiresAt);
 
-  return (
-    <div
-      id="settings-premium"
-      className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm"
-    >
-      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
-            <Crown className="w-5 h-5 text-amber-500" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">Премиум-подписка</h2>
-            <p className="text-[var(--muted-foreground)] text-xs">Статус подписки и преимущества</p>
-          </div>
-        </div>
-      </div>
-
+  const inner = (
+    <>
       {/* Статус */}
       <div
         className={`rounded-lg border p-3 mb-4 ${
@@ -78,6 +68,28 @@ export default function ProfilePremiumSettings({ userProfile }: ProfilePremiumSe
           Скоро здесь можно будет оформить или продлить премиум
         </p>
       </div>
+    </>
+  );
+
+  if (embedded) return inner;
+
+  return (
+    <div
+      id="settings-premium"
+      className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm"
+    >
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <Crown className="w-5 h-5 text-amber-500" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Премиум-подписка</h2>
+            <p className="text-[var(--muted-foreground)] text-xs">Статус подписки и преимущества</p>
+          </div>
+        </div>
+      </div>
+      {inner}
     </div>
   );
 }
