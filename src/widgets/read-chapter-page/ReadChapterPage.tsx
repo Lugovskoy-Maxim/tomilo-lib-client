@@ -7,7 +7,6 @@ import { ReportModal } from "@/shared/report/ReportModal";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useIntersectionTrigger } from "@/hooks/useIntersectionTrigger";
-import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { Chapter } from "@/types/title";
@@ -89,7 +88,6 @@ function ReadChapterPageContent({
   const router = useRouter();
 
   const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
-  const { showExpGain, showLevelUp, showAchievement } = useProgressNotification();
   const {
     readChaptersInRow,
     readingMode,
@@ -473,40 +471,10 @@ function ReadChapterPageContent({
 
     if (!historyAddedRef.current.has(chapterKey)) {
       addToReadingHistory(title._id.toString(), chapter._id.toString())
-        .then(result => {
+        .then(() => {
           historyAddedRef.current.add(chapterKey);
-          if (!result?.success || !result.progress) return;
-          const data = result.progress;
-          if (data.progress?.expGained && data.progress.expGained > 0) {
-            showExpGain(data.progress.expGained, data.progress.reason ?? "Чтение главы");
-          }
-          if (
-            data.progress?.levelUp &&
-            data.progress.oldLevel != null &&
-            data.progress.newLevel != null &&
-            data.oldRank &&
-            data.newRank
-          ) {
-            showLevelUp(
-              data.progress.oldLevel,
-              data.progress.newLevel,
-              data.oldRank as Parameters<typeof showLevelUp>[2],
-              data.newRank as Parameters<typeof showLevelUp>[3],
-            );
-          }
-          data.newAchievements?.forEach(ach => {
-            showAchievement({
-              id: ach.id,
-              name: ach.name,
-              description: ach.description,
-              icon: ach.icon,
-              type: ach.type as import("@/types/user").UserAchievement["type"],
-              rarity: ach.rarity as import("@/types/user").UserAchievement["rarity"],
-              unlockedAt: ach.unlockedAt,
-              progress: ach.progress,
-              maxProgress: ach.maxProgress,
-            });
-          });
+          // Тосты опыта/уровня/достижений показываются только из WebSocket (ProgressNotificationContext),
+          // чтобы не дублировать при одновременной отправке с сервера по сокету и в ответе API.
         })
         .catch(error => {
           console.error("Error adding to reading history:", error);
@@ -520,9 +488,6 @@ function ReadChapterPageContent({
     incrementChapterViews,
     addToReadingHistory,
     isAuthenticated,
-    showExpGain,
-    showLevelUp,
-    showAchievement,
   ]);
 
   // Обработчик ошибок загрузки изображений с fallback
