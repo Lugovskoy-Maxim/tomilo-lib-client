@@ -41,6 +41,7 @@ import RegisterModal from "@/shared/modal/RegisterModal";
 
 import { translateTitleType, translateTitleStatus } from "@/lib/title-type-translations";
 import { getChapterDisplayName } from "@/lib/chapter-title-utils";
+import { getChapterPath } from "@/lib/title-paths";
 import { GenresList } from "./title-view/GenresList";
 import router from "next/router";
 import { getCoverUrls } from "@/lib/asset-url";
@@ -208,6 +209,7 @@ export function LeftSidebar({
 // Chapters
 export function ChaptersTab({
   titleId,
+  slug,
   chapters,
   hasMore,
   onLoadMore,
@@ -219,6 +221,8 @@ export function ChaptersTab({
   user,
 }: {
   titleId: string;
+  /** slug тайтла для корректных URL /titles/[slug]/chapter/... (если нет — используется titleId) */
+  slug?: string;
   chapters: Chapter[];
   hasMore: boolean;
   onLoadMore: () => void;
@@ -273,7 +277,7 @@ export function ChaptersTab({
             className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <ChapterItem chapter={chapter} titleId={titleId} user={user} />
+            <ChapterItem chapter={chapter} titleId={titleId} slug={slug} user={user} />
           </div>
         ))}
 
@@ -296,13 +300,16 @@ export function ChaptersTab({
 export function ChapterItem({
   chapter,
   titleId,
+  slug,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- user передаётся с родителя
   ..._rest
 }: {
   chapter: Chapter;
   titleId: string;
+  slug?: string;
   user: User | null;
 }) {
+  const chapterHref = getChapterPath({ _id: titleId, slug }, chapter._id);
   const { removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -392,7 +399,7 @@ export function ChapterItem({
   return (
     <div ref={wrapperRef}>
       <Link
-        href={`/titles/${titleId}/chapter/${chapter._id}`}
+        href={chapterHref}
         className="flex items-center bg-[var(--background)]/50 justify-between px-2 py-2 border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors rounded-xl"
       >
         <div className="flex items-center gap-3">
@@ -475,7 +482,7 @@ export function ChapterItem({
           <button
             onClick={e => {
               e.preventDefault();
-              router.push(`/titles/${titleId}/chapter/${chapter._id}`);
+              router.push(chapterHref);
             }}
             className="p-1.5 sm:px-4 sm:py-2 bg-[var(--chart-1)]/80 text-[var(--accent-foreground)] rounded-full hover:bg-[var(--chart-1)] transition-colors flex items-center justify-center"
             aria-label="Читать главу"
@@ -781,6 +788,7 @@ export function RightContent({
           {activeTab === "chapters" && (
             <ChaptersTab
               titleId={titleId}
+              slug={titleData?.slug}
               chapters={chapters}
               hasMore={hasMoreChapters}
               onLoadMore={onLoadMoreChapters}
