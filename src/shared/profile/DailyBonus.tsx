@@ -31,6 +31,20 @@ function getDaysUntilMilestone(currentStreak: number, milestoneDays: number): nu
   return milestoneDays - currentStreak;
 }
 
+/** Проверяет, что дата (ISO строка) совпадает с сегодняшним днём по UTC (как на сервере). */
+function isSameDayUTC(dateIso: string | null | undefined, now: Date): boolean {
+  if (!dateIso) return false;
+  const d = new Date(dateIso);
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth();
+  const day = d.getUTCDate();
+  return (
+    y === now.getUTCFullYear() &&
+    m === now.getUTCMonth() &&
+    day === now.getUTCDate()
+  );
+}
+
 export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProps) {
   const [claimDailyBonus, { isLoading }] = useClaimDailyBonusMutation();
   const toast = useToast();
@@ -39,15 +53,19 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
 
   const currentStreak = localStreak ?? userProfile.currentStreak ?? 0;
 
+  /** Бонус уже получен сегодня: по данным с сервера или только что в этой сессии */
+  const bonusClaimedToday =
+    claimed || isSameDayUTC(userProfile.lastLoginExpDate, new Date());
+
   const { canClaim, nextMilestone, daysToMilestone } = useMemo(() => {
     const milestone = getNextMilestone(currentStreak);
     const daysLeft = milestone ? getDaysUntilMilestone(currentStreak, milestone.days) : 0;
     return {
-      canClaim: !claimed,
+      canClaim: !bonusClaimedToday,
       nextMilestone: milestone,
       daysToMilestone: daysLeft,
     };
-  }, [currentStreak, claimed]);
+  }, [currentStreak, bonusClaimedToday]);
 
   const handleClaimBonus = async () => {
     try {

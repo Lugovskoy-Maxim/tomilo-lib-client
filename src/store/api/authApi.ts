@@ -270,6 +270,14 @@ export const authApi = createApi({
       },
     }),
 
+    getProfileAchievements: builder.query<
+      ApiResponseDto<{ achievements: import("@/types/user").ProfileAchievementFromServer[] }>,
+      void
+    >({
+      query: () => "/users/profile/achievements",
+      providesTags: ["Auth"],
+    }),
+
     updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({
       query: profileData => ({
         url: "/users/profile",
@@ -649,6 +657,7 @@ export const {
   useGetProfileQuery,
   useGetProfileByUsernameQuery,
   useGetProfileByIdQuery,
+  useGetProfileAchievementsQuery,
   useUpdateProfileMutation,
   useUpdateAvatarMutation,
   useAddBookmarkMutation,

@@ -8,7 +8,7 @@ const REPORTS_TAG = "Reports";
 export const reportsApi = createApi({
   reducerPath: "reportsApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: [REPORTS_TAG],
+  tagTypes: [REPORTS_TAG, "Auth"],
   endpoints: builder => ({
     // Create a new report
     createReport: builder.mutation<ApiResponseDto<Report>, Record<string, unknown>>({
@@ -17,7 +17,7 @@ export const reportsApi = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: [REPORTS_TAG],
+      invalidatesTags: [REPORTS_TAG, "Auth"],
     }),
 
     // Get all reports (admin only)

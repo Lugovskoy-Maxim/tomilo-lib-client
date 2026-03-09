@@ -69,6 +69,12 @@ function transformUserToProfile(user: User): UserProfile {
     likesReceivedCount: u.likesReceivedCount,
     readingTimeMinutes: u.readingTimeMinutes,
     completedTitlesCount: u.completedTitlesCount,
+    ratingsCount: (u as User & { ratingsCount?: number }).ratingsCount,
+    reportsCount: (u as User & { reportsCount?: number }).reportsCount,
+    profileAchievements: Array.isArray((u as User & { achievements?: unknown[] }).achievements) &&
+      (u as User & { achievements?: { currentLevel?: number }[] }).achievements?.[0]?.currentLevel != null
+      ? (u as User & { achievements: import("@/types/user").ProfileAchievementFromServer[] }).achievements
+      : undefined,
     scheduledDeletionAt:
       (u as User & { scheduledDeletionAt?: string | null }).scheduledDeletionAt ?? undefined,
     deletedAt: (u as User & { deletedAt?: string | null }).deletedAt ?? undefined,
