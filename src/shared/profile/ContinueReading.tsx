@@ -157,7 +157,7 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
   );
   const displayTitleName =
     needsTitleFetch && fetchedTitle
-      ? (fetchedTitle.name || fetchedTitle.title || lastRead!.titleName).trim() ||
+      ? (fetchedTitle.name || lastRead!.titleName).trim() ||
         lastRead!.titleName
       : lastRead?.titleName ?? "";
 

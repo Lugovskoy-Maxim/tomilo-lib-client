@@ -51,7 +51,7 @@ function transformUserToProfile(user: User): UserProfile {
     privacy: u.privacy,
     displaySettings: u.displaySettings,
     equippedDecorations:
-      (u.equippedDecorations ?? (u as Record<string, unknown>).equipped_decorations) as
+      (u.equippedDecorations ?? ((u as unknown) as Record<string, unknown>).equipped_decorations) as
       | UserProfile["equippedDecorations"]
       | undefined,
     linkedProviders: getLinkedProvidersFromUser(u),
