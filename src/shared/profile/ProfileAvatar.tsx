@@ -60,7 +60,12 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   const { user } = useAuth();
   const { frameUrl: resolvedFrameUrl, avatarDecorationUrl: resolvedAvatarUrl } =
     useResolvedEquippedDecorations();
-  const isCurrentUser = user && (userProfile._id === user._id || userProfile._id === user.id);
+  const isCurrentUser = Boolean(
+    user &&
+      (userProfile._id === user._id ||
+        userProfile._id === user.id ||
+        (userProfile.username && userProfile.username === user.username)),
+  );
 
   const sizeClass = sizeClasses[size];
   const pixelSize = size === "sm" ? 96 : 144;
@@ -76,10 +81,11 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   const { primary: baseAvatarPrimary, fallback: baseAvatarFallback } = baseAvatarWithCacheBust
     ? getImageUrls(baseAvatarWithCacheBust)
     : { primary: null, fallback: null };
- 
+
+  const decorationFromProfile = getAvatarDecorationUrls(userProfile.equippedDecorations);
   const decorationUrls = isCurrentUser
-    ? { primary: resolvedAvatarUrl, fallback: null }
-    : getAvatarDecorationUrls(userProfile.equippedDecorations);
+    ? { primary: resolvedAvatarUrl ?? decorationFromProfile.primary, fallback: decorationFromProfile.fallback }
+    : decorationFromProfile;
 
   const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary ?? DEFAULT_AVATAR;
   const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback ?? DEFAULT_AVATAR;

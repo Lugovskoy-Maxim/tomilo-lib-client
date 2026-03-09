@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  MessageSquare,
 } from "lucide-react";
 
 interface ChapterCommentsSectionProps {
@@ -79,60 +78,46 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
     setEditingComment(null);
   };
 
-  return (
-    <div className={`py-8 sm:py-10 px-4 sm:px-0 ${className}`}>
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="relative mb-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/5 via-transparent to-[var(--primary)]/5 rounded-2xl blur-xl" />
-          <div className="relative bg-gradient-to-br from-[var(--card)] to-[var(--secondary)]/30 border border-[var(--border)]/50 rounded-2xl p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
-                  <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
-                    Комментарии
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-                    Обсудите главу с другими читателями
-                  </p>
-                </div>
-              </div>
-              {total > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)]/10 rounded-full">
-                  <MessageSquare className="w-3.5 h-3.5 text-[var(--primary)]" />
-                  <span className="text-sm font-semibold text-[var(--primary)]">{total}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+  const showFormInEmptyState = !isExpanded && !isLoading && topComments.length === 0 && !editingComment;
+  const commentFormContent = (
+    <>
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-3">
+        <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--primary)] shrink-0" />
+        <span className="text-[11px] sm:text-sm font-medium text-[var(--foreground)]">
+          Оставить комментарий
+        </span>
+      </div>
+      <CommentForm
+        entityType={CommentEntityType.CHAPTER}
+        entityId={chapterId}
+        parentId={replyingTo || undefined}
+        onSubmit={handleFormSubmit}
+        onCancel={replyingTo ? handleFormCancel : undefined}
+        compact
+      />
+    </>
+  );
+  const commentFormBlock = !editingComment && (
+    <div className="mb-3 sm:mb-6 bg-[var(--card)]/50 rounded-lg sm:rounded-xl p-2.5 sm:p-4 border border-[var(--border)]/30">
+      {commentFormContent}
+    </div>
+  );
+  const commentFormBlockEmbedded = !editingComment && (
+    <div className="pt-4 border-t border-[var(--border)]/20">
+      {commentFormContent}
+    </div>
+  );
 
-        {/* Comment Form */}
-        {!editingComment && (
-          <div className="mb-6 bg-[var(--card)]/50 rounded-xl p-4 border border-[var(--border)]/30">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-[var(--primary)]" />
-              <span className="text-sm font-medium text-[var(--foreground)]">
-                Оставить комментарий
-              </span>
-            </div>
-            <CommentForm
-              entityType={CommentEntityType.CHAPTER}
-              entityId={chapterId}
-              parentId={replyingTo || undefined}
-              onSubmit={handleFormSubmit}
-              onCancel={replyingTo ? handleFormCancel : undefined}
-            />
-          </div>
-        )}
+  return (
+    <div className={`py-3 sm:py-10 px-2 sm:px-0 ${className}`}>
+      <div className="max-w-2xl mx-auto">
+        {/* Comment Form — сверху только когда есть комментарии или загрузка (иначе форма в пустом блоке) */}
+        {!showFormInEmptyState && commentFormBlock}
 
         {/* Edit Form */}
         {editingComment && (
-          <div className="mb-6 bg-gradient-to-br from-[var(--primary)]/5 to-[var(--card)] rounded-xl p-4 border border-[var(--primary)]/20">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="mb-3 sm:mb-6 bg-gradient-to-br from-[var(--primary)]/5 to-[var(--card)] rounded-lg sm:rounded-xl p-2.5 sm:p-4 border border-[var(--primary)]/20">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-3">
               <div className="w-6 h-6 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
                 <svg
                   className="w-3.5 h-3.5 text-[var(--primary)]"
@@ -158,6 +143,7 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
               editComment={editingComment}
               onSubmit={handleFormSubmit}
               onCancel={handleFormCancel}
+              compact
             />
           </div>
         )}
@@ -204,18 +190,23 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
                 ))}
               </div>
             ) : (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--card)]/30 border border-[var(--border)]/30 py-10 px-6">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--card)]/30 border border-[var(--border)]/30 py-8 px-4 sm:py-10 sm:px-6">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,var(--primary)_0%,transparent_70%)] opacity-5" />
-                <div className="relative text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
-                    <MessageCircle className="w-8 h-8 text-[var(--primary)]" />
+                <div className="relative">
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
+                      <MessageCircle className="w-8 h-8 text-[var(--primary)]" />
+                    </div>
+                    <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
+                      Пока нет комментариев
+                    </h3>
+                    <p className="text-sm text-[var(--muted-foreground)] max-w-xs mx-auto">
+                      Будьте первым, кто поделится впечатлениями о главе!
+                    </p>
                   </div>
-                  <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
-                    Пока нет комментариев
-                  </h3>
-                  <p className="text-sm text-[var(--muted-foreground)] max-w-xs mx-auto">
-                    Будьте первым, кто поделится впечатлениями о главе!
-                  </p>
+                  <div className="relative max-w-xl mx-auto">
+                    {commentFormBlockEmbedded}
+                  </div>
                 </div>
               </div>
             )}

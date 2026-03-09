@@ -15,6 +15,7 @@ interface CommentFormProps {
   editComment?: Comment;
   onCancel?: () => void;
   onSubmit?: () => void;
+  compact?: boolean;
 }
 
 export function CommentForm({
@@ -24,6 +25,7 @@ export function CommentForm({
   editComment,
   onCancel,
   onSubmit,
+  compact = false,
 }: CommentFormProps) {
   const { user } = useAuth();
   const [content, setContent] = useState("");
@@ -136,15 +138,17 @@ export function CommentForm({
   }
 
   return (
-    <div className="rounded-lg bg-[var(--card)]/50 p-3">
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div className={`rounded-lg bg-[var(--card)]/50 ${compact ? "p-2" : "p-3"}`}>
+      <form onSubmit={handleSubmit} className={compact ? "space-y-1.5" : "space-y-2"}>
         <textarea
           value={content}
           onChange={handleContentChange}
           placeholder={editComment ? "Редактировать..." : parentId ? "Ответ..." : "Комментарий..."}
-          rows={3}
+          rows={compact ? 2 : 3}
           maxLength={5000}
-          className={`w-full px-3 py-2 bg-[var(--background)]/80 border rounded-lg focus:outline-none focus:ring-1 focus:border-transparent resize-none text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] text-[13px] leading-snug ${
+          className={`w-full bg-[var(--background)]/80 border rounded-lg focus:outline-none focus:ring-1 focus:border-transparent resize-none text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] leading-snug ${
+            compact ? "px-2.5 py-1.5 text-xs" : "px-3 py-2 text-[13px]"
+          } ${
             validationError
               ? "border-red-500/80 focus:ring-red-500"
               : "border-[var(--border)]/80 focus:ring-[var(--primary)]"
@@ -157,19 +161,19 @@ export function CommentForm({
             <span>{validationError}</span>
           </div>
         )}
-        <div className="flex items-center justify-between gap-2">
+        <div className={`flex items-center justify-between gap-2 ${compact ? "gap-1.5" : ""}`}>
           <span
-            className={`text-[10px] ${isOverWordLimit ? "text-red-500" : "text-[var(--muted-foreground)]"}`}
+            className={`${compact ? "text-[9px]" : "text-[10px]"} ${isOverWordLimit ? "text-red-500" : "text-[var(--muted-foreground)]"}`}
           >
             {wordCount}/{MAX_WORDS} слов
           </span>
-          <div className="flex gap-1.5">
+          <div className={`flex cursor-pointer gap-1.5 rounded-xl ${compact ? "gap-1" : ""}`}>
             {onCancel && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs"
+                className={`rounded-xl ${compact ? "h-6 px-1.5 text-[10px]" : "h-7 px-2 text-xs"}`}
                 onClick={onCancel}
               >
                 <X className="w-3.5 h-3.5 mr-1" />
@@ -180,12 +184,16 @@ export function CommentForm({
               type="submit"
               variant="primary"
               size="sm"
-              className="h-7 px-2.5 text-xs"
+              className={
+                compact
+                  ? "rounded-xl h-7 min-w-[80px] px-3 text-xs font-semibold shadow-md shadow-[var(--primary)]/25 border border-[var(--primary)]/20"
+                  : "rounded-xl h-7 px-2.5 text-xs"
+              }
               disabled={
                 !content.trim() || isCreating || isUpdating || !!validationError || isOverWordLimit
               }
             >
-              <Send className="w-3.5 h-3.5 mr-1" />
+              <Send className="w-3.5 h-3.5 mr-1 shrink-0" />
               {editComment ? (isUpdating ? "..." : "Сохранить") : isCreating ? "..." : "Отправить"}
             </Button>
           </div>

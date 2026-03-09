@@ -8,6 +8,8 @@ import Tooltip from "@/shared/ui/Tooltip";
 
 interface ProfileReadingSettingsProps {
   userProfile: UserProfile;
+  /** Встроенный вид: без карточки, только контент */
+  embedded?: boolean;
 }
 
 const CHAPTERS_IN_ROW_KEY = "reader-chapters-in-row";
@@ -39,7 +41,10 @@ function getInitialFromProfileOrStorage(
   };
 }
 
-export default function ProfileReadingSettings({ userProfile }: ProfileReadingSettingsProps) {
+export default function ProfileReadingSettings({
+  userProfile,
+  embedded,
+}: ProfileReadingSettingsProps) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   const toast = useToast();
 
@@ -96,54 +101,8 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
 
   const saving = isSaving || isLoading;
 
-  return (
-    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-            <Eye className="w-5 h-5 text-[var(--chart-1)]" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">Чтение</h2>
-            <p className="text-[var(--muted-foreground)] text-sm">
-              Режим отображения и ширина страниц
-            </p>
-          </div>
-        </div>
-        <Tooltip
-          content={
-            <div className="space-y-2 max-w-[280px]">
-              <p className="font-medium">Настройки чтения</p>
-              <p>Эти настройки влияют на отображение страниц в читалке:</p>
-              <ul className="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
-                <li>
-                  <strong>По одной</strong> — листание страниц по одной
-                </li>
-                <li>
-                  <strong>Прокрутка</strong> — непрерывная лента страниц
-                </li>
-                <li>
-                  <strong>Ориентация</strong> — предпочтительный поворот экрана
-                </li>
-                <li>
-                  <strong>Ширина</strong> — размер изображений (768–1440 px)
-                </li>
-              </ul>
-            </div>
-          }
-          position="left"
-          trigger="click"
-        >
-          <button
-            type="button"
-            className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </button>
-        </Tooltip>
-      </div>
-
-      <div className="space-y-5">
+  const formContent = (
+    <div className="space-y-5">
         <div className="py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
           <span className="text-sm font-semibold text-[var(--foreground)] block mb-2">
             Тип отображения
@@ -268,7 +227,58 @@ export default function ProfileReadingSettings({ userProfile }: ProfileReadingSe
             {saving ? "Сохранение…" : "Сохранить"}
           </button>
         </div>
+    </div>
+  );
+
+  if (embedded) return formContent;
+
+  return (
+    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+            <Eye className="w-5 h-5 text-[var(--chart-1)]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Чтение</h2>
+            <p className="text-[var(--muted-foreground)] text-sm">
+              Режим отображения и ширина страниц
+            </p>
+          </div>
+        </div>
+        <Tooltip
+          content={
+            <div className="space-y-2 max-w-[280px]">
+              <p className="font-medium">Настройки чтения</p>
+              <p>Эти настройки влияют на отображение страниц в читалке:</p>
+              <ul className="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li>
+                  <strong>По одной</strong> — листание страниц по одной
+                </li>
+                <li>
+                  <strong>Прокрутка</strong> — непрерывная лента страниц
+                </li>
+                <li>
+                  <strong>Ориентация</strong> — предпочтительный поворот экрана
+                </li>
+                <li>
+                  <strong>Ширина</strong> — размер изображений (768–1440 px)
+                </li>
+              </ul>
+            </div>
+          }
+          position="left"
+          trigger="click"
+        >
+          <button
+            type="button"
+            className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+        </Tooltip>
       </div>
+      {formContent}
     </div>
   );
 }

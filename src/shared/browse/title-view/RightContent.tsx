@@ -32,6 +32,7 @@ import {
   useGetMyTitleRatingQuery,
 } from "@/store/api/titlesApi";
 import { useGetReadingHistoryReadIdsQuery, useGetTitleProgressQuery } from "@/store/api/authApi";
+import type { ReadingHistoryEntry } from "@/types/store";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { AgeVerificationModal, checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { getChapterPath } from "@/lib/title-paths";
@@ -111,8 +112,17 @@ export function RightContent({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
   const [markingChapterId, setMarkingChapterId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileDeleteModeChapterId, setMobileDeleteModeChapterId] = useState<string | null>(null);
 
-  const { addToReadingHistory, removeFromReadingHistory, useGetReadingHistoryByTitle } = useAuth();
+  useEffect(() => {
+    const check = () => setIsMobile(typeof window !== "undefined" && window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const { addToReadingHistory, removeFromReadingHistory } = useAuth();
   const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
   const [isAgeModalOpen, setIsAgeModalOpen] = useState(false);
@@ -142,11 +152,18 @@ export function RightContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, userBirthDate]);
 
-  // Лёгкий запрос: только id прочитанных глав (для статуса «прочитано» на странице тайтла)
+  // Лёгкий запрос: только id прочитанных глав (для статуса «прочитано»). Полная история по тайтлу — из user.readingHistory (useAuth, GET /history?limit=200)
   const { data: readIdsData } = useGetReadingHistoryReadIdsQuery(titleId, {
     skip: !user || !titleId,
   });
-  const { data: readingHistoryData } = useGetReadingHistoryByTitle(titleId);
+
+  const readingHistoryEntryForTitle = useMemo((): ReadingHistoryEntry | null => {
+    if (!titleId || !user?.readingHistory?.length) return null;
+    const entry = user.readingHistory.find(
+      item => (typeof item.titleId === "string" ? item.titleId : item.titleId?._id) === titleId,
+    );
+    return entry ?? null;
+  }, [titleId, user?.readingHistory]);
 
   // Статистика тайтла (расширенные данные о просмотрах и закладках)
   const { data: titleStatsData } = useGetTitleStatsQuery(titleId, {
@@ -205,23 +222,15 @@ export function RightContent({
   );
   const commentsCount = commentsData?.data?.total ?? null;
 
-  // Функция для проверки, прочитана ли глава (приоритет: read-ids API, затем полная история по тайтлу)
+  // Функция для проверки, прочитана ли глава (приоритет: read-ids API, затем запись из user.readingHistory)
   const isChapterRead = useCallback(
     (chapterId: string): boolean => {
       if (readIdsData?.data?.chapterIds?.length) {
         return readIdsData.data.chapterIds.includes(chapterId);
       }
-      if (!readingHistoryData?.data) return false;
-
-      const entry = readingHistoryData.data as unknown as {
-        chapters?: Array<{
-          chapterId?: { _id: string } | string | null;
-          chapterNumber: number;
-          readAt: string;
-        }>;
-      };
-      const chaptersList = entry?.chapters ?? [];
-      return chaptersList.some(ch => {
+      const entry = readingHistoryEntryForTitle;
+      if (!entry?.chapters?.length) return false;
+      return entry.chapters.some(ch => {
         if (!ch.chapterId) return false;
         const id =
           typeof ch.chapterId === "object" && ch.chapterId !== null
@@ -230,7 +239,7 @@ export function RightContent({
         return id === chapterId;
       });
     },
-    [readIdsData, readingHistoryData],
+    [readIdsData, readingHistoryEntryForTitle],
   );
 
   // Функция для удаления из истории чтения
@@ -880,33 +889,53 @@ export function RightContent({
                     className="group flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-[var(--secondary)]/50 hover:bg-[var(--secondary)]/80 rounded-lg sm:rounded-xl border border-[var(--border)]/30 hover:border-[var(--border)]/60 transition-colors cursor-pointer active:scale-[0.99]"
                     style={{ animationDelay: `${index * 30}ms` }}
                   >
-                    {/* Статус прочтения — компактно на мобиле; клик по иконке: отметить прочитанной / удалить из истории */}
+                    {/* Статус прочтения: прочитана — зелёный глаз; на мобиле 1-й тап → кнопка удаления, 2-й тап → удалить */}
                     <div
                       className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-[var(--background)]/40 flex-shrink-0 touch-manipulation"
                       onClick={e => e.stopPropagation()}
                     >
                       {read ? (
-                        <button
-                          type="button"
-                          onClick={e => {
-                            e.stopPropagation();
-                            handleRemoveFromHistory(chapter._id || "", e);
-                          }}
-                          disabled={isRemoving}
-                          className={`flex items-center justify-center w-full h-full min-w-[2rem] min-h-[2rem] sm:min-w-[2.25rem] sm:min-h-[2.25rem] rounded-md sm:rounded-lg ${
-                            isRemoving
-                              ? "cursor-not-allowed text-[var(--foreground)]/30"
-                              : "text-red-500 hover:text-red-600 active:bg-[var(--background)]/60 cursor-pointer"
-                          }`}
-                          title="Удалить из истории"
-                          aria-label="Удалить из истории чтения"
-                        >
-                          {isRemoving ? (
-                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[var(--foreground)]/20 border-t-[var(--chart-1)] rounded-full animate-spin" />
-                          ) : (
-                            <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                          )}
-                        </button>
+                        isMobile && mobileDeleteModeChapterId !== chapter._id ? (
+                          <button
+                            type="button"
+                            onClick={e => {
+                              e.stopPropagation();
+                              setMobileDeleteModeChapterId(chapter._id || null);
+                            }}
+                            className="flex items-center justify-center w-full h-full min-w-[2rem] min-h-[2rem] sm:min-w-[2.25rem] sm:min-h-[2.25rem] rounded-md sm:rounded-lg text-green-500 cursor-pointer active:bg-[var(--background)]/60 touch-manipulation"
+                            title="Прочитано. Нажмите ещё раз — удалить из истории"
+                            aria-label="Прочитано"
+                          >
+                            <Eye className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={async e => {
+                              e.stopPropagation();
+                              if (isMobile) setMobileDeleteModeChapterId(null);
+                              await handleRemoveFromHistory(chapter._id || "", e);
+                            }}
+                            disabled={isRemoving}
+                            className={`flex items-center justify-center w-full h-full min-w-[2rem] min-h-[2rem] sm:min-w-[2.25rem] sm:min-h-[2.25rem] rounded-md sm:rounded-lg ${
+                              isRemoving
+                                ? "cursor-not-allowed text-[var(--foreground)]/30"
+                                : isMobile
+                                  ? "text-red-500 hover:text-red-600 active:bg-[var(--background)]/60 cursor-pointer"
+                                  : "text-green-500 hover:text-red-500 hover:text-red-600 active:bg-[var(--background)]/60 cursor-pointer"
+                            }`}
+                            title="Удалить из истории чтения"
+                            aria-label="Удалить из истории чтения"
+                          >
+                            {isRemoving ? (
+                              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[var(--foreground)]/20 border-t-[var(--chart-1)] rounded-full animate-spin" />
+                            ) : isMobile ? (
+                              <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                            ) : (
+                              <Eye className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                            )}
+                          </button>
+                        )
                       ) : !read && user ? (
                         <button
                           type="button"

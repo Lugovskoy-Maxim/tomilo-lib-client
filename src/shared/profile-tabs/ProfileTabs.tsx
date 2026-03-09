@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProfile } from "@/types/user";
-import { Repeat, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { type ProfileTab, tabMeta, PROFILE_TABS, isValidProfileTab } from "./profileTabConfig";
 
@@ -389,56 +389,53 @@ export function ProfileTabs({
           </div>
         )}
 
-        {/* Обмены */}
-        {activeTab === "exchanges" && (
-          <div className="profile-card rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-6 sm:p-8 animate-fade-in-up text-center">
-            <div className="inline-flex p-4 rounded-2xl bg-[var(--secondary)]/50 border border-[var(--border)]/60 mb-4">
-              <Repeat className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--primary)]" />
-            </div>
-            <h2 className="text-base font-semibold text-[var(--foreground)] mb-2">Обмены</h2>
-            <p className="text-[var(--muted-foreground)] max-w-md mx-auto mb-6 text-sm leading-relaxed">
-              Здесь вы сможете обмениваться предметами и декорациями с другими пользователями.
-              Раздел в разработке.
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              Следите за обновлениями или загляните в{" "}
-              <Link
-                href="/tomilo-shop"
-                className="text-[var(--primary)] hover:underline font-medium"
-              >
-                магазин
-              </Link>
-              .
-            </p>
-          </div>
-        )}
-
-        {/* Настройки */}
+        {/* Настройки — один блок, разделение по темам */}
         {activeTab === "settings" && (
           <div className="animate-fade-in-up space-y-4">
             <SettingsNavigation />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-              <div id="settings-notifications">
-                <ProfileNotificationsSettings userProfile={userProfile} />
+            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 shadow-sm">
+              <div id="settings-notifications" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                  Уведомления
+                </h3>
+                <ProfileNotificationsSettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-display">
-                <ProfileDisplaySettings userProfile={userProfile} />
+              <div id="settings-display" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                  Оформление
+                </h3>
+                <ProfileDisplaySettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-reading">
-                <ProfileReadingSettings userProfile={userProfile} />
+              <div id="settings-reading" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                  Чтение
+                </h3>
+                <ProfileReadingSettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-premium">
-                <ProfilePremiumSettings userProfile={userProfile} />
+              <div id="settings-premium" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                  Премиум
+                </h3>
+                <ProfilePremiumSettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-privacy">
-                <ProfilePrivacySettings userProfile={userProfile} />
+              <div id="settings-privacy" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                  Приватность
+                </h3>
+                <ProfilePrivacySettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-security">
-                <ProfileSecuritySettings userProfile={userProfile} />
+              <div id="settings-security" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                  Безопасность
+                </h3>
+                <ProfileSecuritySettings userProfile={userProfile} embedded />
               </div>
               {!isPublicView && (
-                <div id="settings-delete-account" className="lg:col-span-2">
-                  <ProfileDeleteAccount userProfile={userProfile} />
+                <div id="settings-delete-account" className="pt-2">
+                  <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                    Удаление аккаунта
+                  </h3>
+                  <ProfileDeleteAccount userProfile={userProfile} embedded />
                 </div>
               )}
             </div>

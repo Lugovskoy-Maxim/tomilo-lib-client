@@ -8,9 +8,14 @@ import Tooltip from "@/shared/ui/Tooltip";
 
 interface ProfileDisplaySettingsProps {
   userProfile: UserProfile;
+  /** Встроенный вид: без обёрток-карточек, только контент */
+  embedded?: boolean;
 }
 
-export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySettingsProps) {
+export default function ProfileDisplaySettings({
+  userProfile,
+  embedded,
+}: ProfileDisplaySettingsProps) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   const toast = useToast();
 
@@ -37,11 +42,48 @@ export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySe
     }
   };
 
+  const adultRow = (
+    <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+      <div className="flex items-center gap-3 min-w-0">
+        <Sparkles className="w-4 h-4 text-[var(--chart-2)] flex-shrink-0" />
+        <div>
+          <span className="text-sm font-semibold text-[var(--foreground)] block">18+ контент</span>
+          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+            Показывать тайтлы с пометкой 18+
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={handleAdultToggle}
+        disabled={isLoading}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+          displaySettings.isAdult ? "bg-[var(--chart-1)]" : "bg-[var(--muted)]"
+        } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+      >
+        <span
+          className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+            displaySettings.isAdult ? "translate-x-5" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <div className="space-y-4 sm:space-y-5">
+        <ProfileThemeSettings displaySettings={displaySettings} isLoading={isLoading} />
+        <ProfileFontSettings />
+        {adultRow}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-5">
       <ProfileThemeSettings displaySettings={displaySettings} isLoading={isLoading} />
       <ProfileFontSettings />
-
       <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
         <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -73,38 +115,11 @@ export default function ProfileDisplaySettings({ userProfile }: ProfileDisplaySe
               type="button"
               className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
-              <HelpCircle className="w-4 h-4" />
-            </button>
+            <HelpCircle className="w-4 h-4" />
+          </button>
           </Tooltip>
         </div>
-
-        <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-          <div className="flex items-center gap-3 min-w-0">
-            <Sparkles className="w-4 h-4 text-[var(--chart-2)] flex-shrink-0" />
-            <div>
-              <span className="text-sm font-semibold text-[var(--foreground)] block">
-                18+ контент
-              </span>
-              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Показывать тайтлы с пометкой 18+
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleAdultToggle}
-            disabled={isLoading}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-              displaySettings.isAdult ? "bg-[var(--chart-1)]" : "bg-[var(--muted)]"
-            } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-          >
-            <span
-              className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                displaySettings.isAdult ? "translate-x-5" : "translate-x-0.5"
-              }`}
-            />
-          </button>
-        </div>
+        {adultRow}
       </div>
     </div>
   );

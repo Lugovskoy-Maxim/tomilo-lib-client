@@ -50,7 +50,10 @@ function transformUserToProfile(user: User): UserProfile {
     updatedAt: u.updatedAt,
     privacy: u.privacy,
     displaySettings: u.displaySettings,
-    equippedDecorations: u.equippedDecorations,
+    equippedDecorations:
+      (u.equippedDecorations ?? ((u as unknown) as Record<string, unknown>).equipped_decorations) as
+      | UserProfile["equippedDecorations"]
+      | undefined,
     linkedProviders: getLinkedProvidersFromUser(u),
     ownedDecorations: u.ownedDecorations,
     bio: u.bio,
@@ -146,7 +149,7 @@ export default function UserProfileLayout() {
         isBookmarksRestricted={true}
         isHistoryRestricted={true}
         hasPrivacyNotice={false}
-        hideTabs={["settings", "inventory", "exchanges"]}
+        hideTabs={["settings", "inventory"]}
         breadcrumbPrefix={[
           { name: "Главная", href: "/" },
           { name: "", href: `/user/${userId}` },
@@ -168,7 +171,7 @@ export default function UserProfileLayout() {
       isBookmarksRestricted={isBookmarksRestricted}
       isHistoryRestricted={isReadingHistoryRestricted}
       hasPrivacyNotice={hasPrivacyNotice}
-      hideTabs={["settings", "inventory", "exchanges"]}
+      hideTabs={["settings", "inventory"]}
       breadcrumbPrefix={[
         { name: "Главная", href: "/" },
         { name: userProfile?.username ?? "", href: `/user/${userId}` },

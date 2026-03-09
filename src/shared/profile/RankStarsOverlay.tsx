@@ -20,11 +20,12 @@ export default function RankStarsOverlay({ userProfile, size = 144 }: RankStarsO
     return null;
   }
 
-  // Calculate star positioning for arc above the avatar
-  const starSize = 18;
-  const radius = size / 2 + 18; // Wider arc (+10px)
-  const centerX = size / 2 - 2; // Чуть влево для визуального центра
-  const centerY = size / 2 + 25; // Lower position (+15px total, moved down by 5px more)
+  // Адаптация под мобильный: при малом size — меньшие звёзды и пропорциональные отступы
+  const isSmall = size < 110;
+  const starSize = isSmall ? 14 : 18;
+  const radius = size / 2 + (isSmall ? 20 : 26);
+  const centerX = size / 2 + (isSmall ? -2 : -4); // мобильный оставляем, десктоп ещё левее
+  const centerY = size / 2 + (isSmall ? 18 : 25);
 
   // Arc from left-top to right-top (180 to 360 degrees)
   const startAngle = Math.PI; // 180 degrees (left)

@@ -6,6 +6,8 @@ import { useState } from "react";
 
 interface ProfilePrivacySettingsProps {
   userProfile: UserProfile;
+  /** Встроенный вид: без карточки, только контент */
+  embedded?: boolean;
 }
 
 const VISIBILITY_LABELS: Record<string, string> = {
@@ -14,7 +16,10 @@ const VISIBILITY_LABELS: Record<string, string> = {
   private: "Приватно",
 };
 
-export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySettingsProps) {
+export default function ProfilePrivacySettings({
+  userProfile,
+  embedded,
+}: ProfilePrivacySettingsProps) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   const toast = useToast();
   const [showPrivacyTip, setShowPrivacyTip] = useState(false);
@@ -85,30 +90,8 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
     { value: "private", label: VISIBILITY_LABELS.private },
   ];
 
-  return (
-    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-            <Lock className="w-5 h-5 text-[var(--chart-1)]" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">Приватность</h2>
-            <p className="text-[var(--muted-foreground)] text-xs">
-              Кто может видеть ваш профиль и историю
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowPrivacyTip(!showPrivacyTip)}
-          className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-          title="Подробнее о приватности"
-        >
-          <Info className="w-4 h-4" />
-        </button>
-      </div>
-
+  const content = (
+    <>
       {/* Подсказка о приватности */}
       {showPrivacyTip && (
         <div className="mb-5 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
@@ -328,6 +311,35 @@ export default function ProfilePrivacySettings({ userProfile }: ProfilePrivacySe
           </div>
         </div>
       </div>
+    </>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-2.5 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+            <Lock className="w-5 h-5 text-[var(--chart-1)]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Приватность</h2>
+            <p className="text-[var(--muted-foreground)] text-xs">
+              Кто может видеть ваш профиль и историю
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowPrivacyTip(!showPrivacyTip)}
+          className="p-2 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          title="Подробнее о приватности"
+        >
+          <Info className="w-4 h-4" />
+        </button>
+      </div>
+      {content}
     </div>
   );
 }

@@ -34,12 +34,15 @@ export type ReadingSettings = {
 
 export type UserLocale = "ru" | "en";
 
+/** Значение декорации: ID (строка) или объект при populate с imageUrl (бэкенд GET /users/:id должен отдавать populate, иначе декорация не отобразится у чужих профилей). */
+export type EquippedDecorationValue = string | { imageUrl?: string; image_url?: string; id?: string; _id?: string } | null;
+
 export interface EquippedDecorations {
-  avatar?: string | null;
-  /** URL изображения надетой рамки аватара */
-  frame?: string | null;
-  background?: string | null;
-  card?: string | null;
+  avatar?: EquippedDecorationValue;
+  /** URL или объект с imageUrl надетой рамки аватара */
+  frame?: EquippedDecorationValue;
+  background?: EquippedDecorationValue;
+  card?: EquippedDecorationValue;
   _id?: string;
 }
 

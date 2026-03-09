@@ -531,7 +531,11 @@ export default function ProfileAdditionalInfo({
       />
 
       {isOwnProfile && userProfile.emailVerified !== true && (
-        <div className="mt-5 flex justify-center">
+        <div className="mt-5 flex flex-col items-center gap-2 text-center">
+          <p className="text-[11px] text-[var(--muted-foreground)] max-w-[280px]">
+            На почту, привязанную через VK, письма не приходят. Если вы заходили через VK — смените
+            email в настройках профиля.
+          </p>
           <button
             type="button"
             onClick={handleSendVerificationEmail}

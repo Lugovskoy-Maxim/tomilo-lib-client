@@ -29,6 +29,8 @@ export interface DecorationCardProps {
   hidePurchase?: boolean;
   /** Тип секции (вкладка магазина). Если задан, вид карточки берётся по нему, а не по decoration.type. */
   sectionType?: "avatar" | "frame" | "background" | "card";
+  /** Не показывать тост при экипировке/снятии/покупке (тост показывает родитель, напр. ProfileInventory). */
+  showActionToast?: boolean;
 }
 
 const RARITY_STYLES: Record<
@@ -657,10 +659,12 @@ export function DecorationCard({
   isLoading = false,
   hidePurchase = false,
   sectionType,
+  showActionToast = true,
 }: DecorationCardProps) {
   const { isAuthenticated, user } = useAuth();
   const displayType = sectionType ?? decoration.type;
   const { success, error: showError } = useToast();
+  const actionInProgressRef = useRef(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [useFallbackImage, setUseFallbackImage] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -713,41 +717,53 @@ export function DecorationCard({
 
   const handlePurchase = async () => {
     if (soldOut) {
-      showError("Распродано");
+      if (showActionToast) showError("Распродано");
       return;
     }
     if (!isAuthenticated) {
-      showError("Войдите в аккаунт для покупки");
+      if (showActionToast) showError("Войдите в аккаунт для покупки");
       return;
     }
+    if (actionInProgressRef.current) return;
+    actionInProgressRef.current = true;
     try {
       await onPurchase?.(decoration.id);
-      success(`"${decoration.name}" куплено!`);
+      if (showActionToast) success(`"${decoration.name}" куплено!`);
     } catch {
-      showError("Ошибка при покупке");
+      if (showActionToast) showError("Ошибка при покупке");
+    } finally {
+      actionInProgressRef.current = false;
     }
   };
 
   const handleEquip = async () => {
     if (!isAuthenticated) {
-      showError("Войдите в аккаунт для экипировки");
+      if (showActionToast) showError("Войдите в аккаунт для экипировки");
       return;
     }
+    if (actionInProgressRef.current) return;
+    actionInProgressRef.current = true;
     try {
       await onEquip?.(decoration.id);
-      success(`"${decoration.name}" надето!`);
+      if (showActionToast) success(`"${decoration.name}" надето!`);
     } catch {
-      showError("Ошибка при экипировке");
+      if (showActionToast) showError("Ошибка при экипировке");
+    } finally {
+      actionInProgressRef.current = false;
     }
   };
 
   const handleUnequip = async () => {
     if (!isAuthenticated) return;
+    if (actionInProgressRef.current) return;
+    actionInProgressRef.current = true;
     try {
       await onUnequip?.();
-      success(`"${decoration.name}" снято!`);
+      if (showActionToast) success(`"${decoration.name}" снято!`);
     } catch {
-      showError("Ошибка при снятии");
+      if (showActionToast) showError("Ошибка при снятии");
+    } finally {
+      actionInProgressRef.current = false;
     }
   };
 

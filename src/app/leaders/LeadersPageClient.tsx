@@ -47,7 +47,8 @@ import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
-import type { EquippedDecorations } from "@/types/user";
+import RankStarsOverlay from "@/shared/profile/RankStarsOverlay";
+import type { EquippedDecorations, UserProfile } from "@/types/user";
 
 type CategoryConfig = {
   id: LeaderboardCategory;
@@ -63,7 +64,7 @@ const CATEGORIES: CategoryConfig[] = [
     label: "По уровню",
     shortLabel: "Уровень",
     icon: TrendingUp,
-    description: "Топ пользователей по уровню и опыту",
+    description: "Рейтинг по уровню и набранному опыту",
   },
   {
     id: "chaptersRead",
@@ -459,6 +460,20 @@ export default function LeadersPageClient() {
   } | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
+  // Размер аватара топ-1 для звёзд: по ширине экрана (4.5rem / 6rem / 7.5rem / 9rem / 10rem)
+  const [leaderAvatarSize, setLeaderAvatarSize] = useState(96);
+  useEffect(() => {
+    const update = () => {
+      const w = typeof window !== "undefined" ? window.innerWidth : 768;
+      setLeaderAvatarSize(
+        w < 640 ? 72 : w < 768 ? 96 : w < 1280 ? 120 : w < 1536 ? 144 : 160,
+      );
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
   /** Период имеет смысл только для ratings, comments, chaptersRead. Level, readingTime, streak — кумулятивные, за неделю/месяц/всё время одинаковы. */
   const supportsPeriod =
     activeCategory === "ratings" || activeCategory === "comments" || activeCategory === "chaptersRead";
@@ -582,14 +597,14 @@ export default function LeadersPageClient() {
     <>
       <Header />
       <main className="min-h-screen flex flex-col py-6 sm:py-8">
-        <div className="w-full max-w-2xl mx-auto px-4 space-y-4">
-          <header>
+        <div className="w-full max-w-7xl mx-auto px-4 space-y-4">
+          <header className="text-center">
             <h1 className="text-xl font-semibold text-[var(--foreground)]">Лидеры</h1>
             <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
               {activeCategoryConfig?.description ?? "Рейтинг активных читателей"}
             </p>
             <p className="text-xs text-[var(--muted-foreground)] mt-1 opacity-90">
-              Данные обновляются каждые 6 часов.
+              Рейтинг и декорации на карточках обновляются раз в 6 часов.
             </p>
           </header>
 
@@ -699,7 +714,7 @@ export default function LeadersPageClient() {
           )}
         </div>
 
-        <div ref={listRef} className="w-full max-w-2xl mx-auto px-4 mt-6">
+        <div ref={listRef} className="w-full max-w-7xl mx-auto px-4 mt-6">
           {isLoading ? (
             <LeaderboardSkeleton />
           ) : hasError ? (
@@ -707,24 +722,24 @@ export default function LeadersPageClient() {
           ) : filteredUsers.length > 0 ? (
             <div className="space-y-3">
               {!searchQuery && filteredUsers.slice(0, 3).length > 0 && (
-                <div className="mb-6 max-w-lg mx-auto pb-2">
-                  <div className="flex items-end justify-center gap-0 sm:gap-1">
+                <div className="mb-6 max-w-lg xl:max-w-2xl 2xl:max-w-3xl mx-auto pb-2 pt-6 sm:pt-8">
+                  <div className="flex items-end justify-center gap-0 sm:gap-1 xl:gap-3">
                     {[2, 1, 3].map(rank => {
                       const idx = rank - 1;
                       const u = filteredUsers[idx];
                       if (!u) return null;
                       const blockHeight =
                         rank === 1
-                          ? "h-24 sm:h-28 md:h-32"
+                          ? "h-24 sm:h-28 md:h-32 xl:h-36 2xl:h-40"
                           : rank === 2
-                            ? "h-20 sm:h-24 md:h-26"
-                            : "h-16 sm:h-20 md:h-24";
+                            ? "h-20 sm:h-24 md:h-26 xl:h-32 2xl:h-36"
+                            : "h-16 sm:h-20 md:h-24 xl:h-28 2xl:h-32";
                       const avatarWrapperSize =
                         rank === 1
-                          ? "w-[5.5rem] sm:w-[7.7rem] md:w-[9rem]"
+                          ? "w-[4.5rem] sm:w-[6rem] md:w-[7.5rem] xl:w-[9rem] 2xl:w-[10rem]"
                           : rank === 2
-                            ? "w-[4.5rem] sm:w-[6rem] md:w-[7rem]"
-                            : "w-16 sm:w-20 md:w-[5.5rem]";
+                            ? "w-[3.75rem] sm:w-[5rem] md:w-[6rem] xl:w-[7.5rem] 2xl:w-[8rem]"
+                            : "w-12 sm:w-16 md:w-[4.5rem] xl:w-[6rem] 2xl:w-[7rem]";
                       const borderClass =
                         rank === 1
                           ? "border-yellow-400"
@@ -736,23 +751,8 @@ export default function LeadersPageClient() {
                       return (
                         <div
                           key={u._id}
-                          className="flex flex-col items-center flex-1 max-w-[150px] sm:max-w-[180px]"
+                          className="flex flex-col items-center flex-1 max-w-[120px] sm:max-w-[140px] md:max-w-[160px] xl:max-w-[200px] 2xl:max-w-[240px]"
                         >
-                          <div className="flex items-center justify-center gap-1 w-full mb-0.5 px-0.5 -mt-0.5">
-                            <p
-                              className={`text-xs sm:text-sm font-semibold truncate text-center ${isPremiumActive(u.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
-                              title={u.username}
-                            >
-                              {u.username}
-                            </p>
-                            {isPremiumActive(u.subscriptionExpiresAt) && (
-                              <PremiumBadge
-                                size="xs"
-                                className="shrink-0"
-                                ariaLabel="Премиум-подписчик"
-                              />
-                            )}
-                          </div>
                           <div
                             className={`relative ${avatarWrapperSize} aspect-[1/1.15] z-10 flex justify-center items-center shrink-0`}
                           >
@@ -760,6 +760,12 @@ export default function LeadersPageClient() {
                               className="relative w-full aspect-square max-w-full shrink-0 min-w-0 transition-transform duration-200 hover:scale-105 origin-center cursor-pointer"
                               style={{ aspectRatio: "1 / 1" }}
                             >
+                              {rank === 1 && (
+                                <RankStarsOverlay
+                                  userProfile={{ level: u.level ?? 0 } as UserProfile}
+                                  size={leaderAvatarSize}
+                                />
+                              )}
                               <button
                                 type="button"
                                 onClick={() => setLeaderModalState({ user: u, rank })}
@@ -785,6 +791,29 @@ export default function LeadersPageClient() {
                               )}
                             </div>
                           </div>
+                            <div className="flex flex-col items-center gap-0.5 w-full mt-1.5 xl:mt-2 px-0.5">
+                            <div className="flex items-center justify-center gap-1">
+                              <p
+                                className={`text-xs sm:text-sm xl:text-base 2xl:text-lg font-semibold truncate text-center ${isPremiumActive(u.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
+                                title={u.username}
+                              >
+                                {u.username}
+                              </p>
+                              {isPremiumActive(u.subscriptionExpiresAt) && (
+                                <PremiumBadge
+                                  size="xs"
+                                  className="shrink-0"
+                                  ariaLabel="Премиум-подписчик"
+                                />
+                              )}
+                            </div>
+                            <p
+                              className="text-[10px] sm:text-xs xl:text-sm text-[var(--muted-foreground)] text-center max-w-full px-0.5 break-words line-clamp-2 leading-tight"
+                              title={getRankDisplay(u.level ?? 0)}
+                            >
+                              {getRankDisplay(u.level ?? 0).split("  ")[0]}
+                            </p>
+                          </div>
                           <div
                             className={`w-full ${blockHeight} mt-0 flex flex-col rounded-t-lg overflow-hidden shadow-md border border-b-0 border-rose-600/80 bg-rose-500/90 dark:bg-rose-600/80 dark:border-rose-500/70`}
                             style={{
@@ -794,16 +823,16 @@ export default function LeadersPageClient() {
                           >
                             <div className="flex-1 flex items-center justify-center min-h-0 pt-1">
                               <span
-                                className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-md select-none"
+                                className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-white drop-shadow-md select-none"
                                 style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
                               >
                                 {rank}
                               </span>
                             </div>
-                            <div className="px-1.5 pb-1.5 pt-1 flex items-center justify-center gap-1 min-h-0 bg-rose-700/50 dark:bg-rose-800/50 backdrop-blur-[1px]">
-                              <StatIcon className="w-3.5 h-3.5 shrink-0 text-white" />
+                            <div className="px-1.5 pb-1.5 pt-1 xl:px-2 xl:pb-2 xl:pt-1.5 flex items-center justify-center gap-1 min-h-0 bg-rose-700/50 dark:bg-rose-800/50 backdrop-blur-[1px]">
+                              <StatIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 text-white" />
                               <span
-                                className="text-[10px] sm:text-xs font-semibold text-white truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+                                className="text-[10px] sm:text-xs xl:text-sm font-semibold text-white truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
                                 style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
                                 title={getCategoryDisplayValue(u, activeCategory)}
                               >

@@ -191,7 +191,7 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
 
   if (sortedSessions.length === 0) {
     return (
-      <div className="border-t border-[var(--border)] bg-[var(--secondary)]/20 px-3 py-2 text-xs text-[var(--muted-foreground)]">
+      <div className="border-t border-[var(--border)] bg-[var(--secondary)]/20 px-3 py-3 sm:py-2 text-xs text-[var(--muted-foreground)]">
         {isLoading ? "Загрузка…" : "Нет прочитанных глав"}
       </div>
     );
@@ -202,10 +202,10 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
       {sortedSessions.map((session, sessionIdx) => (
         <div
           key={sessionIdx}
-          className="px-3 py-2 border-b border-[var(--border)]/40 last:border-0"
+          className="px-3 py-3 sm:py-2 border-b border-[var(--border)]/40 last:border-0"
         >
           {session.length === 1 ? (
-            <div className="flex items-center justify-between text-xs gap-2">
+            <div className="flex items-center justify-between text-xs gap-2 min-h-[44px] sm:min-h-0">
               <span className="font-medium text-[var(--foreground)]">
                 Глава {session[0].chapterNumber}
               </span>
@@ -217,15 +217,15 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
                   e.stopPropagation();
                   onRemove(titleId, session[0].chapterId);
                 }}
-                className="text-red-500 hover:bg-red-500/10 px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors shrink-0"
+                className="min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0 flex-shrink-0 flex items-center justify-center text-red-500 hover:bg-red-500/10 p-2.5 sm:p-1.5 rounded-md text-[11px] font-medium transition-colors touch-manipulation"
                 title="Удалить из истории"
               >
-                ×
+                <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" aria-hidden />
               </button>
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-1">
                 <span className="text-xs font-medium text-[var(--foreground)]">
                   {formatChapterRange(session)}
                 </span>
@@ -237,7 +237,7 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
                 {session.map(chapter => (
                   <div
                     key={chapter.chapterId}
-                    className="flex items-center justify-between text-[11px] py-0.5 px-1.5 rounded hover:bg-[var(--background)]/50"
+                    className="flex items-center justify-between text-[11px] py-2 px-2 sm:py-0.5 sm:px-1.5 min-h-[44px] sm:min-h-0 rounded hover:bg-[var(--background)]/50"
                   >
                     <span className="text-[var(--foreground)]">Глава {chapter.chapterNumber}</span>
                     <div className="flex items-center gap-1.5">
@@ -252,10 +252,10 @@ const ExpandedHistoryContent = memo(function ExpandedHistoryContent({
                           e.stopPropagation();
                           onRemove(titleId, chapter.chapterId);
                         }}
-                        className="text-red-500 hover:bg-red-500/10 px-1 rounded transition-colors"
+                        className="min-h-[48px] min-w-[48px] sm:min-h-0 sm:min-w-0 flex-shrink-0 flex items-center justify-center text-red-500 hover:bg-red-500/10 p-2.5 sm:p-1 rounded transition-colors touch-manipulation"
                         title="Удалить из истории"
                       >
-                        ×
+                        <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" aria-hidden />
                       </button>
                     </div>
                   </div>
@@ -385,10 +385,10 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
           </p>
         </div>
 
-        <div className="flex flex-col justify-center items-end gap-0.5 shrink-0">
+        <div className="flex flex-col justify-between items-end gap-2 sm:gap-0.5 shrink-0">
           <button
             onClick={handleToggleClick}
-            className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-2.5 sm:p-1.5 flex items-center justify-center rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors touch-manipulation"
             title={isExpandedTitle ? "Свернуть" : "Подробнее"}
           >
             {isExpandedTitle ? (
@@ -400,7 +400,7 @@ const HistoryTitleCard = memo(function HistoryTitleCard({
           {!isExpandedTitle && (
             <button
               onClick={handleRemoveClick}
-              className="p-1.5 rounded-md text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
+              className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-2.5 sm:p-1.5 flex items-center justify-center rounded-md text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 transition-colors touch-manipulation"
               title={
                 group.chapters.length === 1 ? "Удалить из истории" : "Удалить тайтл из истории"
               }

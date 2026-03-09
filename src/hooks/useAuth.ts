@@ -73,13 +73,13 @@ export const useAuth = () => {
 
   const continueReading = readingHistoryData?.data;
 
-  // Синхронизируем loading только при изменении — иначе множество карточек (каждая с useAuth)
-  // вызывают dispatch при каждом рендере и приводят к "Maximum update depth exceeded"
+  // Синхронизируем loading в Redux только при реальном изменении значения (ref предотвращает цикл обновлений)
+  const lastLoadingRef = useRef<boolean | null>(null);
   useEffect(() => {
-    if (auth.isLoading !== profileLoading) {
-      dispatch(setLoading(profileLoading));
-    }
-  }, [profileLoading, dispatch, auth.isLoading]);
+    if (lastLoadingRef.current === profileLoading) return;
+    lastLoadingRef.current = profileLoading;
+    dispatch(setLoading(profileLoading));
+  }, [profileLoading, dispatch]);
 
   const lastAppliedProfileRef = useRef<typeof profileResponse | null>(null);
   useEffect(() => {
@@ -552,7 +552,7 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
-    [addToReadingHistory, refetchProfile, refetchReadingHistory],
+    [addToReadingHistory, refetchProfile, refetchReadingHistory, token],
   );
 
   const removeFromReadingHistoryFunc = async (

@@ -15,12 +15,19 @@ const apiOrigin = (() => {
 /** Fallback URL для изображений (старый сервер) */
 const uploadsOrigin = process.env.NEXT_PUBLIC_UPLOADS_URL?.replace(/\/$/, "") || apiOrigin;
 
-/** Извлекает URL картинки из значения декорации (строка пути/URL или объект при populate с imageUrl). */
+/** Строка похожа на MongoDB ObjectId (24 hex) — по такому ID нельзя собрать URL картинки без запроса к API. */
+function looksLikeDecorationId(s: string): boolean {
+  return /^[a-fA-F0-9]{24}$/.test(s.trim());
+}
+
+/** Извлекает URL картинки из значения декорации (строка пути/URL или объект при populate с imageUrl). Если передана только ID декорации (без populate) — возвращает null. */
 function getDecorationUrlFromValue(raw: string | object | null | undefined): string | null {
   if (raw == null) return null;
   if (typeof raw === "string") {
     if (!raw.trim()) return null;
-    return raw.startsWith("http") ? raw : getDecorationImageUrl(raw) || `${API_BASE}${raw}`;
+    if (raw.startsWith("http")) return raw;
+    if (looksLikeDecorationId(raw)) return null;
+    return getDecorationImageUrl(raw) || `${API_BASE}${raw}`;
   }
   if (typeof raw === "object") {
     const o = raw as Record<string, unknown>;

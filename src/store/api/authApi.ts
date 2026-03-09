@@ -502,10 +502,14 @@ export const authApi = createApi({
       transformResponse(response: ApiResponseDto<User>) {
         if (response && (response as { success?: boolean }).success === false) {
           const r = response as { message?: string; errors?: string[] };
-          const raw = r.errors?.[0] ?? r.message ?? "Failed to remove from reading history";
-          const isVersionConflict = /no matching document|version \d+|modifiedPaths/i.test(
-            String(raw),
-          );
+          const raw = String(r.errors?.[0] ?? r.message ?? "Failed to remove from reading history");
+          const isNotFound =
+            /title not found|not found in reading history|chapter not found/i.test(raw);
+          if (isNotFound) {
+            // Уже удалено или запись отсутствует — считаем успехом (идемпотентность)
+            return { ...response, success: true, data: response?.data } as ApiResponseDto<User>;
+          }
+          const isVersionConflict = /no matching document|version \d+|modifiedPaths/i.test(raw);
           throw new Error(isVersionConflict ? "READING_HISTORY_VERSION_CONFLICT" : raw);
         }
         return response;

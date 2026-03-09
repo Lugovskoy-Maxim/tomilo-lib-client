@@ -66,6 +66,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pickerAnchorRect, setPickerAnchorRect] = useState<DOMRect | null>(null);
+  const [menuAnchorRect, setMenuAnchorRect] = useState<DOMRect | null>(null);
   const setOverlayContent = useOverlay()?.setOverlayContent;
 
   const openEmojiPicker = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -122,6 +123,60 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showEmojiPicker, pickerAnchorRect, setOverlayContent, closeEmojiPicker]);
 
+  const openMenu = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setMenuAnchorRect(rect);
+    setShowMenu(true);
+  }, []);
+
+  const closeMenu = useCallback(() => {
+    setShowMenu(false);
+    setMenuAnchorRect(null);
+  }, []);
+
+  useEffect(() => {
+    if (!setOverlayContent) return;
+    if (showMenu && menuAnchorRect) {
+      setOverlayContent(
+        <>
+          <div className="fixed inset-0 z-[100]" aria-hidden onClick={closeMenu} />
+          <div
+            className="fixed z-[101] bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl min-w-[120px] overflow-hidden py-0.5"
+            style={{
+              left: Math.min(menuAnchorRect.left, window.innerWidth - 130),
+              top: menuAnchorRect.bottom + 4,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onEdit?.(comment);
+                closeMenu();
+              }}
+              className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-[var(--foreground)]"
+            >
+              <Edit className="w-3.5 h-3.5 shrink-0" />
+              Редактировать
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                handleDelete();
+                closeMenu();
+              }}
+              className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-red-500"
+            >
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
+              Удалить
+            </button>
+          </div>
+        </>,
+      );
+      return () => setOverlayContent(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMenu, menuAnchorRect, setOverlayContent, closeMenu]);
+
   const handleDelete = async () => {
     if (!confirm("Вы уверены, что хотите удалить этот комментарий?")) return;
     try {
@@ -160,23 +215,25 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
     }
   };
 
+  const isReply = level > 0;
+
   return (
     <article
       id={`comment-${comment._id}`}
-      className={`rounded-lg sm:rounded-xl overflow-hidden scroll-mt-4 transition-all ${
-        level > 0
-          ? "ml-3 sm:ml-5 mt-1.5 sm:mt-2 pl-2 sm:pl-3 border-l border-[var(--primary)]/20"
+      className={`rounded-lg sm:rounded-xl overflow-hidden scroll-mt-3 sm:scroll-mt-4 transition-all ${
+        isReply
+          ? "mt-1.5 sm:mt-2 ml-1 sm:ml-3"
           : ""
       } ${
-        isInTop10
+        isInTop10 && !isReply
           ? "bg-gradient-to-br from-[var(--primary)]/8 via-[var(--primary)]/3 to-transparent border border-[var(--primary)]/15 shadow-sm shadow-[var(--primary)]/5"
           : ""
       }`}
     >
-      <div className="p-2 sm:p-3">
-        <div className="flex gap-2 sm:gap-2.5">
-          {/* Avatar (декоративный аватар и рамка из equippedDecorations, если бэкенд вернул у автора) */}
-          <div className="flex-shrink-0 h-8 w-8 sm:h-11 sm:w-11 overflow-hidden rounded-full">
+      <div className={isReply ? "py-1.5 sm:py-2 px-0 sm:px-1" : "p-1.5 sm:p-3"}>
+        <div className="flex items-start sm:items-center gap-4 sm:gap-5">
+          {/* Avatar (декоративный аватар и рамка из equippedDecorations). overflow-visible — чтобы рамка не обрезалась. */}
+          <div className={`flex-shrink-0 overflow-visible ${isReply ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"}`}>
             {(() => {
               const avatarUrl = userData?.avatar
                 ? getCoverUrls(userData.avatar).primary
@@ -193,11 +250,12 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               const avatarDecorationUrl = equipped
                 ? getEquippedAvatarDecorationUrl(equipped)
                 : undefined;
+              const avatarSize = isReply ? 36 : 40;
               const avatarContent = (
                 <UserAvatar
                   avatarUrl={avatarUrl}
                   username={userData?.username}
-                  size={44}
+                  size={avatarSize}
                   className="rounded-full w-full h-full"
                   frameUrl={frameUrl ?? undefined}
                   avatarDecorationUrl={avatarDecorationUrl ?? undefined}
@@ -216,152 +274,160 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
             })()}
           </div>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap mb-0.5">
-              <span className="inline-flex items-center gap-1 flex-wrap min-w-0">
-                <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]/60">
-                  {profileHref ? (
-                    <Link
-                      href={profileHref}
-                      className="hover:text-[var(--primary)] transition-colors focus:outline-none focus:underline"
-                    >
-                      {userData?.username || "Удаленный пользователь"}
-                    </Link>
-                  ) : (
-                    <span>{userData?.username || "Удаленный пользователь"}</span>
-                  )}
-                  {isAdmin && (
-                    <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" aria-label="Админ" />
-                  )}
-                  {userData &&
-                    isPremiumActive(
-                      userData.subscriptionExpiresAt ??
-                        (userData as { subscription_expires_at?: string | null })
-                          .subscription_expires_at,
-                    ) && <PremiumBadge size="xs" ariaLabel="Премиум" />}
-                </span>
-              </span>
-              <span className="text-[var(--muted-foreground)] text-[9px] sm:text-[10px] shrink-0">
-                ·
-              </span>
-              <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] shrink-0">
-                {formatDate(comment.createdAt)}
-              </span>
-              {comment.isEdited && (
-                <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] italic shrink-0">
-                  изм.
-                </span>
-              )}
-
-              {/* Right side: Top10 badge and owner menu */}
-              <div className="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-wrap justify-end">
-                <LeaderTop10Badge userId={userData?._id} />
-                {isOwner && (
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowMenu(!showMenu)}
-                      className="p-1 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                      aria-label="Меню"
-                    >
-                      <MoreVertical className="w-3.5 h-3.5" />
-                    </button>
-                    {showMenu && (
-                      <div className="absolute right-0 top-full mt-0.5 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-10 min-w-[120px] overflow-hidden py-0.5">
-                        <button
-                          onClick={() => {
-                            onEdit?.(comment);
-                            setShowMenu(false);
-                          }}
-                          className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-[var(--foreground)]"
-                        >
-                          <Edit className="w-3.5 h-3.5 shrink-0" />
-                          Редактировать
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleDelete();
-                            setShowMenu(false);
-                          }}
-                          className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-red-500"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                          Удалить
-                        </button>
-                      </div>
+          {/* Content — отступ слева чтобы не наезжать на аватар и рамку */}
+          <div className="flex-1 min-w-0 overflow-hidden ml-2 sm:ml-1">
+            {/* На мобильных: первая строка — имя + меню; вторая — дата + бейдж. На sm+ — одна строка. */}
+            <div className="flex flex-col gap-0.5 sm:block sm:mb-0.5">
+              <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-wrap">
+                <span className="inline-flex items-center gap-1 flex-wrap min-w-0">
+                  <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[11px] sm:text-sm font-medium bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)]/60">
+                    {profileHref ? (
+                      <Link
+                        href={profileHref}
+                        className="hover:text-[var(--primary)] transition-colors focus:outline-none focus:underline truncate max-w-[140px] sm:max-w-none"
+                      >
+                        {userData?.username || "Удаленный пользователь"}
+                      </Link>
+                    ) : (
+                      <span className="truncate max-w-[140px] sm:max-w-none">
+                        {userData?.username || "Удаленный пользователь"}
+                      </span>
                     )}
-                  </div>
+                    {isAdmin && (
+                      <BadgeCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 shrink-0" aria-label="Админ" />
+                    )}
+                    {userData &&
+                      isPremiumActive(
+                        userData.subscriptionExpiresAt ??
+                          (userData as { subscription_expires_at?: string | null })
+                            .subscription_expires_at,
+                      ) && <PremiumBadge size="xs" ariaLabel="Премиум" />}
+                  </span>
+                </span>
+                <span className="text-[var(--muted-foreground)] text-[9px] sm:text-[10px] shrink-0 hidden sm:inline">
+                  ·
+                </span>
+                <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] shrink-0 hidden sm:inline">
+                  {formatDate(comment.createdAt)}
+                </span>
+                {comment.isEdited && (
+                  <span className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] italic shrink-0 hidden sm:inline">
+                    изм.
+                  </span>
                 )}
+                <div className="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-wrap justify-end">
+                  <LeaderTop10Badge userId={userData?._id} />
+                  {isOwner && (
+                    <div className="relative">
+                      <button
+                        onClick={e => (setOverlayContent ? openMenu(e) : setShowMenu(prev => !prev))}
+                        className="p-0.5 sm:p-1 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                        aria-label="Меню"
+                      >
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </button>
+                      {showMenu && !setOverlayContent && (
+                        <div className="absolute right-0 top-full mt-0.5 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-xl z-10 min-w-[120px] overflow-hidden py-0.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onEdit?.(comment);
+                              setShowMenu(false);
+                            }}
+                            className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-[var(--foreground)]"
+                          >
+                            <Edit className="w-3.5 h-3.5 shrink-0" />
+                            Редактировать
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleDelete();
+                              setShowMenu(false);
+                            }}
+                            className="w-full px-3 py-2 text-left hover:bg-[var(--secondary)] flex items-center gap-2 text-xs text-red-500"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                            Удалить
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Вторая строка только на мобильных: дата и бейдж (на sm+ уже в первой строке) */}
+              <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-[var(--muted-foreground)] flex-wrap sm:hidden">
+                <span>{formatDate(comment.createdAt)}</span>
+                {comment.isEdited && <span className="italic">изм.</span>}
               </div>
             </div>
 
-            <p className="text-[var(--foreground)] text-[13px] sm:text-[14px] leading-snug whitespace-pre-wrap break-words mb-1.5 sm:mb-2">
+            <p className="text-[var(--foreground)] text-[12px] sm:text-[14px] leading-snug whitespace-pre-wrap break-words mb-1 sm:mb-2">
               {comment.content}
             </p>
 
             {/* Actions: только реакции (пузырьки + пикер) и ответ */}
-            <div className="flex items-center gap-0.5 flex-wrap gap-y-0.5">
-              {/* Реакции: пузырьки с эмодзи и счётчиком (в т.ч. 👍 и 👎) */}
+            <div className="flex items-center gap-0.5 flex-wrap">
               {displayReactions.map(({ emoji, count }) => (
                 <button
                   key={emoji}
                   type="button"
                   onClick={() => handleReaction(emoji)}
                   disabled={!user}
-                  className="inline-flex items-center gap-0.5 px-2 py-1 rounded-full text-xs border border-[var(--border)]/60 bg-[var(--secondary)]/50 text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs border border-[var(--border)]/60 bg-[var(--secondary)]/50 text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>{emoji}</span>
                   <span>{count}</span>
                 </button>
               ))}
-              {/* Кнопка «добавить реакцию» — пикер рендерится в корневом overlay-слоте (см. useEffect) */}
               {user && (
                 <button
                   type="button"
                   onClick={e => (showEmojiPicker ? closeEmojiPicker() : openEmojiPicker(e))}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
+                  className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
                   aria-label="Добавить реакцию"
                 >
-                  <SmilePlus className="w-3.5 h-3.5" />
+                  <SmilePlus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </button>
               )}
               {user && onReply && level < 2 && (
                 <button
                   onClick={() => onReply(comment._id)}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
+                  className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80 transition-colors"
                 >
-                  <Reply className="w-3.5 h-3.5" />
+                  <Reply className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   Ответить
                 </button>
               )}
             </div>
+          </div>
+        </div>
 
-            {/* Replies */}
-            {comment.replies && comment.replies.length > 0 && (
-              <div className="mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-[var(--border)]/50">
-                <button
-                  onClick={() => setShowReplies(!showReplies)}
-                  className="text-xs text-[var(--primary)] hover:underline mb-2"
-                >
-                  {showReplies ? "−" : "+"} ответы ({comment.replies.length})
-                </button>
-                {showReplies && (
-                  <div className="space-y-2">
-                    {comment.replies.map(reply => (
-                      <CommentItem
-                        key={reply._id}
-                        comment={reply}
-                        onReply={onReply}
-                        onEdit={onEdit}
-                        level={level + 1}
-                      />
-                    ))}
-                  </div>
-                )}
+        {/* Ответы — вне flex с аватаром, чтобы аватар родителя центрировался только по своему комментарию */}
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4">
+            <button
+              onClick={() => setShowReplies(!showReplies)}
+              className="text-[11px] sm:text-xs text-[var(--primary)] hover:underline mb-2 sm:mb-2.5"
+            >
+              {showReplies ? "−" : "+"} ответы ({comment.replies.length})
+            </button>
+            {showReplies && (
+              <div className="space-y-1 sm:space-y-1.5">
+                {comment.replies.map(reply => (
+                  <CommentItem
+                    key={reply._id}
+                    comment={reply}
+                    onReply={onReply}
+                    onEdit={onEdit}
+                    level={level + 1}
+                  />
+                ))}
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </article>
   );

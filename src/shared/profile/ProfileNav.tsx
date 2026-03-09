@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Bookmark, Clock, Package, Repeat, Settings } from "lucide-react";
+import { User, Bookmark, Clock, Package, Settings } from "lucide-react";
 
-export type ProfileNavTab = "about" | "bookmarks" | "history" | "inventory" | "exchanges";
+export type ProfileNavTab = "about" | "bookmarks" | "history" | "inventory";
 
 const TABS: { id: ProfileNavTab; label: string; href: string; icon: React.ElementType }[] = [
   { id: "about", label: "О себе", href: "about", icon: User },
   { id: "bookmarks", label: "Закладки", href: "bookmarks", icon: Bookmark },
   { id: "history", label: "История", href: "history", icon: Clock },
   { id: "inventory", label: "Инвентарь", href: "inventory", icon: Package },
-  { id: "exchanges", label: "Обмены", href: "social/exchanges", icon: Repeat },
 ];
 
 interface ProfileNavProps {

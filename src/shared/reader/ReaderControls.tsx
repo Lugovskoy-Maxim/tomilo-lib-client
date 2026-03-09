@@ -11,7 +11,6 @@ import {
   Play,
   Pause,
   RefreshCw,
-  List,
   RotateCcw,
   Grid3X3,
   Timer,
@@ -86,9 +85,7 @@ export default function ReaderControls({
   shareTitleName,
   shareChapterNumber,
 }: ReaderControlsProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-  const [chapterSearch, setChapterSearch] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isJumpPopoverOpen, setIsJumpPopoverOpen] = useState(false);
@@ -231,40 +228,6 @@ export default function ReaderControls({
       document.removeEventListener("mousedown", handleSettingsClickOutside);
     };
   }, [isSettingsOpen, handleSettingsClickOutside]);
-
-  useEffect(() => {
-    const handleOpenChapterMenu = () => {
-      setIsMenuOpen(true);
-      if (onMenuOpen) {
-        onMenuOpen();
-      }
-    };
-
-    window.addEventListener("openChapterMenu", handleOpenChapterMenu);
-    return () => {
-      window.removeEventListener("openChapterMenu", handleOpenChapterMenu);
-    };
-  }, [onMenuOpen]);
-
-  const currentChapterRef = useRef<HTMLButtonElement>(null);
-  const chapterListRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isMenuOpen && currentChapterRef.current && chapterListRef.current) {
-      setTimeout(() => {
-        currentChapterRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }, 100);
-    }
-  }, [isMenuOpen]);
-
-  const filteredChapters = chapters.filter(
-    chapter =>
-      chapter.number.toString().includes(chapterSearch) ||
-      chapter.title.toLowerCase().includes(chapterSearch.toLowerCase()),
-  );
 
   const chapterProgressPercent = Math.max(
     0,
@@ -771,15 +734,14 @@ export default function ReaderControls({
                 <ChevronLeft className="w-4 h-4 xs:w-5 xs:h-5 max-[360px]:w-3 max-[360px]:h-3 text-[var(--muted-foreground)]" />
               </button>
 
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] flex flex-col items-center justify-center px-2 xs:px-3 max-[360px]:px-1.5 hover:bg-[var(--muted)] rounded-lg transition-colors active:scale-95"
+              <div
+                className="min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] flex flex-col items-center justify-center px-2 xs:px-3 max-[360px]:px-1.5 rounded-lg"
                 title={`Глава ${currentChapter.number}`}
               >
                 <span className="text-xs xs:text-sm max-[360px]:text-[11px] font-medium text-[var(--foreground)]">
                   {currentChapter.number}
                 </span>
-              </button>
+              </div>
 
               <button
                 onClick={onNext}
@@ -842,148 +804,6 @@ export default function ReaderControls({
           </div>
         </div>
       </div>
-
-      {/* Выпадающее меню выбора главы */}
-      {isMenuOpen && (
-        <div className="fixed sm:right-24 sm:top-1/2 sm:-translate-y-1/2 bottom-0 left-0 right-0 sm:left-auto sm:w-96 w-auto max-h-[70vh] sm:max-h-[80vh] bg-[var(--card)] border border-[var(--border)] sm:rounded-2xl rounded-t-2xl shadow-2xl z-[60] overflow-hidden flex flex-col">
-          {/* Заголовок с поиском */}
-          <div className="p-4 border-b border-[var(--border)] bg-[var(--background)]">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <List className="w-5 h-5 text-[var(--primary)]" />
-                Выбор главы
-              </h3>
-              <button
-                onClick={() => setIsMenuOpen(false)}
-                className="p-2 hover:bg-[var(--muted)] rounded-lg transition-colors min-h-[40px] min-w-[40px] touch-manipulation"
-                title="Закрыть"
-              >
-                <X className="w-5 h-5 text-[var(--muted-foreground)]" />
-              </button>
-            </div>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Поиск по номеру или названию..."
-                value={chapterSearch}
-                onChange={e => setChapterSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-[var(--secondary)] border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all text-sm"
-              />
-              <List className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-            </div>
-          </div>
-
-          {/* Список глав */}
-          <div ref={chapterListRef} className="flex-1 overflow-y-auto p-2 space-y-1">
-            {filteredChapters.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 bg-[var(--muted)] rounded-full flex items-center justify-center mb-4">
-                  <List className="w-8 h-8 text-[var(--muted-foreground)]" />
-                </div>
-                <p className="text-[var(--muted-foreground)] text-sm">Главы не найдены</p>
-                <p className="text-[var(--muted-foreground)]/60 text-xs mt-1">
-                  Попробуйте изменить поисковый запрос
-                </p>
-              </div>
-            ) : (
-              filteredChapters.map(chapter => (
-                <button
-                  key={chapter._id}
-                  ref={chapter._id === currentChapter._id ? currentChapterRef : null}
-                  onClick={() => {
-                    onChapterSelect(chapter._id);
-                    setIsMenuOpen(false);
-                    setChapterSearch("");
-                  }}
-                  className={`w-full px-4 py-3 text-left rounded-xl transition-all duration-200 group ${
-                    chapter._id === currentChapter._id
-                      ? "bg-[var(--primary)]/10 border border-[var(--primary)]/30"
-                      : "hover:bg-[var(--accent)] border border-transparent hover:border-[var(--border)]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Номер главы */}
-                    <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                        chapter._id === currentChapter._id
-                          ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                          : "bg-[var(--secondary)] text-[var(--foreground)] group-hover:bg-[var(--primary)]/20"
-                      }`}
-                    >
-                      {chapter.number}
-                    </div>
-
-                    {/* Информация о главе */}
-                    <div className="flex-1 min-w-0">
-                      <div
-                        className={`font-medium truncate ${
-                          chapter._id === currentChapter._id
-                            ? "text-[var(--primary)]"
-                            : "text-[var(--foreground)]"
-                        }`}
-                      >
-                        {chapter.title &&
-                        chapter.title !== String(chapter.number) &&
-                        !chapter.title.toLowerCase().match(/^глава\s*\d+$/)
-                          ? chapter.title
-                          : `Глава ${chapter.number}`}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-0.5">
-                        <span>
-                          {chapter.date ? new Date(chapter.date).toLocaleDateString("ru-RU") : ""}
-                        </span>
-                        {chapter.views > 0 && (
-                          <>
-                            <span>•</span>
-                            <span>{chapter.views.toLocaleString("ru-RU")} просмотров</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Индикатор текущей главы */}
-                    {chapter._id === currentChapter._id && (
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-[var(--primary-foreground)]"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-
-          {/* Футер с информацией */}
-          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)] text-center">
-            <p className="text-xs text-[var(--muted-foreground)]">
-              {filteredChapters.length} из {chapters.length} глав
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Overlay для закрытия меню */}
-      {isMenuOpen && (
-        <div
-          className="fixed inset-0 z-[55]"
-          onClick={() => {
-            setIsMenuOpen(false);
-            setChapterSearch("");
-          }}
-        />
-      )}
 
       {/* Панель комментариев */}
       {isCommentsOpen && (

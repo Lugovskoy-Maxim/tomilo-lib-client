@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { useGetStatsQuery } from "@/store/api/statsApi";
 import { BarChart3 } from "lucide-react";
+import { APP_VERSION_LABEL } from "@/constants/version";
 
 const FOOTER_NAV_GROUPS = [
   {
@@ -352,8 +353,11 @@ export default function Footer() {
                 Сайт разработан: @TomiloDev
                 <ExternalLink className="w-3 h-3 opacity-70" aria-hidden />
               </Link>
-              <span className="py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)] bg-gradient-to-br from-[rgba(var(--primary-rgb),0.12)] to-[rgba(var(--primary-rgb),0.06)] border border-[rgba(var(--border-rgb),0.6)] dark:border-[rgba(var(--border-rgb),0.6)]">
-                Версия 09032025
+              <span
+                className="py-1.5 px-3 rounded-xl whitespace-nowrap text-[var(--muted-foreground)] bg-gradient-to-br from-[rgba(var(--primary-rgb),0.12)] to-[rgba(var(--primary-rgb),0.06)] border border-[rgba(var(--border-rgb),0.6)] dark:border-[rgba(var(--border-rgb),0.6)]"
+                suppressHydrationWarning
+              >
+                Версия {APP_VERSION_LABEL}
               </span>
             </div>
           </div>

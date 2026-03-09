@@ -107,7 +107,7 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
   }, [accumulatedComments, sortOrder]);
 
   return (
-    <div className={`space-y-3 sm:space-y-4 ${className}`}>
+    <div className={`space-y-2 sm:space-y-4 ${className}`}>
       <div className="flex items-center gap-2">
         <MessageCircle className="w-4 h-4 text-[var(--primary)] shrink-0" />
         <h2 className="text-sm sm:text-base font-semibold text-[var(--foreground)]">Комментарии</h2>

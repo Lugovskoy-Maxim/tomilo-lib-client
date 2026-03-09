@@ -9,9 +9,14 @@ import Tooltip from "@/shared/ui/Tooltip";
 
 interface ProfileSecuritySettingsProps {
   userProfile: UserProfile;
+  /** Встроенный вид: без карточки, только форма */
+  embedded?: boolean;
 }
 
-export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps) {
+export default function ProfileSecuritySettings({
+  userProfile: _userProfile,
+  embedded,
+}: ProfileSecuritySettingsProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,42 +51,8 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
     }
   };
 
-  return (
-    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-4 shadow-sm max-w-md">
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          <div className="p-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-            <Shield className="w-4 h-4 text-[var(--primary)]" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-[var(--foreground)]">Безопасность</h2>
-            <p className="text-[var(--muted-foreground)] text-xs">Смена пароля аккаунта</p>
-          </div>
-        </div>
-        <Tooltip
-          content={
-            <div className="space-y-2 max-w-[280px]">
-              <p className="font-medium">Смена пароля</p>
-              <p>Для смены пароля введите текущий пароль и новый пароль дважды.</p>
-              <p className="text-[var(--muted-foreground)]">
-                Рекомендуем использовать пароль длиной не менее 8 символов, содержащий буквы, цифры
-                и специальные символы.
-              </p>
-            </div>
-          }
-          position="left"
-          trigger="click"
-        >
-          <button
-            type="button"
-            className="p-1.5 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </button>
-        </Tooltip>
-      </div>
-
-      <form onSubmit={handleChangePassword} className="space-y-3">
+  const form = (
+    <form onSubmit={handleChangePassword} className="space-y-3">
         <div className="rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60 p-3 space-y-3">
           <div>
             <label
@@ -154,6 +125,45 @@ export default function ProfileSecuritySettings({}: ProfileSecuritySettingsProps
           </Button>
         </div>
       </form>
+  );
+
+  if (embedded) return form;
+
+  return (
+    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 min-[360px]:p-4 sm:p-4 shadow-sm max-w-md">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="p-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60">
+            <Shield className="w-4 h-4 text-[var(--primary)]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[var(--foreground)]">Безопасность</h2>
+            <p className="text-[var(--muted-foreground)] text-xs">Смена пароля аккаунта</p>
+          </div>
+        </div>
+        <Tooltip
+          content={
+            <div className="space-y-2 max-w-[280px]">
+              <p className="font-medium">Смена пароля</p>
+              <p>Для смены пароля введите текущий пароль и новый пароль дважды.</p>
+              <p className="text-[var(--muted-foreground)]">
+                Рекомендуем использовать пароль длиной не менее 8 символов, содержащий буквы, цифры
+                и специальные символы.
+              </p>
+            </div>
+          }
+          position="left"
+          trigger="click"
+        >
+          <button
+            type="button"
+            className="p-1.5 rounded-lg hover:bg-[var(--accent)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+        </Tooltip>
+      </div>
+      {form}
     </div>
   );
 }

@@ -4,7 +4,6 @@ import {
   Clock,
   LayoutDashboard,
   Package,
-  Repeat,
   Settings,
   User,
   Trophy,
@@ -20,7 +19,6 @@ export type ProfileTab =
   | "bookmarks"
   | "history"
   | "inventory"
-  | "exchanges"
   | "settings";
 
 export const PROFILE_TABS: ProfileTab[] = [
@@ -31,7 +29,6 @@ export const PROFILE_TABS: ProfileTab[] = [
   "bookmarks",
   "history",
   "inventory",
-  "exchanges",
   "settings",
 ];
 
@@ -74,11 +71,6 @@ export const tabMeta: Record<
     icon: Package,
     description: "Предметы и декорации",
   },
-  exchanges: {
-    label: "Обмены",
-    icon: Repeat,
-    description: "Обмен с другими пользователями",
-  },
   settings: {
     label: "Настройки",
     icon: Settings,
@@ -91,7 +83,7 @@ export const tabGroups: { label: string; icon: React.ElementType; tabs: ProfileT
   {
     label: "Контент",
     icon: LayoutDashboard,
-    tabs: ["bookmarks", "history", "inventory", "exchanges"],
+    tabs: ["bookmarks", "history", "inventory"],
   },
   { label: "Настройки", icon: Settings, tabs: ["settings"] },
 ];
