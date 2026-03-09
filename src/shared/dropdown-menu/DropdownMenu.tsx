@@ -273,9 +273,15 @@ export default function UserDropdown({
                 );
               })
             ) : (
-              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">
-                —
-              </span>
+              <Link
+                href="/leaders"
+                onClick={onClose}
+                className="inline-flex items-center gap-1 text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)] hover:text-[var(--foreground)] dark:hover:text-[var(--muted-foreground)] transition-colors cursor-pointer"
+                title="Лидерборд"
+              >
+                <Trophy className="w-3 h-3 shrink-0" aria-hidden />
+                Пока не в топах
+              </Link>
             )}
             {leaderboardPositions.length > 4 && (
               <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">
