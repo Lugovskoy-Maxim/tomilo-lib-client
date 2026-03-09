@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* dark: привязан к выбранной теме (next-themes .dark), а не к prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --radius: 0.625rem;
   --background: oklch(0.98 0.003 250);
