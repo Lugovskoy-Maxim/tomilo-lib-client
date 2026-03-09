@@ -66,7 +66,7 @@ function normalizeChaptersResponse(
 export const chaptersApi = createApi({
   reducerPath: "chaptersApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: [CHAPTERS_TAG],
+  tagTypes: [CHAPTERS_TAG, "Auth"],
   endpoints: builder => ({
     getChapterById: builder.query<Chapter, string>({
       query: id => `/chapters/${id}`,
@@ -246,6 +246,7 @@ export const chaptersApi = createApi({
       invalidatesTags: (result, error, { chapterId }) => [
         { type: CHAPTERS_TAG, id: chapterId },
         { type: CHAPTERS_TAG, id: `rating-${chapterId}` },
+        "Auth",
       ],
     }),
 

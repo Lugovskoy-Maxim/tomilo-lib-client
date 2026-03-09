@@ -1,6 +1,7 @@
 "use client";
 
-import { UserProfile } from "@/types/user";
+import { UserProfile, ProfileAchievementFromServer } from "@/types/user";
+import { useGetProfileAchievementsQuery } from "@/store/api/authApi";
 import {
   Trophy,
   BookOpen,
@@ -21,7 +22,67 @@ import {
   Compass,
   ShieldAlert,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState, useMemo, memo } from "react";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  "book-open": BookOpen,
+  bookmark: Bookmark,
+  crown: Crown,
+  clock: Clock,
+  users: Users,
+  "message-circle": MessageCircle,
+  star: Star,
+  flame: Flame,
+  "check-circle": CheckCircle,
+  coins: Coins,
+  "shopping-bag": ShoppingBag,
+  heart: Heart,
+  compass: Compass,
+  "shield-alert": ShieldAlert,
+};
+
+const ACHIEVEMENT_STYLE: Record<string, { color: string; bgColor: string }> = {
+  reader: { color: "#3b82f6", bgColor: "from-blue-500/20 to-cyan-500/20" },
+  collector: { color: "#8b5cf6", bgColor: "from-purple-500/20 to-violet-500/20" },
+  cultivator: { color: "#f59e0b", bgColor: "from-amber-500/20 to-orange-500/20" },
+  veteran: { color: "#64748b", bgColor: "from-slate-500/20 to-zinc-500/20" },
+  social: { color: "#06b6d4", bgColor: "from-cyan-500/20 to-teal-500/20" },
+  commentator: { color: "#ec4899", bgColor: "from-pink-500/20 to-rose-500/20" },
+  critic: { color: "#eab308", bgColor: "from-yellow-500/20 to-amber-500/20" },
+  marathon: { color: "#ef4444", bgColor: "from-red-500/20 to-orange-500/20" },
+  completer: { color: "#22c55e", bgColor: "from-green-500/20 to-emerald-500/20" },
+  time_reader: { color: "#0ea5e9", bgColor: "from-sky-500/20 to-blue-500/20" },
+  saver: { color: "#84cc16", bgColor: "from-lime-500/20 to-green-500/20" },
+  shopper: { color: "#a855f7", bgColor: "from-purple-500/20 to-fuchsia-500/20" },
+  popular: { color: "#f43f5e", bgColor: "from-rose-500/20 to-pink-500/20" },
+  explorer: { color: "#14b8a6", bgColor: "from-teal-500/20 to-cyan-500/20" },
+  reporter: { color: "#64748b", bgColor: "from-slate-500/20 to-zinc-500/20" },
+};
+
+function serverToDisplayAchievements(
+  list: ProfileAchievementFromServer[],
+): AchievementWithLevels[] {
+  return list.map((a) => {
+    const style = ACHIEVEMENT_STYLE[a.id] ?? {
+      color: "var(--muted-foreground)",
+      bgColor: "from-[var(--secondary)] to-[var(--secondary)]",
+    };
+    const Icon = ICON_MAP[a.icon] ?? Trophy;
+    return {
+      id: a.id,
+      name: a.name,
+      description: a.description,
+      icon: Icon,
+      color: style.color,
+      bgColor: style.bgColor,
+      currentLevel: a.currentLevel,
+      maxLevel: a.maxLevel,
+      currentValue: a.currentValue,
+      levels: a.levels.map((l) => ({ threshold: l.threshold, name: l.name })),
+    };
+  });
+}
 
 interface ProfileAchievementsProps {
   userProfile: UserProfile;
@@ -536,29 +597,40 @@ export default function ProfileAchievements({
 }: ProfileAchievementsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const achievements = useMemo(
-    () => generateAchievements(userProfile),
-    // явные поля userProfile вместо всего объекта, чтобы избежать лишних пересчётов
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      userProfile.readingHistory,
-      userProfile.bookmarks?.length,
-      userProfile.level,
-      userProfile.createdAt,
-      userProfile.linkedProviders?.length,
-      userProfile.emailVerified,
-      userProfile.commentsCount,
-      userProfile.ratingsCount,
-      userProfile.longestStreak,
-      userProfile.completedTitlesCount,
-      userProfile.readingTimeMinutes,
-      userProfile.balance,
-      userProfile.ownedDecorations?.length,
-      userProfile.likesReceivedCount,
-      userProfile.titlesReadCount,
-      userProfile.reportsCount,
-    ],
-  );
+  const { data: achievementsResponse } = useGetProfileAchievementsQuery(undefined, {
+    skip: isPublicView,
+  });
+
+  const achievements = useMemo(() => {
+    if (!isPublicView && achievementsResponse?.success && achievementsResponse?.data?.achievements?.length) {
+      return serverToDisplayAchievements(achievementsResponse.data.achievements);
+    }
+    if (isPublicView && userProfile.profileAchievements?.length) {
+      return serverToDisplayAchievements(userProfile.profileAchievements);
+    }
+    return generateAchievements(userProfile);
+  }, [
+    isPublicView,
+    achievementsResponse?.success,
+    achievementsResponse?.data?.achievements,
+    userProfile.profileAchievements,
+    userProfile.readingHistory,
+    userProfile.bookmarks?.length,
+    userProfile.level,
+    userProfile.createdAt,
+    userProfile.linkedProviders?.length,
+    userProfile.emailVerified,
+    userProfile.commentsCount,
+    userProfile.ratingsCount,
+    userProfile.longestStreak,
+    userProfile.completedTitlesCount,
+    userProfile.readingTimeMinutes,
+    userProfile.balance,
+    userProfile.ownedDecorations?.length,
+    userProfile.likesReceivedCount,
+    userProfile.titlesReadCount,
+    userProfile.reportsCount,
+  ]);
 
   const { totalLevels, unlockedLevels, overallPercent } = useMemo(() => {
     const total = achievements.reduce((sum, a) => sum + a.maxLevel, 0);

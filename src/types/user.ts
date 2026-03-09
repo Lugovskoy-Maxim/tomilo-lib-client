@@ -105,8 +105,10 @@ export interface UserProfile {
   ownedDecorations?: OwnedDecorationEntry[];
   /** Подключённые способы входа: "yandex", "vk" и т.д. */
   linkedProviders?: string[];
-  /** Полученные достижения пользователя */
+  /** Полученные достижения пользователя (старый формат — только разблокированные) */
   achievements?: UserAchievement[];
+  /** Достижения с прогрессом для вкладки профиля (ответ API profile/achievements или users/:id) */
+  profileAchievements?: ProfileAchievementFromServer[];
 
   // Статистика пользователя
   /** Количество уникальных прочитанных тайтлов */
@@ -125,6 +127,10 @@ export interface UserProfile {
   longestStreak?: number;
   /** Дата последней активности для streak */
   lastStreakDate?: string;
+  /** Дата последнего получения ежедневного бонуса (ISO). */
+  lastLoginExpDate?: string | null;
+  /** Флаг с сервера: бонус уже получен сегодня (по дате сервера). */
+  dailyBonusClaimedToday?: boolean;
   /** Количество завершённых тайтлов */
   completedTitlesCount?: number;
   /** Количество отправленных жалоб */
@@ -176,6 +182,19 @@ export interface UserAchievement {
   unlockedAt?: string;
   progress?: number;
   maxProgress?: number;
+}
+
+/** Достижение с прогрессом для вкладки профиля (ответ API profile/achievements и users/:id) */
+export interface ProfileAchievementFromServer {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  type: AchievementType;
+  currentLevel: number;
+  maxLevel: number;
+  currentValue: number;
+  levels: { threshold: number; name: string; rarity: AchievementRarity }[];
 }
 
 // Статистика пользователя

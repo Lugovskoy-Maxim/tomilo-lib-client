@@ -43,6 +43,8 @@ function transformUserToProfile(user: User): UserProfile | null {
     currentStreak: user.currentStreak,
     longestStreak: user.longestStreak,
     lastStreakDate: user.lastStreakDate,
+    lastLoginExpDate: (user as User & { lastLoginExpDate?: string | null }).lastLoginExpDate ?? undefined,
+    dailyBonusClaimedToday: (user as User & { dailyBonusClaimedToday?: boolean }).dailyBonusClaimedToday,
     privacy: user.privacy,
     displaySettings: user.displaySettings,
     linkedProviders: getLinkedProvidersFromUser(user),

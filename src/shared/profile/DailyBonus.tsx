@@ -39,15 +39,19 @@ export default function DailyBonus({ userProfile, onClaimBonus }: DailyBonusProp
 
   const currentStreak = localStreak ?? userProfile.currentStreak ?? 0;
 
+  /** Бонус уже получен сегодня: флаг с сервера или только что в этой сессии */
+  const bonusClaimedToday =
+    claimed || userProfile.dailyBonusClaimedToday === true;
+
   const { canClaim, nextMilestone, daysToMilestone } = useMemo(() => {
     const milestone = getNextMilestone(currentStreak);
     const daysLeft = milestone ? getDaysUntilMilestone(currentStreak, milestone.days) : 0;
     return {
-      canClaim: !claimed,
+      canClaim: !bonusClaimedToday,
       nextMilestone: milestone,
       daysToMilestone: daysLeft,
     };
-  }, [currentStreak, claimed]);
+  }, [currentStreak, bonusClaimedToday]);
 
   const handleClaimBonus = async () => {
     try {

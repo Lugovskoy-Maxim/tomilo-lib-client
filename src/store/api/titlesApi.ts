@@ -66,7 +66,7 @@ export const titlesApi = createApi({
   reducerPath: "titlesApi",
   keepUnusedDataFor: 60, // 1 мин — кеш последних обновлений и др.
   baseQuery: baseQueryWithReauth,
-  tagTypes: [TITLES_TAG],
+  tagTypes: [TITLES_TAG, "Auth"],
   endpoints: builder => ({
     getTitles: builder.query<ApiResponseDto<{ titles: Title[] }>, void>({
       query: () => "/titles",
@@ -336,7 +336,10 @@ export const titlesApi = createApi({
         method: "POST",
         body: { rating },
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: TITLES_TAG, id }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: TITLES_TAG, id },
+        "Auth",
+      ],
       transformResponse: (response: ApiResponseDto<Title>) => response,
     }),
 
