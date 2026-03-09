@@ -109,7 +109,6 @@ export function RightContent({
   }, [isRatingOpen]);
 
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [hoveredChapterId, setHoveredChapterId] = useState<string | null>(null);
   const [removingChapterId, setRemovingChapterId] = useState<string | null>(null);
   const [markingChapterId, setMarkingChapterId] = useState<string | null>(null);
 
@@ -883,29 +882,29 @@ export function RightContent({
                   >
                     {/* Статус прочтения — компактно на мобиле; клик по иконке: отметить прочитанной / удалить из истории */}
                     <div
-                      className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-[var(--background)]/40 flex-shrink-0"
-                      onMouseEnter={() => setHoveredChapterId(chapter._id || null)}
-                      onMouseLeave={() => setHoveredChapterId(null)}
+                      className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-[var(--background)]/40 flex-shrink-0 touch-manipulation"
                       onClick={e => e.stopPropagation()}
                     >
-                      {read && hoveredChapterId === chapter._id ? (
+                      {read ? (
                         <button
+                          type="button"
                           onClick={e => {
                             e.stopPropagation();
                             handleRemoveFromHistory(chapter._id || "", e);
                           }}
                           disabled={isRemoving}
-                          className={`flex items-center justify-center ${
+                          className={`flex items-center justify-center w-full h-full min-w-[2rem] min-h-[2rem] sm:min-w-[2.25rem] sm:min-h-[2.25rem] rounded-md sm:rounded-lg ${
                             isRemoving
                               ? "cursor-not-allowed text-[var(--foreground)]/30"
-                              : "text-red-500 hover:text-red-600 cursor-pointer"
+                              : "text-red-500 hover:text-red-600 active:bg-[var(--background)]/60 cursor-pointer"
                           }`}
                           title="Удалить из истории"
+                          aria-label="Удалить из истории чтения"
                         >
                           {isRemoving ? (
                             <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[var(--foreground)]/20 border-t-[var(--chart-1)] rounded-full animate-spin" />
                           ) : (
-                            <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                           )}
                         </button>
                       ) : !read && user ? (
@@ -913,8 +912,9 @@ export function RightContent({
                           type="button"
                           onClick={e => handleMarkAsRead(chapter._id || "", e)}
                           disabled={markingChapterId === chapter._id}
-                          className="flex items-center justify-center text-[var(--foreground)]/25 hover:text-green-500 focus:text-green-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                          className="flex items-center justify-center w-full h-full min-w-[2rem] min-h-[2rem] sm:min-w-[2.25rem] sm:min-h-[2.25rem] rounded-md sm:rounded-lg text-[var(--foreground)]/25 hover:text-green-500 focus:text-green-500 active:bg-[var(--background)]/60 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation"
                           title="Отметить прочитанной"
+                          aria-label="Отметить прочитанной"
                         >
                           {markingChapterId === chapter._id ? (
                             <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[var(--foreground)]/20 border-t-green-500 rounded-full animate-spin" />
