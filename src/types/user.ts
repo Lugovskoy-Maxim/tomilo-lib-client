@@ -127,8 +127,10 @@ export interface UserProfile {
   longestStreak?: number;
   /** Дата последней активности для streak */
   lastStreakDate?: string;
-  /** Дата последнего получения ежедневного бонуса (ISO). Если совпадает с сегодня — бонус уже получен. */
+  /** Дата последнего получения ежедневного бонуса (ISO). */
   lastLoginExpDate?: string | null;
+  /** Флаг с сервера: бонус уже получен сегодня (по дате сервера). */
+  dailyBonusClaimedToday?: boolean;
   /** Количество завершённых тайтлов */
   completedTitlesCount?: number;
   /** Количество отправленных жалоб */
