@@ -22,6 +22,8 @@ interface PrivacyPolicyPageProps {
   searchParams: Promise<{ lang?: string }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   searchParams,
 }: PrivacyPolicyPageProps): Promise<Metadata> {

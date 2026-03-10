@@ -13,6 +13,8 @@ interface PageProps {
   searchParams?: Promise<{ tab?: string }>;
 }
 
+export const dynamic = "force-dynamic";
+
 // Кодируем slug для URL (апостроф, кавычки и др.) — бэкенд должен декодировать
 function encodeSlugForApi(slug: string): string {
   return encodeURIComponent(slug);

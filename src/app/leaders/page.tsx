@@ -8,6 +8,8 @@ const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
 type LeadersPageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   return buildServerSEOMetadata({
     title: "Таблица лидеров — рейтинг активных читателей | Tomilo-lib.ru",
