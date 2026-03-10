@@ -219,7 +219,7 @@ export default function ProfileProgress(props: ProfileProgressProps) {
   const displayedGroups = useMemo(() => {
     const groups = Array.from(groupedEvents.entries());
     if (showAll) return groups;
-    return groups.slice(0, 3);
+    return groups.slice(0, 2);
   }, [groupedEvents, showAll]);
 
   const stats = useMemo(() => {
@@ -255,10 +255,10 @@ export default function ProfileProgress(props: ProfileProgressProps) {
     ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Stats cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-yellow-500/15">
               <Zap className="w-4 h-4 text-yellow-500" />
@@ -267,12 +267,12 @@ export default function ProfileProgress(props: ProfileProgressProps) {
               За неделю
             </span>
           </div>
-          <p className="text-xl font-bold text-[var(--foreground)]">
+          <p className="text-lg font-bold text-[var(--foreground)]">
             {stats.weeklyXp.toLocaleString()} XP
           </p>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
+        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-orange-500/15">
               <TrendingUp className="w-4 h-4 text-orange-500" />
@@ -281,12 +281,12 @@ export default function ProfileProgress(props: ProfileProgressProps) {
               За месяц
             </span>
           </div>
-          <p className="text-xl font-bold text-[var(--foreground)]">
+          <p className="text-lg font-bold text-[var(--foreground)]">
             {stats.monthlyXp.toLocaleString()} XP
           </p>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
+        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-amber-500/15">
               <ArrowUp className="w-4 h-4 text-amber-500" />
@@ -295,10 +295,10 @@ export default function ProfileProgress(props: ProfileProgressProps) {
               Уровней
             </span>
           </div>
-          <p className="text-xl font-bold text-[var(--foreground)]">{stats.levelUps}</p>
+          <p className="text-lg font-bold text-[var(--foreground)]">{stats.levelUps}</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
+        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-purple-500/15">
               <Trophy className="w-4 h-4 text-purple-500" />
@@ -307,14 +307,14 @@ export default function ProfileProgress(props: ProfileProgressProps) {
               Достижений
             </span>
           </div>
-          <p className="text-xl font-bold text-[var(--foreground)]">{stats.achievements}</p>
+          <p className="text-lg font-bold text-[var(--foreground)]">{stats.achievements}</p>
         </div>
       </div>
 
       {/* History section */}
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-4 sm:p-6 shadow-sm">
+      <div className="rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
               <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />

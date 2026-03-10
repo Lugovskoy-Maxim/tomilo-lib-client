@@ -4,7 +4,12 @@ import { ClipboardList, Check, Loader2, Coins, Sparkles } from "lucide-react";
 import { useGetDailyQuestsQuery, useClaimDailyQuestMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 
-export default function ProfileDailyQuests() {
+interface ProfileDailyQuestsProps {
+  /** Показать только первые N заданий (для компактного обзора) */
+  maxVisible?: number;
+}
+
+export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsProps = {}) {
   const { data: response, isLoading, isError } = useGetDailyQuestsQuery(undefined, {
     skip: typeof window === "undefined",
   });
@@ -12,7 +17,8 @@ export default function ProfileDailyQuests() {
   const toast = useToast();
 
   const data = response?.success ? response.data : null;
-  const quests = data?.quests ?? [];
+  const allQuests = data?.quests ?? [];
+  const quests = maxVisible != null ? allQuests.slice(0, maxVisible) : allQuests;
 
   const handleClaim = async (questId: string) => {
     try {
