@@ -9,10 +9,11 @@ import {
   useUpdateChapterMutation,
 } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
-import { useMemo, useCallback, useState, useRef } from "react";
+import { useMemo, useCallback, useState, useRef, useId } from "react";
 import { Header, Footer } from "@/widgets";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
+import { getChapterStatusLabel, getChapterStatusStyles } from "@/lib/chapter-status";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 
@@ -29,8 +30,11 @@ export default function ChaptersManagementPage() {
   const [draggedChapter, setDraggedChapter] = useState<Chapter | null>(null);
   const [sortField, setSortField] = useState<ChapterSortField>("chapterNumber");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
+  const checkboxIdPrefix = useId();
 
   const { data: titleData } = useGetTitleByIdQuery({ id: titleId }, { skip: !titleId });
   const { data, isLoading, error } = useGetChaptersByTitleQuery(
@@ -87,6 +91,11 @@ export default function ChaptersManagementPage() {
     }
     try {
       await deleteChapter(id).unwrap();
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       toast.success("Глава удалена");
     } catch (e) {
       const error = e as Error;
@@ -94,7 +103,7 @@ export default function ChaptersManagementPage() {
     }
   };
 
-  // Сортировка глав
+  // Сортировка глав (объявляем до chaptersWithoutPages и логики выбора)
   const sortedChapters = useMemo(() => {
     const arr = [...chapters];
     arr.sort((a, b) => {
@@ -143,6 +152,109 @@ export default function ChaptersManagementPage() {
     });
     return arr;
   }, [chapters, sortField, sortDirection]);
+
+  // Главы без страниц (для кнопки удаления)
+  const chaptersWithoutPages = useMemo(
+    () =>
+      sortedChapters.filter(
+        ch => (ch.pages?.length ?? ch.images?.length ?? 0) === 0,
+      ),
+    [sortedChapters],
+  );
+  const countWithoutPages = chaptersWithoutPages.length;
+
+  // Выбор глав
+  const selectedCount = selectedIds.size;
+  const isAllSelected =
+    sortedChapters.length > 0 &&
+    sortedChapters.every(ch => selectedIds.has(ch._id));
+  const isSomeSelected = selectedCount > 0;
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (isAllSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(sortedChapters.map(ch => ch._id)));
+    }
+  }, [isAllSelected, sortedChapters]);
+
+  const handleDeleteSelected = useCallback(async () => {
+    if (selectedCount === 0) return;
+    if (
+      !confirm(
+        `Удалить выбранные главы (${selectedCount})? Это действие нельзя отменить.`,
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      let ok = 0;
+      let err = 0;
+      for (const id of selectedIds) {
+        try {
+          await deleteChapter(id).unwrap();
+          ok++;
+        } catch {
+          err++;
+        }
+      }
+      setSelectedIds(new Set());
+      if (err === 0) toast.success(`Удалено глав: ${ok}`);
+      else toast.error(`Удалено: ${ok}, ошибок: ${err}`);
+    } catch (e) {
+      toast.error("Ошибка при удалении");
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [selectedCount, selectedIds, deleteChapter, toast]);
+
+  const handleDeleteChaptersWithoutPages = useCallback(async () => {
+    if (countWithoutPages === 0) {
+      toast.info("Нет глав без страниц");
+      return;
+    }
+    if (
+      !confirm(
+        `Удалить ${countWithoutPages} глав без страниц? Это действие нельзя отменить.`,
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      let ok = 0;
+      let err = 0;
+      for (const ch of chaptersWithoutPages) {
+        try {
+          await deleteChapter(ch._id).unwrap();
+          ok++;
+          setSelectedIds(prev => {
+            const next = new Set(prev);
+            next.delete(ch._id);
+            return next;
+          });
+        } catch {
+          err++;
+        }
+      }
+      if (err === 0) toast.success(`Удалено глав без страниц: ${ok}`);
+      else toast.error(`Удалено: ${ok}, ошибок: ${err}`);
+    } catch (e) {
+      toast.error("Ошибка при удалении");
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [countWithoutPages, chaptersWithoutPages, deleteChapter, toast]);
 
   const handleSort = (field: ChapterSortField) => {
     if (sortField === field) {
@@ -238,37 +350,43 @@ export default function ChaptersManagementPage() {
             ]}
             className="mb-6"
           />
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Link href={`/admin/titles/edit/${titleId}`} className="px-3 py-2 rounded border">
-                Назад к редактированию тайтла
-              </Link>
-              <h1 className="text-2xl font-semibold text-[var(--foreground)]">Главы тайтла</h1>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Поиск по номеру главы */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder="Номер главы"
-                  value={searchChapterNumber}
-                  onChange={e => setSearchChapterNumber(e.target.value)}
-                  onKeyPress={e => e.key === "Enter" && handleSearch()}
-                  className="px-3 py-2 border rounded text-sm w-32"
-                />
-                <button
-                  onClick={handleSearch}
-                  className="px-3 py-2 border rounded text-sm bg-[var(--secondary)] hover:bg-[var(--accent)]"
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <Link
+                  href={`/admin/titles/edit/${titleId}`}
+                  className="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm hover:bg-[var(--accent)] transition-colors"
                 >
-                  Найти
-                </button>
+                  Назад к редактированию тайтла
+                </Link>
+                <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)]">
+                  Главы тайтла
+                </h1>
               </div>
-              <Link
-                href={`/admin/titles/edit/${titleId}/chapters/new`}
-                className="px-3 py-2 rounded bg-[var(--primary)] text-[var(--primary-foreground)]"
-              >
-                Добавить главу
-              </Link>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Номер главы"
+                    value={searchChapterNumber}
+                    onChange={e => setSearchChapterNumber(e.target.value)}
+                    onKeyPress={e => e.key === "Enter" && handleSearch()}
+                    className="flex-1 min-w-0 px-3 py-2 border border-[var(--border)] rounded-lg text-sm bg-[var(--background)]"
+                  />
+                  <button
+                    onClick={handleSearch}
+                    className="shrink-0 px-3 py-2 rounded-lg border border-[var(--border)] text-sm bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors"
+                  >
+                    Найти
+                  </button>
+                </div>
+                <Link
+                  href={`/admin/titles/edit/${titleId}/chapters/new`}
+                  className="px-3 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-center text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  Добавить главу
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -279,20 +397,56 @@ export default function ChaptersManagementPage() {
           )}
 
           <div className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--card)]">
-            <div className="p-4 border-b border-[var(--border)]">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Список глав</h2>
-                <div className="text-sm text-[var(--muted-foreground)]">
-                  Загружено: {sortedChapters.length} глав
+            <div className="p-4 border-b border-[var(--border)] space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h2 className="text-lg font-semibold text-[var(--foreground)]">Список глав</h2>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                  <span>Загружено: {sortedChapters.length} глав</span>
                   {hasMore && !isLoading && (
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
-                      className="ml-4 px-3 py-1 text-sm bg-[var(--primary)] text-[var(--primary-foreground)] rounded hover:opacity-90"
+                      className="px-3 py-1.5 text-sm rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90"
                     >
                       Загрузить ещё
                     </button>
                   )}
                 </div>
+              </div>
+              {/* Панель действий: выбор и удаление */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-[var(--border)]">
+                {isSomeSelected && (
+                  <>
+                    <span className="text-sm text-[var(--muted-foreground)]">
+                      Выбрано: {selectedCount}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={handleDeleteSelected}
+                      className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] text-[var(--destructive)] hover:bg-red-500/10 disabled:opacity-50"
+                    >
+                      Удалить выбранные
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedIds(new Set())}
+                      className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
+                    >
+                      Снять выбор
+                    </button>
+                  </>
+                )}
+                {countWithoutPages > 0 && (
+                  <button
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={handleDeleteChaptersWithoutPages}
+                    className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] text-[var(--destructive)] hover:bg-red-500/10 disabled:opacity-50"
+                    title={`Удалить ${countWithoutPages} глав без страниц`}
+                  >
+                    Удалить главы без страниц ({countWithoutPages})
+                  </button>
+                )}
               </div>
             </div>
 
@@ -300,119 +454,232 @@ export default function ChaptersManagementPage() {
               <div className="p-6 text-center text-[var(--muted-foreground)]">Загрузка глав...</div>
             ) : (
               <>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-[var(--secondary)] border-b border-[var(--border)]">
-                      <th className="text-left p-3">
-                        <button
-                          type="button"
-                          onClick={() => handleSort("chapterNumber")}
-                          className="flex items-center hover:text-[var(--primary)] transition-colors"
-                        >
-                          Глава
-                          <SortIcon field="chapterNumber" />
-                        </button>
-                      </th>
-                      <th className="text-left p-3">
-                        <button
-                          type="button"
-                          onClick={() => handleSort("title")}
-                          className="flex items-center hover:text-[var(--primary)] transition-colors"
-                        >
-                          Название
-                          <SortIcon field="title" />
-                        </button>
-                      </th>
-                      <th className="text-left p-3">
-                        <button
-                          type="button"
-                          onClick={() => handleSort("status")}
-                          className="flex items-center hover:text-[var(--primary)] transition-colors"
-                        >
-                          Статус
-                          <SortIcon field="status" />
-                        </button>
-                      </th>
-                      <th className="text-left p-3">
-                        <button
-                          type="button"
-                          onClick={() => handleSort("isPublished")}
-                          className="flex items-center hover:text-[var(--primary)] transition-colors"
-                        >
-                          Публик.
-                          <SortIcon field="isPublished" />
-                        </button>
-                      </th>
-                      <th className="text-left p-3">
-                        <button
-                          type="button"
-                          onClick={() => handleSort("pages")}
-                          className="flex items-center hover:text-[var(--primary)] transition-colors"
-                        >
-                          Страницы
-                          <SortIcon field="pages" />
-                        </button>
-                      </th>
-                      <th className="text-left p-3">
-                        <button
-                          type="button"
-                          onClick={() => handleSort("views")}
-                          className="flex items-center hover:text-[var(--primary)] transition-colors"
-                        >
-                          Просмотры
-                          <SortIcon field="views" />
-                        </button>
-                      </th>
-                      <th className="text-right p-3">Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedChapters.map((ch: Chapter, index: number) => (
-                      <tr
-                        key={ch._id}
-                        data-chapter-id={ch._id}
-                        className={`border-b border-[var(--border)] hover:bg-[var(--accent)]/30 ${
-                          foundChapter?._id === ch._id ? "bg-yellow-100 border-yellow-300" : ""
-                        } ${draggedChapter?._id === ch._id ? "opacity-50" : ""}`}
-                        draggable
-                        onDragStart={e => handleDragStart(e, index)}
-                        onDragEnter={e => handleDragEnter(e, index)}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <td className="p-3">#{ch.chapterNumber}</td>
-                        <td className="p-3">{ch.title || "-"}</td>
-                        <td className="p-3">{ch.status}</td>
-                        <td className="p-3">{ch.isPublished ? "Да" : "Нет"}</td>
-                        <td className="p-3">{ch.pages?.length ?? ch.images?.length ?? 0}</td>
-                        <td className="p-3">{ch.views ?? 0}</td>
-                        <td className="p-3 text-right">
-                          <div className="inline-flex gap-2">
-                            <Link
-                              href={`/titles/${titleData?.slug || titleId}/chapter/${ch._id}`}
-                              className="px-2 py-1 border rounded"
-                            >
-                              Открыть
-                            </Link>
-                            <Link
-                              href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`}
-                              className="px-2 py-1 border rounded"
-                            >
-                              Редактировать
-                            </Link>
-                            <button
-                              className="px-2 py-1 border rounded text-red-600"
-                              onClick={() => handleDelete(ch._id)}
-                            >
-                              Удалить
-                            </button>
-                          </div>
-                        </td>
+                {/* Десктоп: таблица с горизонтальным скроллом и липким заголовком */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm min-w-[640px]">
+                    <thead>
+                      <tr className="bg-[var(--secondary)] border-b border-[var(--border)] sticky top-0 z-10">
+                        <th className="w-10 p-3 text-left">
+                          <label className="flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isAllSelected}
+                              ref={input => {
+                                if (input) input.indeterminate = isSomeSelected && !isAllSelected;
+                              }}
+                              onChange={toggleSelectAll}
+                              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                              aria-label="Выбрать все"
+                            />
+                          </label>
+                        </th>
+                        <th className="text-left p-3 font-medium text-[var(--foreground)] whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => handleSort("chapterNumber")}
+                            className="flex items-center hover:text-[var(--primary)] transition-colors"
+                          >
+                            Глава
+                            <SortIcon field="chapterNumber" />
+                          </button>
+                        </th>
+                        <th className="text-left p-3 font-medium text-[var(--foreground)]">
+                          <button
+                            type="button"
+                            onClick={() => handleSort("title")}
+                            className="flex items-center hover:text-[var(--primary)] transition-colors"
+                          >
+                            Название
+                            <SortIcon field="title" />
+                          </button>
+                        </th>
+                        <th className="text-left p-3 font-medium text-[var(--foreground)] whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => handleSort("status")}
+                            className="flex items-center hover:text-[var(--primary)] transition-colors"
+                          >
+                            Статус
+                            <SortIcon field="status" />
+                          </button>
+                        </th>
+                        <th className="text-left p-3 font-medium text-[var(--foreground)] whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => handleSort("isPublished")}
+                            className="flex items-center hover:text-[var(--primary)] transition-colors"
+                          >
+                            Публик.
+                            <SortIcon field="isPublished" />
+                          </button>
+                        </th>
+                        <th className="text-left p-3 font-medium text-[var(--foreground)] whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => handleSort("pages")}
+                            className="flex items-center hover:text-[var(--primary)] transition-colors"
+                          >
+                            Страницы
+                            <SortIcon field="pages" />
+                          </button>
+                        </th>
+                        <th className="text-left p-3 font-medium text-[var(--foreground)] whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => handleSort("views")}
+                            className="flex items-center hover:text-[var(--primary)] transition-colors"
+                          >
+                            Просмотры
+                            <SortIcon field="views" />
+                          </button>
+                        </th>
+                        <th className="text-right p-3 font-medium text-[var(--foreground)] w-40">
+                          Действия
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {sortedChapters.map((ch: Chapter, index: number) => (
+                        <tr
+                          key={ch._id}
+                          data-chapter-id={ch._id}
+                          className={`border-b border-[var(--border)] hover:bg-[var(--accent)]/30 transition-colors ${
+                            foundChapter?._id === ch._id
+                              ? "bg-amber-500/10 dark:bg-amber-500/20 border-l-2 border-l-amber-500"
+                              : ""
+                          } ${draggedChapter?._id === ch._id ? "opacity-50" : ""}`}
+                          draggable
+                          onDragStart={e => handleDragStart(e, index)}
+                          onDragEnter={e => handleDragEnter(e, index)}
+                          onDragOver={handleDragOver}
+                          onDrop={handleDrop}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <td className="w-10 p-3" onClick={e => e.stopPropagation()}>
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                id={`${checkboxIdPrefix}-${ch._id}`}
+                                checked={selectedIds.has(ch._id)}
+                                onChange={() => toggleSelect(ch._id)}
+                                className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                aria-label={`Выбрать главу ${ch.chapterNumber}`}
+                              />
+                            </label>
+                          </td>
+                          <td className="p-3 font-medium">#{ch.chapterNumber}</td>
+                          <td className="p-3 text-[var(--foreground)] max-w-[200px] truncate">
+                            {ch.title || ch.name || "-"}
+                          </td>
+                          <td className="p-3">
+                            <span className={getChapterStatusStyles(ch)}>
+                              {getChapterStatusLabel(ch)}
+                            </span>
+                          </td>
+                          <td className="p-3 text-[var(--muted-foreground)]">
+                            {ch.isPublished ? "Да" : "Нет"}
+                          </td>
+                          <td className="p-3 text-[var(--muted-foreground)]">
+                            {ch.pages?.length ?? ch.images?.length ?? 0}
+                          </td>
+                          <td className="p-3 text-[var(--muted-foreground)]">
+                            {(ch.views ?? 0).toLocaleString()}
+                          </td>
+                          <td className="p-3 text-right">
+                            <div className="inline-flex flex-wrap justify-end gap-1.5">
+                              <Link
+                                href={`/titles/${titleData?.slug || titleId}/chapter/${ch._id}`}
+                                className="px-2 py-1 rounded border border-[var(--border)] text-xs hover:bg-[var(--accent)]"
+                              >
+                                Открыть
+                              </Link>
+                              <Link
+                                href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`}
+                                className="px-2 py-1 rounded border border-[var(--border)] text-xs hover:bg-[var(--accent)]"
+                              >
+                                Редактировать
+                              </Link>
+                              <button
+                                type="button"
+                                className="px-2 py-1 rounded border border-[var(--border)] text-xs text-[var(--destructive)] hover:bg-red-500/10"
+                                onClick={() => handleDelete(ch._id)}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Мобильный вид: карточки */}
+                <div className="md:hidden divide-y divide-[var(--border)]">
+                  {sortedChapters.map((ch: Chapter) => (
+                    <div
+                      key={ch._id}
+                      data-chapter-id={ch._id}
+                      className={`p-4 space-y-3 ${
+                        foundChapter?._id === ch._id
+                          ? "bg-amber-500/10 dark:bg-amber-500/20 border-l-4 border-l-amber-500"
+                          : ""
+                      } ${draggedChapter?._id === ch._id ? "opacity-50" : ""}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <label className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            id={`${checkboxIdPrefix}-mobile-${ch._id}`}
+                            checked={selectedIds.has(ch._id)}
+                            onChange={() => toggleSelect(ch._id)}
+                            className="shrink-0 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                            aria-label={`Выбрать главу ${ch.chapterNumber}`}
+                          />
+                          <span className="font-semibold text-[var(--foreground)]">
+                            #{ch.chapterNumber}
+                          </span>
+                          <span className={getChapterStatusStyles(ch)}> {getChapterStatusLabel(ch)}</span>
+                          {ch.isPublished && (
+                            <span className="ml-1.5 text-xs text-[var(--muted-foreground)]">
+                              · Публик.
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                      {(ch.title || ch.name) && (
+                        <p className="text-sm text-[var(--foreground)] line-clamp-2">
+                          {ch.title || ch.name}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-3 text-xs text-[var(--muted-foreground)]">
+                        <span>Страницы: {ch.pages?.length ?? ch.images?.length ?? 0}</span>
+                        <span>Просмотры: {(ch.views ?? 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <Link
+                          href={`/titles/${titleData?.slug || titleId}/chapter/${ch._id}`}
+                          className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium hover:bg-[var(--accent)]"
+                        >
+                          Открыть
+                        </Link>
+                        <Link
+                          href={`/admin/titles/edit/${titleId}/chapters/${ch._id}`}
+                          className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium hover:bg-[var(--accent)]"
+                        >
+                          Редактировать
+                        </Link>
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--destructive)] hover:bg-red-500/10"
+                          onClick={() => handleDelete(ch._id)}
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
                 {sortedChapters.length === 0 && (
                   <div className="p-6 text-center text-[var(--muted-foreground)]">
@@ -422,22 +689,22 @@ export default function ChaptersManagementPage() {
 
                 {/* Пагинация */}
                 <div className="p-4 border-t border-[var(--border)]">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div className="text-sm text-[var(--muted-foreground)]">
                       Страница {currentPage}
                       {hasMore && (
                         <button
                           onClick={() => handlePageChange(currentPage + 1)}
-                          className="ml-4 px-3 py-1 text-sm bg-[var(--secondary)] border rounded hover:bg-[var(--accent)]"
+                          className="ml-2 sm:ml-4 px-3 py-1.5 text-sm rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90"
                         >
-                          Следующая страница
+                          Следующая
                         </button>
                       )}
                     </div>
                     {currentPage > 1 && (
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
-                        className="px-3 py-1 text-sm bg-[var(--secondary)] border rounded hover:bg-[var(--accent)]"
+                        className="px-3 py-1.5 text-sm rounded-lg bg-[var(--secondary)] border border-[var(--border)] hover:bg-[var(--accent)]"
                       >
                         Предыдущая страница
                       </button>
