@@ -87,8 +87,8 @@ export function ChapterRatingsChart({ chapters }: ChapterRatingsChartProps): Rea
                 borderRadius: "var(--radius)",
               }}
               labelStyle={{ color: "var(--foreground)" }}
-              formatter={(value: number, _name: string, props: { payload: ChartPoint }) => [
-                `${value} (${props.payload.count} ${props.payload.count === 1 ? "оценка" : "оценок"})`,
+              formatter={(value, _name, props) => [
+                `${value ?? 0} (${(props?.payload as ChartPoint)?.count ?? 0} ${(props?.payload as ChartPoint)?.count === 1 ? "оценка" : "оценок"})`,
                 "Рейтинг",
               ]}
               labelFormatter={(_label, payload) =>

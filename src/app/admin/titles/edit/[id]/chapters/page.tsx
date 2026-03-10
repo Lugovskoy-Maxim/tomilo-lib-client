@@ -229,7 +229,7 @@ export default function ChaptersManagementPage() {
       setSelectedIds(new Set());
       if (err === 0) toast.success(`Удалено глав: ${ok}`);
       else toast.error(`Удалено: ${ok}, ошибок: ${err}`);
-    } catch (e) {
+    } catch {
       toast.error("Ошибка при удалении");
     } finally {
       setIsDeleting(false);
@@ -267,7 +267,7 @@ export default function ChaptersManagementPage() {
       }
       if (err === 0) toast.success(`Удалено глав без страниц: ${ok}`);
       else toast.error(`Удалено: ${ok}, ошибок: ${err}`);
-    } catch (e) {
+    } catch {
       toast.error("Ошибка при удалении");
     } finally {
       setIsDeleting(false);

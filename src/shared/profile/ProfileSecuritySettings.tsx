@@ -14,6 +14,7 @@ interface ProfileSecuritySettingsProps {
 }
 
 export default function ProfileSecuritySettings({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for future use
   userProfile: _userProfile,
   embedded,
 }: ProfileSecuritySettingsProps) {

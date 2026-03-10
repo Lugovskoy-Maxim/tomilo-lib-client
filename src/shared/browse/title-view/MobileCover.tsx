@@ -5,6 +5,7 @@ import type { ReadingHistoryEntry } from "@/types/store";
 import { ReadButton } from "@/shared/browse/ReadButton";
 import { BookmarkButton } from "@/shared/bookmark-button/BookmarkButton";
 import { SubscribeButton } from "@/shared/browse/title-view/SubscribeButton";
+import { TitleAutoParsingManager } from "@/shared/browse/title-view/TitleAutoParsingManager";
 import { useAuth } from "@/hooks/useAuth";
 import { checkAgeVerification } from "@/shared/modal/AgeVerificationModal";
 import { useState } from "react";
@@ -117,6 +118,15 @@ export default function MobileCover({
             </Link>
           )}
         </div>
+
+        {isAdmin && (
+          <div className="mt-3">
+            <TitleAutoParsingManager
+              titleId={titleData._id as string}
+              titleName={titleData.name}
+            />
+          </div>
+        )}
       </div>
 
       {/* Report Modal */}

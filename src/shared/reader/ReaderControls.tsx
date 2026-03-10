@@ -59,8 +59,10 @@ export default function ReaderControls({
   currentPage,
   chapterImageLength,
   currentChapter,
-  chapters,
-  onChapterSelect,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- пропсы для совместимости API
+  chapters: _chapters,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- пропсы для совместимости API
+  onChapterSelect: _onChapterSelect,
   onPrev,
   onNext,
   canGoPrev,
@@ -74,7 +76,8 @@ export default function ReaderControls({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- опциональный колбэк из родителя
   onToggleMenu,
   forceStopAutoScroll = false,
-  onMenuOpen,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- пропсы для совместимости API
+  onMenuOpen: _onMenuOpen,
   onAutoScrollStart,
   preloadAllImages = false,
   onPreloadChange,

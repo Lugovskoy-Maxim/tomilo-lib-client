@@ -87,16 +87,14 @@ export function RelatedTitlesSection({
   titleData,
   includeAdult = true,
 }: RelatedTitlesSectionProps) {
-  const related = titleData?.relatedTitles ?? [];
   const entriesWithPopulatedTitle = useMemo(() => {
+    const related = titleData?.relatedTitles ?? [];
     return related.filter(
       (entry): entry is RelatedTitleEntry & { titleId: TitleBasic } =>
         isPopulatedTitleId(entry.titleId) &&
         (includeAdult || (entry.titleId.ageLimit ?? 0) < 18),
     );
-  }, [related, includeAdult]);
-
-  if (entriesWithPopulatedTitle.length === 0) return null;
+  }, [titleData?.relatedTitles, includeAdult]);
 
   const byRelation = useMemo(() => {
     const map = new Map<string, TitleBasic[]>();
@@ -108,6 +106,8 @@ export function RelatedTitlesSection({
     }
     return map;
   }, [entriesWithPopulatedTitle]);
+
+  if (entriesWithPopulatedTitle.length === 0) return null;
 
   return (
     <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">

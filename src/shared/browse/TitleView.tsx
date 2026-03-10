@@ -328,7 +328,8 @@ export function ChapterItem({
   chapter,
   titleId,
   slug,
-  user,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- в интерфейсе для совместимости
+  user: _user,
   isRead,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- rest не используется
   ..._rest

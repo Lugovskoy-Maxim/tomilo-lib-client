@@ -18,7 +18,7 @@ import { useGetChaptersByTitleQuery, useDeleteChapterMutation } from "@/store/ap
 import Pagination from "@/shared/browse/pagination";
 import { getChapterPath } from "@/lib/title-paths";
 import { getChapterStatusLabel, getChapterStatusStyles } from "@/lib/chapter-status";
-import { Chapter, Title } from "@/types/title";
+import { Title } from "@/types/title";
 import { formatNumber } from "@/lib/utils";
 
 type ChapterSortField = "chapterNumber" | "title" | "status" | "views" | "pages" | "isPublished";

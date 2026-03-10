@@ -609,28 +609,7 @@ export default function ProfileAchievements({
       return serverToDisplayAchievements(userProfile.profileAchievements);
     }
     return generateAchievements(userProfile);
-  }, [
-    isPublicView,
-    achievementsResponse?.success,
-    achievementsResponse?.data?.achievements,
-    userProfile.profileAchievements,
-    userProfile.readingHistory,
-    userProfile.bookmarks?.length,
-    userProfile.level,
-    userProfile.createdAt,
-    userProfile.linkedProviders?.length,
-    userProfile.emailVerified,
-    userProfile.commentsCount,
-    userProfile.ratingsCount,
-    userProfile.longestStreak,
-    userProfile.completedTitlesCount,
-    userProfile.readingTimeMinutes,
-    userProfile.balance,
-    userProfile.ownedDecorations?.length,
-    userProfile.likesReceivedCount,
-    userProfile.titlesReadCount,
-    userProfile.reportsCount,
-  ]);
+  }, [isPublicView, userProfile, achievementsResponse?.success, achievementsResponse?.data?.achievements]);
 
   const { totalLevels, unlockedLevels, overallPercent } = useMemo(() => {
     const total = achievements.reduce((sum, a) => sum + a.maxLevel, 0);

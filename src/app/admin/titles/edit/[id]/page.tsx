@@ -23,7 +23,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useDispatch } from "react-redux";
-import { Title, TitleStatus, TitleType, type RelatedTitleEntry, type TitleBasic } from "@/types/title";
+import { Title, TitleStatus, TitleType, type TitleBasic } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
 import {
