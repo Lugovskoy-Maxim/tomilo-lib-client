@@ -680,7 +680,7 @@ export function RightContent({
             </div>
 
             {/* Секция персонажей */}
-            <CharactersSection titleId={titleId} />
+            <CharactersSection titleId={titleId} titleSlug={slug} />
 
             {/* Секция команды перевода */}
             <TranslatorsSection titleId={titleId} chapters={chapters} />

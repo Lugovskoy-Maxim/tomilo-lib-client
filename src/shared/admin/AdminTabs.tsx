@@ -34,10 +34,12 @@ import {
   Ticket,
   EyeOff,
   Bot,
+  UserCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
+import { useGetPendingCharactersForModerationQuery } from "@/store/api/charactersApi";
 
 export type AdminTab =
   | "overview"
@@ -56,6 +58,7 @@ export type AdminTab =
   | "users"
   | "bots"
   | "reports"
+  | "character-moderation"
   | "notifications"
   | "ip-management"
   | "shop"
@@ -81,6 +84,7 @@ export const ADMIN_TABS: AdminTab[] = [
   "users",
   "bots",
   "reports",
+  "character-moderation",
   "notifications",
   "ip-management",
   "shop",
@@ -138,6 +142,7 @@ const tabGroups: TabGroup[] = [
       { id: "users", label: "Пользователи", icon: Users, shortcut: "U" },
       { id: "bots", label: "Подозрительные / Боты", icon: Bot },
       { id: "reports", label: "Жалобы", icon: AlertTriangle, shortcut: "R" },
+      { id: "character-moderation", label: "Персонажи (на модерации)", icon: UserCheck },
       { id: "notifications", label: "Уведомления", icon: Bell },
     ],
   },
@@ -216,6 +221,10 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
     isResolved: "false",
     limit: 1,
   });
+  const { data: pendingCharactersData } = useGetPendingCharactersForModerationQuery(undefined, {
+    skip: typeof window === "undefined",
+  });
+  const pendingCharactersCount = pendingCharactersData?.total ?? 0;
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.COLLAPSED_GROUPS, JSON.stringify([...collapsedGroups]));
@@ -298,6 +307,15 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
     );
   };
 
+  const getCharacterModerationBadge = (tabId: AdminTab) => {
+    if (tabId !== "character-moderation" || !pendingCharactersCount) return null;
+    return (
+      <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-medium text-white">
+        {pendingCharactersCount > 99 ? "99+" : pendingCharactersCount}
+      </span>
+    );
+  };
+
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const { filteredGroups, pinnedTabItems } = useMemo(() => {
@@ -357,6 +375,7 @@ export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
               </kbd>
             )}
             {getReportBadge(tab.id)}
+            {getCharacterModerationBadge(tab.id)}
             {showPinButton && (
               <span
                 role="button"

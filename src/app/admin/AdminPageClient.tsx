@@ -14,6 +14,7 @@ import { UsersSection } from "@/shared/admin/UsersSection";
 import { BotDetectionSection } from "@/shared/admin/BotDetectionSection";
 import { CommentsSection } from "@/shared/admin/CommentsSection";
 import { ReportsSection } from "@/shared/admin/ReportsSection";
+import { CharacterModerationSection } from "@/shared/admin/CharacterModerationSection";
 import { IpManagementSection } from "@/shared/admin/IpManagementSection";
 import { ShopManagementSection } from "@/shared/admin/ShopManagementSection";
 import { PromoCodesSection } from "@/shared/admin/PromoCodesSection";
@@ -93,6 +94,7 @@ export default function AdminPageClient() {
       users: "Пользователи",
       bots: "Подозрительные / Боты",
       reports: "Жалобы",
+      "character-moderation": "Персонажи на модерации",
       notifications: "Уведомления",
       "ip-management": "IP-управление",
       shop: "Магазин",
@@ -145,6 +147,8 @@ export default function AdminPageClient() {
         return <BotDetectionSection />;
       case "reports":
         return <ReportsSection />;
+      case "character-moderation":
+        return <CharacterModerationSection />;
       case "notifications":
         return <NotificationsSection />;
       case "ip-management":

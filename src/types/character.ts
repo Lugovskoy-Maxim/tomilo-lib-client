@@ -1,5 +1,8 @@
 export type CharacterRole = "main" | "supporting" | "antagonist" | "minor" | "other";
 
+/** Статус модерации: approved — отображается всем, pending — на проверке, rejected — отклонён */
+export type CharacterModerationStatus = "approved" | "pending" | "rejected";
+
 export interface Character {
   _id: string;
   name: string;
@@ -15,6 +18,8 @@ export interface Character {
   clan?: string;
   notes?: string;
   sortOrder?: number;
+  /** Статус модерации (если бэкенд поддерживает: при создании/редактировании пользователями — pending до одобрения) */
+  status?: CharacterModerationStatus;
   createdAt?: string;
   updatedAt?: string;
 }

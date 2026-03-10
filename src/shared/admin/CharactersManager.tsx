@@ -167,8 +167,8 @@ function CharacterForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const altNames = altNamesInput
       .split(",")
       .map(s => s.trim())
@@ -177,7 +177,7 @@ function CharacterForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-4" role="form" aria-label="Форма персонажа">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex flex-col items-center gap-2">
           <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[var(--secondary)] border border-[var(--border)] flex-shrink-0">
@@ -348,7 +348,8 @@ function CharacterForm({
           Отмена
         </button>
         <button
-          type="submit"
+          type="button"
+          onClick={() => handleSubmit()}
           disabled={isSaving || !formData.name.trim()}
           className="min-h-[44px] flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
         >
@@ -365,7 +366,7 @@ function CharacterForm({
           )}
         </button>
       </div>
-    </form>
+    </div>
   );
 }
 

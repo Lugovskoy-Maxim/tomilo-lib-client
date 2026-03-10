@@ -10,6 +10,7 @@ import {
   Megaphone,
   MessageCircleWarning,
   Target,
+  UserCheck,
   Users,
   Activity,
   Server,
@@ -20,6 +21,7 @@ import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { useSearchChaptersQuery } from "@/store/api/chaptersApi";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
+import { useGetPendingCharactersForModerationQuery } from "@/store/api/charactersApi";
 import {
   useGetDashboardQuery,
   useGetActivityQuery,
@@ -34,6 +36,7 @@ type AdminTab =
   | "chapters"
   | "work-queue"
   | "reports"
+  | "character-moderation"
   | "announcements";
 
 interface OverviewSectionProps {
@@ -69,6 +72,8 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     limit: 1,
     isResolved: "false",
   });
+  const { data: pendingCharactersData } = useGetPendingCharactersForModerationQuery();
+  const pendingCharactersCount = pendingCharactersData?.total ?? 0;
 
   // Новые эндпоинты из adminApi
   const { data: dashboardData } = useGetDashboardQuery();
@@ -206,6 +211,15 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
             icon={<MessageCircleWarning className="w-4 h-4" />}
             buttonLabel="Открыть жалобы"
             onClick={() => onTabChange("reports")}
+          />
+          <ActionCard
+            title="Персонажи на модерации"
+            description="Предложенные персонажи и правки от пользователей"
+            value={pendingCharactersCount}
+            tone="warning"
+            icon={<UserCheck className="w-4 h-4" />}
+            buttonLabel="Открыть модерацию"
+            onClick={() => onTabChange("character-moderation")}
           />
           <ActionCard
             title="Тайтлы без глав"
