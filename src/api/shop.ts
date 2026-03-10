@@ -164,6 +164,12 @@ export interface Decoration {
   onlyWithSubscription?: boolean;
   /** Бонусные монеты за покупку. */
   bonus?: number;
+  /** ID автора (декорация из предложений пользователей). */
+  authorId?: string;
+  /** Имя автора для отображения в карточке (принятая декорация). */
+  authorUsername?: string;
+  /** Уровень автора (принятая декорация). */
+  authorLevel?: number;
 }
 
 export interface ApiResponse<T> {

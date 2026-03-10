@@ -862,6 +862,7 @@ export function ShopSection({ type }: ShopSectionProps) {
                 onUnequip={handleUnequip}
                 isLoading={actionLoading === decoration.id}
                 sectionType={type}
+                authorDisplay="author"
               />
             </div>
           ))}

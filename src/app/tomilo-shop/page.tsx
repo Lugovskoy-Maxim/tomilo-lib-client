@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Header, Footer } from "@/widgets";
 import { ShopTabs, type ShopTabId } from "@/shared/shop/ShopTabs";
 import { ShopSection } from "@/shared/shop/ShopSection";
+import { ShopSuggestionsBlock } from "@/shared/shop/ShopSuggestionsBlock";
 import { useSEO } from "@/hooks/useSEO";
 import { Coins } from "lucide-react";
 
@@ -40,6 +41,11 @@ export default function TomiloShopPage() {
       </section>
 
       <div className="max-w-6xl mx-auto px-3 py-4 sm:px-6 sm:py-8">
+        {/* Предложенные украшения — выше каталога, раскрывается по кнопке */}
+        <section className="mb-6 sm:mb-8">
+          <ShopSuggestionsBlock />
+        </section>
+
         <div
           id="shop-section"
           role="tabpanel"

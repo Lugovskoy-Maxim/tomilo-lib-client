@@ -12,8 +12,10 @@ import {
 } from "@/api/shop";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
+import { useGetProfileByIdQuery } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import { getImageUrls } from "@/lib/asset-url";
+import { getRankDisplay } from "@/lib/rank-utils";
 import type { EquippedDecorations } from "@/types/user";
 import ProfileHeaderPreview from "@/shared/profile/ProfileHeaderPreview";
 
@@ -31,6 +33,14 @@ export interface DecorationCardProps {
   sectionType?: "avatar" | "frame" | "background" | "card";
   /** Не показывать тост при экипировке/снятии/покупке (тост показывает родитель, напр. ProfileInventory). */
   showActionToast?: boolean;
+  /** Только превью: рендерить только модалку (для предложений), открытую по умолчанию. */
+  previewOnly?: boolean;
+  /** Вызывается при закрытии превью в режиме previewOnly. */
+  onPreviewClose?: () => void;
+  /** Для принятой декорации — показывать автора и уровень (по API или по id). Для предложения — культиватор и ранг по уровню. */
+  authorDisplay?: "author" | "cultivator";
+  /** Уровень культиватора для отображения ранга (только при authorDisplay === "cultivator"). */
+  cultivatorLevel?: number;
 }
 
 const RARITY_STYLES: Record<
@@ -92,8 +102,9 @@ const RARITY_CARD_BADGE: Record<DecorationRarity, string> = {
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
-/** Форматирует цену с пробелами (1 800). */
+/** Форматирует цену: 0 → «Бесплатно», иначе с пробелами (1 800). */
 function formatPrice(n: number): string {
+  if (n === 0) return "Бесплатно";
   return n.toLocaleString("ru-RU");
 }
 
@@ -128,6 +139,12 @@ interface DecorationPreviewModalProps {
   displayType: "avatar" | "frame" | "background" | "card";
   /** Позиция карточки при открытии (окно открывается на уровне карточки) */
   anchorRect?: { top: number; left: number; width: number; height: number } | null;
+  /** Запасной URL при ошибке загрузки (например, сервер вместо S3) */
+  fallbackSrc?: string;
+  authorDisplay?: "author" | "cultivator";
+  cultivatorLevel?: number;
+  displayAuthorName?: string | null;
+  displayAuthorLevel?: number;
 }
 
 function DecorationPreviewModal({
@@ -152,8 +169,24 @@ function DecorationPreviewModal({
   onUnequip,
   displayType,
   anchorRect,
+  fallbackSrc,
+  authorDisplay,
+  cultivatorLevel,
+  displayAuthorName,
+  displayAuthorLevel,
 }: DecorationPreviewModalProps) {
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [useFallback, setUseFallback] = useState(false);
+  const effectiveImageSrc =
+    useFallback && fallbackSrc && fallbackSrc !== imageSrc ? fallbackSrc : imageSrc;
+  const handleImageError = () => {
+    if (fallbackSrc && fallbackSrc !== imageSrc && !useFallback) {
+      setUseFallback(true);
+      setIsImageLoading(true);
+    } else {
+      setIsImageLoading(false);
+    }
+  };
   const GAP = 12;
   const anchorStyle = anchorRect
     ? {
@@ -164,7 +197,7 @@ function DecorationPreviewModal({
         maxHeight: "calc(100vh - 24px)",
       }
     : undefined;
-  const isGif = imageSrc?.toLowerCase().includes(".gif");
+  const isGif = effectiveImageSrc?.toLowerCase().includes(".gif");
 
   const resolvedUserAvatar = useMemo(() => {
     const effectiveUrl = userAvatarDecorationUrl ?? userAvatar;
@@ -173,10 +206,10 @@ function DecorationPreviewModal({
     return primary || DEFAULT_AVATAR;
   }, [userAvatarDecorationUrl, userAvatar]);
 
-  /** В превью рамки показываем ту рамку, которую смотрят (imageSrc); в остальных — текущую надетую рамку пользователя. */
-  const frameToShow = displayType === "frame" ? imageSrc : userFrameUrl;
-  /** В превью аватара показываем ту декорацию, которую смотрят (imageSrc); в остальных — текущий вид пользователя (resolvedUserAvatar). */
-  const avatarSrcInPreview = displayType === "avatar" ? imageSrc : resolvedUserAvatar;
+  /** В превью рамки показываем ту рамку, которую смотрят; в остальных — текущую надетую рамку пользователя. */
+  const frameToShow = displayType === "frame" ? effectiveImageSrc : userFrameUrl;
+  /** В превью аватара показываем ту декорацию, которую смотрят; в остальных — текущий вид пользователя (resolvedUserAvatar). */
+  const avatarSrcInPreview = displayType === "avatar" ? effectiveImageSrc : resolvedUserAvatar;
   const AvatarWithOptionalFrame = ({ size }: { size: number }) => (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
@@ -211,7 +244,7 @@ function DecorationPreviewModal({
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${imageSrc})` }}
+            style={{ backgroundImage: `url(${effectiveImageSrc})` }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
 
@@ -252,7 +285,7 @@ function DecorationPreviewModal({
             level={userLevel}
             avatarUrl={resolvedUserAvatar}
             frameUrl={userFrameUrl}
-            backgroundUrl={imageSrc}
+            backgroundUrl={effectiveImageSrc}
           />
         </div>
       );
@@ -307,10 +340,11 @@ function DecorationPreviewModal({
               />
             </div>
             <img
-              src={imageSrc}
+              src={effectiveImageSrc}
               alt=""
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10 w-[120%] h-[120%] max-w-none max-h-none"
               onLoad={() => setIsImageLoading(false)}
+              onError={handleImageError}
               aria-hidden
             />
             {isImageLoading && (
@@ -337,12 +371,13 @@ function DecorationPreviewModal({
             </div>
           )}
           <Image
-            src={imageSrc}
+            src={effectiveImageSrc}
             alt={decoration.name}
             fill
             unoptimized
             className={`object-cover object-center ${isImageLoading ? "opacity-0" : "opacity-100"}`}
             onLoad={() => setIsImageLoading(false)}
+            onError={handleImageError}
           />
           <span
             className={`absolute top-2 right-2 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}
@@ -362,12 +397,13 @@ function DecorationPreviewModal({
             </div>
           )}
           <Image
-            src={imageSrc}
+            src={effectiveImageSrc}
             alt={decoration.name}
             fill
             unoptimized
             className={`object-cover object-center ${isImageLoading ? "opacity-0" : "opacity-100"}`}
             onLoad={() => setIsImageLoading(false)}
+            onError={handleImageError}
           />
           <span
             className={`absolute top-2 right-2 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}
@@ -391,12 +427,13 @@ function DecorationPreviewModal({
             </div>
           )}
           <Image
-            src={imageSrc}
+            src={effectiveImageSrc}
             alt={decoration.name}
             fill
             unoptimized
             className={`object-cover rounded-full ${isImageLoading ? "opacity-0" : "opacity-100"}`}
             onLoad={() => setIsImageLoading(false)}
+            onError={handleImageError}
           />
         </div>
         <span
@@ -460,6 +497,26 @@ function DecorationPreviewModal({
                   <p className="text-sm text-[var(--muted-foreground)] mt-1">
                     {decoration.description}
                   </p>
+                )}
+                {authorDisplay === "cultivator" && (
+                  <>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Культиватор</p>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                      {getRankDisplay(cultivatorLevel ?? 0)}
+                    </p>
+                  </>
+                )}
+                {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
+                  <>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                      Автор: {displayAuthorName ?? decoration.authorUsername}
+                    </p>
+                    {displayAuthorLevel != null && (
+                      <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                        Уровень {displayAuthorLevel}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -660,14 +717,42 @@ export function DecorationCard({
   hidePurchase = false,
   sectionType,
   showActionToast = true,
+  previewOnly = false,
+  onPreviewClose,
+  authorDisplay,
+  cultivatorLevel,
 }: DecorationCardProps) {
   const { isAuthenticated, user } = useAuth();
+  const shouldFetchAuthor =
+    Boolean(decoration.authorId) &&
+    (authorDisplay === "author"
+      ? !decoration.authorUsername
+      : authorDisplay === "cultivator");
+  const { data: authorProfile } = useGetProfileByIdQuery(decoration.authorId ?? "", {
+    skip: !shouldFetchAuthor,
+  });
+  const fetchedLevel =
+    authorProfile?.success && authorProfile?.data
+      ? (authorProfile.data as { level?: number }).level
+      : undefined;
+  const displayAuthorName =
+    decoration.authorUsername ??
+    (authorProfile?.success && authorProfile?.data
+      ? (authorProfile.data as { username?: string }).username ?? null
+      : null);
+  const displayAuthorLevel =
+    decoration.authorLevel ?? (authorDisplay === "author" ? fetchedLevel : undefined);
+  /** Уровень культиватора: из пропса или из запроса по authorId (для ранга). */
+  const effectiveCultivatorLevel =
+    authorDisplay === "cultivator"
+      ? (cultivatorLevel ?? fetchedLevel ?? 0)
+      : cultivatorLevel ?? 0;
   const displayType = sectionType ?? decoration.type;
   const { success, error: showError } = useToast();
   const actionInProgressRef = useRef(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [useFallbackImage, setUseFallbackImage] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(!!previewOnly);
   const [anchorRect, setAnchorRect] = useState<{
     top: number;
     left: number;
@@ -701,10 +786,11 @@ export function DecorationCard({
     subscriptionPrice != null && decoration.price > 0 && subscriptionPrice < decoration.price
       ? Math.round((1 - subscriptionPrice / decoration.price) * 100)
       : 0;
-  const { avatarDecorationUrl } = useResolvedEquippedDecorations();
-  const userFrameUrl = getEquippedFrameUrl(
-    (user?.equippedDecorations ?? null) as EquippedDecorations | null,
-  );
+  const { avatarDecorationUrl, frameUrl: resolvedFrameUrl } = useResolvedEquippedDecorations();
+  /** URL надетой рамки: из хука (разрешён по id через профиль/декорации) или fallback из user */
+  const userFrameUrl =
+    resolvedFrameUrl ??
+    getEquippedFrameUrl((user?.equippedDecorations ?? null) as EquippedDecorations | null);
   /** Буква для превью аватара в карточках рамок: первая буква ника или T для гостя */
   const avatarPreviewLetter = user?.username?.trim()[0]?.toUpperCase() || "T";
   /** URL аватара для превью в карточках рамок: активная декорация аватара или фото профиля */
@@ -906,13 +992,15 @@ export function DecorationCard({
   const handleClosePreview = () => {
     setIsPreviewOpen(false);
     setAnchorRect(null);
+    if (previewOnly) onPreviewClose?.();
   };
 
   const previewModal =
     isPreviewOpen && imageSrc ? (
       <DecorationPreviewModal
         decoration={decoration}
-        imageSrc={imageSrc}
+        imageSrc={imageSrcPrimary}
+        fallbackSrc={imageSrcFallback && imageSrcFallback !== imageSrcPrimary ? imageSrcFallback : undefined}
         rarityStyle={rarityStyle}
         isOwned={isOwned}
         isEquipped={isEquipped}
@@ -932,8 +1020,16 @@ export function DecorationCard({
         onUnequip={handleUnequip}
         displayType={displayType}
         anchorRect={anchorRect}
+        authorDisplay={authorDisplay}
+        cultivatorLevel={effectiveCultivatorLevel}
+        displayAuthorName={displayAuthorName}
+        displayAuthorLevel={displayAuthorLevel}
       />
     ) : null;
+
+  if (previewOnly) {
+    return <>{previewModal}</>;
+  }
 
   /* Карточка для аватаров и рамок: квадратная карточка, контент по центру, название и цена — полоска внизу. Аватар — строго 1:1 (круг). */
   if (isAvatar || isFrame) {
@@ -1098,13 +1194,35 @@ export function DecorationCard({
               )}
             </div>
 
-            <div className="flex-shrink-0 px-1 py-1.5 sm:px-1.5 sm:py-2 flex flex-col justify-end gap-0.5">
+            <div className="flex-shrink-0 w-full border-t border-[var(--border)] bg-[var(--card)]/80 px-1 py-1.5 sm:px-1.5 sm:py-2 flex flex-col justify-end gap-0.5 rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl">
               <h3
                 className="font-semibold text-[10px] sm:text-xs leading-tight line-clamp-1 text-center text-[var(--foreground)]"
                 title={decoration.name}
               >
                 {decoration.name}
               </h3>
+              {authorDisplay === "cultivator" && (
+                <>
+                  <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
+                    Культиватор
+                  </p>
+                  <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center truncate" title={getRankDisplay(effectiveCultivatorLevel)}>
+                    {getRankDisplay(effectiveCultivatorLevel)}
+                  </p>
+                </>
+              )}
+              {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
+                <>
+                  <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
+                    Автор: {displayAuthorName ?? decoration.authorUsername}
+                  </p>
+                  {displayAuthorLevel != null && (
+                    <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
+                      Уровень {displayAuthorLevel}
+                    </p>
+                  )}
+                </>
+              )}
               {showStock && (
                 <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
                   {decoration.stock! <= 0
@@ -1243,14 +1361,36 @@ export function DecorationCard({
           >
             {decoration.name}
           </h3>
-          {decoration.description && (
-            <p
-              className={`text-[var(--muted-foreground)] ${isLarge ? "text-xs sm:text-sm line-clamp-2" : "text-[11px] sm:text-xs line-clamp-1"}`}
-              title={decoration.description}
-            >
-              {decoration.description}
-            </p>
-          )}
+{decoration.description && (
+                <p
+                  className={`text-[var(--muted-foreground)] ${isLarge ? "text-xs sm:text-sm line-clamp-2" : "text-[11px] sm:text-xs line-clamp-1"}`}
+                  title={decoration.description}
+                >
+                  {decoration.description}
+                </p>
+              )}
+              {authorDisplay === "cultivator" && (
+                <>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                    Культиватор
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                    {getRankDisplay(effectiveCultivatorLevel)}
+                  </p>
+                </>
+              )}
+              {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
+                <>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                    Автор: {displayAuthorName ?? decoration.authorUsername}
+                  </p>
+                  {displayAuthorLevel != null && (
+                    <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                      Уровень {displayAuthorLevel}
+                    </p>
+                  )}
+                </>
+              )}
           {showStock && (
             <p className={`${isLarge ? "text-xs" : "text-[11px]"} text-[var(--muted-foreground)]`}>
               {decoration.stock! <= 0
@@ -1272,7 +1412,7 @@ export function DecorationCard({
                 <Coins
                   className={isLarge ? "w-4 h-4 text-amber-500" : "w-3.5 h-3.5 text-amber-500"}
                 />
-                {decoration.price}
+                {formatPrice(decoration.price)}
               </span>
             ) : !hidePurchase && isOwned ? (
               <span
@@ -1282,7 +1422,7 @@ export function DecorationCard({
                 <Coins
                   className={isLarge ? "w-4 h-4 text-amber-500" : "w-3.5 h-3.5 text-amber-500"}
                 />
-                {decoration.price}
+                {formatPrice(decoration.price)}
               </span>
             ) : null}
             {renderAction(true, isLarge ? "medium" : "small", true)}
@@ -1296,7 +1436,7 @@ export function DecorationCard({
           <div className="flex items-center gap-2 mt-0.5">
             <span className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
               <Coins className="w-3.5 h-3.5 text-amber-500" />
-              {decoration.price}
+              {formatPrice(decoration.price)}
             </span>
             <button
               type="button"
@@ -1422,6 +1562,28 @@ export function DecorationCard({
                   {decoration.description}
                 </p>
               )}
+              {authorDisplay === "cultivator" && (
+                <>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                    Культиватор
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                    {getRankDisplay(effectiveCultivatorLevel)}
+                  </p>
+                </>
+              )}
+              {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
+                <>
+                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                    Автор: {displayAuthorName ?? decoration.authorUsername}
+                  </p>
+                  {displayAuthorLevel != null && (
+                    <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
+                      Уровень {displayAuthorLevel}
+                    </p>
+                  )}
+                </>
+              )}
               {showStock && (
                 <p className="text-[11px] text-[var(--muted-foreground)]">
                   {decoration.stock! <= 0
@@ -1436,7 +1598,7 @@ export function DecorationCard({
               {!hidePurchase && !isOwned ? (
                 <span className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
                   <Coins className="w-3.5 h-3.5 text-amber-500" />
-                  {decoration.price}
+                  {formatPrice(decoration.price)}
                 </span>
               ) : !hidePurchase && isOwned ? (
                 <span
@@ -1444,7 +1606,7 @@ export function DecorationCard({
                   aria-hidden
                 >
                   <Coins className="w-3.5 h-3.5 text-amber-500" />
-                  {decoration.price}
+                  {formatPrice(decoration.price)}
                 </span>
               ) : null}
               {renderAction(true, "small", true)}

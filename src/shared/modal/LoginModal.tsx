@@ -194,14 +194,24 @@ const LoginModal: React.FC<LoginModalProps> = ({
         password: form.password,
       }).unwrap();
 
-      // Сохраняем в Redux store и localStorage через useAuth хук
-      authLogin(response);
+      // Успех только при наличии токена и пользователя (на случай 200 с success: false)
+      const data =
+        response && "data" in response && response.data != null ? response.data : response;
+      const hasAuth = data?.access_token && data?.user;
 
-      // Вызываем колбэк успешной авторизации
-      onAuthSuccess(response);
+      if (hasAuth) {
+        authLogin(response);
+        onAuthSuccess(response);
+      }
     } catch (err) {
-      // Сообщение пользователю показывается через getErrorMessage() из состояния мутации
-      console.error("Ошибка входа:", getMessageFromError(err));
+      // Сообщение пользователю показывается через getErrorMessage() из состояния мутации.
+      // 401 не логируем в консоль — показывается в UI; иначе после успешного повторного входа в консоли остаётся "Invalid credentials".
+      const msg = getMessageFromError(err);
+      const is401 =
+        typeof err === "object" && err !== null && "status" in err && (err as { status: number }).status === 401;
+      if (!is401) {
+        console.error("Ошибка входа:", msg);
+      }
     }
   };
 
