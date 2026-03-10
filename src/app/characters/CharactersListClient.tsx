@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Users, User, ChevronLeft, ChevronRight, Plus, X, Search } from "lucide-react";
 import { useGetCharactersQuery, charactersApi } from "@/store/api/charactersApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
@@ -19,13 +20,22 @@ const PAGE_SIZE = 24;
 
 function CharacterCard({ character }: { character: Character }) {
   const [imageError, setImageError] = useState(false);
+  const router = useRouter();
   const { data: title } = useGetTitleByIdQuery(
     { id: character.titleId, includeChapters: false },
     { skip: !character.titleId },
   );
   return (
-    <Link
-      href={`/characters/${character._id}`}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => router.push(`/characters/${character._id}`)}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/characters/${character._id}`);
+        }
+      }}
       className="group flex flex-col items-center gap-2 p-4 bg-[var(--secondary)]/60 backdrop-blur-sm rounded-xl border border-[var(--border)]/40 hover:bg-[var(--secondary)]/80 hover:border-[var(--primary)]/30 transition-all duration-300 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)] cursor-pointer"
     >
       <div className="relative w-20 h-20 rounded-full overflow-hidden bg-[var(--background)]/50 flex-shrink-0 ring-2 ring-[var(--border)]/30 group-hover:ring-[var(--primary)]/30 transition-all">
@@ -67,7 +77,7 @@ function CharacterCard({ character }: { character: Character }) {
           </div>
         )}
       </div>
-    </Link>
+    </div>
   );
 }
 
