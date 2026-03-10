@@ -83,7 +83,7 @@ function normalizeHistoryItem(item: RawHistoryItem): ReadingHistoryEntry {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Auth", "ReadingHistory", "Bookmarks", "DailyQuests"],
+  tagTypes: ["Auth", "ReadingHistory", "Bookmarks", "DailyQuests", "ProfileAchievements"],
   endpoints: builder => ({
     // Аутентификация
     login: builder.mutation<ApiResponseDto<AuthResponse>, LoginData>({
@@ -275,7 +275,7 @@ export const authApi = createApi({
       void
     >({
       query: () => "/users/profile/achievements",
-      providesTags: ["Auth"],
+      providesTags: ["ProfileAchievements"],
     }),
 
     updateProfile: builder.mutation<ApiResponseDto<User>, Partial<User>>({
@@ -315,7 +315,7 @@ export const authApi = createApi({
         }
         return response;
       },
-      invalidatesTags: ["Bookmarks", "Auth"],
+      invalidatesTags: ["Bookmarks", "Auth", "ProfileAchievements"],
     }),
 
     updateBookmarkCategory: builder.mutation<
@@ -334,7 +334,7 @@ export const authApi = createApi({
         }
         return response;
       },
-      invalidatesTags: ["Bookmarks", "Auth"],
+      invalidatesTags: ["Bookmarks", "Auth", "ProfileAchievements"],
     }),
 
     removeBookmark: builder.mutation<ApiResponseDto<User>, string>({
@@ -349,7 +349,7 @@ export const authApi = createApi({
         }
         return response;
       },
-      invalidatesTags: ["Bookmarks", "Auth"],
+      invalidatesTags: ["Bookmarks", "Auth", "ProfileAchievements"],
     }),
 
     getBookmarks: builder.query<
