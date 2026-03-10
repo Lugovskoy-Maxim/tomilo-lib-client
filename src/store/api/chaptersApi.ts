@@ -109,9 +109,17 @@ export const chaptersApi = createApi({
         limit?: number;
         sortBy?: string;
         sortOrder?: "asc" | "desc";
+        /** Только главы без страниц (для админки — рабочая очередь). */
+        withoutPages?: boolean;
       }
     >({
-      query: params => ({ url: "/chapters", params }),
+      query: params => ({
+        url: "/chapters",
+        params: {
+          ...params,
+          ...(params.withoutPages === true ? { withoutPages: "true" } : {}),
+        },
+      }),
       transformResponse: normalizeChaptersResponse,
       providesTags: [CHAPTERS_TAG],
     }),

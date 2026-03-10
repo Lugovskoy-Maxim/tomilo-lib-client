@@ -7,8 +7,24 @@ import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { useSearchChaptersQuery } from "@/store/api/chaptersApi";
 import { formatNumber } from "@/lib/utils";
 
-function getPagesCount(pages?: string[], images?: string[]) {
-  return pages?.length ?? images?.length ?? 0;
+/** ID тайтла главы (titleId с бэкенда может быть строкой или populated-объектом). */
+function getChapterTitleId(chapter: {
+  titleId?: string | { _id?: string };
+}): string | undefined {
+  const t = chapter.titleId;
+  if (!t) return undefined;
+  return typeof t === "string" ? t : t._id ?? undefined;
+}
+
+/** Название тайтла для отображения (из titleInfo или из populated titleId). */
+function getChapterTitleName(chapter: {
+  titleInfo?: { name?: string };
+  titleId?: string | { name?: string };
+}): string {
+  if (chapter.titleInfo?.name) return chapter.titleInfo.name;
+  const t = chapter.titleId;
+  if (t && typeof t === "object" && t !== null && "name" in t) return (t as { name?: string }).name ?? "";
+  return typeof t === "string" ? t : "";
 }
 
 export function WorkQueueSection() {
@@ -38,6 +54,7 @@ export function WorkQueueSection() {
     page: 1,
     limit: 500,
     sortOrder: "desc",
+    withoutPages: true,
   });
 
   const normalizedSearch = search.trim().toLowerCase();
@@ -56,16 +73,15 @@ export function WorkQueueSection() {
   }, [titlesResponse, normalizedSearch]);
 
   const chaptersWithoutPages = useMemo(() => {
-    const allChapters = chaptersResponse?.chapters || [];
-    const queue = allChapters.filter(chapter => getPagesCount(chapter.pages, chapter.images) === 0);
+    const queue = chaptersResponse?.chapters || [];
     if (!normalizedSearch) return queue;
     return queue.filter(chapter =>
       [
         chapter.title,
         chapter.name,
-        chapter.titleInfo?.name,
+        getChapterTitleName(chapter),
         String(chapter.chapterNumber ?? ""),
-        chapter.titleId,
+        getChapterTitleId(chapter),
         chapter._id,
       ]
         .filter(Boolean)
@@ -132,7 +148,9 @@ export function WorkQueueSection() {
               Главы без страниц
             </div>
             <div className="mt-2 text-2xl font-bold text-[var(--foreground)]">
-              {formatNumber(chaptersWithoutPages.length)}
+              {formatNumber(
+                chaptersResponse?.total ?? chaptersWithoutPages.length,
+              )}
             </div>
           </div>
         </div>
@@ -150,7 +168,7 @@ export function WorkQueueSection() {
             className="admin-input w-full"
           />
           <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-            Анализ по последним 500 тайтлам и 500 главам. Увеличим выборку, если нужно.
+            Тайтлы — по последним 500. Главы без страниц — выборка по всей базе (до 500 в списке).
           </p>
         </div>
       </div>
@@ -248,7 +266,7 @@ export function WorkQueueSection() {
                         {chapter.title || chapter.name || "Без названия"}
                       </p>
                       <p className="truncate text-xs text-[var(--muted-foreground)]">
-                        Тайтл: {chapter.titleInfo?.name || chapter.titleId} · {chapter._id}
+                        Тайтл: {getChapterTitleName(chapter) || getChapterTitleId(chapter) || "—"} · {chapter._id}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -256,7 +274,7 @@ export function WorkQueueSection() {
                         0 стр.
                       </span>
                       <Link
-                        href={`/admin/titles/edit/${chapter.titleId}/chapters/${chapter._id}`}
+                        href={`/admin/titles/edit/${getChapterTitleId(chapter) ?? ""}/chapters/${chapter._id}`}
                         className="rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs font-medium hover:bg-[var(--accent)]"
                       >
                         Исправить

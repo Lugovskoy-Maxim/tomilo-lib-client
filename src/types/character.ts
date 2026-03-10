@@ -1,4 +1,7 @@
-export type CharacterRole = "main" | "supporting" | "antagonist" | "minor";
+export type CharacterRole = "main" | "supporting" | "antagonist" | "minor" | "other";
+
+/** Статус модерации: approved — отображается всем, pending — на проверке, rejected — отклонён */
+export type CharacterModerationStatus = "approved" | "pending" | "rejected";
 
 export interface Character {
   _id: string;
@@ -9,6 +12,14 @@ export interface Character {
   role: CharacterRole;
   titleId: string;
   voiceActor?: string;
+  age?: string;
+  gender?: string;
+  guild?: string;
+  clan?: string;
+  notes?: string;
+  sortOrder?: number;
+  /** Статус модерации (если бэкенд поддерживает: при создании/редактировании пользователями — pending до одобрения) */
+  status?: CharacterModerationStatus;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -26,6 +37,7 @@ export const characterRoleLabels: Record<CharacterRole, string> = {
   supporting: "Второстепенный",
   antagonist: "Антагонист",
   minor: "Эпизодический",
+  other: "Другое",
 };
 
 export const characterRoleColors: Record<CharacterRole, string> = {
@@ -33,4 +45,5 @@ export const characterRoleColors: Record<CharacterRole, string> = {
   supporting: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   antagonist: "bg-red-500/20 text-red-400 border-red-500/30",
   minor: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  other: "bg-[var(--muted)]/20 text-[var(--muted-foreground)] border-[var(--border)]",
 };

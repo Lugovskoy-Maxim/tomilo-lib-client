@@ -94,12 +94,22 @@ const reportTypeLabels = {
   [ReportType.ERROR]: "Ошибка",
   [ReportType.TYPO]: "Опечатка",
   [ReportType.COMPLAINT]: "Жалоба",
+  [ReportType.MISSING_PAGES]: "Нет страниц",
+  [ReportType.BROKEN_IMAGES]: "Битые изображения",
+  [ReportType.WRONG_ORDER]: "Неверный порядок",
+  [ReportType.DUPLICATE]: "Дубликат",
+  [ReportType.OTHER]: "Другое",
 };
 
 const reportTypeColors = {
   [ReportType.ERROR]: "bg-[var(--destructive)]",
   [ReportType.TYPO]: "bg-[var(--chart-1)]",
   [ReportType.COMPLAINT]: "bg-[var(--chart-5)]",
+  [ReportType.MISSING_PAGES]: "bg-amber-500/80",
+  [ReportType.BROKEN_IMAGES]: "bg-orange-500/80",
+  [ReportType.WRONG_ORDER]: "bg-[var(--chart-2)]",
+  [ReportType.DUPLICATE]: "bg-[var(--chart-3)]",
+  [ReportType.OTHER]: "bg-[var(--muted)]",
 };
 
 function getReportResponse(report: Report | null): string {
@@ -577,9 +587,9 @@ export function ReportsSection() {
                   )}
                   <div>
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
+                      className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType] ?? "bg-[var(--muted)]"}`}
                     >
-                      {reportTypeLabels[report.reportType]}
+                      {reportTypeLabels[report.reportType] ?? report.reportType}
                     </span>
                     <p className="mt-1 text-xs text-[var(--muted-foreground)] font-mono break-all">
                       {report._id}
@@ -767,9 +777,9 @@ export function ReportsSection() {
                   </td>
                   <td className="py-2.5 px-3">
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType]}`}
+                      className={`inline-block px-2 py-0.5 rounded-[var(--admin-radius)] text-xs text-white ${reportTypeColors[report.reportType] ?? "bg-[var(--muted)]"}`}
                     >
-                      {reportTypeLabels[report.reportType]}
+                      {reportTypeLabels[report.reportType] ?? report.reportType}
                     </span>
                   </td>
                   <td className="py-2.5 px-3">
@@ -994,9 +1004,9 @@ export function ReportsSection() {
             {/* Status and Type */}
             <div className="flex items-center gap-3">
               <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-medium text-white ${reportTypeColors[detailReport.reportType]}`}
+                className={`inline-block px-3 py-1 rounded-full text-sm font-medium text-white ${reportTypeColors[detailReport.reportType] ?? "bg-[var(--muted)]"}`}
               >
-                {reportTypeLabels[detailReport.reportType]}
+                {reportTypeLabels[detailReport.reportType] ?? detailReport.reportType}
               </span>
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${

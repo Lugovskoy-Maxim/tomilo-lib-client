@@ -64,7 +64,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   const contentClass = [
     "relative w-full max-w-[calc(100%-0.5rem)] min-[360px]:max-w-[calc(100%-1rem)] sm:max-w-md mx-auto bg-[var(--background)] rounded-xl min-[360px]:rounded-2xl shadow-2xl border border-[var(--border)]",
-    "max-h-[92dvh] min-[360px]:max-h-[90dvh] sm:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col",
+    "max-h-[92dvh] min-[360px]:max-h-[90dvh] sm:max-h-[calc(100dvh-2rem)] min-h-0 overflow-hidden flex flex-col",
     "mt-4 min-[360px]:mt-6 sm:mt-0 modal-content",
     isClosing && "modal-closing",
   ]

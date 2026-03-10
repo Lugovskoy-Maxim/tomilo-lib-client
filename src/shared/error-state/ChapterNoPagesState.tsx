@@ -37,7 +37,7 @@ export default function ChapterNoPagesState({
     const reportData: Record<string, unknown> = {
       entityType: "chapter",
       entityId: chapter._id,
-      reportType: ReportType.ERROR,
+      reportType: ReportType.MISSING_PAGES,
       content: REPORT_CONTENT,
       titleId: title._id,
     };

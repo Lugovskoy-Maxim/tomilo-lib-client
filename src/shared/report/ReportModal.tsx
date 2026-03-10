@@ -32,9 +32,14 @@ export function ReportModal({
   const { user } = useAuth();
 
   const reportTypeLabels = {
-    [ReportType.ERROR]: "Ошибка (не загружается, сломана верска и т.д)",
+    [ReportType.ERROR]: "Ошибка (не загружается, сломана вёрстка и т.д.)",
     [ReportType.TYPO]: "Опечатка в тексте",
     [ReportType.COMPLAINT]: "Жалоба на контент",
+    [ReportType.MISSING_PAGES]: "Отсутствуют страницы",
+    [ReportType.BROKEN_IMAGES]: "Битые или не загружающиеся изображения",
+    [ReportType.WRONG_ORDER]: "Неверный порядок страниц",
+    [ReportType.DUPLICATE]: "Дубликат страниц или главы",
+    [ReportType.OTHER]: "Другое",
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

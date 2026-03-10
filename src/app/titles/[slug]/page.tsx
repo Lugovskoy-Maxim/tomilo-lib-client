@@ -76,12 +76,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
 
     const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
+    const altNames = titleData.altNames ?? (titleData as { alternativeTitles?: string[] }).alternativeTitles ?? [];
     const titleType = titleData.type || "other";
     const titleTypeTranslate = translateTitleType(titleType);
     const genresStr = (titleData.genres ?? []).join(", ");
-    const shortDescription = titleData.description
+    let shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
       : `Читать ${titleName} онлайн на Tomilo-lib.ru.${genresStr ? ` ${genresStr}` : ""}`;
+    if (altNames.length > 0 && shortDescription.length < 155) {
+      const altStr = altNames.slice(0, 3).join(", ");
+      shortDescription = `${shortDescription.trim()} Другие названия: ${altStr}.`;
+      if (shortDescription.length > 160) {
+        shortDescription = shortDescription.substring(0, 157) + "...";
+      }
+    }
 
     // Базовый URL для картинок: если обложки отдаются с API — crawler должен получать абсолютный URL с того же хоста
     const imageBaseUrl =
@@ -114,6 +122,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: safeDescription,
       keywords: [
         titleName,
+        ...altNames,
         ...(titleData.genres || []),
         titleData.author,
         titleData.artist,
@@ -137,7 +146,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         publishedTime,
         modifiedTime,
         section: titleData.type,
-        tags: titleData.genres,
+        tags: [...(titleData.genres || []), ...altNames],
       },
       authors: titleData.author ? [titleData.author] : [],
       creator: titleData.artist || titleData.author || undefined,
@@ -194,10 +203,12 @@ function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, t
         .substring(0, 500)
     : `Читать ${titleName} онлайн на Tomilo-lib.ru`;
 
+  const altNames = (titleData.altNames ?? (titleData as { alternativeTitles?: string[] }).alternativeTitles ?? []) as string[];
   const mainEntity = {
     "@context": "https://schema.org",
     "@type": isBook ? "Book" : "ComicSeries",
     name: titleName,
+    ...(altNames.length > 0 ? { alternateName: altNames } : {}),
     description,
     url,
     image,

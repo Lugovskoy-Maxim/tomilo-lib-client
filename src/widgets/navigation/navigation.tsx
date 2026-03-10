@@ -2,7 +2,7 @@
 
 import NavigationLink from "@/shared/navigation-link/NavigationLink";
 import { usePathname } from "next/navigation";
-import { BookOpen, Crown } from "lucide-react";
+import { BookOpen, Crown, Users } from "lucide-react";
 
 interface NavigationProps {
   vertical?: boolean;
@@ -15,6 +15,11 @@ const navigationItems = [
     name: "Каталог",
     href: "/titles",
     icon: BookOpen,
+  },
+  {
+    name: "Персонажи",
+    href: "/characters",
+    icon: Users,
   },
   {
     name: "Лидеры",
@@ -43,7 +48,7 @@ export default function Navigation({
       <ul
         className={`
           flex
-          ${vertical ? "flex-col space-y-4" : "flex-row space-x-6 lg:space-x-8"}
+          ${vertical ? "flex-col space-y-4" : "flex-row gap-2 sm:gap-3"}
           ${vertical ? "items-stretch" : "items-center"}
         `}
       >

@@ -41,9 +41,15 @@ interface CharacterFormData {
   description: string;
   role: CharacterRole;
   voiceActor: string;
+  age: string;
+  gender: string;
+  guild: string;
+  clan: string;
+  notes: string;
+  sortOrder: number;
 }
 
-const ROLES: CharacterRole[] = ["main", "supporting", "antagonist", "minor"];
+const ROLES: CharacterRole[] = ["main", "supporting", "antagonist", "minor", "other"];
 
 function CharacterCard({
   character,
@@ -59,7 +65,7 @@ function CharacterCard({
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="flex items-start gap-3 p-3 bg-[var(--background)]/50 rounded-xl border border-[var(--border)]/50 hover:border-[var(--primary)]/30 transition-colors">
+    <div className="flex items-start gap-3 p-3 sm:p-4 bg-[var(--background)]/50 rounded-xl border border-[var(--border)]/50 hover:border-[var(--primary)]/30 hover:bg-[var(--background)]/70 transition-colors">
       <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-[var(--secondary)] flex-shrink-0">
         {character.image && !imageError ? (
           <Image
@@ -98,8 +104,9 @@ function CharacterCard({
         <button
           type="button"
           onClick={onEdit}
-          className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+          className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
           title="Редактировать"
+          aria-label="Редактировать"
         >
           <Edit2 className="w-4 h-4" />
         </button>
@@ -107,8 +114,9 @@ function CharacterCard({
           type="button"
           onClick={onDelete}
           disabled={isDeleting}
-          className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+          className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 rounded-lg text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-2"
           title="Удалить"
+          aria-label="Удалить"
         >
           {isDeleting ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -138,6 +146,12 @@ function CharacterForm({
     description: character?.description || "",
     role: character?.role || "supporting",
     voiceActor: character?.voiceActor || "",
+    age: character?.age || "",
+    gender: character?.gender || "",
+    guild: character?.guild || "",
+    clan: character?.clan || "",
+    notes: character?.notes || "",
+    sortOrder: character?.sortOrder ?? 0,
   });
   const [altNamesInput, setAltNamesInput] = useState(character?.altNames?.join(", ") || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -153,8 +167,8 @@ function CharacterForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const altNames = altNamesInput
       .split(",")
       .map(s => s.trim())
@@ -163,10 +177,10 @@ function CharacterForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex gap-4">
+    <div className="space-y-4" role="form" aria-label="Форма персонажа">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex flex-col items-center gap-2">
-          <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[var(--secondary)] border border-[var(--border)]">
+          <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[var(--secondary)] border border-[var(--border)] flex-shrink-0">
             {imagePreview ? (
               <Image src={imagePreview} alt="Preview" fill className="object-cover" />
             ) : (
@@ -193,7 +207,7 @@ function CharacterForm({
               type="text"
               value={formData.name}
               onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
               placeholder="Имя персонажа"
               required
             />
@@ -206,7 +220,7 @@ function CharacterForm({
               onChange={e =>
                 setFormData(prev => ({ ...prev, role: e.target.value as CharacterRole }))
               }
-              className="w-full px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+              className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
             >
               {ROLES.map(role => (
                 <option key={role} value={role}>
@@ -226,7 +240,7 @@ function CharacterForm({
           type="text"
           value={altNamesInput}
           onChange={e => setAltNamesInput(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+          className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
           placeholder="Другие имена персонажа"
         />
       </div>
@@ -236,10 +250,56 @@ function CharacterForm({
         <textarea
           value={formData.description}
           onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="w-full px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] resize-none"
+          className="w-full min-h-[80px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] resize-y transition-colors"
           placeholder="Краткое описание персонажа"
           rows={3}
         />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Возраст</label>
+          <input
+            type="text"
+            value={formData.age}
+            onChange={e => setFormData(prev => ({ ...prev, age: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Напр. 18, неизвестно"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Пол</label>
+          <input
+            type="text"
+            value={formData.gender}
+            onChange={e => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Напр. мужской, женский"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Гильдия / Организация</label>
+          <input
+            type="text"
+            value={formData.guild}
+            onChange={e => setFormData(prev => ({ ...prev, guild: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Опционально"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Клан / Семья</label>
+          <input
+            type="text"
+            value={formData.clan}
+            onChange={e => setFormData(prev => ({ ...prev, clan: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Опционально"
+          />
+        </div>
       </div>
 
       <div>
@@ -250,16 +310,48 @@ function CharacterForm({
           type="text"
           value={formData.voiceActor}
           onChange={e => setFormData(prev => ({ ...prev, voiceActor: e.target.value }))}
-          className="w-full px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+          className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
           placeholder="Имя актёра озвучки"
         />
       </div>
 
-      <div className="flex gap-2 pt-2">
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Заметки (внутренние)</label>
+        <textarea
+          value={formData.notes}
+          onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          className="w-full min-h-[60px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] resize-y transition-colors"
+          placeholder="Заметки для модераторов, не показываются на сайте"
+          rows={2}
+        />
+      </div>
+
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Порядок отображения</label>
+        <input
+          type="number"
+          min={0}
+          value={formData.sortOrder}
+          onChange={e => setFormData(prev => ({ ...prev, sortOrder: parseInt(e.target.value, 10) || 0 }))}
+          className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+          placeholder="0"
+        />
+        <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Меньше — выше в списке</p>
+      </div>
+
+      <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
         <button
-          type="submit"
+          type="button"
+          onClick={onCancel}
+          className="min-h-[44px] flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
+        >
+          Отмена
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSubmit()}
           disabled={isSaving || !formData.name.trim()}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 disabled:opacity-50 transition-colors"
+          className="min-h-[44px] flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
         >
           {isSaving ? (
             <>
@@ -273,15 +365,8 @@ function CharacterForm({
             </>
           )}
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
-        >
-          Отмена
-        </button>
       </div>
-    </form>
+    </div>
   );
 }
 
@@ -367,26 +452,42 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
     }
   };
 
+  const openFormAndExpand = () => {
+    setIsExpanded(true);
+    setIsFormOpen(true);
+    setEditingCharacter(null);
+  };
+
   return (
     <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 hover:bg-[var(--accent)]/50 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-[var(--primary)]" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Персонажи</h2>
-          {characters.length > 0 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-              {characters.length}
-            </span>
-          )}
-        </div>
-        <ChevronDown
-          className={`w-5 h-5 text-[var(--muted-foreground)] transition-transform ${isExpanded ? "rotate-180" : ""}`}
-        />
-      </button>
+      <div className="flex flex-wrap items-center gap-2 p-4">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex-1 min-w-0 flex items-center justify-between gap-2 hover:bg-[var(--accent)]/50 transition-colors rounded-lg -m-2 p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-inset"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Users className="w-5 h-5 text-[var(--primary)] shrink-0" />
+            <h2 className="text-lg font-semibold text-[var(--foreground)] truncate">Персонажи</h2>
+            {characters.length > 0 && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] shrink-0">
+                {characters.length}
+              </span>
+            )}
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-[var(--muted-foreground)] shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          />
+        </button>
+        <button
+          type="button"
+          onClick={openFormAndExpand}
+          className="shrink-0 min-h-[44px] flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:bg-[var(--primary)]/90 active:scale-[0.98] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
+        >
+          <Plus className="w-4 h-4 shrink-0" />
+          Добавить персонажа
+        </button>
+      </div>
 
       {isExpanded && (
         <div className="p-4 pt-0 space-y-4">
@@ -415,9 +516,10 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
               )}
 
               {characters.length === 0 && !isFormOpen && (
-                <div className="text-center py-6 text-[var(--muted-foreground)]">
-                  <User className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Персонажи не добавлены</p>
+                <div className="text-center py-8 px-4 text-[var(--muted-foreground)]">
+                  <User className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm font-medium text-[var(--foreground)]/80">Персонажи не добавлены</p>
+                  <p className="text-xs mt-1">Нажмите «Добавить персонажа» выше, чтобы создать первого</p>
                 </div>
               )}
 
@@ -433,7 +535,8 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
                         setIsFormOpen(false);
                         setEditingCharacter(null);
                       }}
-                      className="p-1 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+                      className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
+                      aria-label="Закрыть"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -454,7 +557,7 @@ export function CharactersManager({ titleId }: CharactersManagerProps) {
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl border-2 border-dashed border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors"
+                  className="w-full min-h-[44px] flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl border-2 border-dashed border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
                 >
                   <Plus className="w-4 h-4" />
                   Добавить персонажа

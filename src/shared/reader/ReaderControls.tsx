@@ -59,8 +59,10 @@ export default function ReaderControls({
   currentPage,
   chapterImageLength,
   currentChapter,
-  chapters,
-  onChapterSelect,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- пропсы для совместимости API
+  chapters: _chapters,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- пропсы для совместимости API
+  onChapterSelect: _onChapterSelect,
   onPrev,
   onNext,
   canGoPrev,
@@ -74,7 +76,8 @@ export default function ReaderControls({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- опциональный колбэк из родителя
   onToggleMenu,
   forceStopAutoScroll = false,
-  onMenuOpen,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- пропсы для совместимости API
+  onMenuOpen: _onMenuOpen,
   onAutoScrollStart,
   preloadAllImages = false,
   onPreloadChange,
@@ -607,7 +610,7 @@ export default function ReaderControls({
               <button
                 type="button"
                 onClick={handleCounterClick}
-                className={`group relative overflow-hidden text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/95 rounded-xl xs:rounded-2xl px-3 xs:px-4 py-1.5 xs:py-2 shadow-lg backdrop-blur-sm transition-all duration-300 active:scale-95 ${isMenuHidden ? "scale-90" : "scale-100"}`}
+                className={`group relative overflow-hidden inline-flex items-center justify-center text-xs xs:text-sm font-medium border border-[var(--border)] bg-[var(--card)]/80 rounded-xl xs:rounded-2xl px-3 xs:px-4 py-1.5 xs:py-2 shadow-lg backdrop-blur-sm transition-all duration-300 active:scale-95 min-h-[44px] min-w-[44px] touch-manipulation select-none mb-2`}
                 title={onJumpToPage ? "Нажмите для перехода к странице" : "Счётчик страниц"}
               >
                 {/* Mini progress bar */}

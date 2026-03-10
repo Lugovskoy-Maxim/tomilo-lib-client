@@ -339,11 +339,15 @@ export default function ChapterEditorPage() {
         }),
       ).unwrap();
       if (res.data) {
+        const { synced, errors } = res.data;
+        const syncedNumbers = Array.isArray(synced)
+          ? synced.map(s => (typeof s === "number" ? s : (s as { chapterNumber?: number })?.chapterNumber)).filter((n): n is number => typeof n === "number")
+          : [];
         toast.success(
-          `Синхронизация: обновлено ${res.data.synced.length}, ошибок: ${res.data.errors.length}`,
+          `Синхронизация: обновлено ${syncedNumbers.length}, ошибок: ${(errors || []).length}`,
         );
-        if (res.data.synced.includes(chapterNum)) {
-          dispatch(chaptersApi.util.invalidateTags([{ type: "Chapters", id: chapterId }]));
+        if (syncedNumbers.includes(chapterNum)) {
+          dispatch(chaptersApi.util.invalidateTags([{ type: "Chapters", id: chapterId }, { type: "Chapters", id: `title-${titleId}` }]));
         }
       }
     } catch (e) {

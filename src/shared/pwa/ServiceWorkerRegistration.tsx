@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 
 export function useServiceWorkerRegistration() {
   const [isRegistered, setIsRegistered] = useState(false);
-  const [isOnline, setIsOnline] = useState(
-    typeof navigator !== "undefined" ? navigator.onLine : true,
-  );
+  // Always start as true so SSR and first client paint match (avoids hydration mismatch).
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
+    setIsOnline(navigator.onLine);
     const onOnline = () => setIsOnline(true);
     const onOffline = () => setIsOnline(false);
     window.addEventListener("online", onOnline);

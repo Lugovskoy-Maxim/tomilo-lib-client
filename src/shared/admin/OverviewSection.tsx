@@ -10,6 +10,7 @@ import {
   Megaphone,
   MessageCircleWarning,
   Target,
+  UserCheck,
   Users,
   Activity,
   Server,
@@ -20,6 +21,7 @@ import { useGetStatsQuery } from "@/store/api/statsApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { useSearchChaptersQuery } from "@/store/api/chaptersApi";
 import { useGetReportsQuery } from "@/store/api/reportsApi";
+import { useGetPendingCharactersForModerationQuery } from "@/store/api/charactersApi";
 import {
   useGetDashboardQuery,
   useGetActivityQuery,
@@ -34,6 +36,7 @@ type AdminTab =
   | "chapters"
   | "work-queue"
   | "reports"
+  | "character-moderation"
   | "announcements";
 
 interface OverviewSectionProps {
@@ -59,16 +62,18 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     sortBy: "updatedAt",
     sortOrder: "desc",
   });
-  const { data: chaptersHealthData } = useSearchChaptersQuery({
+  const { data: chaptersWithoutPagesData } = useSearchChaptersQuery({
     page: 1,
-    limit: 200,
-    sortOrder: "desc",
+    limit: 1,
+    withoutPages: true,
   });
   const { data: unresolvedReports } = useGetReportsQuery({
     page: 1,
     limit: 1,
     isResolved: "false",
   });
+  const { data: pendingCharactersData } = useGetPendingCharactersForModerationQuery();
+  const pendingCharactersCount = pendingCharactersData?.total ?? 0;
 
   // Новые эндпоинты из adminApi
   const { data: dashboardData } = useGetDashboardQuery();
@@ -136,9 +141,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   const titlesWithoutChaptersCount = (titlesHealthData?.data?.data || []).filter(
     title => (title.totalChapters || 0) === 0,
   ).length;
-  const chaptersWithoutPagesCount = (chaptersHealthData?.chapters || []).filter(
-    chapter => (chapter.pages?.length ?? chapter.images?.length ?? 0) === 0,
-  ).length;
+  const chaptersWithoutPagesCount = chaptersWithoutPagesData?.total ?? 0;
   const unresolvedReportsCount = unresolvedReports?.data?.total || 0;
 
   const popularTitles = Array.isArray(stats.popularTitles) ? stats.popularTitles : [];
@@ -208,6 +211,15 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
             icon={<MessageCircleWarning className="w-4 h-4" />}
             buttonLabel="Открыть жалобы"
             onClick={() => onTabChange("reports")}
+          />
+          <ActionCard
+            title="Персонажи на модерации"
+            description="Предложенные персонажи и правки от пользователей"
+            value={pendingCharactersCount}
+            tone="warning"
+            icon={<UserCheck className="w-4 h-4" />}
+            buttonLabel="Открыть модерацию"
+            onClick={() => onTabChange("character-moderation")}
           />
           <ActionCard
             title="Тайтлы без глав"

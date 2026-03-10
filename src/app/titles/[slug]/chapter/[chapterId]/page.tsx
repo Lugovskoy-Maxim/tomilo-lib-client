@@ -62,6 +62,7 @@ export async function generateMetadata({
     // Получаем данные тайтла по slug
     const titleData = await getTitleDataBySlug(slug);
     const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
+    const altNames = titleData?.altNames ?? (titleData as { alternativeTitles?: string[] })?.alternativeTitles ?? [];
 
     // Получаем данные главы
     const chapterData = await getChapterData(chapterId);
@@ -86,10 +87,21 @@ export async function generateMetadata({
     const ogImageUrl = getOgImageUrl(baseUrl, coverImage, imageBaseUrl);
     const chapterUrl = `${baseUrl}/titles/${encodeURIComponent(slug)}/chapter/${chapterId}`;
 
+    const keywordsList = [
+      titleName,
+      ...altNames,
+      `глава ${chapterNumber}`,
+      chapterTitle,
+      "читать онлайн",
+      "манга",
+      "маньхуа",
+      "манхва",
+      "комиксы",
+    ].filter(Boolean);
     return buildServerSEOMetadata({
       title: sanitizeMetaString(formattedTitle),
       description: sanitizeMetaString(shortDescription),
-      keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, читать онлайн, манга, маньхуа, манхва, комиксы`,
+      keywords: keywordsList.join(", "),
       canonicalUrl: chapterUrl,
       ogImageUrl,
       ogImageAlt: coverImage

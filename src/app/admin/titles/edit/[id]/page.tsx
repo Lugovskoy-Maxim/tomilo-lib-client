@@ -23,7 +23,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useDispatch } from "react-redux";
-import { Title, TitleStatus, TitleType } from "@/types/title";
+import { Title, TitleStatus, TitleType, type TitleBasic } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
 import {
@@ -37,6 +37,7 @@ import { UpdateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
 import { CoverUploadSection } from "@/shared/admin/CoverUploadSection";
 import { CharactersManager } from "@/shared/admin/CharactersManager";
+import { RelatedTitlesManager } from "@/shared/admin/RelatedTitlesManager";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
@@ -308,6 +309,7 @@ export default function TitleEditorPage() {
     chapters: [],
     isPublished: false,
     chaptersRemovedByCopyrightHolder: false,
+    relatedTitles: [],
     createdAt: "",
     updatedAt: "",
   });
@@ -335,6 +337,7 @@ export default function TitleEditorPage() {
         rating: Number(titleData.rating) || 0,
         genres: Array.isArray(titleData.genres) ? titleData.genres : [],
         tags: Array.isArray(titleData.tags) ? titleData.tags : [],
+        relatedTitles: titleData.relatedTitles ?? [],
       };
 
       setFormData(processedData);
@@ -463,6 +466,10 @@ export default function TitleEditorPage() {
         isPublished: formData.isPublished,
         chaptersRemovedByCopyrightHolder: formData.chaptersRemovedByCopyrightHolder ?? false,
         type: formData.type,
+        relatedTitles: formData.relatedTitles?.map(e => ({
+          relationType: e.relationType,
+          titleId: typeof e.titleId === "string" ? e.titleId : (e.titleId as TitleBasic)._id,
+        })),
       };
 
       const result = await updateTitleMutation({
@@ -504,21 +511,23 @@ export default function TitleEditorPage() {
 
   return (
     <AuthGuard requiredRole="admin">
-      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+      <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] max-lg:pb-[var(--mobile-footer-bar-height)]">
         <Header />
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <Breadcrumbs
-            items={[
-              { name: "Главная", href: "/" },
-              { name: "Админка", href: "/admin" },
-              { name: "Тайтлы", href: "/admin?tab=titles" },
-              { name: "Редактирование", href: `/admin/titles/edit/${titleId}` },
-              { name: formData.name || "Тайтл", isCurrent: true },
-            ]}
-            className="mb-6"
-          />
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <div className="mb-4 sm:mb-6 overflow-x-auto">
+            <Breadcrumbs
+              items={[
+                { name: "Главная", href: "/" },
+                { name: "Админка", href: "/admin" },
+                { name: "Тайтлы", href: "/admin?tab=titles" },
+                { name: "Редактирование", href: `/admin/titles/edit/${titleId}` },
+                { name: formData.name || "Тайтл", isCurrent: true },
+              ]}
+              className="min-w-0"
+            />
+          </div>
           <HeaderSection titleName={formData.name} />
-          <div className="flex flex-col items-stretch sm:items-end mb-6">
+          <div className="flex flex-col items-stretch sm:items-end mb-4 sm:mb-6">
             <ChaptersSection titleId={titleId} chaptersCount={chaptersCount} />
           </div>
           <form onSubmit={handleSubmit} className="space-y-6 w-full">
@@ -538,8 +547,18 @@ export default function TitleEditorPage() {
             {/* Управление персонажами */}
             <CharactersManager titleId={titleId} />
 
-            <div className="flex items-center justify-between gap-3">
-              <Link href={`/titles/${formData.slug}`} className="px-4 py-2 rounded border">
+            {/* Связанные тайтлы (сиквел, приквел, спинофф и т.д.) */}
+            <RelatedTitlesManager
+              currentTitleId={titleId}
+              value={formData.relatedTitles ?? []}
+              onChange={related => setFormData(prev => ({ ...prev, relatedTitles: related }))}
+            />
+
+            <div className="pt-6 mt-6 border-t border-[var(--border)] flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+              <Link
+                href={`/titles/${formData.slug}`}
+                className="min-h-[44px] flex items-center justify-center px-4 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--accent)] transition-colors text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
+              >
                 Открыть страницу тайтла
               </Link>
               <FormActions isSaving={isSaving || isUpdating} />
@@ -555,7 +574,7 @@ export default function TitleEditorPage() {
 // Компоненты состояний (без изменений)
 function LoadingState() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] max-lg:pb-[var(--mobile-footer-bar-height)]">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[50vh]">
@@ -572,7 +591,7 @@ function LoadingState() {
 
 function ErrorState({ error }: ErrorStateProps) {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)]">
+    <main className="min-h-screen bg-gradient-to-br from-[var(--background)] to-[var(--secondary)] max-lg:pb-[var(--mobile-footer-bar-height)]">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[50vh]">
@@ -599,13 +618,13 @@ function ErrorState({ error }: ErrorStateProps) {
 // Компоненты секций
 function HeaderSection({ titleName }: { titleName?: string }) {
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1 flex items-center gap-2">
-        <Edit className="w-6 h-6 text-[var(--primary)]" />
+    <div className="mb-4 sm:mb-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)] mb-1 flex items-center gap-2 flex-wrap">
+        <Edit className="w-6 h-6 text-[var(--primary)] shrink-0" />
         Редактировать тайтл
       </h1>
       {titleName ? (
-        <p className="text-[var(--muted-foreground)] text-sm">«{titleName}»</p>
+        <p className="text-[var(--muted-foreground)] text-sm break-words">«{titleName}»</p>
       ) : (
         <p className="text-[var(--muted-foreground)] text-sm">Обновите информацию о тайтле</p>
       )}
@@ -626,9 +645,9 @@ function BasicInfoSection({
   onSlugGenerate,
 }: BasicInfoSectionProps) {
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
-      <h2 className="text-xl font-semibold text-[var(--foreground)] flex items-center gap-2">
-        <BookOpen className="w-5 h-5" />
+    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 sm:p-6 space-y-6">
+      <h2 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] flex items-center gap-2">
+        <BookOpen className="w-5 h-5 shrink-0" />
         Основная информация
       </h2>
 
@@ -654,7 +673,7 @@ function BasicInfoSection({
           />
 
           <div className="md:col-span-2">
-            <label className="text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
+            <label className="text-sm font-medium text-[var(--foreground)] mb-1.5 flex items-center gap-2">
               <Globe className="w-3 h-3" />
               Slug
             </label>
@@ -664,12 +683,12 @@ function BasicInfoSection({
                 value={formData.slug || ""}
                 onChange={handleInputChange("slug")}
                 placeholder="Введите slug тайтла"
-                className="flex-1 min-w-0 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+                className={`flex-1 min-w-0 min-h-[42px] px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] text-sm transition-colors ${inputFocusClasses}`}
               />
               <button
                 type="button"
                 onClick={onSlugGenerate}
-                className="px-3 py-2 shrink-0 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-1 text-sm"
+                className="min-h-[42px] px-3 py-2 shrink-0 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-1.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
                 title="Генерировать slug из названия"
               >
                 <Wand2 className="w-3 h-3" />
@@ -870,13 +889,13 @@ function GenreTagBlock({
 
       {/* Поиск по списку */}
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)] pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder={`Поиск по списку ${title.toLowerCase()}...`}
-          className="w-full pl-8 pr-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+          className={`w-full min-h-[42px] pl-8 pr-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] transition-colors ${inputFocusClasses}`}
         />
       </div>
 
@@ -890,7 +909,7 @@ function GenreTagBlock({
                 key={item}
                 type="button"
                 onClick={() => onChange(item, !isSelected)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                className={`min-h-[32px] px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-1 ${
                   isSelected
                     ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                     : "bg-[var(--accent)] text-[var(--foreground)] hover:border-[var(--primary)] border border-transparent"
@@ -910,13 +929,13 @@ function GenreTagBlock({
           value={pasteInput}
           onChange={e => setPasteInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && (e.preventDefault(), handleAddFromText())}
-          placeholder={`Введите через запятую и нажмите «Добавить»`}
-          className="flex-1 px-3 py-2 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)]"
+          placeholder="Введите через запятую и нажмите «Добавить»"
+          className={`flex-1 min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] transition-colors ${inputFocusClasses}`}
         />
         <button
           type="button"
           onClick={handleAddFromText}
-          className="px-3 py-2 text-sm font-medium rounded-lg bg-[var(--accent)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--accent)]/80 shrink-0"
+          className={`min-h-[42px] px-3 py-2.5 text-sm font-medium rounded-lg bg-[var(--accent)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--accent)]/80 shrink-0 transition-colors ${btnFocusClasses}`}
         >
           Добавить
         </button>
@@ -926,7 +945,7 @@ function GenreTagBlock({
       <button
         type="button"
         onClick={handleNormalize}
-        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--primary)]/50 transition-colors"
+        className={`w-full min-h-[42px] inline-flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] hover:border-[var(--primary)]/50 transition-colors ${btnFocusClasses}`}
         title="Привести регистр и варианты написания к стандартному виду"
       >
         <Sparkles className="w-4 h-4 text-[var(--primary)]" />
@@ -946,13 +965,13 @@ function GenresTagsSection({
 }: GenresTagsSectionProps) {
   const toast = useToast();
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-      <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
-        <Tag className="w-5 h-5 text-[var(--primary)]" />
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/40 p-4 sm:p-6">
+      <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
+        <Tag className="w-5 h-5 text-[var(--primary)] shrink-0" />
         Жанры и теги
       </h2>
-      <p className="text-sm text-[var(--muted-foreground)] mb-4">
-        Выберите из списка или введите через запятую. Кнопка «Привести к стандартному виду» исправит
+      <p className="text-sm text-[var(--muted-foreground)] mb-4 leading-relaxed">
+        Выберите из списка или введите через запятую. «Привести к стандартному виду» исправит
         регистр и варианты написания.
       </p>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -981,35 +1000,37 @@ function GenresTagsSection({
 
 function ChaptersSection({ titleId, chaptersCount }: ChaptersSectionProps) {
   return (
-    <div className="w-full sm:w-auto sm:min-w-[280px] lg:min-w-[320px] bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[var(--foreground)] flex items-center gap-2">
-          <FileText className="w-5 h-5" />
+    <div className="w-full sm:w-auto sm:min-w-[280px] lg:min-w-[320px] bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] flex items-center gap-2">
+          <FileText className="w-5 h-5 shrink-0 text-[var(--primary)]" />
           Управление главами
         </h2>
-        <span className="text-lg font-bold text-[var(--primary)]">{chaptersCount} глав</span>
+        <span className="text-base sm:text-lg font-bold text-[var(--primary)] tabular-nums">
+          {chaptersCount} глав
+        </span>
       </div>
 
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <Link
           href={`/admin/titles/edit/${titleId}/chapters/new`}
-          className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 text-sm"
+          className={`min-h-[44px] flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 active:scale-[0.98] transition-colors text-sm ${btnFocusClasses}`}
         >
-          <Edit className="w-4 h-4" />
+          <Edit className="w-4 h-4 shrink-0" />
           Добавить главы
         </Link>
 
         <Link
           href={`/admin/titles/edit/${titleId}/chapters`}
-          className="px-4 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors flex items-center gap-2 text-sm"
+          className={`min-h-[44px] flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 border border-[var(--border)] active:scale-[0.98] transition-colors text-sm ${btnFocusClasses}`}
         >
-          <FileText className="w-4 h-4" />
-          Управление главами
+          <FileText className="w-4 h-4 shrink-0" />
+          Список глав
         </Link>
       </div>
 
-      <p className="text-sm text-[var(--muted-foreground)] mt-3">
-        Добавляйте новые главы вручную или используйте парсинг из внешних источников
+      <p className="text-sm text-[var(--muted-foreground)] mt-3 leading-relaxed">
+        Добавляйте главы вручную или через парсинг из внешних источников.
       </p>
     </div>
   );
@@ -1017,17 +1038,17 @@ function ChaptersSection({ titleId, chaptersCount }: ChaptersSectionProps) {
 
 function FormActions({ isSaving }: FormActionsProps) {
   return (
-    <div className="flex justify-end gap-3">
+    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 w-full sm:w-auto">
       <Link
         href="/admin/titles"
-        className="px-6 py-2 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors"
+        className={`min-h-[44px] flex items-center justify-center px-6 py-2.5 bg-[var(--accent)] text-[var(--foreground)] rounded-lg font-medium hover:bg-[var(--accent)]/80 transition-colors ${btnFocusClasses}`}
       >
         Отмена
       </Link>
       <button
         type="submit"
         disabled={isSaving}
-        className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className={`min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${btnFocusClasses}`}
       >
         <Save className="w-4 h-4" />
         {isSaving ? "Сохранение..." : "Сохранить"}
@@ -1036,17 +1057,23 @@ function FormActions({ isSaving }: FormActionsProps) {
   );
 }
 
+// Общие классы для доступности (фокус с клавиатуры)
+const inputFocusClasses =
+  "focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]";
+const btnFocusClasses =
+  "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]";
+
 // Базовые компоненты полей
 function InputField({ label, icon: Icon, type = "text", ...props }: InputFieldProps) {
   return (
     <div>
-      <label className="text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
+      <label className="text-sm font-medium text-[var(--foreground)] mb-1.5 flex items-center gap-2">
         {Icon && <Icon className="w-3 h-3" />}
         {label}
       </label>
       <input
         type={type}
-        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+        className={`w-full min-h-[42px] px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] text-sm transition-colors ${inputFocusClasses}`}
         {...props}
       />
     </div>
@@ -1056,9 +1083,9 @@ function InputField({ label, icon: Icon, type = "text", ...props }: InputFieldPr
 function TextareaField({ label, ...props }: TextareaFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[var(--foreground)] mb-1">{label}</label>
+      <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">{label}</label>
       <textarea
-        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] resize text-sm"
+        className={`w-full px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] resize-y text-sm transition-colors ${inputFocusClasses}`}
         {...props}
       />
     </div>
@@ -1068,12 +1095,12 @@ function TextareaField({ label, ...props }: TextareaFieldProps) {
 function SelectField({ label, icon: Icon, options, ...props }: SelectFieldProps) {
   return (
     <div>
-      <label className=" text-sm font-medium text-[var(--foreground)] mb-1 flex items-center gap-2">
+      <label className="text-sm font-medium text-[var(--foreground)] mb-1.5 flex items-center gap-2">
         {Icon && <Icon className="w-3 h-3" />}
         {label}
       </label>
       <select
-        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-[var(--foreground)] text-sm"
+        className={`w-full min-h-[42px] px-3 py-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] text-sm transition-colors ${inputFocusClasses}`}
         {...props}
       >
         {options.map(option => (
@@ -1088,11 +1115,11 @@ function SelectField({ label, icon: Icon, options, ...props }: SelectFieldProps)
 
 function CheckboxField({ label, ...props }: CheckboxFieldProps) {
   return (
-    <div className="flex items-center">
-      <label className="flex items-center gap-2 cursor-pointer">
+    <div className="flex items-center min-h-[42px]">
+      <label className="flex items-center gap-3 cursor-pointer">
         <input
           type="checkbox"
-          className="w-4 h-4 text-[var(--primary)] bg-[var(--background)] border-[var(--border)] rounded focus:ring-[var(--primary)]"
+          className="w-4 h-4 text-[var(--primary)] bg-[var(--background)] border border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--primary)]/40 focus:ring-offset-2"
           {...props}
         />
         <span className="text-sm font-medium text-[var(--foreground)]">{label}</span>
