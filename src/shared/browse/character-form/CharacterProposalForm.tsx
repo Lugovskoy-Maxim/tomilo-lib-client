@@ -135,7 +135,7 @@ export function CharacterProposalForm({
         <div className="flex flex-col items-center gap-2">
           <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[var(--secondary)] border border-[var(--border)] flex-shrink-0">
             {imagePreview ? (
-              <Image src={imagePreview} alt="" fill className="object-cover" />
+              <Image src={imagePreview} alt="" fill className="object-cover" unoptimized />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <User className="w-8 h-8 text-[var(--muted-foreground)]" />

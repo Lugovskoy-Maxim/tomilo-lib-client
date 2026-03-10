@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import {
   useGetPendingCharactersForModerationQuery,
@@ -10,7 +10,6 @@ import {
 } from "@/store/api/charactersApi";
 import { useToast } from "@/hooks/useToast";
 import { User, Loader2, Check, X, ExternalLink } from "lucide-react";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 import { characterRoleLabels, characterRoleColors } from "@/types/character";
 
 export function CharacterModerationSection() {
@@ -109,8 +108,8 @@ export function CharacterModerationSection() {
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[var(--secondary)] flex-shrink-0">
                       {(char.image || doc.pendingImage) && (
-                        <Image
-                          src={normalizeAssetUrl((doc.pendingImage as string) || char.image || "")}
+                        <AssetImage
+                          src={(doc.pendingImage as string) || char.image || ""}
                           alt=""
                           fill
                           sizes="48px"

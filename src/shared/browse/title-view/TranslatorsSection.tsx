@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import { Users2, ChevronRight, Crown, ExternalLink, Heart, BookOpen } from "lucide-react";
 import { useGetTeamsByTitleQuery } from "@/store/api/translatorsApi";
 import { TranslatorTeam, translatorRoleLabels, translatorRoleColors } from "@/types/translator";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 import type { Chapter } from "@/types/title";
 
 interface TranslatorsSectionProps {
@@ -27,8 +26,8 @@ function TeamCard({ team, chapterNumbers }: { team: TranslatorTeam; chapterNumbe
       <div className="flex items-start gap-3 mb-3">
         <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-[var(--secondary)]/50 flex-shrink-0">
           {team.avatar && !imageError ? (
-            <Image
-              src={normalizeAssetUrl(team.avatar)}
+            <AssetImage
+              src={team.avatar}
               alt={team.name}
               fill
               className="object-cover"

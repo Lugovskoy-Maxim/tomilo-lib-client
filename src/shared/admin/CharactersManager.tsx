@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import {
   Users,
   Plus,
@@ -68,8 +69,8 @@ function CharacterCard({
     <div className="flex items-start gap-3 p-3 sm:p-4 bg-[var(--background)]/50 rounded-xl border border-[var(--border)]/50 hover:border-[var(--primary)]/30 hover:bg-[var(--background)]/70 transition-colors">
       <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-[var(--secondary)] flex-shrink-0">
         {character.image && !imageError ? (
-          <Image
-            src={normalizeAssetUrl(character.image)}
+          <AssetImage
+            src={character.image}
             alt={character.name}
             fill
             className="object-cover"
@@ -182,7 +183,7 @@ function CharacterForm({
         <div className="flex flex-col items-center gap-2">
           <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[var(--secondary)] border border-[var(--border)] flex-shrink-0">
             {imagePreview ? (
-              <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+              <Image src={imagePreview} alt="Preview" fill className="object-cover" unoptimized />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <User className="w-8 h-8 text-[var(--muted-foreground)]" />

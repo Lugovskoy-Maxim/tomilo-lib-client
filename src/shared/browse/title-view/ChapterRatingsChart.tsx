@@ -2,8 +2,8 @@
 
 import React, { useMemo } from "react";
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -11,6 +11,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { Chapter } from "@/types/title";
+
+const CHART_GRADIENT_ID = "chapter-ratings-gradient";
 
 interface ChapterRatingsChartProps {
   chapters: Chapter[];
@@ -56,37 +58,49 @@ export function ChapterRatingsChart({ chapters }: ChapterRatingsChartProps): Rea
 
   return (
     <div className="mt-4 space-y-2">
-      <div className="text-xs text-[var(--muted-foreground)]">
+      <div className="text-xs font-medium text-[var(--muted-foreground)] tracking-wide">
         Распределение оценок по главам
       </div>
-      <div className="h-[220px] w-full">
+      <div className="h-[220px] w-full rounded-xl overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
+          <AreaChart
             data={chartData}
-            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            margin={{ top: 12, right: 12, left: 4, bottom: 4 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
+            <defs>
+              <linearGradient id={CHART_GRADIENT_ID} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+              vertical={false}
+              opacity={0.4}
+            />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               tickLine={false}
-              axisLine={{ stroke: "var(--border)" }}
+              axisLine={{ stroke: "var(--border)", strokeWidth: 1 }}
             />
             <YAxis
               dataKey="rating"
               domain={[1, 10]}
-              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               tickLine={false}
-              axisLine={{ stroke: "var(--border)" }}
-              width={24}
+              axisLine={false}
+              width={28}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: "var(--card)",
                 border: "1px solid var(--border)",
-                borderRadius: "var(--radius)",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
               }}
-              labelStyle={{ color: "var(--foreground)" }}
+              labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
               formatter={(value, _name, props) => [
                 `${value ?? 0} (${(props?.payload as ChartPoint)?.count ?? 0} ${(props?.payload as ChartPoint)?.count === 1 ? "оценка" : "оценок"})`,
                 "Рейтинг",
@@ -94,14 +108,20 @@ export function ChapterRatingsChart({ chapters }: ChapterRatingsChartProps): Rea
               labelFormatter={(_label, payload) =>
                 payload?.[0] ? `Глава ${payload[0].payload.chapterNumber}` : ""
               }
+              cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 4" }}
             />
-            <Bar
+            <Area
+              type="basis"
               dataKey="rating"
-              fill="var(--primary)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={32}
+              stroke="var(--primary)"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill={`url(#${CHART_GRADIENT_ID})`}
+              dot={false}
+              activeDot={{ r: 6, stroke: "var(--card)", strokeWidth: 2, fill: "var(--primary)" }}
             />
-          </BarChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>

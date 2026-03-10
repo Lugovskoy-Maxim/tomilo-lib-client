@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import { Users2, Heart, ExternalLink, ChevronDown } from "lucide-react";
 import { useGetTeamsByTitleQuery } from "@/store/api/translatorsApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { TranslatorTeam, translatorRoleLabels } from "@/types/translator";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 
 interface ChapterTranslatorInfoProps {
   titleId: string;
@@ -35,8 +34,8 @@ function TeamMiniCard({
       <div className="flex items-center gap-3">
         <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-[var(--background)]/50 flex-shrink-0">
           {team.avatar && !imageError ? (
-            <Image
-              src={normalizeAssetUrl(team.avatar)}
+            <AssetImage
+              src={team.avatar}
               alt={team.name}
               fill
               className="object-cover"

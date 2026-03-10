@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import {
   User,
@@ -23,7 +23,6 @@ import {
   characterRoleLabels,
   characterRoleColors,
 } from "@/types/character";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 import { getTitlePath } from "@/lib/title-paths";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { Header, Footer } from "@/widgets";
@@ -125,8 +124,8 @@ export default function CharacterPageClient() {
             <div className="flex gap-4">
               <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-[var(--secondary)] flex-shrink-0">
                 {character.image ? (
-                  <Image
-                    src={normalizeAssetUrl(character.image)}
+                  <AssetImage
+                    src={character.image}
                     alt={character.name}
                     fill
                     sizes="96px"
@@ -244,8 +243,8 @@ export default function CharacterPageClient() {
                 >
                   {title.coverImage ? (
                     <div className="relative w-12 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--background)]">
-                      <Image
-                        src={normalizeAssetUrl(title.coverImage)}
+                      <AssetImage
+                        src={title.coverImage}
                         alt=""
                         fill
                         sizes="48px"

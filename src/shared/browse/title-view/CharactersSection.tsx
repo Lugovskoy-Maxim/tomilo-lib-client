@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import { Users, ChevronRight, User, Plus, X } from "lucide-react";
 import {
@@ -10,7 +10,6 @@ import {
   useProposeCharacterWithImageMutation,
 } from "@/store/api/charactersApi";
 import { Character, characterRoleLabels, characterRoleColors } from "@/types/character";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { CharacterProposalForm } from "@/shared/browse/character-form/CharacterProposalForm";
@@ -31,8 +30,8 @@ function CharacterCard({ character }: { character: Character }) {
     >
       <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[var(--background)]/50 flex-shrink-0 ring-2 ring-[var(--border)]/30 group-hover:ring-[var(--primary)]/30 transition-all">
         {character.image && !imageError ? (
-          <Image
-            src={normalizeAssetUrl(character.image)}
+          <AssetImage
+            src={character.image}
             alt={character.name}
             fill
             sizes="64px"
