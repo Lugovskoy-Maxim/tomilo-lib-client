@@ -46,7 +46,11 @@ export default function ChaptersManagementPage() {
   const { data: titleData } = useGetTitleByIdQuery({ id: titleId }, { skip: !titleId });
   const { data: autoParsingJobs } = useGetAutoParsingJobsQuery(undefined, { skip: !titleId });
   const autoParsingJobForTitle = useMemo(
-    () => autoParsingJobs?.find(j => (j.titleId as { _id?: string })?._id === titleId),
+    () =>
+      autoParsingJobs?.find(j => {
+        const id = typeof j.titleId === "string" ? j.titleId : (j.titleId as { _id?: string })?._id;
+        return id === titleId;
+      }),
     [autoParsingJobs, titleId],
   );
   const syncSourceUrl =
