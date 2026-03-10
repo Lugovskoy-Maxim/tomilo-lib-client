@@ -240,7 +240,7 @@ function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, t
 export default async function TitlePageRoute({ params, searchParams }: PageProps) {
   const [resolvedParams, resolvedSearchParams] = await Promise.all([
     params,
-    searchParams ?? Promise.resolve({}),
+    searchParams ?? Promise.resolve({} as { tab?: string }),
   ]);
   const rawSlug = String(resolvedParams.slug ?? "");
   let slug: string;
@@ -249,7 +249,7 @@ export default async function TitlePageRoute({ params, searchParams }: PageProps
   } catch {
     slug = rawSlug;
   }
-  const initialTab = resolvedSearchParams?.tab ?? undefined;
+  const initialTab = resolvedSearchParams.tab ?? undefined;
 
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
   const titleData = await getTitleDataBySlug(slug);

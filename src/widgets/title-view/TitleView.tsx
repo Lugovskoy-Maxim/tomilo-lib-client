@@ -19,7 +19,7 @@ import { ReportModal } from "@/shared/report/ReportModal";
 
 const TITLE_TABS = ["main", "chapters", "comments"] as const;
 type TitleTab = (typeof TITLE_TABS)[number];
-function isValidTab(t: string | null): t is TitleTab {
+function isValidTab(t: string | null | undefined): t is TitleTab {
   return Boolean(t && TITLE_TABS.includes(t as TitleTab));
 }
 
