@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import { Users2, BookOpen, Eye, Heart, ExternalLink, MessageCircle, Info } from "lucide-react";
 import { useGetTeamBySlugQuery } from "@/store/api/translatorsApi";
@@ -11,7 +11,6 @@ import {
   type TranslatorTeam,
   type TranslatorRole,
 } from "@/types/translator";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 import { getTitlePath } from "@/lib/title-paths";
 import { Header } from "@/widgets";
 
@@ -101,12 +100,12 @@ export default function TranslatorTeamPage() {
         {/* Banner */}
         {t.banner && (
           <div className="relative w-full h-40 sm:h-52 rounded-xl overflow-hidden bg-[var(--secondary)]/50 mb-6">
-            <Image
-              src={normalizeAssetUrl(t.banner)}
+            <AssetImage
+              src={t.banner}
               alt=""
               fill
               className="object-cover"
-              priority
+              loading="eager"
             />
           </div>
         )}
@@ -116,8 +115,8 @@ export default function TranslatorTeamPage() {
           <div className="flex-shrink-0">
             <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-[var(--secondary)]/50 border-2 border-[var(--border)]">
               {t.avatar ? (
-                <Image
-                  src={normalizeAssetUrl(t.avatar)}
+                <AssetImage
+                  src={t.avatar}
                   alt={t.name}
                   fill
                   className="object-cover"
@@ -316,8 +315,8 @@ export default function TranslatorTeamPage() {
                 >
                   <div className="relative aspect-[3/4] bg-[var(--secondary)]/50">
                     {title.coverImage ? (
-                      <Image
-                        src={normalizeAssetUrl(title.coverImage)}
+                      <AssetImage
+                        src={title.coverImage}
                         alt={title.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"

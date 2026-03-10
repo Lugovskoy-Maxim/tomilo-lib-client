@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import { Users2, Search, X, Check, ChevronDown, Loader2, ExternalLink } from "lucide-react";
 import { useGetTeamsQuery, useGetTeamsByTitleQuery } from "@/store/api/translatorsApi";
 import { TranslatorTeam } from "@/types/translator";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 
 interface TranslatorTeamSelectProps {
   titleId: string;
@@ -104,8 +103,8 @@ export function TranslatorTeamSelect({
             <>
               {selectedTeam.avatar ? (
                 <div className="relative w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
-                  <Image
-                    src={normalizeAssetUrl(selectedTeam.avatar)}
+                  <AssetImage
+                    src={selectedTeam.avatar}
                     alt={selectedTeam.name}
                     fill
                     className="object-cover"
@@ -196,8 +195,8 @@ export function TranslatorTeamSelect({
                     >
                       {team.avatar ? (
                         <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                          <Image
-                            src={normalizeAssetUrl(team.avatar)}
+                          <AssetImage
+                            src={team.avatar}
                             alt={team.name}
                             fill
                             className="object-cover"

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import { Users, User, ChevronLeft, Plus, X } from "lucide-react";
 import { useGetTitleBySlugQuery } from "@/store/api/titlesApi";
@@ -14,7 +14,6 @@ import {
   useProposeCharacterWithImageMutation,
 } from "@/store/api/charactersApi";
 import { Character, characterRoleLabels, characterRoleColors } from "@/types/character";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 import { Header, Footer } from "@/widgets";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,8 +29,8 @@ function CharacterCard({ character }: { character: Character }) {
     >
       <div className="relative w-20 h-20 rounded-full overflow-hidden bg-[var(--background)]/50 flex-shrink-0 ring-2 ring-[var(--border)]/30 group-hover:ring-[var(--primary)]/30 transition-all">
         {character.image && !imageError ? (
-          <Image
-            src={normalizeAssetUrl(character.image)}
+          <AssetImage
+            src={character.image}
             alt={character.name}
             fill
             sizes="80px"

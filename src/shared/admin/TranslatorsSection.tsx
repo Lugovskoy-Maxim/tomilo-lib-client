@@ -14,8 +14,7 @@ import {
   Upload,
   Image as ImageIcon,
 } from "lucide-react";
-import Image from "next/image";
-import { normalizeAssetUrl } from "@/lib/asset-url";
+import AssetImage from "@/shared/ui/AssetImage";
 import {
   useGetTeamsQuery,
   useGetTeamByIdQuery,
@@ -374,12 +373,12 @@ export function TranslatorsSection() {
                   <div className="flex items-center gap-4">
                     {currentTeam?.avatar ? (
                       <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[var(--secondary)] border border-[var(--border)]">
-                        <Image
-                          src={normalizeAssetUrl(currentTeam.avatar)}
+                        <AssetImage
+                          src={currentTeam.avatar}
                           alt=""
                           fill
-                          className="object-cover"
                           sizes="64px"
+                          className="object-cover"
                         />
                       </div>
                     ) : (

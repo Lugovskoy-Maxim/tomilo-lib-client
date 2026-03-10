@@ -1,5 +1,8 @@
-/** S3 URL — основной источник изображений */
+/** S3 URL — основной источник изображений (задаётся через NEXT_PUBLIC_S3_URL при сборке) */
 const s3Origin = process.env.NEXT_PUBLIC_S3_URL?.replace(/\/$/, "") || "";
+
+/** Запасной S3 origin для продовых путей, если env не задан при сборке (например в CI) */
+const FALLBACK_S3_ORIGIN = "https://s3.regru.cloud/tomilolib";
 
 /** Fallback URL — старый сервер /uploads */
 const uploadsOrigin =
@@ -76,9 +79,16 @@ export function getImageUrls(p: string): { primary: string; fallback: string } {
   const s3Path = normalizePathForS3(p);
   const uploadsPath = normalizePathForUploads(p);
 
-  if (s3Origin) {
+  const effectiveS3Origin = s3Origin || FALLBACK_S3_ORIGIN;
+  const looksLikeS3Path =
+    p.includes("tomilolib") ||
+    p.includes("/characters/") ||
+    p.includes("/titles/") ||
+    /^(.*\/)?(characters|titles)\//.test(p);
+
+  if (s3Origin || looksLikeS3Path) {
     return {
-      primary: `${s3Origin}${s3Path}`,
+      primary: `${effectiveS3Origin}${s3Path}`,
       fallback: `${uploadsOrigin}${uploadsPath}`,
     };
   }

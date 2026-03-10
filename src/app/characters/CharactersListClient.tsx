@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Image from "next/image";
+import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Users, User, ChevronLeft, ChevronRight, Plus, X, Search } from "lucide-react";
@@ -13,7 +13,6 @@ import {
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { Character, characterRoleLabels, characterRoleColors } from "@/types/character";
-import { normalizeAssetUrl } from "@/lib/asset-url";
 import { Header, Footer } from "@/widgets";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
@@ -44,8 +43,8 @@ function CharacterCard({ character }: { character: Character }) {
     >
       <div className="relative w-20 h-20 rounded-full overflow-hidden bg-[var(--background)]/50 flex-shrink-0 ring-2 ring-[var(--border)]/30 group-hover:ring-[var(--primary)]/30 transition-all">
         {character.image && !imageError ? (
-          <Image
-            src={normalizeAssetUrl(character.image)}
+          <AssetImage
+            src={character.image}
             alt={character.name}
             fill
             sizes="80px"
