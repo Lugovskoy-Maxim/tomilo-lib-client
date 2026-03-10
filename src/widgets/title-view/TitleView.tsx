@@ -17,7 +17,19 @@ import { RightContent } from "@/shared/browse/title-view/RightContent";
 import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
 import { ReportModal } from "@/shared/report/ReportModal";
 
-export default function TitleView({ slug: slugProp }: { slug: string }) {
+const TITLE_TABS = ["main", "chapters", "comments"] as const;
+type TitleTab = (typeof TITLE_TABS)[number];
+function isValidTab(t: string | null): t is TitleTab {
+  return Boolean(t && TITLE_TABS.includes(t as TitleTab));
+}
+
+export default function TitleView({
+  slug: slugProp,
+  initialTab: initialTabProp,
+}: {
+  slug: string;
+  initialTab?: string;
+}) {
   const params = useParams();
   const slug = (typeof params?.slug === "string" ? params.slug : slugProp) ?? slugProp;
   const { user } = useAuth();
@@ -102,15 +114,13 @@ export default function TitleView({ slug: slugProp }: { slug: string }) {
   const searchParams = useSearchParams();
   const pathname = `/titles/${slug}`;
 
-  const TITLE_TABS = ["main", "chapters", "comments"] as const;
-  type TitleTab = (typeof TITLE_TABS)[number];
-  const isValidTab = (t: string | null): t is TitleTab =>
-    Boolean(t && TITLE_TABS.includes(t as TitleTab));
-
+  // Начальная вкладка: с сервера (initialTabProp), иначе из URL; при гидратации синхронизируем с useSearchParams
   const tabFromUrl = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<TitleTab>(
-    isValidTab(tabFromUrl) ? tabFromUrl : "chapters",
-  );
+  const [activeTab, setActiveTab] = useState<TitleTab>(() => {
+    if (isValidTab(initialTabProp)) return initialTabProp;
+    if (isValidTab(tabFromUrl)) return tabFromUrl;
+    return "chapters";
+  });
 
   // Синхронизация вкладки с URL (как в админ-панели)
   useEffect(() => {
