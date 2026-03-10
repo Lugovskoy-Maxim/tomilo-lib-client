@@ -9,6 +9,8 @@ interface TermsOfUsePageProps {
   searchParams: Promise<{ lang?: string }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ searchParams }: TermsOfUsePageProps): Promise<Metadata> {
   const params = await searchParams;
   const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";

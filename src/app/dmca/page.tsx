@@ -9,6 +9,8 @@ interface DmcaPageProps {
   searchParams: Promise<{ lang?: string }>;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ searchParams }: DmcaPageProps): Promise<Metadata> {
   const params = await searchParams;
   const language = (params.lang === "en" ? "en" : "ru") as "ru" | "en";

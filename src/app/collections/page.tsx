@@ -13,6 +13,8 @@ interface CollectionsPageProps {
   }>;
 }
 
+export const dynamic = "force-dynamic";
+
 const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
 const collectionsBreadcrumbJsonLd = {
