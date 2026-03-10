@@ -25,6 +25,7 @@ import {
 } from "@/types/character";
 import { normalizeAssetUrl } from "@/lib/asset-url";
 import { getTitlePath } from "@/lib/title-paths";
+import { translateTitleType } from "@/lib/title-type-translations";
 import { Header, Footer } from "@/widgets";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
@@ -260,9 +261,16 @@ export default function CharacterPageClient() {
                     <span className="font-medium text-[var(--foreground)] line-clamp-1">
                       {title.name}
                     </span>
-                    {title.type && (
+                    {(title.type != null || title.releaseYear != null || title.rating != null || title.totalChapters != null) && (
                       <span className="text-xs text-[var(--muted-foreground)] block mt-0.5">
-                        {title.type}
+                        {[
+                          title.type != null ? translateTitleType(String(title.type)) : null,
+                          title.releaseYear != null ? String(title.releaseYear) : null,
+                          title.rating != null && title.rating > 0 ? title.rating.toFixed(1) : null,
+                          title.totalChapters != null && title.totalChapters > 0 ? `${title.totalChapters} гл.` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </span>
                     )}
                   </div>

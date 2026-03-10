@@ -60,6 +60,13 @@ export interface LeaderboardResponse {
   period?: LeaderboardPeriod;
 }
 
+/** Ответ лидерборда за все периоды одним запросом (week, month, all). */
+export interface LeaderboardAllPeriodsResponse {
+  week: LeaderboardResponse;
+  month: LeaderboardResponse;
+  all: LeaderboardResponse;
+}
+
 export const leaderboardApi = createApi({
   reducerPath: "leaderboardApi",
   baseQuery: fetchBaseQuery({
@@ -84,6 +91,21 @@ export const leaderboardApi = createApi({
       query: ({ category, period = "all", limit = 50, page = 1 }) => ({
         url: "/users/leaderboard",
         params: { category, period, limit, page },
+      }),
+      providesTags: ["Leaderboard"],
+    }),
+    /** Один запрос — данные за все периоды (week, month, all). Только для category: ratings | comments | chaptersRead. */
+    getLeaderboardAllPeriods: builder.query<
+      ApiResponse<LeaderboardAllPeriodsResponse>,
+      {
+        category: "ratings" | "comments" | "chaptersRead";
+        limit?: number;
+        page?: number;
+      }
+    >({
+      query: ({ category, limit = 50, page = 1 }) => ({
+        url: "/users/leaderboard",
+        params: { category, allPeriods: "true", limit, page },
       }),
       providesTags: ["Leaderboard"],
     }),
@@ -158,6 +180,7 @@ export const leaderboardApi = createApi({
 
 export const {
   useGetLeaderboardQuery,
+  useGetLeaderboardAllPeriodsQuery,
   useGetUserLeaderboardPositionsQuery,
   useGetLeaderboardByLevelQuery,
   useGetLeaderboardByReadingTimeQuery,
