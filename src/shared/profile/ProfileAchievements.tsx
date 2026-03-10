@@ -596,6 +596,7 @@ export default function ProfileAchievements({
   isPublicView = false,
 }: ProfileAchievementsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showAllAchievements, setShowAllAchievements] = useState(false);
 
   const { data: achievementsResponse } = useGetProfileAchievementsQuery(undefined, {
     skip: isPublicView,
@@ -651,7 +652,6 @@ export default function ProfileAchievements({
   }
 
   const INITIAL_FULL = 6;
-  const [showAllAchievements, setShowAllAchievements] = useState(false);
   const displayedAchievements = compact
     ? achievements.slice(0, 3)
     : showAllAchievements

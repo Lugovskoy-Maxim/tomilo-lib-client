@@ -255,6 +255,7 @@ interface AutoParsingModalProps {
         url?: string;
         frequency: string;
         scheduleHour?: number;
+        scheduleMinute?: number;
         enabled: boolean;
       }
     | null

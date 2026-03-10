@@ -359,7 +359,7 @@ export default function AutoParsingSection() {
       if (!match) return;
       const h = Number(match[1]);
       const m = Number(match[2]);
-      if (h < 0 || h > 23 || !MINUTE_SLOTS.includes(m)) return;
+      if (h < 0 || h > 23 || !(MINUTE_SLOTS as readonly number[]).includes(m)) return;
       newHour = h;
       newMinute = m;
     }
