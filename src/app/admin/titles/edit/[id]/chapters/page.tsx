@@ -301,11 +301,15 @@ export default function ChaptersManagementPage() {
       ).unwrap();
       if (res.data) {
         const { synced, errors } = res.data;
-        if (errors.length === 0) {
-          toast.success(`Синхронизировано глав: ${synced.length}`);
+        const syncedNumbers = Array.isArray(synced)
+          ? synced.map(s => (typeof s === "number" ? s : (s as { chapterNumber?: number })?.chapterNumber)).filter((n): n is number => typeof n === "number")
+          : [];
+        const errorMessages = (errors || []).map(e => (typeof e === "object" && e && "message" in e ? e.message : String(e)));
+        if (errorMessages.length === 0) {
+          toast.success(`Синхронизировано глав: ${syncedNumbers.length}`);
         } else {
           toast.success(
-            `Синхронизировано: ${synced.length}, ошибок: ${errors.length}. ${errors.map(e => e.message).join("; ")}`,
+            `Синхронизировано: ${syncedNumbers.length}, ошибок: ${errorMessages.length}. ${errorMessages.slice(0, 3).join("; ")}${errorMessages.length > 3 ? "…" : ""}`,
           );
         }
         dispatch(chaptersApi.util.invalidateTags([{ type: "Chapters", id: `title-${titleId}` }]));
