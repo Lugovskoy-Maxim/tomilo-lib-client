@@ -10,12 +10,17 @@ import {
 } from "@/store/api/chaptersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useMemo, useCallback, useState, useRef, useId } from "react";
+import { useDispatch } from "react-redux";
 import { Header, Footer } from "@/widgets";
+import { mangaParserApi } from "@/store/api/mangaParserApi";
+import { useGetAutoParsingJobsQuery } from "@/store/api/autoParsingApi";
+import { chaptersApi } from "@/store/api/chaptersApi";
+import type { AppDispatch } from "@/store";
 import { useToast } from "@/hooks/useToast";
 import { Chapter } from "@/types/title";
 import { getChapterStatusLabel, getChapterStatusStyles } from "@/lib/chapter-status";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 
 type ChapterSortField = "chapterNumber" | "title" | "status" | "views" | "pages" | "isPublished";
 type SortDirection = "asc" | "desc";
@@ -32,11 +37,20 @@ export default function ChaptersManagementPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSyncingEmpty, setIsSyncingEmpty] = useState(false);
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
   const checkboxIdPrefix = useId();
 
+  const dispatch = useDispatch<AppDispatch>();
   const { data: titleData } = useGetTitleByIdQuery({ id: titleId }, { skip: !titleId });
+  const { data: autoParsingJobs } = useGetAutoParsingJobsQuery(undefined, { skip: !titleId });
+  const autoParsingJobForTitle = useMemo(
+    () => autoParsingJobs?.find(j => (j.titleId as { _id?: string })?._id === titleId),
+    [autoParsingJobs, titleId],
+  );
+  const syncSourceUrl =
+    (autoParsingJobForTitle?.sources?.[0] ?? autoParsingJobForTitle?.url)?.trim() ?? "";
   const { data, isLoading, error } = useGetChaptersByTitleQuery(
     { titleId, page: currentPage, limit: 10000, sortOrder: "desc" },
     { skip: !titleId },
@@ -256,6 +270,60 @@ export default function ChaptersManagementPage() {
     }
   }, [countWithoutPages, chaptersWithoutPages, deleteChapter, toast]);
 
+  const handleSyncEmptyChaptersFromSource = useCallback(async () => {
+    if (countWithoutPages === 0) {
+      toast.info("Нет глав без страниц для синхронизации");
+      return;
+    }
+    if (!syncSourceUrl) {
+      toast.error("У задачи автопарсинга не задан URL источника");
+      return;
+    }
+    if (
+      !confirm(
+        `Синхронизировать ${countWithoutPages} глав без страниц с источником? Будет загружено содержимое с источника.`,
+      )
+    ) {
+      return;
+    }
+    setIsSyncingEmpty(true);
+    try {
+      const res = await dispatch(
+        mangaParserApi.endpoints.syncChapters.initiate({
+          titleId,
+          sourceUrl: syncSourceUrl,
+          chapterNumbers: chaptersWithoutPages.map(ch => ch.chapterNumber ?? 0).filter(Boolean),
+        }),
+      ).unwrap();
+      if (res.data) {
+        const { synced, errors } = res.data;
+        if (errors.length === 0) {
+          toast.success(`Синхронизировано глав: ${synced.length}`);
+        } else {
+          toast.success(
+            `Синхронизировано: ${synced.length}, ошибок: ${errors.length}. ${errors.map(e => e.message).join("; ")}`,
+          );
+        }
+        dispatch(chaptersApi.util.invalidateTags([{ type: "Chapters", id: `title-${titleId}` }]));
+      }
+    } catch (e) {
+      const message =
+        e && typeof e === "object" && "data" in e
+          ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка синхронизации")
+          : "Ошибка синхронизации";
+      toast.error(message);
+    } finally {
+      setIsSyncingEmpty(false);
+    }
+  }, [
+    countWithoutPages,
+    chaptersWithoutPages,
+    syncSourceUrl,
+    titleId,
+    dispatch,
+    toast,
+  ]);
+
   const handleSort = (field: ChapterSortField) => {
     if (sortField === field) {
       setSortDirection(d => (d === "asc" ? "desc" : "asc"));
@@ -445,6 +513,22 @@ export default function ChaptersManagementPage() {
                     title={`Удалить ${countWithoutPages} глав без страниц`}
                   >
                     Удалить главы без страниц ({countWithoutPages})
+                  </button>
+                )}
+                {countWithoutPages > 0 && autoParsingJobForTitle && syncSourceUrl && (
+                  <button
+                    type="button"
+                    disabled={isSyncingEmpty || isDeleting}
+                    onClick={handleSyncEmptyChaptersFromSource}
+                    className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5"
+                    title="Синхронизировать пустые главы с главой из источника (по задаче автопарсинга)"
+                  >
+                    {isSyncingEmpty ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" aria-hidden />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" aria-hidden />
+                    )}
+                    {isSyncingEmpty ? "Синхронизация..." : "Синхронизировать пустые с источником"}
                   </button>
                 )}
               </div>
