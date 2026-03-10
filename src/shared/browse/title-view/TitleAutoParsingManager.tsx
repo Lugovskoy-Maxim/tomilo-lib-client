@@ -34,6 +34,15 @@ const SCHEDULE_HOUR_OPTIONS: { value: string; label: string }[] = [
   ...Array.from({ length: 24 }, (_, i) => ({ value: String(i), label: `${i}:00 UTC` })),
 ];
 
+const SCHEDULE_MINUTE_OPTIONS: { value: string; label: string }[] = [
+  { value: "0", label: ":00" },
+  { value: "10", label: ":10" },
+  { value: "20", label: ":20" },
+  { value: "30", label: ":30" },
+  { value: "40", label: ":40" },
+  { value: "50", label: ":50" },
+];
+
 export function TitleAutoParsingManager({ titleId, titleName }: TitleAutoParsingManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -166,7 +175,11 @@ export function TitleAutoParsingManager({ titleId, titleName }: TitleAutoParsing
                   <Clock className="w-3 h-3" />
                   <span className="capitalize">{existingJob.frequency}</span>
                   {existingJob.scheduleHour !== undefined && existingJob.scheduleHour !== null && (
-                    <span> • {existingJob.scheduleHour}:00 UTC</span>
+                    <span>
+                      {" "}
+                      • {existingJob.scheduleHour}:
+                      {String(existingJob.scheduleMinute ?? 0).padStart(2, "0")} UTC
+                    </span>
                   )}
                 </div>
                 {existingJob.sources && existingJob.sources.length > 0 && (
@@ -272,6 +285,11 @@ function AutoParsingModal({
       ? String(existingJob.scheduleHour)
       : "",
   );
+  const [scheduleMinute, setScheduleMinute] = useState<string>(
+    existingJob?.scheduleMinute !== undefined && existingJob.scheduleMinute !== null
+      ? String(existingJob.scheduleMinute)
+      : "0",
+  );
   const [enabled, setEnabled] = useState(existingJob?.enabled ?? true);
 
   const handleAddSource = () => {
@@ -297,6 +315,7 @@ function AutoParsingModal({
         sources: validSources.length > 0 ? validSources : undefined,
         frequency: frequency || undefined,
         scheduleHour: scheduleHour === "" ? null : Number(scheduleHour),
+        scheduleMinute: scheduleHour === "" ? null : Number(scheduleMinute),
         enabled,
       };
       onUpdate(data);
@@ -306,6 +325,7 @@ function AutoParsingModal({
         sources: validSources,
         frequency: frequency || undefined,
         scheduleHour: scheduleHour === "" ? undefined : Number(scheduleHour),
+        scheduleMinute: scheduleHour === "" ? undefined : Number(scheduleMinute),
         enabled,
       };
       onCreate(data);
@@ -389,21 +409,35 @@ function AutoParsingModal({
 
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              Час запуска (UTC)
+              Время запуска (UTC, шаг 10 мин)
             </label>
-            <select
-              value={scheduleHour}
-              onChange={e => setScheduleHour(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
-            >
-              {SCHEDULE_HOUR_OPTIONS.map(opt => (
-                <option key={opt.value || "none"} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={scheduleHour}
+                onChange={e => setScheduleHour(e.target.value)}
+                className="flex-1 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+              >
+                {SCHEDULE_HOUR_OPTIONS.map(opt => (
+                  <option key={opt.value || "none"} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={scheduleMinute}
+                onChange={e => setScheduleMinute(e.target.value)}
+                className="w-24 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                disabled={scheduleHour === ""}
+              >
+                {SCHEDULE_MINUTE_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <p className="text-xs text-[var(--muted-foreground)] mt-1">
-              Опционально. Задача будет запускаться в указанный час по UTC.
+              Опционально. Задача запускается в выбранный слот каждые 10 минут.
             </p>
           </div>
 

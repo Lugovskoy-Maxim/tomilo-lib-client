@@ -86,8 +86,10 @@ export function ParserSection() {
   // Создать задачу автопарсинга после успешного старта
   const [createAutoParsingTask, setCreateAutoParsingTask] = useState(false);
   const [autoParsingScheduleHour, setAutoParsingScheduleHour] = useState("12");
+  const [autoParsingScheduleMinute, setAutoParsingScheduleMinute] = useState("0");
   const pendingAutoParsingRef = useRef<{
     scheduleHour: string;
+    scheduleMinute: string;
     url: string;
     mode: "title_import" | "chapter_import";
     titleId?: string;
@@ -163,6 +165,7 @@ export function ParserSection() {
               sources: [pending.url],
               frequency: "daily",
               scheduleHour: pending.scheduleHour === "" ? undefined : Number(pending.scheduleHour),
+              scheduleMinute: pending.scheduleHour === "" ? undefined : Number(pending.scheduleMinute),
               enabled: true,
             }).catch(() => {
               setModalContent({
@@ -239,6 +242,7 @@ export function ParserSection() {
     ) {
       pendingAutoParsingRef.current = {
         scheduleHour: autoParsingScheduleHour,
+        scheduleMinute: autoParsingScheduleMinute,
         url: url.trim(),
         mode: parsingMode,
         titleId: parsingMode === "chapter_import" ? titleId : undefined,
@@ -704,20 +708,34 @@ export function ParserSection() {
             {createAutoParsingTask && (
               <div>
                 <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-1">
-                  Час запуска (UTC)
+                  Время запуска (UTC, шаг 10 мин)
                 </label>
-                <select
-                  value={autoParsingScheduleHour}
-                  onChange={e => setAutoParsingScheduleHour(e.target.value)}
-                  className="admin-input bg-[var(--card)]"
-                  disabled={isParsing}
-                >
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {i}:00 UTC
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={autoParsingScheduleHour}
+                    onChange={e => setAutoParsingScheduleHour(e.target.value)}
+                    className="admin-input bg-[var(--card)] flex-1"
+                    disabled={isParsing}
+                  >
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <option key={i} value={i}>
+                        {i}:00 UTC
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={autoParsingScheduleMinute}
+                    onChange={e => setAutoParsingScheduleMinute(e.target.value)}
+                    className="admin-input bg-[var(--card)] w-24"
+                    disabled={isParsing}
+                  >
+                    {[0, 10, 20, 30, 40, 50].map(m => (
+                      <option key={m} value={m}>
+                        :{String(m).padStart(2, "0")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <p className="text-xs text-[var(--muted-foreground)] mt-1">
                   Задача будет создана при успешном начале парсинга.
                 </p>
