@@ -47,12 +47,20 @@ export function useTop10Badge(userId: string | undefined) {
     { category: "ratings", limit: 10, period: "month" },
     { skip: !userId },
   );
+  const ratingsWeekQuery = useGetLeaderboardQuery(
+    { category: "ratings", limit: 10, period: "week" },
+    { skip: !userId },
+  );
   const commentsQuery = useGetLeaderboardQuery(
     { category: "comments", limit: 10, period: "all" },
     { skip: !userId },
   );
   const commentsMonthQuery = useGetLeaderboardQuery(
     { category: "comments", limit: 10, period: "month" },
+    { skip: !userId },
+  );
+  const commentsWeekQuery = useGetLeaderboardQuery(
+    { category: "comments", limit: 10, period: "week" },
     { skip: !userId },
   );
   const streakQuery = useGetLeaderboardQuery({ category: "streak", limit: 10 }, { skip: !userId });
@@ -78,13 +86,20 @@ export function useTop10Badge(userId: string | undefined) {
     comments: { query: commentsMonthQuery, period: "month" },
   };
 
+  const queriesWeek: Partial<Record<LeaderboardCategory, QueryInfo>> = {
+    ratings: { query: ratingsWeekQuery, period: "week" },
+    comments: { query: commentsWeekQuery, period: "week" },
+  };
+
   const allQueries = [
     levelQuery,
     chaptersReadQuery,
     ratingsQuery,
     ratingsMonthQuery,
+    ratingsWeekQuery,
     commentsQuery,
     commentsMonthQuery,
+    commentsWeekQuery,
     streakQuery,
   ];
 
@@ -110,29 +125,57 @@ export function useTop10Badge(userId: string | undefined) {
         }
       }
 
+      // Для ratings и comments учитываем месяц и неделю — показываем лучшую позицию и её период
       if (CATEGORIES_WITH_PERIOD.includes(category)) {
+        const existingAllTime = badges.find(b => b.category === category && b.period === "all");
+        let best = existingAllTime
+          ? { position: existingAllTime.position, period: "all" as LeaderboardPeriod }
+          : null;
+
         const monthQueryInfo = queriesMonth[category];
         if (monthQueryInfo) {
           const monthUsers = monthQueryInfo.query.data?.data?.users;
           if (monthUsers) {
             const monthIndex = monthUsers.findIndex(u => u._id === userId);
             if (monthIndex !== -1 && monthIndex < 10) {
-              const existingAllTime = badges.find(
-                b => b.category === category && b.period === "all",
-              );
-              if (!existingAllTime || monthIndex + 1 < existingAllTime.position) {
-                if (existingAllTime) {
-                  const idx = badges.indexOf(existingAllTime);
-                  badges.splice(idx, 1);
-                }
-                badges.push({
-                  category,
-                  position: monthIndex + 1,
-                  label: CATEGORY_LABELS[category],
-                  period: "month",
-                });
-              }
+              const pos = monthIndex + 1;
+              if (!best || pos < best.position) best = { position: pos, period: "month" };
             }
+          }
+        }
+
+        const weekQueryInfo = queriesWeek[category];
+        if (weekQueryInfo) {
+          const weekUsers = weekQueryInfo.query.data?.data?.users;
+          if (weekUsers) {
+            const weekIndex = weekUsers.findIndex(u => u._id === userId);
+            if (weekIndex !== -1 && weekIndex < 10) {
+              const pos = weekIndex + 1;
+              if (!best || pos < best.position) best = { position: pos, period: "week" };
+            }
+          }
+        }
+
+        if (best) {
+          if (
+            existingAllTime &&
+            (best.position !== existingAllTime.position || best.period !== "all")
+          ) {
+            const idx = badges.indexOf(existingAllTime);
+            if (idx !== -1) badges.splice(idx, 1);
+          }
+          // Добавляем бейдж, если показываем неделю/месяц или не было all-time
+          if (
+            !existingAllTime ||
+            best.period !== "all" ||
+            best.position !== existingAllTime.position
+          ) {
+            badges.push({
+              category,
+              position: best.position,
+              label: CATEGORY_LABELS[category],
+              period: best.period,
+            });
           }
         }
       }

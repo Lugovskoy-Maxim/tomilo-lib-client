@@ -2,7 +2,9 @@
 import { useMemo } from "react";
 import {
   useGetLeaderboardQuery,
+  useGetLeaderboardAllPeriodsQuery,
   LeaderboardCategory,
+  LeaderboardPeriod,
   type LeaderboardUser,
 } from "@/store/api/leaderboardApi";
 import { useAuth } from "./useAuth";
@@ -11,6 +13,8 @@ export interface UserLeaderboardPosition {
   category: LeaderboardCategory;
   position: number;
   label: string;
+  /** Период, в котором достигнута эта позиция (если не «всё время») */
+  period?: LeaderboardPeriod;
 }
 
 const ALL_CATEGORIES = [
@@ -31,63 +35,146 @@ const CATEGORY_LABELS: Record<QueryCategory, string> = {
   chaptersRead: "Главы",
 };
 
+function findBestPositionWithPeriod(
+  userId: string,
+  sources: { users: LeaderboardUser[]; period: LeaderboardPeriod }[],
+): { position: number; period: LeaderboardPeriod } | null {
+  let best: { position: number; period: LeaderboardPeriod } | null = null;
+  for (const { users, period } of sources) {
+    if (!users) continue;
+    const index = users.findIndex((u: LeaderboardUser) => u._id === userId);
+    if (index !== -1 && index < 10) {
+      const pos = index + 1;
+      if (best === null || pos < best.position) best = { position: pos, period };
+    }
+  }
+  return best;
+}
+
 export function useUserLeaderboardPositions(targetUserId?: string) {
   const { user, isAuthenticated } = useAuth();
   const userId = targetUserId || user?.id || user?._id;
   const shouldSkip = !targetUserId && !isAuthenticated;
 
-  const levelQuery = useGetLeaderboardQuery({ category: "level", limit: 10 }, { skip: shouldSkip });
-  const ratingsQuery = useGetLeaderboardQuery(
+  // level и streak: периоды all, month, week (allPeriods в API нет)
+  const levelAll = useGetLeaderboardQuery({ category: "level", limit: 10 }, { skip: shouldSkip });
+  const levelMonth = useGetLeaderboardQuery(
+    { category: "level", period: "month", limit: 10 },
+    { skip: shouldSkip },
+  );
+  const levelWeek = useGetLeaderboardQuery(
+    { category: "level", period: "week", limit: 10 },
+    { skip: shouldSkip },
+  );
+  const streakAll = useGetLeaderboardQuery({ category: "streak", limit: 10 }, { skip: shouldSkip });
+  const streakMonth = useGetLeaderboardQuery(
+    { category: "streak", period: "month", limit: 10 },
+    { skip: shouldSkip },
+  );
+  const streakWeek = useGetLeaderboardQuery(
+    { category: "streak", period: "week", limit: 10 },
+    { skip: shouldSkip },
+  );
+
+  // ratings, comments, chaptersRead: один запрос за все периоды (week, month, all)
+  const ratingsAllPeriods = useGetLeaderboardAllPeriodsQuery(
     { category: "ratings", limit: 10 },
     { skip: shouldSkip },
   );
-  const commentsQuery = useGetLeaderboardQuery(
+  const commentsAllPeriods = useGetLeaderboardAllPeriodsQuery(
     { category: "comments", limit: 10 },
     { skip: shouldSkip },
   );
-  const streakQuery = useGetLeaderboardQuery(
-    { category: "streak", limit: 10 },
-    { skip: shouldSkip },
-  );
-  const chaptersReadQuery = useGetLeaderboardQuery(
+  const chaptersReadAllPeriods = useGetLeaderboardAllPeriodsQuery(
     { category: "chaptersRead", limit: 10 },
     { skip: shouldSkip },
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- объект от хуков, пересчёт по userId
-  const queries: Record<QueryCategory, ReturnType<typeof useGetLeaderboardQuery>> = {
-    level: levelQuery,
-    ratings: ratingsQuery,
-    comments: commentsQuery,
-    streak: streakQuery,
-    chaptersRead: chaptersReadQuery,
-  };
-
-  const isLoading = Object.values(queries).some(q => q.isLoading);
+  const allQueries = [
+    levelAll,
+    levelMonth,
+    levelWeek,
+    streakAll,
+    streakMonth,
+    streakWeek,
+    ratingsAllPeriods,
+    commentsAllPeriods,
+    chaptersReadAllPeriods,
+  ];
+  const isLoading = allQueries.some(q => q.isLoading);
 
   const top10Positions = useMemo(() => {
     if (!userId) return [];
 
     const positions: UserLeaderboardPosition[] = [];
 
-    for (const category of ALL_CATEGORIES) {
-      const query = queries[category];
-      const users = query.data?.data?.users;
-      if (!users) continue;
+    // level: лучшая позиция среди all, month, week (одна за категорию — та что выше)
+    const levelBest = findBestPositionWithPeriod(userId, [
+      { users: levelAll.data?.data?.users ?? [], period: "all" },
+      { users: levelMonth.data?.data?.users ?? [], period: "month" },
+      { users: levelWeek.data?.data?.users ?? [], period: "week" },
+    ]);
+    if (levelBest !== null) {
+      positions.push({
+        category: "level",
+        position: levelBest.position,
+        label: CATEGORY_LABELS.level,
+        period: levelBest.period === "all" ? undefined : levelBest.period,
+      });
+    }
 
-      const index = users.findIndex((u: LeaderboardUser) => u._id === userId);
+    // streak: лучшая позиция среди all, month, week
+    const streakBest = findBestPositionWithPeriod(userId, [
+      { users: streakAll.data?.data?.users ?? [], period: "all" },
+      { users: streakMonth.data?.data?.users ?? [], period: "month" },
+      { users: streakWeek.data?.data?.users ?? [], period: "week" },
+    ]);
+    if (streakBest !== null) {
+      positions.push({
+        category: "streak",
+        position: streakBest.position,
+        label: CATEGORY_LABELS.streak,
+        period: streakBest.period === "all" ? undefined : streakBest.period,
+      });
+    }
 
-      if (index !== -1 && index < 10) {
+    // ratings, comments, chaptersRead: из allPeriods (week, month, all)
+    const allPeriodsCategories = [
+      { key: "ratings" as const, query: ratingsAllPeriods },
+      { key: "comments" as const, query: commentsAllPeriods },
+      { key: "chaptersRead" as const, query: chaptersReadAllPeriods },
+    ];
+    for (const { key, query } of allPeriodsCategories) {
+      const data = query.data?.data;
+      if (!data) continue;
+      const best = findBestPositionWithPeriod(userId, [
+        { users: data.week?.users ?? [], period: "week" },
+        { users: data.month?.users ?? [], period: "month" },
+        { users: data.all?.users ?? [], period: "all" },
+      ]);
+      if (best !== null) {
         positions.push({
-          category,
-          position: index + 1,
-          label: CATEGORY_LABELS[category],
+          category: key,
+          position: best.position,
+          label: CATEGORY_LABELS[key],
+          period: best.period === "all" ? undefined : best.period,
         });
       }
     }
 
     return positions.sort((a, b) => a.position - b.position);
-  }, [userId, queries]);
+  }, [
+    userId,
+    levelAll.data,
+    levelMonth.data,
+    levelWeek.data,
+    streakAll.data,
+    streakMonth.data,
+    streakWeek.data,
+    ratingsAllPeriods.data,
+    commentsAllPeriods.data,
+    chaptersReadAllPeriods.data,
+  ]);
 
   const bestPosition = top10Positions.length > 0 ? top10Positions[0] : null;
   const hasTop10 = top10Positions.length > 0;

@@ -1120,9 +1120,14 @@ function PodiumUserModal({
 
   const { positions: allPositions } = useUserLeaderboardPositions(user._id);
   const topPositionByCategory = useMemo(() => {
-    const map = new Map<LeaderboardCategory, number>();
-    map.set(category, rank);
-    allPositions.forEach(p => map.set(p.category, p.position));
+    const map = new Map<
+      LeaderboardCategory,
+      { position: number; period?: LeaderboardPeriod }
+    >();
+    map.set(category, { position: rank });
+    allPositions.forEach(p =>
+      map.set(p.category, { position: p.position, period: p.period }),
+    );
     return map;
   }, [category, rank, allPositions]);
 
@@ -1348,10 +1353,23 @@ function PodiumUserModal({
                         categories: statCategories,
                       }) => {
                         const cats = statCategories ?? (statCategory ? [statCategory] : []);
-                        const positions = cats
+                        const entries = cats
                           .map(c => topPositionByCategory.get(c))
-                          .filter((p): p is number => p != null);
-                        const bestPos = positions.length > 0 ? Math.min(...positions) : null;
+                          .filter(
+                            (p): p is { position: number; period?: LeaderboardPeriod } => p != null,
+                          );
+                        const best =
+                          entries.length > 0
+                            ? entries.reduce((a, b) =>
+                                a.position <= b.position ? a : b,
+                              )
+                            : null;
+                        const periodLabel =
+                          best?.period === "week"
+                            ? "неделя"
+                            : best?.period === "month"
+                              ? "месяц"
+                              : null;
                         return (
                           <div key={label} className="flex items-start gap-1.5 min-w-0">
                             <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
@@ -1364,13 +1382,22 @@ function PodiumUserModal({
                               </p>
                               <p className="text-[11px] font-semibold text-[var(--foreground)] leading-tight flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0">
                                 <span className="truncate">{value}</span>
-                                {bestPos != null && (
+                                {best != null && (
                                   <span
                                     className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-medium shrink-0"
-                                    title={`Топ ${bestPos}`}
+                                    title={
+                                      periodLabel
+                                        ? `Топ ${best.position} за ${periodLabel}`
+                                        : `Топ ${best.position}`
+                                    }
                                   >
                                     <Trophy className="w-2.5 h-2.5" aria-hidden />
-                                    {bestPos}
+                                    {best.position}
+                                    {periodLabel != null && (
+                                      <span className="text-amber-600/80 dark:text-amber-400/80">
+                                        ({periodLabel})
+                                      </span>
+                                    )}
                                   </span>
                                 )}
                               </p>
