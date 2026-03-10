@@ -8,11 +8,60 @@ const SHOP_TAG = "Shop" as const;
 
 type DecorationType = "avatar" | "frame" | "background" | "card";
 
+/** Предложенное пользователем украшение (голосование). Карточки в UI пока выключены. */
+export interface SuggestedDecoration {
+  id: string;
+  type: "avatar" | "frame" | "background" | "card";
+  name: string;
+  description: string;
+  imageUrl: string;
+  authorId?: string;
+  authorUsername?: string;
+  authorLevel?: number;
+  votesCount: number;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+  userHasVoted?: boolean;
+}
+
+/** Извлекает authorId, authorUsername, authorLevel из authorId (populate) или полей author_* */
+function getAuthorFromItem(item: Record<string, unknown>): {
+  authorId?: string;
+  authorUsername?: string;
+  authorLevel?: number;
+} {
+  const raw = item.authorId ?? item.author_id;
+  if (raw && typeof raw === "object" && raw !== null) {
+    const o = raw as Record<string, unknown>;
+    const id = (o.id ?? o._id) as string | undefined;
+    const username = (o.username ?? o.userName) as string | undefined;
+    const level = (o.level ?? o.userLevel) as number | undefined;
+    return {
+      authorId: id ?? (typeof raw === "object" && "_id" in (raw as object) ? String((raw as { _id?: unknown })._id) : undefined),
+      authorUsername: username,
+      authorLevel: level != null ? Number(level) : undefined,
+    };
+  }
+  if (typeof raw === "string") {
+    return { authorId: raw };
+  }
+  const username = (item.authorUsername ?? item.author_username) as string | undefined;
+  const level = (item.authorLevel ?? item.author_level) as number | undefined;
+  if (username || level != null) {
+    return {
+      authorUsername: username,
+      authorLevel: level != null ? Number(level) : undefined,
+    };
+  }
+  return {};
+}
+
 /** Нормализует элемент: _id → id, добавляет type если передан массив по типу */
 function normalizeDecoration(item: Record<string, unknown>, type?: DecorationType): Decoration {
   const id = (item.id ?? item._id) as string;
   const stock = (item.stock ?? item.quantity_remaining) as number | undefined;
   const isSoldOut = (item.isSoldOut ?? item.is_sold_out ?? item.sold_out) as boolean | undefined;
+  const author = getAuthorFromItem(item);
   return {
     id,
     name: (item.name as string) ?? "",
@@ -30,6 +79,9 @@ function normalizeDecoration(item: Record<string, unknown>, type?: DecorationTyp
       | boolean
       | undefined,
     bonus: (item.bonus as number | undefined) ?? undefined,
+    authorId: author.authorId,
+    authorUsername: author.authorUsername,
+    authorLevel: author.authorLevel,
   };
 }
 
@@ -269,6 +321,101 @@ export const shopApi = createApi({
         { type: SHOP_TAG, id: "LIST" },
       ],
     }),
+
+    /** Предложенные пользователями украшения (голосование). */
+    getSuggestions: builder.query<SuggestedDecoration[], void>({
+      query: () => "/shop/suggestions",
+      transformResponse: (response: unknown) => {
+        const r = response as { data?: unknown };
+        const data = r?.data;
+        if (!Array.isArray(data)) return [];
+        return (data as Record<string, unknown>[]).map((item) => {
+          const author = getAuthorFromItem(item);
+          return {
+            id: String(item.id ?? item._id ?? ""),
+            type: (item.type as SuggestedDecoration["type"]) ?? "avatar",
+            name: String(item.name ?? ""),
+            description: String(item.description ?? ""),
+            imageUrl: String(item.imageUrl ?? item.image_url ?? ""),
+            authorId: author.authorId,
+            authorUsername: author.authorUsername,
+            authorLevel: author.authorLevel,
+            votesCount: Number(item.votesCount ?? item.votes_count ?? 0),
+            status: (item.status as SuggestedDecoration["status"]) ?? "pending",
+            createdAt: String(item.createdAt ?? item.created_at ?? ""),
+            userHasVoted: Boolean(item.userHasVoted ?? item.user_has_voted),
+          } as SuggestedDecoration;
+        });
+      },
+      providesTags: [{ type: SHOP_TAG, id: "SUGGESTIONS" }],
+    }),
+
+    /** Загрузить изображение для предложения. Возвращает { imageUrl }. */
+    uploadSuggestionImage: builder.mutation<{ imageUrl: string }, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("file", file, file.name || "image");
+        return {
+          url: "/shop/upload-suggestion",
+          method: "POST",
+          body: formData,
+        };
+      },
+      transformResponse: (response: unknown) => {
+        const r = response as { data?: { imageUrl?: string } };
+        return { imageUrl: r?.data?.imageUrl ?? "" };
+      },
+    }),
+
+    createSuggestion: builder.mutation<
+      SuggestedDecoration,
+      {
+        type: "avatar" | "frame" | "background" | "card";
+        name: string;
+        description?: string;
+        imageUrl: string;
+      }
+    >({
+      query: (body) => ({
+        url: "/shop/suggestions",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: SHOP_TAG, id: "SUGGESTIONS" }],
+    }),
+
+    voteSuggestion: builder.mutation<
+      { votesCount: number; userHasVoted: boolean },
+      string
+    >({
+      query: (id) => ({
+        url: `/shop/suggestions/${id}/vote`,
+        method: "POST",
+      }),
+      invalidatesTags: [{ type: SHOP_TAG, id: "SUGGESTIONS" }],
+    }),
+
+    /** Редактировать предложение (только автор, в течение 1 часа). */
+    updateSuggestion: builder.mutation<
+      SuggestedDecoration,
+      { id: string; name?: string; description?: string; imageUrl?: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/shop/suggestions/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: [{ type: SHOP_TAG, id: "SUGGESTIONS" }],
+    }),
+
+    /** Удалить предложение (только админ). */
+    deleteSuggestion: builder.mutation<{ message: string }, string>({
+      query: (id) => ({
+        url: `/shop/suggestions/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: SHOP_TAG, id: "SUGGESTIONS" }],
+    }),
   }),
 });
 
@@ -284,4 +431,10 @@ export const {
   useDeleteDecorationMutation,
   useEquipDecorationMutation,
   useUnequipDecorationMutation,
+  useGetSuggestionsQuery,
+  useUploadSuggestionImageMutation,
+  useCreateSuggestionMutation,
+  useVoteSuggestionMutation,
+  useUpdateSuggestionMutation,
+  useDeleteSuggestionMutation,
 } = shopApi;

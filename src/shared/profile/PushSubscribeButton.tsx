@@ -135,10 +135,10 @@ export function PushSubscribeButton({ embedded }: PushSubscribeButtonProps = {})
           </span>
           <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
             {isGranted
-              ? "Уведомления о новых главах даже при закрытой вкладке"
+              ? "Новые главы и новости даже при закрытой вкладке"
               : isDenied
                 ? "Разрешите уведомления в настройках сайта в браузере"
-                : "Уведомления о новых главах на этом устройстве"}
+                : "Новые главы и новости на этом устройстве"}
           </p>
         </div>
       </div>

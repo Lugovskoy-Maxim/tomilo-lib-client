@@ -17,6 +17,7 @@ export type NotificationPreferences = {
   newChapters: boolean;
   comments: boolean;
   recommendations: boolean;
+  news: boolean;
 };
 
 /** Настройки читалки (сохраняются в профиле, fallback на localStorage) */
@@ -241,5 +242,6 @@ export interface UserPreferences {
     newChapters: boolean;
     comments: boolean;
     recommendations: boolean;
+    news: boolean;
   };
 }

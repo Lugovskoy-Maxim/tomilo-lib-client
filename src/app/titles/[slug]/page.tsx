@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { TitleView } from "@/widgets";
 import type { Metadata } from "next";
+import TitlePageLoadingFallback from "./TitlePageLoadingFallback";
 import { translateTitleType } from "@/lib/title-type-translations";
 import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { getOgImageUrl } from "@/lib/seo-og-image";
@@ -9,6 +10,7 @@ import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ tab?: string }>;
 }
 
 // Кодируем slug для URL (апостроф, кавычки и др.) — бэкенд должен декодировать
@@ -235,8 +237,11 @@ function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, t
   return { mainEntity, breadcrumb };
 }
 
-export default async function TitlePageRoute({ params }: PageProps) {
-  const resolvedParams = await params;
+export default async function TitlePageRoute({ params, searchParams }: PageProps) {
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams ?? Promise.resolve({} as { tab?: string }),
+  ]);
   const rawSlug = String(resolvedParams.slug ?? "");
   let slug: string;
   try {
@@ -244,6 +249,7 @@ export default async function TitlePageRoute({ params }: PageProps) {
   } catch {
     slug = rawSlug;
   }
+  const initialTab = resolvedSearchParams.tab ?? undefined;
 
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
   const titleData = await getTitleDataBySlug(slug);
@@ -273,17 +279,8 @@ export default async function TitlePageRoute({ params }: PageProps) {
   return (
     <>
       {jsonLdScripts}
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
-              <div className="text-[var(--foreground)]">Загрузка тайтла...</div>
-            </div>
-          </div>
-        }
-      >
-        <TitleView slug={slug} />
+      <Suspense fallback={<TitlePageLoadingFallback />}>
+        <TitleView slug={slug} initialTab={initialTab} />
       </Suspense>
     </>
   );

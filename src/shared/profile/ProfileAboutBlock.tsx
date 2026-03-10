@@ -20,30 +20,30 @@ export default function ProfileAboutBlock({ userProfile }: ProfileAboutBlockProp
 
   return (
     <section
-      className="profile-about-block rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 mb-5"
+      className="profile-about-block rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4"
       aria-label="О пользователе"
     >
       {(hasBio || hasGenre || hasJoined) && (
-        <div className="flex flex-wrap items-center gap-3 gap-y-2 text-sm mb-4">
+        <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
           {hasBio && (
-            <p className="profile-about-bio border-l-4 border-[var(--primary)]/50 pl-4 py-1 pr-2 italic text-[var(--foreground)]/90 leading-relaxed max-w-2xl w-full">
+            <p className="profile-about-bio border-l-2 border-[var(--primary)]/50 pl-3 py-0.5 pr-2 italic text-[var(--foreground)]/90 leading-snug line-clamp-2 text-xs sm:text-sm w-full">
               {userProfile.bio}
             </p>
           )}
-          {hasGenre && (
-            <span className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]/50">
-              <Heart className="w-4 h-4 text-pink-500 shrink-0" />
-              <span className="font-medium text-[var(--foreground)]">
-                {userProfile.favoriteGenre}
+          <div className="flex flex-wrap items-center gap-2">
+            {hasGenre && (
+              <span className="inline-flex items-center gap-1 py-1 px-2 rounded-md bg-[var(--secondary)]/50 text-xs">
+                <Heart className="w-3 h-3 text-pink-500 shrink-0" />
+                <span className="truncate max-w-[140px]">{userProfile.favoriteGenre}</span>
               </span>
-            </span>
-          )}
-          {hasJoined && (
-            <span className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-[var(--secondary)]/60 border border-[var(--border)]/50">
-              <Calendar1 className="w-4 h-4 shrink-0" />
-              На сайте с {joinedLabel}
-            </span>
-          )}
+            )}
+            {hasJoined && (
+              <span className="inline-flex items-center gap-1 py-1 px-2 rounded-md bg-[var(--secondary)]/50 text-xs text-[var(--muted-foreground)]">
+                <Calendar1 className="w-3 h-3 shrink-0" />
+                С {joinedLabel}
+              </span>
+            )}
+          </div>
         </div>
       )}
       <ProfileLeaderboardBadges userId={userProfile._id} />

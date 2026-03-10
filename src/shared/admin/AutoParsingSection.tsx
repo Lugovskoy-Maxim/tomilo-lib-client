@@ -28,6 +28,7 @@ import {
   X,
   GripVertical,
   Search,
+  LayoutGrid,
 } from "lucide-react";
 import { mangaParserApi } from "@/store/api/mangaParserApi";
 import type { AppDispatch } from "@/store";
@@ -83,6 +84,15 @@ export default function AutoParsingSection() {
   const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
   const [activeJob, setActiveJob] = useState<AutoParsingJob | null>(null);
   const [syncingJobId, setSyncingJobId] = useState<string | null>(null);
+  const [isDistributeModalOpen, setIsDistributeModalOpen] = useState(false);
+  const [restFromHour, setRestFromHour] = useState(2);
+  const [restFromMinute, setRestFromMinute] = useState(0);
+  const [restToHour, setRestToHour] = useState(6);
+  const [restToMinute, setRestToMinute] = useState(0);
+  const [distributeProgress, setDistributeProgress] = useState<{ current: number; total: number } | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<
+    { type: "none" } | { type: "slot"; hour: number; minute: number } | null
+  >(null);
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -263,27 +273,65 @@ export default function AutoParsingSection() {
   const getJobDisplaySources = (job: AutoParsingJob): string[] =>
     job.sources?.length ? job.sources : job.url?.trim() ? [job.url.trim()] : [];
 
-  const jobsByHour = useMemo(() => {
-    const map = new Map<number | "none", AutoParsingJob[]>();
+  /** Для таблицы расписания: фильтр по поиску (название, автор, id, источники). */
+  const filteredJobsForSchedule = useMemo(() => {
+    const query = jobSearch.trim().toLowerCase();
+    if (!query) return jobs;
+    return jobs.filter(job => {
+      const haystack = [
+        job.titleId?.name,
+        job.titleId?.author,
+        job.titleId?._id,
+        job._id,
+        ...(job.sources || []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [jobs, jobSearch]);
+
+  /** Ключ слота: "none" или "hour-minute" (например "7-10"). */
+  const jobsBySlot = useMemo(() => {
+    const map = new Map<string, AutoParsingJob[]>();
     map.set("none", []);
-    for (let h = 0; h < 24; h++) map.set(h, []);
-    jobs.forEach(job => {
-      const parsedHour = getValidScheduleHour(job.scheduleHour);
-      const key = parsedHour === null ? "none" : parsedHour;
-      const list = key === "none" ? map.get("none")! : map.get(key)!;
+    for (let h = 0; h < 24; h++) {
+      for (const m of [0, 10, 20, 30, 40, 50]) {
+        map.set(`${h}-${m}`, []);
+      }
+    }
+    filteredJobsForSchedule.forEach(job => {
+      const hour = getValidScheduleHour(job.scheduleHour);
+      const minute = job.scheduleMinute ?? 0;
+      const key = hour === null ? "none" : `${hour}-${minute}`;
+      const list = map.get(key) ?? [];
       list.push(job);
+      map.set(key, list);
     });
     return map;
-  }, [jobs]);
-  const getHourCount = (hour: number | "none") => jobsByHour.get(hour)?.length ?? 0;
-  const totalHourlyTitles = useMemo(
+  }, [filteredJobsForSchedule]);
+  const getSlotCount = (slotKey: string) => jobsBySlot.get(slotKey)?.length ?? 0;
+  const selectedSlotJobs = useMemo(() => {
+    if (!selectedSlot) return [];
+    if (selectedSlot.type === "none") return jobsBySlot.get("none") ?? [];
+    return jobsBySlot.get(`${selectedSlot.hour}-${selectedSlot.minute}`) ?? [];
+  }, [selectedSlot, jobsBySlot]);
+  const selectedSlotLabel =
+    !selectedSlot
+      ? ""
+      : selectedSlot.type === "none"
+        ? "Без часа"
+        : `${selectedSlot.hour}:${String(selectedSlot.minute).padStart(2, "0")} UTC`;
+  const totalScheduledCount = useMemo(
     () =>
-      Array.from({ length: 24 }, (_, h) => jobsByHour.get(h)?.length ?? 0).reduce(
-        (acc, value) => acc + value,
+      Array.from(jobsBySlot.entries()).reduce(
+        (acc, [key, list]) => (key === "none" ? acc : acc + list.length),
         0,
       ),
-    [jobsByHour],
+    [jobsBySlot],
   );
+  const MINUTE_SLOTS = [0, 10, 20, 30, 40, 50] as const;
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -292,20 +340,104 @@ export default function AutoParsingSection() {
     if (job) setActiveJob(job);
   };
 
+  const hasScheduleSearch = jobSearch.trim().length > 0;
+
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveJob(null);
     const { active, over } = event;
     if (!over?.id || active.id === over.id) return;
     const jobId = String(active.id);
     const overId = String(over.id);
-    if (!overId.startsWith("hour-")) return;
-    const hourRaw = overId.replace("hour-", "");
-    const newHour: number | null = hourRaw === "none" ? null : Number(hourRaw);
-    if (newHour !== null && (Number.isNaN(newHour) || newHour < 0 || newHour > 23)) return;
+    if (!overId.startsWith("slot-")) return;
+    let newHour: number | null = null;
+    let newMinute: number | null = null;
+    if (overId === "slot-none") {
+      newHour = null;
+      newMinute = null;
+    } else {
+      const match = /^slot-(\d+)-(\d+)$/.exec(overId);
+      if (!match) return;
+      const h = Number(match[1]);
+      const m = Number(match[2]);
+      if (h < 0 || h > 23 || !(MINUTE_SLOTS as readonly number[]).includes(m)) return;
+      newHour = h;
+      newMinute = m;
+    }
     try {
-      await updateJob({ id: jobId, data: { scheduleHour: newHour } }).unwrap();
+      await updateJob({
+        id: jobId,
+        data:
+          newHour === null
+            ? { scheduleHour: null, scheduleMinute: null }
+            : { scheduleHour: newHour, scheduleMinute: newMinute },
+      }).unwrap();
     } catch (e) {
-      console.error("Failed to update schedule hour:", e);
+      console.error("Failed to update schedule slot:", e);
+    }
+  };
+
+  /** Слоты 10 мин (hour, minute), исключая интервал отдыха [restFrom, restTo) в минутах от полуночи. */
+  const buildAvailableSlots = useMemo(() => {
+    return (
+      fromMinutes: number,
+      toMinutes: number,
+    ): { hour: number; minute: number }[] => {
+      const slots: { hour: number; minute: number }[] = [];
+      for (let h = 0; h < 24; h++) {
+        for (const m of [0, 10, 20, 30, 40, 50]) {
+          const totalMinutes = h * 60 + m;
+          if (totalMinutes >= toMinutes || totalMinutes < fromMinutes) {
+            slots.push({ hour: h, minute: m });
+          }
+        }
+      }
+      return slots;
+    };
+  }, []);
+
+  const handleDistribute = async () => {
+    const fromMinutes = restFromHour * 60 + restFromMinute;
+    const toMinutes = restToHour * 60 + restToMinute;
+    const slots = buildAvailableSlots(fromMinutes, toMinutes);
+    if (slots.length === 0) {
+      setModalContent({
+        title: "Ошибка",
+        message: "Нет доступных слотов: интервал отдыха охватывает весь день. Уменьшите его.",
+      });
+      setIsModalOpen(true);
+      return;
+    }
+    const jobsToDistribute = [...jobs].sort((a, b) => (a._id < b._id ? -1 : 1));
+    if (jobsToDistribute.length === 0) {
+      setModalContent({ title: "Нет задач", message: "Нет задач для распределения." });
+      setIsModalOpen(true);
+      return;
+    }
+    setDistributeProgress({ current: 0, total: jobsToDistribute.length });
+    try {
+      for (let i = 0; i < jobsToDistribute.length; i++) {
+        const job = jobsToDistribute[i];
+        const slot = slots[i % slots.length];
+        await updateJob({
+          id: job._id,
+          data: { scheduleHour: slot.hour, scheduleMinute: slot.minute },
+        }).unwrap();
+        setDistributeProgress({ current: i + 1, total: jobsToDistribute.length });
+      }
+      setModalContent({
+        title: "Готово",
+        message: `Распределено ${jobsToDistribute.length} задач по ${slots.length} слотам (шаг 10 мин). Время отдыха: ${restFromHour}:${String(restFromMinute).padStart(2, "0")}–${restToHour}:${String(restToMinute).padStart(2, "0")} UTC.`,
+      });
+      setIsModalOpen(true);
+      setIsDistributeModalOpen(false);
+    } catch (e) {
+      setModalContent({
+        title: "Ошибка",
+        message: e instanceof Error ? e.message : "Не удалось обновить расписание.",
+      });
+      setIsModalOpen(true);
+    } finally {
+      setDistributeProgress(null);
     }
   };
 
@@ -370,6 +502,14 @@ export default function AutoParsingSection() {
             </button>
           </div>
           <button
+            type="button"
+            onClick={() => setIsDistributeModalOpen(true)}
+            className="admin-btn admin-btn-secondary flex items-center gap-2"
+          >
+            <LayoutGrid className="w-4 h-4" />
+            Равномерно распределить
+          </button>
+          <button
             onClick={() => setIsCreateModalOpen(true)}
             className="admin-btn admin-btn-primary flex items-center gap-2"
           >
@@ -379,6 +519,114 @@ export default function AutoParsingSection() {
         </div>
       </div>
 
+      {/* Modal: равномерное распределение по времени */}
+      {isDistributeModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
+              <LayoutGrid className="w-5 h-5" />
+              Равномерное распределение по времени
+            </h3>
+            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+              Все задачи получат слоты с шагом 10 минут. Укажите интервал отдыха (UTC), в который слоты не назначаются — например, ночные часы для снижения нагрузки.
+            </p>
+            <div className="space-y-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                  Время отдыха (UTC)
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-[var(--muted-foreground)]">с</span>
+                  <select
+                    value={restFromHour}
+                    onChange={e => setRestFromHour(Number(e.target.value))}
+                    className="admin-input w-16"
+                  >
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <option key={i} value={i}>
+                        {i}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[var(--muted-foreground)]">:</span>
+                  <select
+                    value={restFromMinute}
+                    onChange={e => setRestFromMinute(Number(e.target.value))}
+                    className="admin-input w-16"
+                  >
+                    {[0, 10, 20, 30, 40, 50].map(m => (
+                      <option key={m} value={m}>
+                        {String(m).padStart(2, "0")}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-sm text-[var(--muted-foreground)]">по</span>
+                  <select
+                    value={restToHour}
+                    onChange={e => setRestToHour(Number(e.target.value))}
+                    className="admin-input w-16"
+                  >
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <option key={i} value={i}>
+                        {i}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[var(--muted-foreground)]">:</span>
+                  <select
+                    value={restToMinute}
+                    onChange={e => setRestToMinute(Number(e.target.value))}
+                    className="admin-input w-16"
+                  >
+                    {[0, 10, 20, 30, 40, 50].map(m => (
+                      <option key={m} value={m}>
+                        {String(m).padStart(2, "0")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                  Слоты в этом интервале не назначаются (например, 2:00–6:00 для ночного отдыха).
+                </p>
+              </div>
+            </div>
+            {distributeProgress && (
+              <div className="mb-4 flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                <span>
+                  Обновлено {distributeProgress.current} из {distributeProgress.total}…
+                </span>
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => !distributeProgress && setIsDistributeModalOpen(false)}
+                disabled={!!distributeProgress}
+                className="admin-btn admin-btn-secondary"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleDistribute}
+                disabled={!!distributeProgress || jobs.length === 0}
+                className="admin-btn admin-btn-primary flex items-center gap-2"
+              >
+                {distributeProgress ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Распределение…
+                  </>
+                ) : (
+                  "Распределить"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard label="Всего задач" value={jobs.length} />
         <KpiCard label="Активные" value={enabledJobsCount} />
@@ -386,78 +634,135 @@ export default function AutoParsingSection() {
         <KpiCard label="С фикс. часом" value={scheduledJobsCount} />
       </div>
 
-      {/* Schedule by hour (UTC) — drag & drop */}
+      {/* Schedule: heatmap (часы × минуты) + панель с задачами выбранного слота */}
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {viewMode === "hourly" && (
           <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2 shrink-0">
                 <Clock className="w-4 h-4" />
-                Расписание по часам (UTC) — перетащите задачу в нужный час
+                Расписание (UTC): тепловая карта слотов
               </h3>
-              <span className="text-xs px-2 py-1 rounded-full bg-[var(--muted)] text-[var(--foreground)] whitespace-nowrap">
-                0-23: {totalHourlyTitles}
-              </span>
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <div className="grid flex-1 min-w-[160px] max-w-[280px]">
+                  <input
+                    type="text"
+                    value={jobSearch}
+                    onChange={e => setJobSearch(e.target.value)}
+                    placeholder="Поиск по названию, id, источнику..."
+                    className="admin-input col-start-1 row-start-1 w-full pl-9 pr-2 py-1.5 text-sm"
+                  />
+                  <span className="col-start-1 row-start-1 w-9 flex items-center justify-center pointer-events-none z-10 text-[var(--muted-foreground)]">
+                    <Search className="w-4 h-4 shrink-0" aria-hidden />
+                  </span>
+                </div>
+                <span className="text-xs px-2 py-1 rounded-full bg-[var(--muted)] text-[var(--foreground)] whitespace-nowrap shrink-0">
+                  {hasScheduleSearch ? (
+                    <>Найдено: {filteredJobsForSchedule.length} из {jobs.length}</>
+                  ) : (
+                    <>В слотах: {totalScheduledCount} · Клик — список</>
+                  )}
+                </span>
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="text-left py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[140px] align-bottom">
-                      <div className="flex items-center justify-between gap-2">
-                        <span>Без часа</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--muted)] text-[var(--foreground)]">
-                          {getHourCount("none")}
-                        </span>
-                      </div>
-                    </th>
-                    {Array.from({ length: 24 }, (_, i) => i).map(h => (
-                      <th
-                        key={h}
-                        className="text-center py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[80px] align-bottom"
-                      >
-                        <div className="flex flex-col items-center gap-1">
-                          <span>{h}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--muted)] text-[var(--foreground)] leading-none">
-                            {getHourCount(h)}
-                          </span>
-                        </div>
+            <div className="flex gap-4 min-h-0">
+              <div className="flex-1 min-w-0 overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--border)]">
+                      <th className="w-9 py-1.5 px-0.5 font-medium text-[var(--muted-foreground)] text-xs align-bottom" />
+                      <th className="text-center py-1.5 px-1 font-medium text-[var(--muted-foreground)] text-xs min-w-[52px] align-bottom">
+                        Без часа
                       </th>
+                      {Array.from({ length: 24 }, (_, h) => (
+                        <th
+                          key={h}
+                          className="text-center py-1.5 px-0.5 font-medium text-[var(--muted-foreground)] text-xs min-w-[40px] align-bottom"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {MINUTE_SLOTS.map(minute => (
+                      <tr key={minute} className="border-b border-[var(--border)] last:border-b-0">
+                        <td className="py-0.5 px-0.5 text-right text-[var(--muted-foreground)] text-[10px] align-middle font-medium w-9">
+                          :{String(minute).padStart(2, "0")}
+                        </td>
+                        <HeatmapSlotCell
+                          droppableId="slot-none"
+                          count={getSlotCount("none")}
+                          isNoneColumn
+                          isSelected={selectedSlot?.type === "none"}
+                          onClick={() => setSelectedSlot({ type: "none" })}
+                          showCount={minute === 0}
+                        />
+                        {Array.from({ length: 24 }, (_, h) => {
+                          const count = getSlotCount(`${h}-${minute}`);
+                          return (
+                            <HeatmapSlotCell
+                              key={h}
+                              droppableId={`slot-${h}-${minute}`}
+                              count={count}
+                              isSelected={
+                                selectedSlot?.type === "slot" &&
+                                selectedSlot.hour === h &&
+                                selectedSlot.minute === minute
+                              }
+                              onClick={() => setSelectedSlot({ type: "slot", hour: h, minute })}
+                              showCount
+                            />
+                          );
+                        })}
+                      </tr>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <HourCell
-                      droppableId="hour-none"
-                      jobs={jobsByHour.get("none")!}
-                      getImageUrl={getImageUrl}
-                      onEdit={setEditingJob}
-                      onDelete={handleDeleteJob}
-                      onCheck={handleCheckChapters}
-                      onSync={handleSyncChapters}
-                      syncingJobId={syncingJobId}
-                      deleteLoading={deleteLoading}
-                      checkLoading={checkLoading}
-                    />
-                    {Array.from({ length: 24 }, (_, i) => i).map(h => (
-                      <HourCell
-                        key={h}
-                        droppableId={`hour-${h}`}
-                        jobs={jobsByHour.get(h)!}
-                        getImageUrl={getImageUrl}
-                        onEdit={setEditingJob}
-                        onDelete={handleDeleteJob}
-                        onCheck={handleCheckChapters}
-                        onSync={handleSyncChapters}
-                        syncingJobId={syncingJobId}
-                        deleteLoading={deleteLoading}
-                        checkLoading={checkLoading}
-                      />
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Панель задач выбранного слота */}
+              {selectedSlot && (
+                <div className="w-[320px] shrink-0 flex flex-col rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--background)] overflow-hidden">
+                  <div className="flex items-center justify-between gap-2 p-3 border-b border-[var(--border)] shrink-0">
+                    <span className="font-medium text-[var(--foreground)] text-sm truncate">
+                      {selectedSlotLabel}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSlot(null)}
+                      className="p-1.5 rounded-[var(--admin-radius)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                      aria-label="Закрыть"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-2 min-h-0">
+                    {selectedSlotJobs.length === 0 ? (
+                      <p className="text-xs text-[var(--muted-foreground)] py-4 text-center">
+                        В этом слоте нет задач. Перетащите задачу сюда из списка или из другой ячейки.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {selectedSlotJobs.map(job => (
+                          <DraggableScheduleJobCard
+                            key={job._id}
+                            job={job}
+                            getImageUrl={getImageUrl}
+                            onEdit={setEditingJob}
+                            onDelete={handleDeleteJob}
+                            onCheck={handleCheckChapters}
+                            onSync={handleSyncChapters}
+                            syncingJobId={syncingJobId}
+                            deleteLoading={deleteLoading}
+                            checkLoading={checkLoading}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <DragOverlay>
@@ -682,6 +987,15 @@ const SCHEDULE_HOUR_OPTIONS: { value: string; label: string }[] = [
   ...Array.from({ length: 24 }, (_, i) => ({ value: String(i), label: `${i}:00 UTC` })),
 ];
 
+const SCHEDULE_MINUTE_OPTIONS: { value: string; label: string }[] = [
+  { value: "0", label: ":00" },
+  { value: "10", label: ":10" },
+  { value: "20", label: ":20" },
+  { value: "30", label: ":30" },
+  { value: "40", label: ":40" },
+  { value: "50", label: ":50" },
+];
+
 function JobModal({
   job,
   onClose,
@@ -702,6 +1016,11 @@ function JobModal({
   const [frequency, setFrequency] = useState(job?.frequency || "daily");
   const [scheduleHour, setScheduleHour] = useState<string>(
     job?.scheduleHour !== undefined && job.scheduleHour !== null ? String(job.scheduleHour) : "",
+  );
+  const [scheduleMinute, setScheduleMinute] = useState<string>(
+    job?.scheduleMinute !== undefined && job.scheduleMinute !== null
+      ? String(job.scheduleMinute)
+      : "0",
   );
   const [enabled, setEnabled] = useState(job?.enabled ?? true);
 
@@ -729,6 +1048,7 @@ function JobModal({
         sources: validSources.length > 0 ? validSources : undefined,
         frequency: frequency || undefined,
         scheduleHour: scheduleHour === "" ? null : Number(scheduleHour),
+        scheduleMinute: scheduleHour === "" ? null : Number(scheduleMinute),
         enabled,
       };
       onUpdate(data);
@@ -738,6 +1058,7 @@ function JobModal({
         sources: validSources,
         frequency: frequency || undefined,
         scheduleHour: scheduleHour === "" ? undefined : Number(scheduleHour),
+        scheduleMinute: scheduleHour === "" ? undefined : Number(scheduleMinute),
         enabled,
       };
       onCreate(data);
@@ -841,21 +1162,35 @@ function JobModal({
 
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              Час запуска (UTC)
+              Время запуска (UTC, шаг 10 мин)
             </label>
-            <select
-              value={scheduleHour}
-              onChange={e => setScheduleHour(e.target.value)}
-              className="admin-input w-full"
-            >
-              {SCHEDULE_HOUR_OPTIONS.map(opt => (
-                <option key={opt.value || "none"} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={scheduleHour}
+                onChange={e => setScheduleHour(e.target.value)}
+                className="admin-input flex-1"
+              >
+                {SCHEDULE_HOUR_OPTIONS.map(opt => (
+                  <option key={opt.value || "none"} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={scheduleMinute}
+                onChange={e => setScheduleMinute(e.target.value)}
+                className="admin-input w-24"
+                disabled={scheduleHour === ""}
+              >
+                {SCHEDULE_MINUTE_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <p className="text-xs text-[var(--muted-foreground)] mt-1">
-              Опционально. Задачи с часом запускаются в этот час по UTC.
+              Опционально. Задачи запускаются в выбранный слот каждые 10 минут (например 12:30 UTC).
             </p>
           </div>
 
@@ -895,8 +1230,69 @@ function JobModal({
   );
 }
 
-/* Schedule table: droppable columns (first = "Без часа", then 0–23) */
-interface HourCellProps {
+/* Тепловая карта: ячейка только с числом, клик открывает панель с задачами */
+interface HeatmapSlotCellProps {
+  droppableId: string;
+  count: number;
+  isNoneColumn?: boolean;
+  isSelected: boolean;
+  onClick: () => void;
+  showCount: boolean;
+}
+
+function HeatmapSlotCell({
+  droppableId,
+  count,
+  isNoneColumn,
+  isSelected,
+  onClick,
+  showCount,
+}: HeatmapSlotCellProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: droppableId });
+  const intensity =
+    count === 0 ? 0 : count <= 2 ? 1 : count <= 6 ? 2 : count <= 12 ? 3 : 4;
+  return (
+    <td
+      ref={setNodeRef}
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={`
+        py-1 px-0.5 align-middle min-h-[32px] min-w-[40px] text-center text-xs font-medium
+        border-r border-b border-[var(--border)] last:border-r-0
+        cursor-pointer select-none transition-colors
+        ${isNoneColumn ? "min-w-[52px]" : ""}
+        ${count > 0 ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}
+        ${intensity === 0 ? "bg-[var(--card)] hover:bg-[var(--accent)]/50" : ""}
+        ${intensity === 1 ? "bg-[var(--primary)]/10 hover:bg-[var(--primary)]/15" : ""}
+        ${intensity === 2 ? "bg-[var(--primary)]/20 hover:bg-[var(--primary)]/25" : ""}
+        ${intensity === 3 ? "bg-[var(--primary)]/30 hover:bg-[var(--primary)]/35" : ""}
+        ${intensity === 4 ? "bg-[var(--primary)]/40 hover:bg-[var(--primary)]/50" : ""}
+        ${isOver ? "ring-2 ring-[var(--primary)] ring-inset" : ""}
+        ${isSelected ? "ring-2 ring-[var(--primary)] ring-offset-1 ring-offset-[var(--card)]" : ""}
+      `}
+      title={
+        droppableId === "slot-none"
+          ? `Без часа: ${count} задач`
+          : (() => {
+              const [, h, m] = droppableId.split("-");
+              return `${h}:${m?.padStart(2, "0")} UTC — ${count} задач`;
+            })()
+      }
+    >
+      {showCount ? (count > 0 ? count : "—") : "—"}
+    </td>
+  );
+}
+
+/* Schedule table: columns = hours, rows = minutes; each cell is a droppable slot */
+interface SlotCellProps {
   droppableId: string;
   jobs: AutoParsingJob[];
   getImageUrl: (coverImage?: string) => string;
@@ -907,9 +1303,10 @@ interface HourCellProps {
   syncingJobId: string | null;
   deleteLoading: boolean;
   checkLoading: boolean;
+  isNoneColumn?: boolean;
 }
 
-function HourCell({
+function SlotCell({
   droppableId,
   jobs,
   getImageUrl,
@@ -920,13 +1317,14 @@ function HourCell({
   syncingJobId,
   deleteLoading,
   checkLoading,
-}: HourCellProps) {
+  isNoneColumn,
+}: SlotCellProps) {
   const { setNodeRef, isOver } = useDroppable({ id: droppableId });
   return (
     <td
       ref={setNodeRef}
-      className={`py-2 px-2 align-top border-b border-[var(--border)] min-h-[52px] min-w-[80px] ${
-        droppableId === "hour-none" ? "min-w-[140px]" : ""
+      className={`py-1 px-1 align-top border-r border-[var(--border)] last:border-r-0 min-h-[44px] ${
+        isNoneColumn ? "min-w-[100px]" : "min-w-[64px]"
       } ${isOver ? "bg-[var(--primary)]/10" : ""}`}
     >
       <div className="flex flex-col gap-2">

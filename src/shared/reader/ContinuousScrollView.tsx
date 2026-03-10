@@ -140,27 +140,38 @@ export default function ContinuousScrollView({
     };
   }, [chapters, visibleChapterId, onChapterChange, onProgressUpdate]);
 
-  // Handle scroll to detect near top/bottom for loading chapters
+  // Handle scroll to detect near top/bottom for loading chapters (throttled to avoid flood of calls)
   useEffect(() => {
+    let rafId: number | null = null;
+    let lastCallTop = 0;
+    let lastCallBottom = 0;
+    const THROTTLE_MS = 400;
+
     const handleScroll = () => {
-      if (!containerRef.current) return;
-      const scrollTop = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
+      if (!containerRef.current || rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const scrollTop = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const now = Date.now();
 
-      // Near top: load previous chapter
-      if (scrollTop < 100) {
-        onLoadPrev();
-      }
-
-      // Near bottom: load next chapter
-      if (documentHeight - scrollTop - windowHeight < 300) {
-        onLoadNext();
-      }
+        if (scrollTop < 100 && now - lastCallTop > THROTTLE_MS) {
+          lastCallTop = now;
+          onLoadPrev();
+        }
+        if (documentHeight - scrollTop - windowHeight < 300 && now - lastCallBottom > THROTTLE_MS) {
+          lastCallBottom = now;
+          onLoadNext();
+        }
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, [onLoadPrev, onLoadNext]);
 
   return (
@@ -169,8 +180,17 @@ export default function ContinuousScrollView({
         {chapters.map((chapter, chapterIdx) =>
           chapter.images.map((image, imageIdx) => {
             const globalIndex = cumulativeImages[chapterIdx] + imageIdx;
+            const imageKey = `${chapter._id}-${imageIdx}`;
             return (
-              <div key={`${chapter._id}-${imageIdx}`} className="flex justify-center">
+              <div
+                key={imageKey}
+                ref={el => {
+                  if (el) imageRefs.current.set(imageKey, el);
+                  else imageRefs.current.delete(imageKey);
+                }}
+                data-image-key={imageKey}
+                className="flex justify-center"
+              >
                 {!imageLoadErrors.has(globalIndex) ? (
                   <OptimizedImage
                     src={`${image}`}

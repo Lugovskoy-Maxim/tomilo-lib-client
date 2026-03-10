@@ -28,6 +28,8 @@ interface ProfileContentProps {
   showAchievementsPreview?: boolean;
   /** Публичный просмотр чужого профиля - скрывает приватные компоненты */
   isPublicView?: boolean;
+  /** Компактный обзор: меньше блоков, меньше элементов в списках */
+  compactOverview?: boolean;
 }
 
 export default function ProfileContent({
@@ -43,6 +45,7 @@ export default function ProfileContent({
   bookmarksEmptyStateMessage,
   showAchievementsPreview = true,
   isPublicView = false,
+  compactOverview = false,
 }: ProfileContentProps) {
   const [claimDailyBonus] = useClaimDailyBonusMutation();
   const dailyBonusSyncedRef = useRef(false);
@@ -57,25 +60,34 @@ export default function ProfileContent({
       .finally(() => {});
   }, [isPublicView, claimDailyBonus]);
 
+  const gap = compactOverview ? "gap-3" : "gap-4";
+  const maxBookmarks = compactOverview ? 5 : 10;
+
   return (
-    <div className="flex flex-col gap-4 items-stretch w-full min-w-0">
-      {!isPublicView && <ProfileWelcome userProfile={userProfile} />}
-      {!isPublicView && <ProfileQuickActions />}
+    <div className={`flex flex-col ${gap} items-stretch w-full min-w-0`}>
+      {!isPublicView && !compactOverview && <ProfileWelcome userProfile={userProfile} />}
+      {!isPublicView && !compactOverview && <ProfileQuickActions />}
       {!isPublicView && <ContinueReading userProfile={userProfile} />}
-      {!isPublicView && <ReadingProgressBlock />}
+      {!isPublicView && !compactOverview && <ReadingProgressBlock />}
       {!isPublicView && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className={compactOverview ? "space-y-3" : "space-y-4"}>
+          <div
+            className={
+              compactOverview
+                ? "grid grid-cols-1 sm:grid-cols-2 gap-3"
+                : "grid grid-cols-1 lg:grid-cols-2 gap-4"
+            }
+          >
             <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />
             <DailyBonus userProfile={userProfile} />
           </div>
-          <ProfileDailyQuests />
+          <ProfileDailyQuests maxVisible={compactOverview ? 2 : undefined} />
         </div>
       )}
 
       {showAchievementsPreview && !(isPublicView && userProfile.showAchievements === false) && (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className={`rounded-xl border border-[var(--border)] bg-[var(--card)] ${compactOverview ? "p-3" : "p-4"}`}>
+          <div className={`flex items-center justify-between ${compactOverview ? "mb-2" : "mb-3"}`}>
             <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
               <Trophy className="w-4 h-4 text-amber-500" />
               Достижения
@@ -94,7 +106,7 @@ export default function ProfileContent({
       )}
 
       {hiddenBookmarksMessage ? (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+        <div className={`rounded-xl border border-[var(--border)] bg-[var(--card)] ${compactOverview ? "p-3" : "p-4 sm:p-5"}`}>
           <h2 className="text-sm font-semibold text-[var(--foreground)] mb-1">Закладки</h2>
           <p className="text-xs text-[var(--muted-foreground)]">{hiddenBookmarksMessage}</p>
         </div>
@@ -106,12 +118,14 @@ export default function ProfileContent({
             onShowBookmarks ? undefined : (allBookmarksHref ?? "/profile/bookmarks")
           }
           onShowAllBookmarks={onShowBookmarks}
-          maxItems={10}
+          maxItems={maxBookmarks}
           emptyStateMessage={bookmarksEmptyStateMessage}
         />
       )}
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 flex flex-col">
+      <div
+        className={`rounded-xl border border-[var(--border)] bg-[var(--card)] flex flex-col ${compactOverview ? "p-3" : "p-4 sm:p-5"}`}
+      >
         {hiddenHistoryMessage ? (
           <div className="flex flex-1 items-center justify-center text-center py-6">
             <p className="text-xs text-[var(--muted-foreground)]">{hiddenHistoryMessage}</p>

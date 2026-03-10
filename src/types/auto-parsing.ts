@@ -13,6 +13,8 @@ export interface AutoParsingJob {
   frequency: string;
   /** Час запуска в UTC (0–23). Задаётся для распределения парсинга по часам. */
   scheduleHour?: number;
+  /** Минута запуска: слот 0, 10, 20, 30, 40, 50 (шаг 10 минут). Если не задана — 0. */
+  scheduleMinute?: number;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +26,8 @@ export interface CreateAutoParsingJobDto {
   frequency?: string;
   /** Час запуска в UTC (0–23), опционально. */
   scheduleHour?: number;
+  /** Минута: 0, 10, 20, 30, 40, 50 (шаг 10 минут). Опционально, по умолчанию 0. */
+  scheduleMinute?: number;
   enabled?: boolean;
 }
 
@@ -33,6 +37,8 @@ export interface UpdateAutoParsingJobDto {
   frequency?: string;
   /** Час запуска в UTC (0–23). null — сбросить (вернуть в расписание без часа). */
   scheduleHour?: number | null;
+  /** Минута: 0, 10, 20, 30, 40, 50. null — сбросить (как 0). */
+  scheduleMinute?: number | null;
   enabled?: boolean;
 }
 

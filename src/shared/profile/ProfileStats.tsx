@@ -189,15 +189,15 @@ export default function ProfileStats({
   ];
 
   return (
-    <div className="space-y-5">
+    <div className={showDetailed ? "space-y-5" : "space-y-3"}>
       {/* Main stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3`}>
         {stats.map(stat => (
           <div
             key={stat.id}
-            className={`group relative flex flex-col gap-2 rounded-xl p-4 bg-[var(--secondary)]/40 border border-[var(--border)]/60 hover:border-[var(--border)] hover:bg-[var(--secondary)]/60 transition-all duration-300 cursor-pointer overflow-hidden ${
-              activeStatCard === stat.id ? "ring-2 ring-[var(--primary)]/50" : ""
-            }`}
+            className={`group relative flex flex-col gap-1.5 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/60 hover:border-[var(--border)] hover:bg-[var(--secondary)]/60 transition-all duration-300 cursor-pointer overflow-hidden ${
+              showDetailed ? "p-4" : "p-3"
+            } ${activeStatCard === stat.id ? "ring-2 ring-[var(--primary)]/50" : ""}`}
             onMouseEnter={() => setActiveStatCard(stat.id)}
             onMouseLeave={() => setActiveStatCard(null)}
           >
@@ -212,10 +212,10 @@ export default function ProfileStats({
             </div>
 
             <div>
-              <div className="text-lg sm:text-xl font-bold text-[var(--foreground)] tabular-nums leading-tight">
+              <div className={`font-bold text-[var(--foreground)] tabular-nums leading-tight ${showDetailed ? "text-lg sm:text-xl" : "text-base sm:text-lg"}`}>
                 {stat.value}
               </div>
-              <div className="text-xs text-[var(--muted-foreground)]">{stat.label}</div>
+              <div className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">{stat.label}</div>
             </div>
 
             {showDetailed && (
@@ -227,7 +227,38 @@ export default function ProfileStats({
         ))}
       </div>
 
-      {/* Level, Rank & Economy */}
+      {/* Level, Rank & Economy — компактный ряд при !showDetailed */}
+      {!showDetailed ? (
+        <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/60">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+              style={{ backgroundColor: `${rankColor}20`, color: rankColor }}
+            >
+              {level}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold truncate" style={{ color: rankColor }}>
+                {getRankDisplay(level)}
+              </p>
+              <div className="h-1.5 w-20 rounded-full bg-[var(--secondary)] overflow-hidden mt-0.5">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${expProgress}%`, backgroundColor: rankColor }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <span className="tabular-nums">{experience.toLocaleString()} XP</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
+            <Coins className="w-3.5 h-3.5 text-amber-500" />
+            <span className="tabular-nums">{balance.toLocaleString()}</span>
+          </div>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Level progress */}
         <div className="sm:col-span-2 relative rounded-xl p-4 bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--secondary)]/30 border border-[var(--border)]/60">
@@ -487,6 +518,7 @@ export default function ProfileStats({
           )}
         </div>
       </div>
+      )}
 
       {/* Bookmarks breakdown */}
       {showDetailed && totalBookmarks > 0 && (

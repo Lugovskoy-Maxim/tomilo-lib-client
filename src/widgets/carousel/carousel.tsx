@@ -294,6 +294,7 @@ export default function Carousel<T>({
    */
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
+      if (e.touches.length === 0) return;
       pauseAutoScroll();
       setIsDragging(true);
       setDragOccurred(false);
@@ -416,7 +417,7 @@ export default function Carousel<T>({
    */
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (!isDragging) return;
+      if (!isDragging || e.touches.length === 0) return;
 
       const touch = e.touches[0];
       const movedDistance = Math.abs(touch.pageX - startX);

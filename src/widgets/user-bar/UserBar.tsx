@@ -85,8 +85,8 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
     };
   };
 
-  // Показываем скелетон во время загрузки или до монтирования
-  if (isLoading || !isMounted) {
+  // Скелетон только пока не знаем статус авторизации (нет user). После логина user уже есть — не скрываем аватар на время загрузки профиля.
+  if ((isLoading && !user) || !isMounted) {
     return (
       <div className="flex items-center gap-3">
         <ThemeToggle />

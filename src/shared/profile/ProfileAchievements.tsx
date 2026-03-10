@@ -596,6 +596,7 @@ export default function ProfileAchievements({
   isPublicView = false,
 }: ProfileAchievementsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showAllAchievements, setShowAllAchievements] = useState(false);
 
   const { data: achievementsResponse } = useGetProfileAchievementsQuery(undefined, {
     skip: isPublicView,
@@ -650,7 +651,13 @@ export default function ProfileAchievements({
     );
   }
 
-  const displayedAchievements = compact ? achievements.slice(0, 3) : achievements;
+  const INITIAL_FULL = 6;
+  const displayedAchievements = compact
+    ? achievements.slice(0, 3)
+    : showAllAchievements
+      ? achievements
+      : achievements.slice(0, INITIAL_FULL);
+  const hasMoreAchievements = !compact && achievements.length > INITIAL_FULL && !showAllAchievements;
 
   return (
     <div
@@ -715,6 +722,16 @@ export default function ProfileAchievements({
           />
         ))}
       </div>
+
+      {hasMoreAchievements && (
+        <button
+          type="button"
+          onClick={() => setShowAllAchievements(true)}
+          className="mt-3 py-2 w-full rounded-lg text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10 border border-[var(--border)]/60 transition-colors"
+        >
+          Показать ещё ({achievements.length - INITIAL_FULL})
+        </button>
+      )}
 
       {/* Show more for compact mode */}
       {compact && achievements.length > 3 && (

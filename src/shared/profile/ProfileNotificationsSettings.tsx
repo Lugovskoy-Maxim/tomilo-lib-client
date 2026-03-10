@@ -15,6 +15,7 @@ const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
   newChapters: true,
   comments: true,
   recommendations: true,
+  news: true,
 };
 
 export default function ProfileNotificationsSettings({
@@ -81,6 +82,42 @@ export default function ProfileNotificationsSettings({
           </div>
         </div>
 
+        {/* Строка: Новости */}
+        <div className="flex items-center justify-between gap-4 py-3 sm:py-3.5 min-h-[56px] border-b border-[var(--border)]/60 last:border-b-0">
+          <div className="min-w-0 flex-1">
+            <span className="text-sm font-semibold text-[var(--foreground)] block">
+              Новости
+            </span>
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+              Объявления и новости платформы
+            </p>
+          </div>
+          <div className="relative inline-flex h-6 w-11 min-w-[2.75rem] flex-shrink-0">
+            <input
+              type="checkbox"
+              id="news"
+              className="sr-only peer"
+              checked={prefs.news}
+              onChange={e => handleChange("news", e.target.checked)}
+              disabled={isLoading}
+            />
+            <label
+              htmlFor="news"
+              className={`block h-full w-full cursor-pointer rounded-full border transition-colors ${
+                prefs.news
+                  ? "bg-[var(--primary)] border-[var(--primary)]"
+                  : "bg-[var(--muted)] border-[var(--border)]"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                  prefs.news ? "left-5" : "left-0.5"
+                }`}
+              />
+            </label>
+          </div>
+        </div>
+
         {/* Строка: Push в браузере — тот же формат строки, что и «Новые главы» */}
         <div className="flex items-center justify-between gap-4 py-3 sm:py-3.5 min-h-[56px] border-b border-[var(--border)]/60 last:border-b-0">
           <PushSubscribeButton embedded />
@@ -113,6 +150,9 @@ export default function ProfileNotificationsSettings({
                 <li>
                   <strong>Новые главы</strong> — уведомления о выходе глав в тайтлах из ваших
                   закладок
+                </li>
+                <li>
+                  <strong>Новости</strong> — объявления и новости платформы (push и в приложении)
                 </li>
               </ul>
               <p className="text-[var(--muted-foreground)] text-[10px]">

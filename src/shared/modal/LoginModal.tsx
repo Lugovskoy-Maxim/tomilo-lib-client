@@ -150,27 +150,17 @@ const LoginModal: React.FC<LoginModalProps> = ({
     return msg;
   };
 
-  // Безопасное извлечение сообщения об ошибке
-  const getErrorMessage = (): string | null => {
-    if (!error) return null;
-
-    // Проверяем тип ошибки и извлекаем сообщение безопасно
-    if (typeof error === "object") {
-      // Ошибка с данными от сервера (FetchBaseQueryError)
-      if ("data" in error && error.data && typeof error.data === "object") {
-        const serverError = error.data as ServerError;
-        const msg = serverError.message || MESSAGES.ERROR_MESSAGES.LOGIN_ERROR;
-        return normalizeErrorMessage(msg);
+  // Извлечение сообщения из объекта ошибки (для логов и для хука)
+  const getMessageFromError = (err: unknown): string => {
+    if (err == null) return MESSAGES.ERROR_MESSAGES.UNKNOWN_ERROR;
+    if (typeof err === "object") {
+      if ("data" in err && err.data && typeof err.data === "object") {
+        const serverError = err.data as ServerError;
+        return normalizeErrorMessage(serverError.message || MESSAGES.ERROR_MESSAGES.LOGIN_ERROR);
       }
-
-      // Сериализованная ошибка (SerializedError)
-      if ("message" in error && error.message) {
-        return normalizeErrorMessage(String(error.message));
-      }
-
-      // Ошибка с статусом (сетевая ошибка)
-      if ("status" in error) {
-        switch (error.status) {
+      if ("message" in err && err.message) return normalizeErrorMessage(String(err.message));
+      if ("status" in err) {
+        switch ((err as { status: number }).status) {
           case 404:
             return MESSAGES.ERROR_MESSAGES.SERVER_NOT_FOUND;
           case 401:
@@ -182,13 +172,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
         }
       }
     }
-
-    // Строковая ошибка
-    if (typeof error === "string") {
-      return normalizeErrorMessage(error);
-    }
-
+    if (typeof err === "string") return normalizeErrorMessage(err);
     return MESSAGES.ERROR_MESSAGES.UNKNOWN_ERROR;
+  };
+
+  // Безопасное извлечение сообщения об ошибке (из состояния мутации)
+  const getErrorMessage = (): string | null => {
+    if (!error) return null;
+    return getMessageFromError(error);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -203,14 +194,24 @@ const LoginModal: React.FC<LoginModalProps> = ({
         password: form.password,
       }).unwrap();
 
-      // Сохраняем в Redux store и localStorage через useAuth хук
-      authLogin(response);
+      // Успех только при наличии токена и пользователя (на случай 200 с success: false)
+      const payload = response?.data ?? (response && "access_token" in response ? response : null);
+      const hasAuth =
+        payload && "access_token" in payload && payload.access_token && payload.user;
 
-      // Вызываем колбэк успешной авторизации
-      onAuthSuccess(response);
+      if (hasAuth) {
+        authLogin(response);
+        onAuthSuccess(response);
+      }
     } catch (err) {
-      // Ошибка уже обработана в RTK Query
-      console.error("Ошибка входа:", err);
+      // Сообщение пользователю показывается через getErrorMessage() из состояния мутации.
+      // 401 не логируем в консоль — показывается в UI; иначе после успешного повторного входа в консоли остаётся "Invalid credentials".
+      const msg = getMessageFromError(err);
+      const is401 =
+        typeof err === "object" && err !== null && "status" in err && (err as { status: number }).status === 401;
+      if (!is401) {
+        console.error("Ошибка входа:", msg);
+      }
     }
   };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProfile } from "@/types/user";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -8,7 +9,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { type ProfileTab, tabMeta, PROFILE_TABS, isValidProfileTab } from "./profileTabConfig";
 
 import ProfileAboutBlock from "@/shared/profile/ProfileAboutBlock";
-import ProfileAdditionalInfo from "@/shared/profile/ProfileAdditionalInfo";
 import ProfileContent from "@/shared/profile/ProfileContent";
 import ProfileStats from "@/shared/profile/ProfileStats";
 import ProfileAchievements from "@/shared/profile/ProfileAchievements";
@@ -185,10 +185,9 @@ export function ProfileTabs({
 
   const sectionTitle = tabMeta[activeTab].label;
   const SectionIcon = tabMeta[activeTab].icon;
-  const sectionDescription = tabMeta[activeTab].description;
 
   return (
-    <div className="w-full min-w-0 flex flex-col p-4 sm:p-5">
+    <div className="w-full min-w-0 flex flex-col p-3 sm:p-4">
       {/* Одна строка: вкладки разделов */}
       <nav className="mb-5" aria-label="Разделы профиля">
         <div className="relative">
@@ -247,21 +246,17 @@ export function ProfileTabs({
         </div>
       </nav>
 
-      {/* Заголовок раздела — одна строка */}
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[color-mix(in_oklch,var(--border)_70%,transparent)] dark:border-[color-mix(in_oklch,var(--border)_90%,transparent)] [&_h2]:text-[var(--foreground)] [&_p]:text-[var(--muted-foreground)] dark:[&_p]:text-[color-mix(in_oklch,var(--muted-foreground)_95%,var(--foreground))]">
-        <SectionIcon className="w-5 h-5 text-[var(--primary)] shrink-0" />
-        <div className="min-w-0">
-          <h2 className="text-lg font-semibold truncate">{sectionTitle}</h2>
-          <p className="text-xs truncate">{sectionDescription}</p>
-        </div>
+      {/* Заголовок раздела */}
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[color-mix(in_oklch,var(--border)_70%,transparent)] dark:border-[color-mix(in_oklch,var(--border)_90%,transparent)]">
+        <SectionIcon className="w-4 h-4 text-[var(--primary)] shrink-0" />
+        <h2 className="text-base font-semibold text-[var(--foreground)] truncate">{sectionTitle}</h2>
       </div>
 
       <div className="flex-1 min-h-0 profile-content-scroll overflow-y-auto overflow-x-hidden">
         {/* О себе */}
         {activeTab === "overview" && (
-          <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
+          <div className="space-y-3 sm:space-y-4 animate-fade-in-up">
             <ProfileAboutBlock userProfile={userProfile} />
-            <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
             <ProfileContent
               userProfile={userProfile}
               allBookmarksHref={`${pathname}?tab=bookmarks`}
@@ -271,6 +266,7 @@ export function ProfileTabs({
               onShowAchievements={() => setActiveTab("achievements")}
               onShowStats={() => setActiveTab("stats")}
               isPublicView={isPublicView}
+              compactOverview
               hiddenBookmarksMessage={
                 isBookmarksRestricted
                   ? "Пользователь скрыл свои закладки в настройках приватности."
@@ -288,7 +284,7 @@ export function ProfileTabs({
         {/* Статистика */}
         {activeTab === "stats" && (
           <div className="animate-fade-in-up">
-            <ProfileStats userProfile={userProfile} showDetailed isPublicView={isPublicView} />
+            <ProfileStats userProfile={userProfile} showDetailed={false} isPublicView={isPublicView} />
           </div>
         )}
 
@@ -390,48 +386,48 @@ export function ProfileTabs({
 
         {/* Настройки — один блок, разделение по темам */}
         {activeTab === "settings" && (
-          <div className="animate-fade-in-up space-y-4">
+          <div className="animate-fade-in-up space-y-3">
             <SettingsNavigation />
-            <div className="rounded-xl sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 shadow-sm">
-              <div id="settings-notifications" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4 shadow-sm">
+              <div id="settings-notifications" className="pb-4 mb-4 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
                   Уведомления
                 </h3>
                 <ProfileNotificationsSettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-display" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+              <div id="settings-display" className="pb-4 mb-4 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
                   Оформление
                 </h3>
                 <ProfileDisplaySettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-reading" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+              <div id="settings-reading" className="pb-4 mb-4 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
                   Чтение
                 </h3>
                 <ProfileReadingSettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-premium" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+              <div id="settings-premium" className="pb-4 mb-4 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
                   Премиум
                 </h3>
                 <ProfilePremiumSettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-privacy" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+              <div id="settings-privacy" className="pb-4 mb-4 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
                   Приватность
                 </h3>
                 <ProfilePrivacySettings userProfile={userProfile} embedded />
               </div>
-              <div id="settings-security" className="pb-6 mb-6 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+              <div id="settings-security" className="pb-4 mb-4 border-b border-[var(--border)]/60 last:border-b-0 last:pb-0 last:mb-0">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
                   Безопасность
                 </h3>
                 <ProfileSecuritySettings userProfile={userProfile} embedded />
               </div>
               {!isPublicView && (
                 <div id="settings-delete-account" className="pt-2">
-                  <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-4">
+                  <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
                     Удаление аккаунта
                   </h3>
                   <ProfileDeleteAccount userProfile={userProfile} embedded />
