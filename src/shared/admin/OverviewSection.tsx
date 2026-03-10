@@ -59,10 +59,10 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
     sortBy: "updatedAt",
     sortOrder: "desc",
   });
-  const { data: chaptersHealthData } = useSearchChaptersQuery({
+  const { data: chaptersWithoutPagesData } = useSearchChaptersQuery({
     page: 1,
-    limit: 200,
-    sortOrder: "desc",
+    limit: 1,
+    withoutPages: true,
   });
   const { data: unresolvedReports } = useGetReportsQuery({
     page: 1,
@@ -136,9 +136,7 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
   const titlesWithoutChaptersCount = (titlesHealthData?.data?.data || []).filter(
     title => (title.totalChapters || 0) === 0,
   ).length;
-  const chaptersWithoutPagesCount = (chaptersHealthData?.chapters || []).filter(
-    chapter => (chapter.pages?.length ?? chapter.images?.length ?? 0) === 0,
-  ).length;
+  const chaptersWithoutPagesCount = chaptersWithoutPagesData?.total ?? 0;
   const unresolvedReportsCount = unresolvedReports?.data?.total || 0;
 
   const popularTitles = Array.isArray(stats.popularTitles) ? stats.popularTitles : [];

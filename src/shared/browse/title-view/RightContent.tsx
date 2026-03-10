@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
 import {
   useUpdateRatingMutation,
@@ -43,6 +44,11 @@ import { GenresList } from "./GenresList";
 import { CharactersSection } from "./CharactersSection";
 import { TranslatorsSection } from "./TranslatorsSection";
 import { SimilarTitles } from "./SimilarTitles";
+
+const ChapterRatingsChartLazy = dynamic(
+  () => import("./ChapterRatingsChart").then(m => ({ default: m.ChapterRatingsChart })),
+  { ssr: false },
+);
 
 interface RightContentProps {
   titleData: Title;
@@ -114,6 +120,22 @@ export function RightContent({
   const [markingChapterId, setMarkingChapterId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileDeleteModeChapterId, setMobileDeleteModeChapterId] = useState<string | null>(null);
+  const [showChapterChart, setShowChapterChart] = useState(false);
+  const statsBlockRef = useRef<HTMLDivElement>(null);
+
+  // Монтируем график оценок по главам только когда блок статистики в зоне видимости
+  useEffect(() => {
+    const el = statsBlockRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) setShowChapterChart(true);
+      },
+      { rootMargin: "80px", threshold: 0 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const check = () => setIsMobile(typeof window !== "undefined" && window.innerWidth < 640);
@@ -440,6 +462,25 @@ export function RightContent({
   const ratingStats = getRatingStats(ratingValues);
   const totalRatings = titleData?.totalRatings ?? ratingValues.length;
 
+  const { chaptersAverageRating, chaptersRatingCount } = useMemo(() => {
+    let sum = 0;
+    let count = 0;
+    for (const ch of chapters) {
+      const n = ch.ratingCount ?? 0;
+      if (n <= 0) continue;
+      const avg =
+        ch.averageRating != null
+          ? ch.averageRating
+          : (ch.ratingSum ?? 0) / n;
+      sum += avg * n;
+      count += n;
+    }
+    return {
+      chaptersAverageRating: count > 0 ? sum / count : null,
+      chaptersRatingCount: count,
+    };
+  }, [chapters]);
+
   const renderTabContent = (): React.ReactElement | null => {
     switch (activeTab) {
       case "main":
@@ -538,7 +579,10 @@ export function RightContent({
             )}
 
             {/* Статистика */}
-            <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">
+            <div
+              ref={statsBlockRef}
+              className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50"
+            >
               <div className="flex items-center gap-2 mb-4 text-[var(--primary)]">
                 <Eye className="w-4 h-4" />
                 <span className="text-xs uppercase tracking-wider font-medium">Статистика</span>
@@ -628,6 +672,8 @@ export function RightContent({
                   </div>
                 </div>
               )}
+
+              {showChapterChart && <ChapterRatingsChartLazy chapters={chapters} />}
             </div>
 
             {/* Секция персонажей */}
@@ -1049,16 +1095,29 @@ export function RightContent({
           <div className="flex gap-2 w-full sm:w-auto">
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center sm:justify-end gap-2 sm:gap-x-3 sm:gap-y-1 px-3 pt-1.5 pb-2 rounded-2xl transition-all duration-300 w-full sm:w-auto">
               {/* Рейтинг и кол-во оценок */}
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm text-[var(--muted-foreground)] shrink-0">Рейтинг</span>
-                <span className="text-lg sm:text-xl font-bold text-[var(--primary)] tabular-nums">
-                  {titleData?.averageRating ? titleData.averageRating.toFixed(1) : "0.0"}
-                </span>
-                {totalRatings > 0 && (
-                  <span className="text-xs text-[var(--muted-foreground)] shrink-0">
-                    {totalRatings}{" "}
-                    {totalRatings === 1 ? "оценка" : totalRatings < 5 ? "оценки" : "оценок"}
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[var(--muted-foreground)] shrink-0">Рейтинг</span>
+                  <span className="text-lg sm:text-xl font-bold text-[var(--primary)] tabular-nums">
+                    {titleData?.averageRating ? titleData.averageRating.toFixed(1) : "0.0"}
                   </span>
+                  {totalRatings > 0 && (
+                    <span className="text-xs text-[var(--muted-foreground)] shrink-0">
+                      {totalRatings}{" "}
+                      {totalRatings === 1 ? "оценка" : totalRatings < 5 ? "оценки" : "оценок"}
+                    </span>
+                  )}
+                </div>
+                {chaptersAverageRating != null && chaptersRatingCount > 0 && (
+                  <div className="text-xs text-[var(--muted-foreground)]">
+                    По главам:{" "}
+                    <span className="font-medium text-[var(--foreground)]">
+                      {chaptersAverageRating.toFixed(1)}
+                    </span>
+                    {" "}
+                    ({chaptersRatingCount}{" "}
+                    {chaptersRatingCount === 1 ? "оценка" : chaptersRatingCount < 5 ? "оценки" : "оценок"})
+                  </div>
                 )}
               </div>
 
