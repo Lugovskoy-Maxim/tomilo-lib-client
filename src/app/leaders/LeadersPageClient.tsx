@@ -398,7 +398,7 @@ function getMergeVal(record: Record<string, unknown>, key: string): unknown {
 const PERIOD_DEPENDENT_KEYS: Partial<Record<LeaderboardCategory, (keyof TransformableUser)[]>> = {
   ratings: ["ratingsCount"],
   comments: ["commentsCount"],
-  chaptersRead: ["chaptersRead", "readingTimeMinutes", "readingTime"],
+  chaptersRead: ["chaptersRead", "readingTimeMinutes"],
 };
 
 function mergeLeaderboardWithHomepage(
