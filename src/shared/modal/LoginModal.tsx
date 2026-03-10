@@ -195,9 +195,9 @@ const LoginModal: React.FC<LoginModalProps> = ({
       }).unwrap();
 
       // Успех только при наличии токена и пользователя (на случай 200 с success: false)
-      const data =
-        response && "data" in response && response.data != null ? response.data : response;
-      const hasAuth = data?.access_token && data?.user;
+      const payload = response?.data ?? (response && "access_token" in response ? response : null);
+      const hasAuth =
+        payload && "access_token" in payload && payload.access_token && payload.user;
 
       if (hasAuth) {
         authLogin(response);
