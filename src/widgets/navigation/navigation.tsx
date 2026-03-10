@@ -48,7 +48,7 @@ export default function Navigation({
       <ul
         className={`
           flex
-          ${vertical ? "flex-col space-y-4" : "flex-row space-x-6 lg:space-x-8"}
+          ${vertical ? "flex-col space-y-4" : "flex-row gap-2 sm:gap-3"}
           ${vertical ? "items-stretch" : "items-center"}
         `}
       >
