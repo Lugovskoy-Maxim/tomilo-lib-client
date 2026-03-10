@@ -139,14 +139,16 @@ export default function Footer() {
   };
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    dragStartY.current = e.touches[0].clientY;
-    currentY.current = 0;
-    setIsDragging(true);
+    if (e.touches.length > 0) {
+      dragStartY.current = e.touches[0].clientY;
+      currentY.current = 0;
+      setIsDragging(true);
+    }
   }, []);
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (!isDragging) return;
+      if (!isDragging || e.touches.length === 0) return;
       const deltaY = e.touches[0].clientY - dragStartY.current;
       if (deltaY > 0) {
         currentY.current = deltaY;

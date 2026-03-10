@@ -340,10 +340,10 @@ export default function FeaturedTitleBlock({
           setIsPaused(true);
           setTouchEnd(null);
           touchTargetRef.current = e.target;
-          setTouchStart(e.targetTouches[0].clientX);
+          if (e.targetTouches.length > 0) setTouchStart(e.targetTouches[0].clientX);
         }}
         onTouchMove={e => {
-          setTouchEnd(e.targetTouches[0].clientX);
+          if (e.targetTouches.length > 0) setTouchEnd(e.targetTouches[0].clientX);
         }}
         onTouchEnd={() => {
           if (isInteractiveElement(touchTargetRef.current)) {

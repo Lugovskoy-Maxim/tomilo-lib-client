@@ -34,6 +34,7 @@ export function PullToRefresh({
       )
         return;
       if (window.scrollY > 10) return;
+      if (e.touches.length === 0) return;
       startY.current = e.touches[0].clientY;
       isPull.current = true;
     },
@@ -42,7 +43,7 @@ export function PullToRefresh({
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (!isPull.current || disabled || isRefreshing) return;
+      if (!isPull.current || disabled || isRefreshing || e.touches.length === 0) return;
       const y = e.touches[0].clientY;
       const delta = y - startY.current;
       if (delta <= 0) return;

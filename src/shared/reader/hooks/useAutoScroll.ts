@@ -145,10 +145,10 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
 
     let touchY = 0;
     const onTouchStart = (e: TouchEvent) => {
-      touchY = e.touches[0].clientY;
+      if (e.touches.length > 0) touchY = e.touches[0].clientY;
     };
     const onTouchMove = (e: TouchEvent) => {
-      if (isAutoScrollingRef.current && Math.abs(e.touches[0].clientY - touchY) > 10) stop();
+      if (e.touches.length > 0 && isAutoScrollingRef.current && Math.abs(e.touches[0].clientY - touchY) > 10) stop();
     };
     const onKey = (e: KeyboardEvent) => {
       if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key))

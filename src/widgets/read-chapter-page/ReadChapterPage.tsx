@@ -685,11 +685,12 @@ function ReadChapterPageContent({
   const touchEndX = useRef<number>(0);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    if (e.touches.length > 0) touchStartX.current = e.touches[0].clientX;
   }, []);
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
+      if (e.changedTouches.length === 0) return;
       touchEndX.current = e.changedTouches[0].clientX;
       const diffX = touchStartX.current - touchEndX.current;
       const minSwipeDistance = 50;

@@ -3,12 +3,14 @@ import type { MetadataRoute } from "next";
 const BASE_URL = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
+const SITEMAP_MAX_PAGES = 500;
+
 async function fetchAllTitles(): Promise<{ slug?: string; updatedAt?: string; _id?: string }[]> {
   const all: { slug?: string; updatedAt?: string; _id?: string }[] = [];
   let page = 1;
   let hasMore = true;
 
-  while (hasMore) {
+  while (hasMore && page <= SITEMAP_MAX_PAGES) {
     try {
       const res = await fetch(
         `${API_URL}/titles?page=${page}&limit=100&sortBy=updatedAt&sortOrder=desc`,
@@ -46,7 +48,7 @@ async function fetchAllCollections(): Promise<{ id?: string; _id?: string; updat
   let page = 1;
   let hasMore = true;
 
-  while (hasMore) {
+  while (hasMore && page <= SITEMAP_MAX_PAGES) {
     try {
       const res = await fetch(
         `${API_URL}/collections?page=${page}&limit=100&sortBy=updatedAt&sortOrder=desc`,
@@ -87,7 +89,7 @@ async function fetchAllAnnouncements(): Promise<
   let page = 1;
   let hasMore = true;
 
-  while (hasMore) {
+  while (hasMore && page <= SITEMAP_MAX_PAGES) {
     try {
       const res = await fetch(
         `${API_URL}/announcements?page=${page}&limit=100&sortBy=publishedAt&sortOrder=desc`,

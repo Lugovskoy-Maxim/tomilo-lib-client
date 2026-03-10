@@ -171,11 +171,11 @@ export default function ReaderControls({
   const commentsDragStartY = useRef<number | null>(null);
 
   const handleSettingsTouchStart = useCallback((e: React.TouchEvent) => {
-    settingsDragStartY.current = e.touches[0].clientY;
+    if (e.touches.length > 0) settingsDragStartY.current = e.touches[0].clientY;
   }, []);
 
   const handleSettingsTouchMove = useCallback((e: React.TouchEvent) => {
-    if (settingsDragStartY.current === null) return;
+    if (settingsDragStartY.current === null || e.touches.length === 0) return;
     const delta = e.touches[0].clientY - settingsDragStartY.current;
     if (delta > 0) {
       setSettingsDragY(delta);
@@ -191,11 +191,11 @@ export default function ReaderControls({
   }, [settingsDragY]);
 
   const handleCommentsTouchStart = useCallback((e: React.TouchEvent) => {
-    commentsDragStartY.current = e.touches[0].clientY;
+    if (e.touches.length > 0) commentsDragStartY.current = e.touches[0].clientY;
   }, []);
 
   const handleCommentsTouchMove = useCallback((e: React.TouchEvent) => {
-    if (commentsDragStartY.current === null) return;
+    if (commentsDragStartY.current === null || e.touches.length === 0) return;
     const delta = e.touches[0].clientY - commentsDragStartY.current;
     if (delta > 0) {
       setCommentsDragY(delta);
