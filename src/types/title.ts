@@ -65,11 +65,41 @@ export interface Title {
   type?: TitleType;
   publisher?: string;
   serialization?: string;
-  relatedTitles?: string[];
+  /** Связанные тайтлы (сиквел, приквел, спинофф и т.д.). В ответе API titleId заполнен объектом тайтла. */
+  relatedTitles?: RelatedTitleEntry[];
   // Поля для рейтингов (сервер: один пользователь — одна оценка, обновляется при повторном запросе)
   totalRatings?: number; // Общее количество оценок
   /** Массив оценок: новый формат { userId, rating }; в ответах может встречаться старый number[] — нормализовать в UI */
   ratings?: TitleRatingEntry[] | number[];
+}
+
+/** Тип связи тайтлов */
+export type RelatedTitleRelationType =
+  | "sequel"
+  | "prequel"
+  | "spin_off"
+  | "adaptation"
+  | "side_story"
+  | "alternative_story"
+  | "other";
+
+/** Минимальные данные тайтла (при populate relatedTitles) */
+export interface TitleBasic {
+  _id: string;
+  name: string;
+  slug?: string;
+  coverImage?: string;
+  status?: string;
+  type?: string;
+  releaseYear?: number;
+  averageRating?: number;
+  ageLimit?: number;
+}
+
+/** Одна запись связанного тайтла. В ответе API titleId заполнен объектом TitleBasic. */
+export interface RelatedTitleEntry {
+  relationType: RelatedTitleRelationType;
+  titleId: string | TitleBasic;
 }
 
 /** Одна запись рейтинга тайтла (привязка к пользователю) */

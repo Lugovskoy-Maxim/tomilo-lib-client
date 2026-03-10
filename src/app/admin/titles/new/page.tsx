@@ -41,7 +41,7 @@ interface TitleFormData {
   type: TitleType;
   publisher?: string;
   serialization?: string;
-  relatedTitles?: string[];
+  relatedTitles?: import("@/types/title").RelatedTitleEntry[];
   isPublished: boolean;
 }
 
@@ -343,7 +343,10 @@ export default function TitleEditorPage() {
     }
 
     if (formData.relatedTitles && formData.relatedTitles.length > 0) {
-      data.relatedTitles = formData.relatedTitles.filter(title => title.trim() !== "");
+      data.relatedTitles = formData.relatedTitles.map(e => ({
+        relationType: e.relationType,
+        titleId: typeof e.titleId === "string" ? e.titleId : (e.titleId as import("@/types/title").TitleBasic)._id,
+      }));
     }
 
     return data;

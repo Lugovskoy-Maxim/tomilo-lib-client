@@ -23,7 +23,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useDispatch } from "react-redux";
-import { Title, TitleStatus, TitleType } from "@/types/title";
+import { Title, TitleStatus, TitleType, type RelatedTitleEntry, type TitleBasic } from "@/types/title";
 import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
 import {
@@ -37,6 +37,7 @@ import { UpdateTitleDto } from "@/types/title";
 import { useToast } from "@/hooks/useToast";
 import { CoverUploadSection } from "@/shared/admin/CoverUploadSection";
 import { CharactersManager } from "@/shared/admin/CharactersManager";
+import { RelatedTitlesManager } from "@/shared/admin/RelatedTitlesManager";
 import { normalizeGenres } from "@/lib/genre-normalizer";
 import { translateTitleStatus, translateTitleType } from "@/lib/title-type-translations";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
@@ -308,6 +309,7 @@ export default function TitleEditorPage() {
     chapters: [],
     isPublished: false,
     chaptersRemovedByCopyrightHolder: false,
+    relatedTitles: [],
     createdAt: "",
     updatedAt: "",
   });
@@ -335,6 +337,7 @@ export default function TitleEditorPage() {
         rating: Number(titleData.rating) || 0,
         genres: Array.isArray(titleData.genres) ? titleData.genres : [],
         tags: Array.isArray(titleData.tags) ? titleData.tags : [],
+        relatedTitles: titleData.relatedTitles ?? [],
       };
 
       setFormData(processedData);
@@ -463,6 +466,10 @@ export default function TitleEditorPage() {
         isPublished: formData.isPublished,
         chaptersRemovedByCopyrightHolder: formData.chaptersRemovedByCopyrightHolder ?? false,
         type: formData.type,
+        relatedTitles: formData.relatedTitles?.map(e => ({
+          relationType: e.relationType,
+          titleId: typeof e.titleId === "string" ? e.titleId : (e.titleId as TitleBasic)._id,
+        })),
       };
 
       const result = await updateTitleMutation({
@@ -539,6 +546,13 @@ export default function TitleEditorPage() {
 
             {/* Управление персонажами */}
             <CharactersManager titleId={titleId} />
+
+            {/* Связанные тайтлы (сиквел, приквел, спинофф и т.д.) */}
+            <RelatedTitlesManager
+              currentTitleId={titleId}
+              value={formData.relatedTitles ?? []}
+              onChange={related => setFormData(prev => ({ ...prev, relatedTitles: related }))}
+            />
 
             <div className="pt-6 mt-6 border-t border-[var(--border)] flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
               <Link

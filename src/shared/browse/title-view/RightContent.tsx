@@ -43,6 +43,7 @@ import { getChapterDisplayName } from "@/lib/chapter-title-utils";
 import { GenresList } from "./GenresList";
 import { CharactersSection } from "./CharactersSection";
 import { TranslatorsSection } from "./TranslatorsSection";
+import { RelatedTitlesSection } from "./RelatedTitlesSection";
 import { SimilarTitles } from "./SimilarTitles";
 
 const ChapterRatingsChartLazy = dynamic(
@@ -437,9 +438,9 @@ export function RightContent({
   // };
 
   // Нормализация: сервер отдаёт ratings как { userId, rating }[] или legacy number[] — приводим к number[] для статистики
-  const ratingValues: number[] = (titleData?.ratings ?? []).map(r =>
-    typeof r === "number" ? r : (r as TitleRatingEntry).rating,
-  );
+  const ratingValues: number[] = (titleData?.ratings ?? [])
+    .map(r => (typeof r === "number" ? r : (r as TitleRatingEntry).rating))
+    .filter((v): v is number => Number.isFinite(v) && v >= 1 && v <= 5);
 
   const getRatingStats = (ratings: number[]) => {
     if (!ratings.length) return [];
@@ -451,11 +452,13 @@ export function RightContent({
       {} as Record<number, number>,
     );
     return Object.entries(stats)
-      .map(([rating, count]) => ({
-        rating: parseInt(rating, 10),
-        count,
-        percentage: ((count / ratings.length) * 100).toFixed(1),
-      }))
+      .map(([ratingStr, count]) => {
+        const rating = parseInt(ratingStr, 10);
+        return Number.isFinite(rating)
+          ? { rating, count, percentage: ((count / ratings.length) * 100).toFixed(1) }
+          : null;
+      })
+      .filter((s): s is NonNullable<typeof s> => s != null)
       .sort((a, b) => b.rating - a.rating);
   };
 
@@ -651,7 +654,7 @@ export function RightContent({
                       <div key={stat.rating} className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 w-12">
                           <span className="text-sm font-bold text-[var(--foreground)]">
-                            {stat.rating}
+                            {Number.isFinite(stat.rating) ? stat.rating : "—"}
                           </span>
                           <Star className="w-3.5 h-3.5 text-[var(--primary)] fill-[var(--primary)]" />
                         </div>
@@ -681,6 +684,9 @@ export function RightContent({
 
             {/* Секция команды перевода */}
             <TranslatorsSection titleId={titleId} chapters={chapters} />
+
+            {/* Связанные тайтлы (сиквел, приквел, спинофф и т.д.) */}
+            <RelatedTitlesSection titleData={titleData} includeAdult={includeAdult} />
 
             {/* Похожие тайтлы */}
             <SimilarTitles

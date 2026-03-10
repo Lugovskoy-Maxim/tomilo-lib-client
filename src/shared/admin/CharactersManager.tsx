@@ -41,9 +41,15 @@ interface CharacterFormData {
   description: string;
   role: CharacterRole;
   voiceActor: string;
+  age: string;
+  gender: string;
+  guild: string;
+  clan: string;
+  notes: string;
+  sortOrder: number;
 }
 
-const ROLES: CharacterRole[] = ["main", "supporting", "antagonist", "minor"];
+const ROLES: CharacterRole[] = ["main", "supporting", "antagonist", "minor", "other"];
 
 function CharacterCard({
   character,
@@ -140,6 +146,12 @@ function CharacterForm({
     description: character?.description || "",
     role: character?.role || "supporting",
     voiceActor: character?.voiceActor || "",
+    age: character?.age || "",
+    gender: character?.gender || "",
+    guild: character?.guild || "",
+    clan: character?.clan || "",
+    notes: character?.notes || "",
+    sortOrder: character?.sortOrder ?? 0,
   });
   const [altNamesInput, setAltNamesInput] = useState(character?.altNames?.join(", ") || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -244,6 +256,52 @@ function CharacterForm({
         />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Возраст</label>
+          <input
+            type="text"
+            value={formData.age}
+            onChange={e => setFormData(prev => ({ ...prev, age: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Напр. 18, неизвестно"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Пол</label>
+          <input
+            type="text"
+            value={formData.gender}
+            onChange={e => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Напр. мужской, женский"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Гильдия / Организация</label>
+          <input
+            type="text"
+            value={formData.guild}
+            onChange={e => setFormData(prev => ({ ...prev, guild: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Опционально"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Клан / Семья</label>
+          <input
+            type="text"
+            value={formData.clan}
+            onChange={e => setFormData(prev => ({ ...prev, clan: e.target.value }))}
+            className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+            placeholder="Опционально"
+          />
+        </div>
+      </div>
+
       <div>
         <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">
           Сейю / Голос
@@ -255,6 +313,30 @@ function CharacterForm({
           className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
           placeholder="Имя актёра озвучки"
         />
+      </div>
+
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Заметки (внутренние)</label>
+        <textarea
+          value={formData.notes}
+          onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          className="w-full min-h-[60px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] resize-y transition-colors"
+          placeholder="Заметки для модераторов, не показываются на сайте"
+          rows={2}
+        />
+      </div>
+
+      <div>
+        <label className="text-xs font-medium text-[var(--foreground)] mb-1 block">Порядок отображения</label>
+        <input
+          type="number"
+          min={0}
+          value={formData.sortOrder}
+          onChange={e => setFormData(prev => ({ ...prev, sortOrder: parseInt(e.target.value, 10) || 0 }))}
+          className="w-full min-h-[42px] px-3 py-2.5 text-sm bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 text-[var(--foreground)] transition-colors"
+          placeholder="0"
+        />
+        <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Меньше — выше в списке</p>
       </div>
 
       <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">

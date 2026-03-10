@@ -84,12 +84,14 @@ export function CharactersSection({ titleId }: CharactersSectionProps) {
   const supportingCharacters = characters.filter(c => c.role === "supporting");
   const antagonists = characters.filter(c => c.role === "antagonist");
   const minorCharacters = characters.filter(c => c.role === "minor");
+  const otherCharacters = characters.filter(c => c.role === "other" || !c.role);
 
   const sortedCharacters = [
     ...mainCharacters,
     ...antagonists,
     ...supportingCharacters,
     ...minorCharacters,
+    ...otherCharacters,
   ];
 
   return (
