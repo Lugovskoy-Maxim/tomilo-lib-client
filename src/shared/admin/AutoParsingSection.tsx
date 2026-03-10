@@ -90,6 +90,9 @@ export default function AutoParsingSection() {
   const [restToHour, setRestToHour] = useState(6);
   const [restToMinute, setRestToMinute] = useState(0);
   const [distributeProgress, setDistributeProgress] = useState<{ current: number; total: number } | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<
+    { type: "none" } | { type: "slot"; hour: number; minute: number } | null
+  >(null);
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -270,6 +273,25 @@ export default function AutoParsingSection() {
   const getJobDisplaySources = (job: AutoParsingJob): string[] =>
     job.sources?.length ? job.sources : job.url?.trim() ? [job.url.trim()] : [];
 
+  /** Для таблицы расписания: фильтр по поиску (название, автор, id, источники). */
+  const filteredJobsForSchedule = useMemo(() => {
+    const query = jobSearch.trim().toLowerCase();
+    if (!query) return jobs;
+    return jobs.filter(job => {
+      const haystack = [
+        job.titleId?.name,
+        job.titleId?.author,
+        job.titleId?._id,
+        job._id,
+        ...(job.sources || []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [jobs, jobSearch]);
+
   /** Ключ слота: "none" или "hour-minute" (например "7-10"). */
   const jobsBySlot = useMemo(() => {
     const map = new Map<string, AutoParsingJob[]>();
@@ -279,7 +301,7 @@ export default function AutoParsingSection() {
         map.set(`${h}-${m}`, []);
       }
     }
-    jobs.forEach(job => {
+    filteredJobsForSchedule.forEach(job => {
       const hour = getValidScheduleHour(job.scheduleHour);
       const minute = job.scheduleMinute ?? 0;
       const key = hour === null ? "none" : `${hour}-${minute}`;
@@ -288,8 +310,19 @@ export default function AutoParsingSection() {
       map.set(key, list);
     });
     return map;
-  }, [jobs]);
+  }, [filteredJobsForSchedule]);
   const getSlotCount = (slotKey: string) => jobsBySlot.get(slotKey)?.length ?? 0;
+  const selectedSlotJobs = useMemo(() => {
+    if (!selectedSlot) return [];
+    if (selectedSlot.type === "none") return jobsBySlot.get("none") ?? [];
+    return jobsBySlot.get(`${selectedSlot.hour}-${selectedSlot.minute}`) ?? [];
+  }, [selectedSlot, jobsBySlot]);
+  const selectedSlotLabel =
+    !selectedSlot
+      ? ""
+      : selectedSlot.type === "none"
+        ? "Без часа"
+        : `${selectedSlot.hour}:${String(selectedSlot.minute).padStart(2, "0")} UTC`;
   const totalScheduledCount = useMemo(
     () =>
       Array.from(jobsBySlot.entries()).reduce(
@@ -306,6 +339,8 @@ export default function AutoParsingSection() {
     const job = jobs.find(j => j._id === event.active.id);
     if (job) setActiveJob(job);
   };
+
+  const hasScheduleSearch = jobSearch.trim().length > 0;
 
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveJob(null);
@@ -599,80 +634,135 @@ export default function AutoParsingSection() {
         <KpiCard label="С фикс. часом" value={scheduledJobsCount} />
       </div>
 
-      {/* Schedule: columns = hours (UTC), rows = minutes — drag & drop */}
+      {/* Schedule: heatmap (часы × минуты) + панель с задачами выбранного слота */}
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {viewMode === "hourly" && (
           <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2 shrink-0">
                 <Clock className="w-4 h-4" />
-                Расписание (UTC): столбцы — часы, строки — минуты (шаг 10 мин)
+                Расписание (UTC): тепловая карта слотов
               </h3>
-              <span className="text-xs px-2 py-1 rounded-full bg-[var(--muted)] text-[var(--foreground)] whitespace-nowrap">
-                Слотов: {totalScheduledCount}
-              </span>
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <div className="grid flex-1 min-w-[160px] max-w-[280px]">
+                  <input
+                    type="text"
+                    value={jobSearch}
+                    onChange={e => setJobSearch(e.target.value)}
+                    placeholder="Поиск по названию, id, источнику..."
+                    className="admin-input col-start-1 row-start-1 w-full pl-9 pr-2 py-1.5 text-sm"
+                  />
+                  <span className="col-start-1 row-start-1 w-9 flex items-center justify-center pointer-events-none z-10 text-[var(--muted-foreground)]">
+                    <Search className="w-4 h-4 shrink-0" aria-hidden />
+                  </span>
+                </div>
+                <span className="text-xs px-2 py-1 rounded-full bg-[var(--muted)] text-[var(--foreground)] whitespace-nowrap shrink-0">
+                  {hasScheduleSearch ? (
+                    <>Найдено: {filteredJobsForSchedule.length} из {jobs.length}</>
+                  ) : (
+                    <>В слотах: {totalScheduledCount} · Клик — список</>
+                  )}
+                </span>
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="w-10 py-2 px-1 font-medium text-[var(--muted-foreground)] align-bottom" />
-                    <th className="text-center py-2 px-2 font-medium text-[var(--muted-foreground)] min-w-[100px] align-bottom">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span>Без часа</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--muted)] text-[var(--foreground)] leading-none">
-                          {getSlotCount("none")}
-                        </span>
-                      </div>
-                    </th>
-                    {Array.from({ length: 24 }, (_, h) => (
-                      <th
-                        key={h}
-                        className="text-center py-2 px-1 font-medium text-[var(--muted-foreground)] min-w-[64px] align-bottom"
-                      >
-                        {h}
+            <div className="flex gap-4 min-h-0">
+              <div className="flex-1 min-w-0 overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--border)]">
+                      <th className="w-9 py-1.5 px-0.5 font-medium text-[var(--muted-foreground)] text-xs align-bottom" />
+                      <th className="text-center py-1.5 px-1 font-medium text-[var(--muted-foreground)] text-xs min-w-[52px] align-bottom">
+                        Без часа
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {MINUTE_SLOTS.map(minute => (
-                    <tr key={minute} className="border-b border-[var(--border)]">
-                      <td className="py-1 px-1 text-right text-[var(--muted-foreground)] text-xs align-top font-medium w-10">
-                        :{String(minute).padStart(2, "0")}
-                      </td>
-                      <SlotCell
-                        droppableId="slot-none"
-                        jobs={minute === 0 ? (jobsBySlot.get("none") ?? []) : []}
-                        getImageUrl={getImageUrl}
-                        onEdit={setEditingJob}
-                        onDelete={handleDeleteJob}
-                        onCheck={handleCheckChapters}
-                        onSync={handleSyncChapters}
-                        syncingJobId={syncingJobId}
-                        deleteLoading={deleteLoading}
-                        checkLoading={checkLoading}
-                        isNoneColumn
-                      />
                       {Array.from({ length: 24 }, (_, h) => (
-                        <SlotCell
+                        <th
                           key={h}
-                          droppableId={`slot-${h}-${minute}`}
-                          jobs={jobsBySlot.get(`${h}-${minute}`) ?? []}
-                          getImageUrl={getImageUrl}
-                          onEdit={setEditingJob}
-                          onDelete={handleDeleteJob}
-                          onCheck={handleCheckChapters}
-                          onSync={handleSyncChapters}
-                          syncingJobId={syncingJobId}
-                          deleteLoading={deleteLoading}
-                          checkLoading={checkLoading}
-                        />
+                          className="text-center py-1.5 px-0.5 font-medium text-[var(--muted-foreground)] text-xs min-w-[40px] align-bottom"
+                        >
+                          {h}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {MINUTE_SLOTS.map(minute => (
+                      <tr key={minute} className="border-b border-[var(--border)] last:border-b-0">
+                        <td className="py-0.5 px-0.5 text-right text-[var(--muted-foreground)] text-[10px] align-middle font-medium w-9">
+                          :{String(minute).padStart(2, "0")}
+                        </td>
+                        <HeatmapSlotCell
+                          droppableId="slot-none"
+                          count={getSlotCount("none")}
+                          isNoneColumn
+                          isSelected={selectedSlot?.type === "none"}
+                          onClick={() => setSelectedSlot({ type: "none" })}
+                          showCount={minute === 0}
+                        />
+                        {Array.from({ length: 24 }, (_, h) => {
+                          const count = getSlotCount(`${h}-${minute}`);
+                          return (
+                            <HeatmapSlotCell
+                              key={h}
+                              droppableId={`slot-${h}-${minute}`}
+                              count={count}
+                              isSelected={
+                                selectedSlot?.type === "slot" &&
+                                selectedSlot.hour === h &&
+                                selectedSlot.minute === minute
+                              }
+                              onClick={() => setSelectedSlot({ type: "slot", hour: h, minute })}
+                              showCount
+                            />
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Панель задач выбранного слота */}
+              {selectedSlot && (
+                <div className="w-[320px] shrink-0 flex flex-col rounded-[var(--admin-radius)] border border-[var(--border)] bg-[var(--background)] overflow-hidden">
+                  <div className="flex items-center justify-between gap-2 p-3 border-b border-[var(--border)] shrink-0">
+                    <span className="font-medium text-[var(--foreground)] text-sm truncate">
+                      {selectedSlotLabel}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSlot(null)}
+                      className="p-1.5 rounded-[var(--admin-radius)] hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                      aria-label="Закрыть"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-2 min-h-0">
+                    {selectedSlotJobs.length === 0 ? (
+                      <p className="text-xs text-[var(--muted-foreground)] py-4 text-center">
+                        В этом слоте нет задач. Перетащите задачу сюда из списка или из другой ячейки.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {selectedSlotJobs.map(job => (
+                          <DraggableScheduleJobCard
+                            key={job._id}
+                            job={job}
+                            getImageUrl={getImageUrl}
+                            onEdit={setEditingJob}
+                            onDelete={handleDeleteJob}
+                            onCheck={handleCheckChapters}
+                            onSync={handleSyncChapters}
+                            syncingJobId={syncingJobId}
+                            deleteLoading={deleteLoading}
+                            checkLoading={checkLoading}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <DragOverlay>
@@ -1137,6 +1227,67 @@ function JobModal({
         </form>
       </div>
     </div>
+  );
+}
+
+/* Тепловая карта: ячейка только с числом, клик открывает панель с задачами */
+interface HeatmapSlotCellProps {
+  droppableId: string;
+  count: number;
+  isNoneColumn?: boolean;
+  isSelected: boolean;
+  onClick: () => void;
+  showCount: boolean;
+}
+
+function HeatmapSlotCell({
+  droppableId,
+  count,
+  isNoneColumn,
+  isSelected,
+  onClick,
+  showCount,
+}: HeatmapSlotCellProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: droppableId });
+  const intensity =
+    count === 0 ? 0 : count <= 2 ? 1 : count <= 6 ? 2 : count <= 12 ? 3 : 4;
+  return (
+    <td
+      ref={setNodeRef}
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={`
+        py-1 px-0.5 align-middle min-h-[32px] min-w-[40px] text-center text-xs font-medium
+        border-r border-b border-[var(--border)] last:border-r-0
+        cursor-pointer select-none transition-colors
+        ${isNoneColumn ? "min-w-[52px]" : ""}
+        ${count > 0 ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}
+        ${intensity === 0 ? "bg-[var(--card)] hover:bg-[var(--accent)]/50" : ""}
+        ${intensity === 1 ? "bg-[var(--primary)]/10 hover:bg-[var(--primary)]/15" : ""}
+        ${intensity === 2 ? "bg-[var(--primary)]/20 hover:bg-[var(--primary)]/25" : ""}
+        ${intensity === 3 ? "bg-[var(--primary)]/30 hover:bg-[var(--primary)]/35" : ""}
+        ${intensity === 4 ? "bg-[var(--primary)]/40 hover:bg-[var(--primary)]/50" : ""}
+        ${isOver ? "ring-2 ring-[var(--primary)] ring-inset" : ""}
+        ${isSelected ? "ring-2 ring-[var(--primary)] ring-offset-1 ring-offset-[var(--card)]" : ""}
+      `}
+      title={
+        droppableId === "slot-none"
+          ? `Без часа: ${count} задач`
+          : (() => {
+              const [, h, m] = droppableId.split("-");
+              return `${h}:${m?.padStart(2, "0")} UTC — ${count} задач`;
+            })()
+      }
+    >
+      {showCount ? (count > 0 ? count : "—") : "—"}
+    </td>
   );
 }
 

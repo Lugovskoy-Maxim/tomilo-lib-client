@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { useDispatch } from "react-redux";
 import { io, Socket } from "socket.io-client";
 import {
   Loader2,
@@ -13,15 +12,12 @@ import {
   Settings,
   Globe,
   Info,
-  RefreshCw,
 } from "lucide-react";
-import { mangaParserApi } from "@/store/api/mangaParserApi";
 import { useGetSupportedSitesQuery } from "@/store/api/mangaParserApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { useCreateAutoParsingJobMutation } from "@/store/api/autoParsingApi";
-import type { AppDispatch } from "@/store";
 
 interface ParsingProgress {
   type: "chapters_info" | "title_import" | "chapter_import";
@@ -56,10 +52,8 @@ export function ParserSection() {
   const [modalContent, setModalContent] = useState<{ title: string; message: string } | null>(null);
 
   // API hooks
-  const dispatch = useDispatch<AppDispatch>();
   const { data: supportedSites } = useGetSupportedSitesQuery();
   const [createAutoParsingJob] = useCreateAutoParsingJobMutation();
-  const [isSyncing, setIsSyncing] = useState(false);
 
   // Form states
   const [parsingMode, setParsingMode] = useState<
@@ -72,16 +66,6 @@ export function ParserSection() {
   const [customGenres, setCustomGenres] = useState("");
   const [customType, setCustomType] = useState("");
   const [titleId, setTitleId] = useState("");
-
-  // Синхронизация глав (отдельная форма)
-  const [syncTitleId, setSyncTitleId] = useState("");
-  const [syncSourceUrl, setSyncSourceUrl] = useState("");
-  const [syncChapterNumbers, setSyncChapterNumbers] = useState("");
-  const [syncResult, setSyncResult] = useState<{
-    synced: number[];
-    skipped: number[];
-    errors: Array<{ chapterNumber?: number; message: string }>;
-  } | null>(null);
 
   // Создать задачу автопарсинга после успешного старта
   const [createAutoParsingTask, setCreateAutoParsingTask] = useState(false);
@@ -99,12 +83,6 @@ export function ParserSection() {
   const { data: searchResults } = useSearchTitlesQuery(
     { search: titleId, limit: 5 },
     { skip: !titleId || titleId.length < 2 },
-  );
-
-  // Search for titles in sync section
-  const { data: syncSearchResults } = useSearchTitlesQuery(
-    { search: syncTitleId, limit: 5 },
-    { skip: !syncTitleId || syncTitleId.length < 2 },
   );
 
   // Результаты парсинга
@@ -299,48 +277,6 @@ export function ParserSection() {
     setTitleId(title._id);
   };
 
-  const selectSyncTitle = (title: Title) => {
-    setSyncTitleId(title._id);
-  };
-
-  const handleSyncChapters = async () => {
-    if (!syncTitleId.trim() || !syncSourceUrl.trim()) return;
-    const chapterNumbersParsed = syncChapterNumbers.trim()
-      ? syncChapterNumbers
-          .split(/[\s,]+/)
-          .map(s => parseInt(s, 10))
-          .filter(n => !Number.isNaN(n))
-      : undefined;
-    setSyncResult(null);
-    setIsSyncing(true);
-    try {
-      const res = await dispatch(
-        mangaParserApi.endpoints.syncChapters.initiate({
-          titleId: syncTitleId.trim(),
-          sourceUrl: syncSourceUrl.trim(),
-          chapterNumbers: chapterNumbersParsed?.length ? chapterNumbersParsed : undefined,
-        }),
-      ).unwrap();
-      if (res.data) {
-        setSyncResult(res.data);
-        setModalContent({
-          title: "Синхронизация завершена",
-          message: `Обновлено: ${res.data.synced.length}, пропущено: ${res.data.skipped.length}, ошибок: ${res.data.errors.length}`,
-        });
-        setIsModalOpen(true);
-      }
-    } catch (e) {
-      const message =
-        e && typeof e === "object" && "data" in e
-          ? String((e as { data?: { message?: string } }).data?.message ?? "Ошибка синхронизации")
-          : "Ошибка синхронизации";
-      setModalContent({ title: "Ошибка синхронизации", message });
-      setIsModalOpen(true);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   const handleResetForm = () => {
     setUrl("");
     setChapterNumbers("");
@@ -353,36 +289,62 @@ export function ParserSection() {
     setChaptersInfo(null);
   };
 
+  const modeLabel =
+    parsingMode === "chapters_info"
+      ? "Информация о главах"
+      : parsingMode === "title_import"
+        ? "Импорт тайтла"
+        : "Импорт глав";
+
   return (
-    <div className="space-y-6 p-2">
-      {/* Supported Sites */}
-      {supportedSites?.data && (
-        <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
-          <h2 className="text-xl font-semibold text-[var(--muted-foreground)] mb-4 flex items-center gap-2">
-            <Globe className="w-5 h-5" />
-            Поддерживаемые сайты
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {supportedSites.data.sites.map((site: string) => (
+    <div className="space-y-5 p-2 w-full">
+      {/* Compact top bar: supported sites + status */}
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-4">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          {supportedSites?.data && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Globe className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" />
+              <span className="text-sm text-[var(--muted-foreground)]">Источники:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {supportedSites.data.sites.map((site: string) => (
+                  <span
+                    key={site}
+                    className="px-2 py-0.5 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded text-xs"
+                  >
+                    {site}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-3 ml-auto">
+            <span className="flex items-center gap-1.5 text-sm">
               <span
-                key={site}
-                className="px-3 py-1 bg-[var(--secondary)] text-[var(--muted-foreground)] rounded-full text-sm"
-              >
-                {site}
+                className={`w-2 h-2 rounded-full shrink-0 ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+              />
+              <span className="text-[var(--muted-foreground)]">
+                {isConnected ? "Подключено" : "Отключено"}
               </span>
-            ))}
+            </span>
+            <span className="text-sm text-[var(--muted-foreground)]">
+              Режим: <span className="text-[var(--foreground)] font-medium">{modeLabel}</span>
+            </span>
+            <span className="text-sm text-[var(--muted-foreground)]">
+              Найдено глав:{" "}
+              <span className="text-[var(--foreground)] font-medium">
+                {chaptersInfo?.totalChapters ?? "—"}
+              </span>
+            </span>
+            {currentProgress?.progress && (
+              <span className="text-sm text-[var(--muted-foreground)]">
+                Прогресс:{" "}
+                <span className="text-[var(--foreground)] font-medium">
+                  {currentProgress.progress.percentage}%
+                </span>
+              </span>
+            )}
           </div>
         </div>
-      )}
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <InfoCard label="Статус соединения" value={isConnected ? "Подключено" : "Отключено"} />
-        <InfoCard label="Текущий режим" value={parsingMode.replace("_", " ")} />
-        <InfoCard label="Найдено глав" value={chaptersInfo?.totalChapters || 0} />
-        <InfoCard
-          label="Прогресс"
-          value={currentProgress?.progress ? `${currentProgress.progress.percentage}%` : "—"}
-        />
       </div>
 
       {/* Result Modal */}
@@ -408,68 +370,46 @@ export function ParserSection() {
       )}
 
       {/* Parsing Section */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-[var(--foreground)]">Парсинг тайтла</h2>
-            <div className="flex items-center gap-2 mt-1">
-              <div
-                className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
-              />
-              <span className="text-sm text-[var(--muted-foreground)]">
-                {isConnected ? "Подключено" : "Отключено"}
-              </span>
-            </div>
-          </div>
-          <button type="button" onClick={handleResetForm} className="admin-btn admin-btn-secondary">
+      <div className="bg-[var(--card)] rounded-[var(--admin-radius)] border border-[var(--border)] p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Парсинг тайтла</h2>
+          <button type="button" onClick={handleResetForm} className="admin-btn admin-btn-secondary text-sm">
             Сбросить форму
           </button>
         </div>
 
         {/* Mode Selection */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-3">
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
             Режим парсинга
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              {
-                value: "chapters_info",
-                label: "Информация о главах",
-                icon: BookOpen,
-              },
-              {
-                value: "title_import",
-                label: "Импорт тайтла",
-                icon: Download,
-              },
-              {
-                value: "chapter_import",
-                label: "Импорт глав",
-                icon: Settings,
-              },
+              { value: "chapters_info", label: "Информация о главах", icon: BookOpen },
+              { value: "title_import", label: "Импорт тайтла", icon: Download },
+              { value: "chapter_import", label: "Импорт глав", icon: Settings },
             ].map(mode => (
               <button
                 key={mode.value}
+                type="button"
                 onClick={() =>
                   setParsingMode(mode.value as "chapters_info" | "title_import" | "chapter_import")
                 }
-                className={`p-4 rounded-[var(--admin-radius)] border transition-colors ${
+                className={`flex items-center gap-2 p-3 rounded-[var(--admin-radius)] border text-left transition-colors ${
                   parsingMode === mode.value
                     ? "border-[var(--primary)] bg-[var(--primary)]/10"
                     : "border-[var(--border)] hover:border-[var(--primary)]/50"
                 }`}
               >
-                <mode.icon className="w-6 h-6 mx-auto mb-2 text-[var(--foreground)]" />
-                <div className="text-sm font-medium text-[var(--foreground)]">{mode.label}</div>
+                <mode.icon className="w-5 h-5 shrink-0 text-[var(--foreground)]" />
+                <span className="text-sm font-medium text-[var(--foreground)]">{mode.label}</span>
               </button>
             ))}
           </div>
-          <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--background)]/60 px-3 py-2 text-sm text-[var(--muted-foreground)]">
-            <Info className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />
+          <p className="mt-2 flex items-start gap-2 rounded-lg bg-[var(--background)]/60 px-3 py-2 text-sm text-[var(--muted-foreground)]">
+            <Info className="w-4 h-4 shrink-0 mt-0.5" />
             {modeHints[parsingMode]}
-          </div>
+          </p>
         </div>
 
         {/* URL Input */}
@@ -770,137 +710,6 @@ export function ParserSection() {
           </p>
         )}
       </div>
-
-      {/* Синхронизация глав из источника */}
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
-        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
-          <RefreshCw className="w-5 h-5" />
-          Повторная синхронизация глав
-        </h2>
-        <p className="text-sm text-[var(--muted-foreground)] mb-4">
-          Перекачивает страницы уже созданных глав с источника. Укажите тайтл, URL источника и при необходимости номера глав.
-        </p>
-
-        <div className="space-y-4 max-w-xl">
-          <div className="relative">
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              ID тайтла *
-            </label>
-            <input
-              type="text"
-              value={syncTitleId}
-              onChange={e => setSyncTitleId(e.target.value)}
-              placeholder="ID тайтла или поиск..."
-              className="admin-input w-full"
-              disabled={isSyncing}
-            />
-            {syncSearchResults?.data?.data && syncSearchResults.data.data.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-[var(--card)] border border-[var(--border)] rounded-[var(--admin-radius)] shadow-lg max-h-48 overflow-y-auto">
-                {syncSearchResults.data.data.map((title: Title) => (
-                  <div
-                    key={title._id}
-                    onClick={() => selectSyncTitle(title)}
-                    className="px-3 py-2.5 hover:bg-[var(--accent)] cursor-pointer border-b border-[var(--border)] last:border-b-0"
-                  >
-                    <div className="font-medium">{title.name}</div>
-                    <div className="text-sm text-[var(--muted-foreground)]">
-                      {title.author} • {title.releaseYear}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              URL источника *
-            </label>
-            <input
-              type="url"
-              value={syncSourceUrl}
-              onChange={e => setSyncSourceUrl(e.target.value)}
-              placeholder="https://..."
-              className="admin-input w-full"
-              disabled={isSyncing}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              Номера глав (опционально)
-            </label>
-            <input
-              type="text"
-              value={syncChapterNumbers}
-              onChange={e => setSyncChapterNumbers(e.target.value)}
-              placeholder="1, 2, 3 или оставьте пустым для всех"
-              className="admin-input w-full"
-              disabled={isSyncing}
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSyncChapters}
-              disabled={isSyncing || !syncTitleId.trim() || !syncSourceUrl.trim()}
-              className="admin-btn admin-btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isSyncing ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Синхронизация...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-5 h-5" />
-                  Синхронизировать главы
-                </>
-              )}
-            </button>
-          </div>
-
-          {syncResult && (
-            <div className="p-4 bg-[var(--background)] rounded-[var(--admin-radius)] border border-[var(--border)] space-y-2 text-sm">
-              <div className="text-[var(--chart-1)]">
-                Обновлено: {syncResult.synced.length}
-                {syncResult.synced.length > 0 && ` (гл. ${syncResult.synced.join(", ")})`}
-              </div>
-              {syncResult.skipped.length > 0 && (
-                <div className="text-[var(--muted-foreground)]">
-                  Пропущено: {syncResult.skipped.length}
-                  {syncResult.skipped.length <= 10 && ` (гл. ${syncResult.skipped.join(", ")})`}
-                </div>
-              )}
-              {syncResult.errors.length > 0 && (
-                <div className="text-[var(--chart-5)]">
-                  Ошибки: {syncResult.errors.length}
-                  <ul className="list-disc list-inside mt-1">
-                    {syncResult.errors.slice(0, 5).map((err, i) => (
-                      <li key={i}>
-                        {err.chapterNumber != null ? `Гл. ${err.chapterNumber}: ` : ""}
-                        {err.message}
-                      </li>
-                    ))}
-                    {syncResult.errors.length > 5 && (
-                      <li>… и ещё {syncResult.errors.length - 5}</li>
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function InfoCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
-      <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
-      <p className="mt-1 text-base font-semibold text-[var(--foreground)]">{value}</p>
     </div>
   );
 }
