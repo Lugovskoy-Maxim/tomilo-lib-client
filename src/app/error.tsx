@@ -68,6 +68,20 @@ export default function Error({
     );
   }
 
+  const isServerActionError =
+    error.message?.toLowerCase().includes("server action") ||
+    error.message?.toLowerCase().includes("failed to find server action") ||
+    error.message?.toLowerCase().includes("older or newer deployment");
+
+  const handleRetry = () => {
+    if (isServerActionError) {
+      // Полная перезагрузка загружает актуальный бандл и устраняет несовпадение ключей Server Actions
+      window.location.reload();
+      return;
+    }
+    reset();
+  };
+
   console.error(error);
 
   return (
@@ -87,19 +101,21 @@ export default function Error({
             500
           </p>
           <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-3">
-            Что-то пошло не так
+            {isServerActionError ? "Ошибка синхронизации с сервером" : "Что-то пошло не так"}
           </h1>
           <p className="text-[var(--muted-foreground)] mb-10 leading-relaxed">
-            Произошла непредвиденная ошибка. Обновите страницу или перейдите на главную.
+            {isServerActionError
+              ? "Возможно, открыта старая версия приложения после обновления сайта. Нажмите «Обновить страницу» — это загрузит актуальную версию."
+              : "Произошла непредвиденная ошибка. Обновите страницу или перейдите на главную."}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <button
               type="button"
-              onClick={() => reset()}
+              onClick={handleRetry}
               className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 transition-colors font-medium min-w-[180px]"
             >
               <RefreshCw className="w-5 h-5 shrink-0" />
-              Попробовать снова
+              {isServerActionError ? "Обновить страницу" : "Попробовать снова"}
             </button>
             <button
               type="button"
