@@ -4,7 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, ChevronRight, User, Plus, X } from "lucide-react";
-import { charactersApi } from "@/store/api/charactersApi";
+import {
+  charactersApi,
+  useProposeCharacterMutation,
+  useProposeCharacterWithImageMutation,
+} from "@/store/api/charactersApi";
 import { Character, characterRoleLabels, characterRoleColors } from "@/types/character";
 import { normalizeAssetUrl } from "@/lib/asset-url";
 import { useAuth } from "@/hooks/useAuth";
@@ -64,9 +68,9 @@ export function CharactersSection({ titleId, titleSlug }: CharactersSectionProps
   const { isAuthenticated } = useAuth();
   const toast = useToast();
   const [proposeCharacter, { isLoading: isProposingBasic }] =
-    charactersApi.useProposeCharacterMutation();
+    useProposeCharacterMutation();
   const [proposeWithImage, { isLoading: isProposingWithImage }] =
-    charactersApi.useProposeCharacterWithImageMutation();
+    useProposeCharacterWithImageMutation();
   const isProposing = isProposingBasic || isProposingWithImage;
 
   if (isLoading) {

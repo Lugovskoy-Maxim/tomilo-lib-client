@@ -5,7 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Users, User, ChevronLeft, ChevronRight, Plus, X, Search } from "lucide-react";
-import { useGetCharactersQuery, charactersApi } from "@/store/api/charactersApi";
+import {
+  useGetCharactersQuery,
+  useProposeCharacterMutation,
+  useProposeCharacterWithImageMutation,
+} from "@/store/api/charactersApi";
 import { useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { Character, characterRoleLabels, characterRoleColors } from "@/types/character";
@@ -95,9 +99,9 @@ export default function CharactersListClient() {
   const { isAuthenticated } = useAuth();
   const toast = useToast();
   const [proposeCharacter, { isLoading: isProposingBasic }] =
-    charactersApi.useProposeCharacterMutation();
+    useProposeCharacterMutation();
   const [proposeWithImage, { isLoading: isProposingWithImage }] =
-    charactersApi.useProposeCharacterWithImageMutation();
+    useProposeCharacterWithImageMutation();
   const isProposing = isProposingBasic || isProposingWithImage;
 
   const { data: searchData } = useSearchTitlesQuery(
