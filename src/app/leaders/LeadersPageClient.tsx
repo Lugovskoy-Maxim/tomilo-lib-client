@@ -26,6 +26,7 @@ import ErrorState from "@/shared/profile/ProfileError";
 import LeaderCard from "@/shared/leader-card/LeaderCard";
 import {
   useGetLeaderboardQuery,
+  useGetLeaderboardAllPeriodsQuery,
   LeaderboardCategory,
   LeaderboardPeriod,
   LeaderboardUser,
@@ -393,14 +394,24 @@ function getMergeVal(record: Record<string, unknown>, key: string): unknown {
   return undefined;
 }
 
+/** Показатели, зависящие от периода (неделя/месяц/всё время). Не подставляем с homepage — там сводная статистика, иначе получается неделя > месяц > всё время. */
+const PERIOD_DEPENDENT_KEYS: Partial<Record<LeaderboardCategory, (keyof TransformableUser)[]>> = {
+  ratings: ["ratingsCount"],
+  comments: ["commentsCount"],
+  chaptersRead: ["chaptersRead", "readingTimeMinutes"],
+};
+
 function mergeLeaderboardWithHomepage(
   leaderboardUser: Record<string, unknown>,
   homepageUser: Record<string, unknown> | undefined,
+  activeCategory: LeaderboardCategory,
 ): TransformableUser {
   const merged = { ...leaderboardUser } as Record<string, unknown>;
+  const skipFromHome = new Set(PERIOD_DEPENDENT_KEYS[activeCategory] ?? []);
   if (homepageUser) {
     const keysToMerge = [...MERGE_STAT_KEYS, ...MERGE_EXTRA_KEYS];
     for (const key of keysToMerge) {
+      if (skipFromHome.has(key as keyof TransformableUser)) continue;
       const leaderVal = getMergeVal(merged, key);
       const homeVal = getMergeVal(homepageUser, key);
       const isNumeric = NUMERIC_MERGE_KEYS.has(key as keyof TransformableUser);
@@ -474,24 +485,31 @@ export default function LeadersPageClient() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  /** Период имеет смысл только для ratings, comments, chaptersRead. Level, readingTime, streak — кумулятивные, за неделю/месяц/всё время одинаковы. */
+  /** Период имеет смысл только для ratings, comments, chaptersRead. Level, readingTime, streak — кумулятивные. */
   const supportsPeriod =
     activeCategory === "ratings" || activeCategory === "comments" || activeCategory === "chaptersRead";
-  const {
-    data: leaderboardData,
-    isLoading: leaderboardLoading,
-    isFetching: leaderboardFetching,
-    error: leaderboardError,
-  } = useGetLeaderboardQuery(
-    {
-      category: activeCategory,
-      period: supportsPeriod ? activePeriod : "all",
-      limit: 50,
-    },
-    {
-      refetchOnMountOrArgChange: true,
-    },
-  );
+
+  const { data: allPeriodsData, isLoading: allPeriodsLoading, isFetching: allPeriodsFetching, error: allPeriodsError } =
+    useGetLeaderboardAllPeriodsQuery(
+      {
+        category: activeCategory as "ratings" | "comments" | "chaptersRead",
+        limit: 50,
+      },
+      { skip: !supportsPeriod, refetchOnMountOrArgChange: true },
+    );
+
+  const { data: singleData, isLoading: singleLoading, isFetching: singleFetching, error: singleError } =
+    useGetLeaderboardQuery(
+      { category: activeCategory, period: "all", limit: 50 },
+      { skip: supportsPeriod, refetchOnMountOrArgChange: true },
+    );
+
+  const leaderboardData = supportsPeriod
+    ? allPeriodsData?.data?.[activePeriod]
+    : singleData?.data;
+  const leaderboardLoading = supportsPeriod ? allPeriodsLoading : singleLoading;
+  const leaderboardFetching = supportsPeriod ? allPeriodsFetching : singleFetching;
+  const leaderboardError = supportsPeriod ? allPeriodsError : singleError;
 
   const { data: homepageUsersData, isLoading: homepageLoading } = useGetHomepageActiveUsersQuery({
     limit: 100,
@@ -523,7 +541,7 @@ export default function LeadersPageClient() {
       return [];
     })();
 
-    const leaderboardUsersData = leaderboardData?.data?.users ?? [];
+    const leaderboardUsersData = leaderboardData?.users ?? [];
     const homepageById = new Map<string, Record<string, unknown>>();
     for (const u of homepageUsers) {
       homepageById.set(u._id, u as unknown as Record<string, unknown>);
@@ -532,7 +550,11 @@ export default function LeadersPageClient() {
     const mergedUsers: TransformableUser[] = [];
     for (const u of leaderboardUsersData) {
       const home = homepageById.get(u._id);
-      const merged = mergeLeaderboardWithHomepage(u as unknown as Record<string, unknown>, home);
+      const merged = mergeLeaderboardWithHomepage(
+        u as unknown as Record<string, unknown>,
+        home,
+        activeCategory,
+      );
       mergedUsers.push(merged);
     }
 
@@ -1392,10 +1414,12 @@ function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCat
   switch (category) {
     case "level":
       return `Уровень ${user.level ?? 0}`;
-    case "chaptersRead":
+    case "chaptersRead": {
       const chapters = user.chaptersRead ?? 0;
-      const readingMinutes = user.readingTimeMinutes ?? user.readingTime ?? chapters * 2;
+      const rawMinutes = user.readingTimeMinutes ?? user.readingTime ?? 0;
+      const readingMinutes = rawMinutes > 0 ? rawMinutes : chapters * 2;
       return `${chapters} глав · ${formatReadingTimeDisplay(readingMinutes)}`;
+    }
     case "readingTime":
       const minutes = user.readingTimeMinutes ?? user.readingTime ?? 0;
       if (minutes < 60) return `${minutes} мин`;

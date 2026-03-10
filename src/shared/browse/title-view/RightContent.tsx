@@ -124,8 +124,20 @@ export function RightContent({
   const [showChapterChart, setShowChapterChart] = useState(false);
   const statsBlockRef = useRef<HTMLDivElement>(null);
 
-  // Монтируем график оценок по главам только когда блок статистики в зоне видимости
+  // Показать график, когда есть главы с рейтингами (чтобы не зависеть только от скролла)
+  const hasChaptersWithRatings = useMemo(
+    () =>
+      chapters.some(
+        ch => (ch.ratingCount ?? 0) > 0 && (ch.ratingSum != null || ch.averageRating != null),
+      ),
+    [chapters],
+  );
   useEffect(() => {
+    if (hasChaptersWithRatings) setShowChapterChart(prev => prev || true);
+  }, [hasChaptersWithRatings]);
+
+  // Монтируем/показываем график также когда блок статистики в зоне видимости (ленивая подгрузка)
+  useLayoutEffect(() => {
     const el = statsBlockRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
