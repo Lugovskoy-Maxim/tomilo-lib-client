@@ -4,6 +4,7 @@ import type { BaseQueryApi } from "@reduxjs/toolkit/query/react";
 
 export const AUTH_TOKEN_KEY = "tomilo_lib_token";
 export const REFRESH_TOKEN_KEY = "tomilo_lib_refresh_token";
+const TOKEN_SET_AT_KEY = "tomilo_lib_token_set_at";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 /** Эндпоинт обновления токена на бэкенде (куки/refresh отправляются автоматически с credentials) */
@@ -69,7 +70,10 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
             const newAccess = payload?.access_token;
             const newRefresh = payload?.refresh_token;
             if (typeof window !== "undefined") {
-              if (newAccess) localStorage.setItem(AUTH_TOKEN_KEY, newAccess);
+              if (newAccess) {
+                localStorage.setItem(AUTH_TOKEN_KEY, newAccess);
+                localStorage.setItem(TOKEN_SET_AT_KEY, String(Date.now()));
+              }
               if (newRefresh) localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
             }
             return;

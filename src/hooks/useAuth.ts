@@ -20,6 +20,9 @@ import { ReadingProgressResponse } from "@/types/progress";
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
 
 const USER_DATA_KEY = "tomilo_lib_user";
+/** Время (ms), когда токен был записан — чтобы не делать logout по 401 от устаревшего запроса profile сразу после логина */
+const TOKEN_SET_AT_KEY = "tomilo_lib_token_set_at";
+const IGNORE_401_AFTER_LOGIN_MS = 3000;
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -146,6 +149,10 @@ export const useAuth = () => {
         (error as { message?: string })?.message ??
         String(error);
       if (status === 401 || status === 404) {
+        const setAt = typeof window !== "undefined" ? parseInt(localStorage.getItem(TOKEN_SET_AT_KEY) || "0", 10) : 0;
+        if (setAt && Date.now() - setAt < IGNORE_401_AFTER_LOGIN_MS) {
+          return;
+        }
         dispatch(logout());
       } else if (message && message !== "[object Object]") {
         console.error("Auth check failed:", message);
@@ -596,6 +603,7 @@ export const useAuth = () => {
 
     if (typeof window !== "undefined" && token && user) {
       localStorage.setItem(AUTH_TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_SET_AT_KEY, String(Date.now()));
       if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
 
@@ -611,6 +619,7 @@ export const useAuth = () => {
   const logoutUser = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(TOKEN_SET_AT_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_DATA_KEY);
       // Clear age verification on logout
