@@ -1,8 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+/** Значения Next-Action, типичные для ботов/сканеров (не валидные ID Server Actions). Ранний 400 уменьшает шум в логах. */
+const KNOWN_PROBE_ACTION_IDS = new Set([
+  "a", "b", "c", "next", "app", "x", "1", "0", "action", "default",
+]);
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Отсекаем POST с заголовком Next-Action с типичными probe-значениями (боты), чтобы не засорять логи "Failed to find Server Action"
+  if (request.method === "POST") {
+    const nextAction = request.headers.get("next-action");
+    if (nextAction && KNOWN_PROBE_ACTION_IDS.has(nextAction.trim())) {
+      return new NextResponse("Bad Request", { status: 400 });
+    }
+  }
 
   // Проверяем, начинается ли путь с /browse
   if (pathname.startsWith("/browse")) {
