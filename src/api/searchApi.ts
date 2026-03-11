@@ -1,3 +1,7 @@
+/**
+ * @deprecated Полнотекстовый поиск переведён на RTK Query (store/api/searchApi — getFullSearch).
+ * Используйте useLazyGetFullSearchQuery в хуке useSearch.
+ */
 import { SearchResult } from "@/types/search";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";

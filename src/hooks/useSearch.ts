@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { searchApi as legacySearchApi } from "../api/searchApi";
-import { useGetAutocompleteQuery } from "@/store/api/searchApi";
+import {
+  useGetAutocompleteQuery,
+  useLazyGetFullSearchQuery,
+} from "@/store/api/searchApi";
 import { SearchResult } from "@/types/search";
 
 const RECENT_SEARCHES_KEY = "tomilo_search_recent";
@@ -48,13 +50,14 @@ export function useSearch() {
   const [debouncedTerm, setDebouncedTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => getRecentSearches());
+  const [fullSearchResults, setFullSearchResults] = useState<SearchResult[] | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // RTK Query для автодополнения (показываем больше тайтлов)
+  // RTK Query: автодополнение (показываем подсказки при вводе)
   const {
     data: autocompleteData,
-    isLoading,
-    isFetching,
+    isLoading: autocompleteLoading,
+    isFetching: autocompleteFetching,
   } = useGetAutocompleteQuery(
     { q: debouncedTerm, limit: 24 },
     {
@@ -62,10 +65,13 @@ export function useSearch() {
     },
   );
 
-  // Преобразуем ответ autocomplete в формат SearchResult; наиболее релевантные — сверху (API отдаёт в обратном порядке)
-  const searchResults: SearchResult[] = useMemo(() => {
+  const [triggerFullSearch, { isLoading: fullSearchLoading, isFetching: fullSearchFetching }] =
+    useLazyGetFullSearchQuery();
+
+  // Результаты: после Enter — полный поиск, иначе — из автодополнения
+  const searchResultsFromAutocomplete: SearchResult[] = useMemo(() => {
     if (!autocompleteData?.data) return [];
-    const mapped = autocompleteData.data.map(item => ({
+    return autocompleteData.data.map(item => ({
       id: item.id,
       slug: item.slug,
       title: item.title,
@@ -74,15 +80,17 @@ export function useSearch() {
       releaseYear: item.releaseYear,
       rating: item.averageRating,
       totalChapters: item.totalChapters,
-    }));
-    return mapped.reverse();
+    })).reverse();
   }, [autocompleteData]);
+
+  const searchResults: SearchResult[] = fullSearchResults ?? searchResultsFromAutocomplete;
+  const isLoading = fullSearchLoading || fullSearchFetching || autocompleteLoading || autocompleteFetching;
 
   const handleSearchChange = useCallback((term: string) => {
     setSearchTerm(term);
     setError(null);
+    setFullSearchResults(null);
 
-    // Debounce для автодополнения
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -92,30 +100,34 @@ export function useSearch() {
     }, 300);
   }, []);
 
-  // Для полного поиска (используется при нажатии Enter)
-  const performSearch = useCallback(async (term: string) => {
-    if (!term.trim()) {
-      setError(null);
-      return;
-    }
-
-    setError(null);
-    saveRecentSearch(term);
-    setRecentSearches(getRecentSearches());
-
-    try {
-      // Используем старый API для полного поиска (с описанием и т.д.)
-      const results = await legacySearchApi(term);
-      return results;
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
-        // игнорируем отменённые запросы
-      } else {
-        setError(err instanceof Error ? err.message : "Произошла ошибка при поиске");
+  // Полный поиск по Enter (RTK Query)
+  const performSearch = useCallback(
+    async (term: string) => {
+      if (!term.trim()) {
+        setError(null);
+        setFullSearchResults(null);
+        return;
       }
-      return [];
-    }
-  }, []);
+
+      setError(null);
+      saveRecentSearch(term);
+      setRecentSearches(getRecentSearches());
+
+      try {
+        const result = await triggerFullSearch(term.trim()).unwrap();
+        const list = Array.isArray(result) ? result : Array.isArray((result as { data?: unknown })?.data) ? (result as { data: SearchResult[] }).data : [];
+        setFullSearchResults(list);
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+          // игнорируем отменённые запросы
+        } else {
+          setError(err instanceof Error ? err.message : "Произошла ошибка при поиске");
+        }
+        setFullSearchResults([]);
+      }
+    },
+    [triggerFullSearch],
+  );
 
   const applyRecentSearch = useCallback((query: string) => {
     setSearchTerm(query);
@@ -138,6 +150,7 @@ export function useSearch() {
     setSearchTerm("");
     setDebouncedTerm("");
     setError(null);
+    setFullSearchResults(null);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -154,7 +167,7 @@ export function useSearch() {
   return {
     searchTerm,
     searchResults,
-    isLoading: isLoading || isFetching,
+    isLoading,
     error,
     recentSearches,
     handleSearchChange,

@@ -42,14 +42,15 @@
 - **Серверный бэкенд**: все запросы к API идут через RTK Query в `store/api/*Api.ts`. Базовый запрос и reauth — `store/api/baseQueryWithReauth.ts`.
 - **Таблица лидеров**: клиент ожидает, что данные `/users/leaderboard` кешируются на бэкенде (рекомендуется 6 часов, константа `LEADERBOARD_CACHE_HOURS` в `store/api/leaderboardApi.ts`). Поддерживаются периоды `period=week`, `month`, `all`.
 - **Типы запросов/ответов**: в `types/` (title, user, api, chapter и т.д.). API-модули импортируют типы оттуда, не дублируют.
-- **Локальное состояние UI** (фильтры, модалки, форма поиска): Redux slices в `store/slices/`.
+- **Локальное состояние UI**: единственный Redux slice — **auth** в `store/slices/authSlice.ts` (читается в useAuth). Фильтры каталога, модалки, форма поиска — локальный state в компонентах или URL.
 - **Добавление нового эндпоинта**: создать или дополнить файл в `store/api/`, зарегистрировать API в `store/rootReducer.ts` (см. ниже) — middleware подтянется автоматически.
+- **Единый базовый запрос**: защищённые запросы идут через `baseQueryWithReauth` (refresh при 401). Поиск — только через RTK `searchApi` (getAutocomplete, getFullSearch).
 
 ## Store: кеш и слайсы
 
-- **Кеш серверных данных**: RTK Query в `store/api/*Api.ts` кеширует ответы по ключу запроса (endpoint + аргументы). Повторные вызовы `useXQuery` с теми же аргументами не делают лишний запрос — используются данные из кеша. Срок хранения: `keepUnusedDataFor` (например 60 с в titlesApi, 300 с в notificationsApi).
-- **Использование кеша**: компоненты получают данные через хуки RTK Query (`useSearchTitlesQuery`, `useGetChaptersByTitleQuery`, `useGetCommentsQuery` и т.д.). Данные не дублируются в слайсах.
-- **Слайсы**: в приложении реально читается только **auth** (useSelector в useAuth). Остальные слайсы (titles, chapters, collections, comments, notifications, search, filter, readingHistory, bookmarks, userProfile) не заполняются и не читаются компонентами — список/профиль/история приходят из API (authApi, titlesApi, collectionsApi и т.д.). При добавлении новых фич предпочтительно опираться на RTK Query и не дублировать серверные данные в слайсах.
+- **Кеш серверных данных**: RTK Query в `store/api/*Api.ts` кеширует ответы по ключу запроса (endpoint + аргументы). Повторные вызовы `useXQuery` с теми же аргументами не делают лишний запрос. Срок хранения: `keepUnusedDataFor`. Инвалидация: при действиях (закладки, история, уведомления по сокету) вызывается `api.util.invalidateTags(...)`.
+- **Использование кеша**: компоненты получают данные через хуки RTK Query. Данные не дублируются в слайсах.
+- **Слайсы**: только **auth** (useAuth). Серверные данные — только из RTK Query. При добавлении фич опираться на RTK Query и теги инвалидации.
 
 ## Store: как добавлять новое
 
@@ -83,6 +84,10 @@
 | Утилиты             | `src/lib/` |
 | Глобальные хуки     | `src/hooks/` |
 | Защита маршрутов    | `src/guard/` |
+
+## Устаревшее
+
+- **api/** — прямые fetch-обёртки. Полнотекстовый поиск перенесён в RTK `searchApi` (getFullSearch); `api/searchApi.ts` помечен @deprecated.
 
 ## Деплой (production)
 

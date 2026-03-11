@@ -24,12 +24,13 @@ import Link from "next/link";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { Title, TitleStatus, TitleType, type TitleBasic } from "@/types/title";
-import { updateTitle } from "@/store/slices/titlesSlice";
 import { useParams } from "next/navigation";
 import {
+  titlesApi,
   useGetTitleByIdQuery,
   useUpdateTitleCoverMutation,
   useUpdateTitleMutation,
+  TITLES_TAG,
 } from "@/store/api/titlesApi";
 import { useGetChaptersByTitleQuery } from "@/store/api/chaptersApi";
 import { UpdateTitleDto } from "@/types/title";
@@ -478,7 +479,7 @@ export default function TitleEditorPage() {
       }).unwrap();
 
       if (result.data) {
-        dispatch(updateTitle(result.data));
+        dispatch(titlesApi.util.invalidateTags([{ type: TITLES_TAG, id: titleId }]));
         // Обновляем обложку в локальном состоянии, если она была обновлена
         if (selectedFile && result.data.coverImage) {
           setFormData(prev => ({
