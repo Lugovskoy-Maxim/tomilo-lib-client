@@ -67,8 +67,15 @@ export interface LeaderboardAllPeriodsResponse {
   all: LeaderboardResponse;
 }
 
+/** Время хранения кеша лидерборда на клиенте (секунды). Совпадает с рекомендуемым кешем бэкенда. */
+const LEADERBOARD_CACHE_SECONDS = LEADERBOARD_CACHE_HOURS * 3600;
+
 export const leaderboardApi = createApi({
   reducerPath: "leaderboardApi",
+  keepUnusedDataFor: LEADERBOARD_CACHE_SECONDS,
+  refetchOnMountOrArgChange: LEADERBOARD_CACHE_SECONDS,
+  refetchOnFocus: false,
+  refetchOnReconnect: false,
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL,
     credentials: "include",

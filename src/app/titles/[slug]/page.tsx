@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { TitleView } from "@/widgets";
 import type { Metadata } from "next";
 import TitlePageLoadingFallback from "./TitlePageLoadingFallback";
@@ -44,7 +45,10 @@ async function getTitleDataBySlug(slug: string) {
     }
 
     const data = await response.json();
-    return data.data || data;
+    const raw = data?.data ?? data;
+    // API может вернуть массив или не объект — отдаём только валидный объект
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw;
+    return null;
   } catch (error) {
     console.error("Error fetching title data by slug:", error);
     return null;
@@ -240,50 +244,59 @@ function buildTitleJsonLd(baseUrl: string, titleData: Record<string, unknown>, t
 }
 
 export default async function TitlePageRoute({ params, searchParams }: PageProps) {
-  const [resolvedParams, resolvedSearchParams] = await Promise.all([
-    params,
-    searchParams ?? Promise.resolve({} as { tab?: string }),
-  ]);
-  const rawSlug = String(resolvedParams.slug ?? "");
-  let slug: string;
   try {
-    slug = decodeURIComponent(rawSlug);
-  } catch {
-    slug = rawSlug;
-  }
-  const initialTab = resolvedSearchParams.tab ?? undefined;
+    const [resolvedParams, resolvedSearchParams] = await Promise.all([
+      params,
+      searchParams ?? Promise.resolve({} as { tab?: string }),
+    ]);
+    const rawSlug = String(resolvedParams.slug ?? "");
+    let slug: string;
+    try {
+      slug = decodeURIComponent(rawSlug);
+    } catch {
+      slug = rawSlug;
+    }
+    const initialTab = resolvedSearchParams.tab ?? undefined;
 
-  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
-  const titleData = await getTitleDataBySlug(slug);
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
+    const titleData = await getTitleDataBySlug(slug);
 
-  let jsonLdScripts: React.ReactNode = null;
-  if (titleData) {
-    const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
-    const { mainEntity, breadcrumb } = buildTitleJsonLd(
-      baseUrl,
-      titleData as Record<string, unknown>,
-      titleName,
-    );
-    jsonLdScripts = (
+    let jsonLdScripts: React.ReactNode = null;
+    if (titleData && typeof titleData === "object" && !Array.isArray(titleData)) {
+      try {
+        const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
+        const { mainEntity, breadcrumb } = buildTitleJsonLd(
+          baseUrl,
+          titleData as Record<string, unknown>,
+          titleName,
+        );
+        jsonLdScripts = (
+          <>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(mainEntity) }}
+            />
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+            />
+          </>
+        );
+      } catch (jsonLdError) {
+        console.error("Error building JSON-LD for title page:", jsonLdError);
+      }
+    }
+
+    return (
       <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(mainEntity) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
-        />
+        {jsonLdScripts}
+        <Suspense fallback={<TitlePageLoadingFallback />}>
+          <TitleView slug={slug} initialTab={initialTab} />
+        </Suspense>
       </>
     );
+  } catch (error) {
+    console.error("Title page error:", error);
+    notFound();
   }
-
-  return (
-    <>
-      {jsonLdScripts}
-      <Suspense fallback={<TitlePageLoadingFallback />}>
-        <TitleView slug={slug} initialTab={initialTab} />
-      </Suspense>
-    </>
-  );
 }
