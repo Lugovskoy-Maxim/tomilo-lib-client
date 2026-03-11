@@ -172,3 +172,17 @@ export function subscribeNotification(listener: NotificationListener): () => voi
 export function isNotificationsSocketConnected(): boolean {
   return Boolean(socket?.connected);
 }
+
+/**
+ * Переподключить сокет с актуальным токеном (вызывать после логина, чтобы получать progress/notification).
+ */
+export function reconnectNotificationsSocket(): void {
+  if (socket) {
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
+  }
+  if (refCount > 0) {
+    socket = createSocket();
+  }
+}

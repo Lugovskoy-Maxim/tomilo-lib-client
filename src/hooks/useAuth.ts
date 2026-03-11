@@ -18,6 +18,7 @@ import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-veri
 import { ReadingProgressResponse } from "@/types/progress";
 
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
+import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
 
 const USER_DATA_KEY = "tomilo_lib_user";
 /** Время (ms), когда токен был записан — чтобы не делать logout по 401 от устаревшего запроса profile сразу после логина */
@@ -613,6 +614,7 @@ export const useAuth = () => {
       }
 
       dispatch(login({ access_token: token, user }));
+      reconnectNotificationsSocket();
     }
   };
 

@@ -1,6 +1,7 @@
 import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 import type { BaseQueryApi } from "@reduxjs/toolkit/query/react";
+import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
 
 export const AUTH_TOKEN_KEY = "tomilo_lib_token";
 export const REFRESH_TOKEN_KEY = "tomilo_lib_refresh_token";
@@ -73,6 +74,7 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
               if (newAccess) {
                 localStorage.setItem(AUTH_TOKEN_KEY, newAccess);
                 localStorage.setItem(TOKEN_SET_AT_KEY, String(Date.now()));
+                reconnectNotificationsSocket();
               }
               if (newRefresh) localStorage.setItem(REFRESH_TOKEN_KEY, newRefresh);
             }
