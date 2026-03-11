@@ -1,28 +1,15 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import {
   AutoParsingJob,
   CreateAutoParsingJobDto,
   UpdateAutoParsingJobDto,
   CheckNewChaptersResponse,
 } from "@/types/auto-parsing";
-
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
 export const autoParsingApi = createApi({
   reducerPath: "autoParsingApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["AutoParsing"],
   endpoints: builder => ({
     getAutoParsingJobs: builder.query<AutoParsingJob[], void>({

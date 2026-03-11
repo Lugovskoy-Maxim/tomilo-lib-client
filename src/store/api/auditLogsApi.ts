@@ -1,7 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { ApiResponse } from "@/types/api";
-
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
 export type AuditAction =
   | "user_create"
@@ -67,19 +66,7 @@ export interface AuditLogsFilters {
 
 export const auditLogsApi = createApi({
   reducerPath: "auditLogsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL,
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["AuditLogs"],
   endpoints: builder => ({
     getAuditLogs: builder.query<
@@ -124,7 +111,7 @@ export const auditLogsApi = createApi({
         url: "/admin/audit-logs/export",
         method: "POST",
         body: filters,
-        responseHandler: response => response.blob(),
+        responseHandler: (response: Response) => response.blob(),
       }),
     }),
   }),

@@ -4,7 +4,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react
 import { useLoginMutation, useForgotPasswordMutation } from "@/store/api/authApi";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginData, FormErrors, FormTouched } from "../../types/form";
-import { Modal } from "..";
+import Modal from "./modal";
 import { ApiResponseDto } from "@/types/api";
 import { AuthResponse } from "@/types/auth";
 import { VALIDATION_MESSAGES } from "@/constants/validation";

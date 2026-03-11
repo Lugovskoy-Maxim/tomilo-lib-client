@@ -1,9 +1,8 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { ApiResponse } from "@/types/api";
 import { UserProfile } from "@/types/user";
 import { authApi } from "./authApi";
-
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
 type HomepageSortBy = "level" | "lastActiveAt" | "lastActivityAt" | "createdAt";
 type HomepageSortOrder = "asc" | "desc";
@@ -88,19 +87,7 @@ export interface HomepageActiveUser {
 
 export const usersApi = createApi({
   reducerPath: "usersApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL,
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["Users"],
   endpoints: builder => ({
     getUsers: builder.query<

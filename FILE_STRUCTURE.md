@@ -55,7 +55,7 @@ MAX_PAGE_SIZE.ts
 
 ```
 src/
-├── api/              # API запросы и axios/fetch обёртки
+├── api/              # Устаревшие fetch-обёртки (поиск — в store/api/searchApi)
 ├── app/              # Next.js App Router страницы
 │   ├── [route]/      # Динамические роуты
 │   └── page.tsx      # Главные страницы
@@ -66,7 +66,7 @@ src/
 ├── hooks/            # Кастомные хуки
 ├── lib/              # Утилиты и вспомогательные функции
 ├── shared/           # Общие компоненты (shared across app)
-├── store/            # Redux store и слайсы
+├── store/            # Redux: store/api (RTK Query), store/slices (только auth)
 ├── types/            # TypeScript типы
 └── widgets/          # Комплексные виджеты/страницы
 ```

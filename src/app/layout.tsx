@@ -404,10 +404,10 @@ export default function RootLayout({
                   </OverlayProvider>
                 </FontProvider>
               </ThemeProvider>
+              <NotificationSocketToasts />
             </Providers>
             <ToastContainer />
             <ProgressNotificationContainer />
-            <NotificationSocketToasts />
           </ProgressNotificationProvider>
         </ToastProvider>
       </body>

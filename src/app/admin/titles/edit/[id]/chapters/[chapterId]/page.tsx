@@ -51,7 +51,7 @@ interface ChapterFormData {
 export default function ChapterEditorPage() {
   const params = useParams();
   const titleId = params.id as string;
-  const chapterId = params.chatperId as string;
+  const chapterId = params.chapterId as string;
   const toast = useToast();
 
   const {

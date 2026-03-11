@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { ApiResponseDto } from "@/types/api";
 import {
   ParseTitleDto,
@@ -10,24 +10,11 @@ import {
   SyncChaptersDto,
   SyncChaptersResponse,
 } from "@/types/manga-parser";
-
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
 export const mangaParserApi = createApi({
   reducerPath: "mangaParserApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["MangaParser", "Chapters"],
   endpoints: builder => ({
     // Parse and import complete title

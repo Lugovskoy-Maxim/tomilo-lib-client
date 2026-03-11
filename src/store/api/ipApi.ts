@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import {
   IpStatsResponse,
   BlockedIpsResponse,
@@ -6,24 +6,11 @@ import {
   UnblockIpResponse,
   BlockIpDto,
 } from "@/types/ip";
-
-const AUTH_TOKEN_KEY = "tomilo_lib_token";
+import { baseQueryWithReauth } from "./baseQueryWithReauth";
 
 export const ipApi = createApi({
   reducerPath: "ipApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-    credentials: "include",
-    prepareHeaders: headers => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          headers.set("authorization", `Bearer ${token}`);
-        }
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ["BlockedIps"],
   endpoints: builder => ({
     getIpStats: builder.query<IpStatsResponse, void>({

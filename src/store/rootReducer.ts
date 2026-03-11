@@ -29,17 +29,7 @@ import { subscriptionsApi } from "./api/subscriptionsApi";
 import { searchApi } from "./api/searchApi";
 import { adminApi } from "./api/adminApi";
 import { promocodesApi } from "./api/promocodesApi";
-import titlesReducer from "./slices/titlesSlice";
 import authReducer from "./slices/authSlice";
-import collectionsReducer from "./slices/collectionsSlice";
-import chaptersReducer from "./slices/chaptersSlice";
-import commentsReducer from "./slices/commentsSlice";
-import notificationsReducer from "./slices/notificationsSlice";
-import userProfileReducer from "./slices/userProfileSlice";
-import readingHistoryReducer from "./slices/readingHistorySlice";
-import bookmarksReducer from "./slices/bookmarksSlice";
-import searchReducer from "./slices/searchSlice";
-import filterReducer from "./slices/filterSlice";
 
 const apiList = [
   authApi,
@@ -71,16 +61,6 @@ const apiList = [
 
 const slices = {
   auth: authReducer,
-  titles: titlesReducer,
-  collections: collectionsReducer,
-  chapters: chaptersReducer,
-  comments: commentsReducer,
-  notifications: notificationsReducer,
-  userProfile: userProfileReducer,
-  readingHistory: readingHistoryReducer,
-  bookmarks: bookmarksReducer,
-  search: searchReducer,
-  filter: filterReducer,
 } as const;
 
 export const rootReducer = {

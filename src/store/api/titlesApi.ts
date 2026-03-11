@@ -557,7 +557,7 @@ export const titlesApi = createApi({
       { limit?: number; page?: number; includeAdult?: boolean } | void
     >({
       query: (params = {}) => ({
-        url: "/titles/titles/recent",
+        url: "/titles/recent",
         params: {
           limit: params?.limit ?? 18,
           page: params?.page ?? 1,
