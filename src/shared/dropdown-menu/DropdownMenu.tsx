@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Flame,
   BookOpen,
+  Coins,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
@@ -210,55 +211,55 @@ export default function UserDropdown({
           href="/profile"
           onClick={onClose}
           role="menuitem"
-          className="flex items-center gap-3 transition-colors cursor-pointer rounded-lg p-2 -m-2 hover:bg-[var(--accent)] focus:bg-[var(--accent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
+          title={levelTooltip}
+          className="flex items-center gap-2.5 rounded-lg p-1.5 -m-1.5 transition-colors cursor-pointer hover:bg-[var(--accent)] focus:bg-[var(--accent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div
-            className="shrink-0 rounded-full ring-1 ring-[var(--border)] relative"
-            style={{ width: 48, height: 48 }}
-          >
+          <div className="shrink-0 w-12 h-12 rounded-full overflow-hidden ring-2 ring-[var(--border)] bg-[var(--muted)]">
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
               size={53}
-              className="rounded-full w-full h-full"
+              className="rounded-full w-full h-full object-cover"
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
             />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-[var(--foreground)] truncate text-base flex items-center gap-1.5">
-              {displayName}
+          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3 className="font-semibold text-[var(--foreground)] truncate text-sm">
+                {displayName}
+              </h3>
               {isPremiumActive(user?.subscriptionExpiresAt) && (
-                <PremiumBadge size="xs" ariaLabel="Премиум" />
+                <PremiumBadge size="xs" ariaLabel="Премиум" className="shrink-0" />
               )}
-            </h3>
-            <div className="flex items-center gap-2 min-w-0 mt-0.5" title={levelTooltip}>
-              <span className="inline-flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
-                <span
-                  className="inline-flex items-center justify-center w-4 h-4 rounded text-[10px] font-bold"
-                  style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
-                >
-                  {level}
-                </span>
-                ур.
+            </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className="shrink-0 inline-flex items-center justify-center min-w-[28px] h-5 rounded-md text-[10px] font-bold tabular-nums"
+                style={{ backgroundColor: `${rankColor}22`, color: rankColor }}
+              >
+                {level}
               </span>
-              <div className="flex-1 min-w-0 h-1.5 rounded-full bg-[var(--border)]/40 overflow-hidden">
+              <div className="flex-1 min-w-0 h-2 rounded-full bg-[var(--border)]/50 overflow-hidden">
                 <div
-                  className="h-full rounded-full transition-[width]"
+                  className="h-full rounded-full transition-[width] duration-300"
                   style={{ width: `${progressPercent}%`, backgroundColor: rankColor }}
                 />
               </div>
             </div>
+            <p className="text-[11px] text-[var(--muted-foreground)] leading-snug flex items-center gap-1.5 flex-wrap" aria-hidden>
+              <span className="tabular-nums">{experience.toLocaleString("ru-RU")} XP</span>
+              <span className="text-[var(--border)]">·</span>
+              <span>до {level + 1} ур.:</span>
+              <span className="tabular-nums font-medium text-[var(--foreground)]">{expToNext.toLocaleString("ru-RU")} XP</span>
+            </p>
           </div>
-          <ChevronRight
-            className="w-5 h-5 text-[var(--foreground)]/60 dark:text-[var(--muted-foreground)] shrink-0"
-            aria-hidden
-          />
+          <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
         </Link>
 
-        {/* Сначки топов и баланс */}
-        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[var(--border)]/50 dark:border-[var(--border)]/30">
-          <div className="flex flex-wrap items-center gap-1 min-w-0">
+        {/* Топы и баланс — одна строка, компактно */}
+        <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-1.5">
+          <div className="flex items-center gap-1 min-w-0 flex-1 overflow-x-auto shrink-0">
             {leaderboardPositions.length > 0 ? (
               leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
                 const Icon = CATEGORY_ICONS[category];
@@ -267,7 +268,7 @@ export default function UserDropdown({
                     key={category}
                     href={`/leaders?category=${category}`}
                     onClick={onClose}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300 hover:bg-amber-500/25 dark:hover:bg-amber-500/20 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-500/15 dark:text-amber-300 hover:bg-amber-500/20 dark:hover:bg-amber-500/20 transition-colors shrink-0"
                     title={label}
                   >
                     <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />#{position}
@@ -278,22 +279,20 @@ export default function UserDropdown({
               <Link
                 href="/leaders"
                 onClick={onClose}
-                className="inline-flex items-center gap-1 text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)] hover:text-[var(--foreground)] dark:hover:text-[var(--muted-foreground)] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 text-[10px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors shrink-0"
                 title="Лидерборд"
               >
-                <Trophy className="w-3 h-3 shrink-0" aria-hidden />
-                Пока не в топах
+                <Trophy className="w-2.5 h-2.5 shrink-0" aria-hidden />
+                Топы
               </Link>
             )}
             {leaderboardPositions.length > 4 && (
-              <span className="text-[10px] text-[var(--foreground)]/70 dark:text-[var(--muted-foreground)]">
-                +{leaderboardPositions.length - 4}
-              </span>
+              <span className="text-[10px] text-[var(--muted-foreground)] shrink-0">+{leaderboardPositions.length - 4}</span>
             )}
           </div>
-          <span className="flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
-            <CoinIcon className="w-3.5 h-3.5 text-amber-500" aria-hidden />
-            <span className="font-medium tabular-nums">{balance.toLocaleString("ru-RU")}</span>
+          <span className="flex items-center gap-1 text-[11px] font-medium text-[var(--foreground)] tabular-nums shrink-0">
+            <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-hidden />
+            {balance.toLocaleString("ru-RU")}
           </span>
         </div>
       </div>
@@ -370,22 +369,5 @@ export default function UserDropdown({
         </button>
       </div>
     </div>
-  );
-}
-
-function CoinIcon({
-  className,
-  ...props
-}: { className?: string } & React.SVGAttributes<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      {...props}
-    >
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.77 0 1.72 1.38 2.66 3.12 2.88l1.7.43v2.08c-1.85-.42-2.34-1.16-2.34-1.99 0-.83.62-1.4 1.93-1.4 1.25 0 1.75.61 1.75 1.53h1.7c0-1.4-.95-2.5-2.65-2.8V9.14z" />
-    </svg>
   );
 }
