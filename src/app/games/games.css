@@ -1,0 +1,519 @@
+/* Страница игр — стили в единой системе с сайтом (var(--card), --primary, --border и т.д.) */
+
+/* --- Анимации --- */
+@keyframes games-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes games-slot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.games-content-enter {
+  animation: games-content-in 0.25s ease-out forwards;
+}
+
+.games-slot-enter {
+  animation: games-slot-in 0.2s ease-out forwards;
+  animation-delay: var(--games-slot-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .games-content-enter,
+  .games-slot-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Контейнер --- */
+.games-hub {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* --- Шапка (компактная) --- */
+.games-hub .games-header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.games-hub .games-title {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+}
+
+.games-hub .games-subtitle {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+/* --- Табы (компактные, в стиле сайта) --- */
+.games-hub .games-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.games-hub .games-tab {
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.games-hub .games-tab:hover {
+  color: var(--foreground);
+  border-color: color-mix(in oklch, var(--border) 70%, var(--primary));
+  background: var(--accent);
+}
+
+.games-hub .games-tab:active {
+  transform: scale(0.98);
+}
+
+.games-hub .games-tab.active {
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.games-hub .games-tab .tab-icon {
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.9;
+  transition: transform 0.2s ease;
+}
+
+.games-hub .games-tab.active .tab-icon {
+  color: var(--primary);
+}
+
+.games-hub .games-tab:hover .tab-icon {
+  transform: scale(1.08);
+}
+
+/* --- Панели и карточки --- */
+.games-hub .games-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, var(--radius));
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.games-hub .games-panel:focus-within {
+  border-color: color-mix(in oklch, var(--border) 60%, var(--primary));
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.games-hub .games-panel--compact {
+  padding: 0.75rem 1rem;
+}
+
+.games-hub .games-panel-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.375rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Карточка сущности (ученик, кандидат) */
+.games-hub .games-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, var(--radius));
+  padding: 1rem 1.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.games-hub .games-card:hover {
+  border-color: color-mix(in oklch, var(--border) 60%, var(--primary));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Вложенная рамка для медиа (карточка боя, изображение) */
+.games-hub .games-card-frame {
+  padding: 0.5rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--border);
+  background: var(--accent);
+}
+
+.games-hub .games-card-frame img {
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--border);
+}
+
+/* --- Слоты инвентаря --- */
+.games-hub .games-slot {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, var(--radius));
+  padding: 0.75rem;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.games-hub .games-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(in oklch, var(--border) 60%, var(--primary));
+}
+
+.games-hub .games-slot:active {
+  transform: translateY(0);
+}
+
+.games-hub .games-slot-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 0.375rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.games-hub .games-slot-name {
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.games-hub .games-slot-count {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* --- Кнопки --- */
+.games-hub .games-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.games-hub .games-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+}
+
+.games-hub .games-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.games-hub .games-btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.games-hub .games-btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: transparent;
+}
+
+.games-hub .games-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.games-hub .games-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.games-hub .games-btn-secondary {
+  background: var(--accent);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.games-hub .games-btn-secondary:hover:not(:disabled) {
+  border-color: color-mix(in oklch, var(--border) 60%, var(--primary));
+  background: color-mix(in oklch, var(--accent) 80%, var(--primary) 8%);
+}
+
+.games-hub .games-btn-danger {
+  background: transparent;
+  color: var(--destructive);
+  border-color: color-mix(in oklch, var(--destructive) 50%, var(--border));
+}
+
+.games-hub .games-btn-danger:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--destructive) 12%, transparent);
+  border-color: var(--destructive);
+}
+
+/* --- Прогресс-бары --- */
+.games-hub .games-stat-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.games-hub .games-stat-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--primary);
+  transition: width 0.35s ease;
+}
+
+/* Аватар в карточке */
+.games-hub .games-card-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: calc(var(--card-radius, var(--radius)) - 2px);
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.games-hub .games-card-avatar--lg {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+@media (min-width: 640px) {
+  .games-hub .games-card-avatar--lg {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+
+/* --- Колесо: CTA --- */
+.games-hub .games-wheel-cta {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.games-hub .games-wheel-cta:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.06);
+}
+
+.games-hub .games-wheel-cta:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.games-hub .games-wheel-cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- Рецепты алхимии --- */
+.games-hub .games-recipe {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, var(--radius));
+  padding: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.games-hub .games-recipe:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.games-hub .games-recipe:hover {
+  border-color: color-mix(in oklch, var(--border) 70%, var(--primary));
+}
+
+.games-hub .games-recipe-name {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+}
+
+.games-hub .games-muted {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.games-hub .games-reward-box {
+  background: color-mix(in oklch, var(--primary) 8%, var(--card));
+  border: 1px solid color-mix(in oklch, var(--primary) 25%, var(--border));
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+.games-hub .games-empty {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: var(--muted-foreground);
+}
+
+.games-hub .games-empty-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 0.75rem;
+  opacity: 0.5;
+}
+
+/* --- Интро раздела (компактное) --- */
+.games-hub .games-intro {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--accent);
+  border: 1px solid var(--border);
+}
+
+.games-hub .games-intro-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--primary);
+}
+
+.games-hub .games-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.games-hub .games-tip {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in oklch, var(--primary) 6%, transparent);
+  border-left: 3px solid var(--primary);
+}
+
+/* --- Бейджи --- */
+.games-hub .games-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.games-hub .games-badge [data-icon] {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.games-hub .games-badge--primary {
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  background: color-mix(in oklch, var(--primary) 8%, var(--accent));
+}
+
+.games-hub .games-badge-bot {
+  display: inline-flex;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: color-mix(in oklch, var(--primary) 18%, var(--card));
+  color: var(--primary);
+  border: 1px solid color-mix(in oklch, var(--primary) 35%, var(--border));
+}
+
+/* Чипы наград (монеты, опыт, предметы) */
+.games-hub .games-reward-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.games-hub .games-reward-chip img {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.games-hub .games-reward-chip--warning {
+  color: var(--primary);
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  background: color-mix(in oklch, var(--primary) 10%, var(--accent));
+}
+
+/* --- Результат боя --- */
+.games-hub .games-result-screen.games-result-win {
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  background: color-mix(in oklch, var(--primary) 6%, var(--card));
+}
+
+.games-hub .games-result-screen.games-result-lose {
+  border-color: color-mix(in oklch, var(--destructive) 35%, var(--border));
+  background: color-mix(in oklch, var(--destructive) 6%, var(--card));
+}
+
+/* Колесо SVG — цвета под тему (центр) */
+.games-hub .games-wheel-center {
+  fill: var(--card);
+  stroke: var(--border);
+}

@@ -154,21 +154,7 @@ export default function ProfileShell({
   ) : !userProfile ? (
     renderEmptyState()
   ) : (
-    <div
-      className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col bg-[var(--background)] pt-24 sm:pt-44 bg-no-repeat bg-top"
-      style={{
-        backgroundImage: `url(${backgroundUrl})`,
-        backgroundSize: "100% auto",
-        backgroundPosition: "top center",
-      }}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          background: "linear-gradient(to bottom, transparent 0%, var(--background) 65%)",
-        }}
-        aria-hidden
-      />
+    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-24 sm:pt-44">
       <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-6xl min-w-0 overflow-x-hidden flex flex-1 flex-col">
         {/* Верхняя панель: назад + контекстная ссылка */}
         <div className="flex items-center justify-between gap-3 py-3">
@@ -292,14 +278,35 @@ export default function ProfileShell({
   const wrapWithProvider = variant === "own" && profileContextValue;
 
   return (
-    <main className="min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
-      <Header />
-      {wrapWithProvider ? (
-        <ProfileProvider value={profileContextValue}>{content}</ProfileProvider>
-      ) : (
-        content
+    <main className="relative min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
+      {/* Фиксированный фон на весь экран — при скролле остаётся в viewport */}
+      {userProfile && (
+        <div
+          className="fixed inset-0 z-0 bg-[var(--background)] bg-no-repeat bg-top bg-cover"
+          style={{
+            backgroundImage: `url(${backgroundUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "top center",
+          }}
+          aria-hidden
+        >
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "linear-gradient(to bottom, transparent 0%, var(--background) 55%, var(--background) 100%)",
+            }}
+          />
+        </div>
       )}
-      <Footer />
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
+        <Header />
+        {wrapWithProvider ? (
+          <ProfileProvider value={profileContextValue}>{content}</ProfileProvider>
+        ) : (
+          content
+        )}
+        <Footer />
+      </div>
     </main>
   );
 }

@@ -20,6 +20,8 @@ import {
   useUpdateDecorationMutation,
   useUpdateDecorationWithImageMutation,
   useDeleteDecorationMutation,
+  useGetCardDecksQuery,
+  useOpenCardDeckMutation,
 } from "@/store/api/shopApi";
 import { AdminModal, ConfirmModal } from "@/shared/admin/ui";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
@@ -126,6 +128,27 @@ export function ShopSection({ type }: ShopSectionProps) {
     equipped: [],
   });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [lastDeckResult, setLastDeckResult] = useState<{
+    deckName: string;
+    cards: Array<{
+      isNew: boolean;
+      shardsGained: number;
+      card: {
+        characterName?: string;
+        currentStage?: string;
+        stageImageUrl?: string;
+        titleName?: string;
+      };
+    }>;
+    pity?: {
+      triggered: boolean;
+      hitTarget: boolean;
+      threshold: number;
+      targetRarity: string;
+      progress: number;
+      remaining: number;
+    };
+  } | null>(null);
 
   const publicDecorationsQuery = useGetDecorationsByTypeQuery({ type });
   // eslint-disable-next-line react-hooks/exhaustive-deps -- decorations из запроса
@@ -227,6 +250,11 @@ export function ShopSection({ type }: ShopSectionProps) {
   const [updateDecorationWithImage, { isLoading: isUpdatingWithImage }] =
     useUpdateDecorationWithImageMutation();
   const [deleteDecoration] = useDeleteDecorationMutation();
+  const { data: decksData, isLoading: decksLoading, refetch: refetchDecks } = useGetCardDecksQuery(undefined, {
+    skip: type !== "card",
+  });
+  const [openCardDeck, { isLoading: isOpeningDeck }] = useOpenCardDeckMutation();
+  const decks = decksData?.decks ?? [];
 
   const isSaving = isCreatingJson || isCreatingWithImage || isUpdatingJson || isUpdatingWithImage;
 
@@ -661,7 +689,7 @@ export function ShopSection({ type }: ShopSectionProps) {
     avatar: "Украсьте профиль стильными аватарами",
     frame: "Рамки вокруг аватара в профиле",
     background: "Выберите фон для своего профиля",
-    card: "Собирайте карточки для своей колоды",
+    card: "Собирайте карточки персонажей и открывайте колоды",
   };
 
   if (decorationsLoading) {
@@ -808,6 +836,203 @@ export function ShopSection({ type }: ShopSectionProps) {
         )}
       </div>
 
+      {type === "card" && (
+        <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">Колоды карточек</h3>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Откройте колоду и получите несколько карточек сразу. У тайтл-колод шанс на персонажей из выбранного тайтла выше.
+              </p>
+            </div>
+            <button type="button" onClick={() => refetchDecks()} className="admin-btn admin-btn-secondary">
+              Обновить
+            </button>
+          </div>
+          {decksLoading ? (
+            <p className="text-sm text-[var(--muted-foreground)]">Загрузка колод...</p>
+          ) : decks.length === 0 ? (
+            <p className="text-sm text-[var(--muted-foreground)]">Колоды пока не добавлены.</p>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {[...decks]
+                .sort((a, b) => Number(Boolean(b.isPremium)) - Number(Boolean(a.isPremium)))
+                .map((deck) => (
+                <div key={deck.id ?? deck._id ?? deck.name} className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-3">
+                  <div className="aspect-[3/2] rounded-lg bg-[var(--muted)] overflow-hidden mb-3 flex items-center justify-center">
+                    {deck.imageUrl ? (
+                      <img src={getDecorationImageUrls(deck.imageUrl).primary} alt={deck.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <PackageOpen className="w-6 h-6 text-[var(--muted-foreground)]" />
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="font-medium text-[var(--foreground)] flex flex-wrap items-center gap-2">
+                      <span>{deck.name}</span>
+                      {deck.isPremium ? (
+                        <span className="games-badge">Premium title deck</span>
+                      ) : null}
+                    </div>
+                    <div className="text-xs text-[var(--muted-foreground)]">
+                      {deck.titleName ? `Фокус: ${deck.titleName}` : "Общий пул"} · {deck.cardsPerOpen} карточек
+                    </div>
+                    <div className="text-xs text-[var(--muted-foreground)]">
+                      Шанс тайтл-пула: {Math.round((deck.titleFocusChance ?? 0) * 100)}%
+                      {deck.quantity != null ? ` · осталось ${deck.quantity}` : ""}
+                    </div>
+                    {(deck.pityThreshold ?? 0) > 0 ? (
+                      <div className="text-xs text-[var(--muted-foreground)]">
+                        Pity: {deck.pityTargetRarity || "rare"} после {deck.pityThreshold} неудачных открытий
+                        {typeof deck.pityProgress === "number"
+                          ? ` · прогресс ${deck.pityProgress}/${deck.pityThreshold}`
+                          : ""}
+                      </div>
+                    ) : null}
+                    {deck.description ? (
+                      <p className="text-sm text-[var(--muted-foreground)] pt-1">{deck.description}</p>
+                    ) : null}
+                  </div>
+                  {(deck.pityThreshold ?? 0) > 0 ? (
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between text-[11px] text-[var(--muted-foreground)] mb-1">
+                        <span>Pity прогресс</span>
+                        <span>{Math.min(deck.pityProgress ?? 0, deck.pityThreshold ?? 0)}/{deck.pityThreshold}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-[var(--muted)] overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--primary)] transition-all"
+                          style={{
+                            width: `${Math.min(100, ((deck.pityProgress ?? 0) / Math.max(1, deck.pityThreshold ?? 1)) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={!isAuthenticated || isOpeningDeck || deck.quantity === 0}
+                    className="games-btn games-btn-primary w-full mt-3"
+                    onClick={async () => {
+                      try {
+                        const result = await openCardDeck(deck.id ?? deck._id ?? "").unwrap();
+                        const cards = result?.openedCards ?? [];
+                        setLastDeckResult({
+                          deckName: result?.deck?.name ?? deck.name,
+                          cards: cards.map((entry) => ({
+                            isNew: entry.isNew,
+                            shardsGained: entry.shardsGained,
+                            card: entry.card as {
+                              characterName?: string;
+                              currentStage?: string;
+                              stageImageUrl?: string;
+                              titleName?: string;
+                            },
+                          })),
+                          pity: result?.pity,
+                        });
+                        if (cards.length === 0) {
+                          toast.info("Колода открыта, но карточки не вернулись в ответе.");
+                        } else {
+                          cards.forEach((entry) => {
+                            const card = entry.card as { characterName?: string; currentStage?: string; stageImageUrl?: string };
+                            const label = card.characterName || "Карточка";
+                            toast.success(
+                              entry.isNew
+                                ? `Из колоды: ${label} [${card.currentStage ?? "F"}]`
+                                : `Дубликат ${label}: +${entry.shardsGained ?? 0} осколков`,
+                              5000,
+                              { icon: card.stageImageUrl },
+                            );
+                          });
+                          if (result?.pity?.triggered) {
+                            toast.success(`Pity сработал: гарантирована редкость ${result.pity.targetRarity}`);
+                          } else if (result?.pity && result.pity.threshold > 0) {
+                            toast.info(
+                              result.pity.remaining > 0
+                                ? `До pity осталось ${result.pity.remaining} откр.`
+                                : "Следующее открытие активирует pity",
+                            );
+                          }
+                        }
+                        await loadUserDecorations();
+                        await refetchProfile();
+                        refetchDecks();
+                      } catch (error) {
+                        toast.error(getQueryErrorMessage(error));
+                      }
+                    }}
+                  >
+                    {!isAuthenticated
+                      ? "Войдите, чтобы открыть"
+                      : deck.quantity === 0
+                        ? "Колода закончилась"
+                        : `Открыть за ${deck.price} монет`}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {lastDeckResult ? (
+            <div className="mt-4 rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/5 p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-[var(--foreground)]">
+                    Последнее открытие: {lastDeckResult.deckName}
+                  </h4>
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    {lastDeckResult.cards.length > 0
+                      ? `Получено карточек: ${lastDeckResult.cards.length}`
+                      : "Сервер не вернул карточки в последнем ответе."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-secondary"
+                  onClick={() => setLastDeckResult(null)}
+                >
+                  Скрыть
+                </button>
+              </div>
+              {lastDeckResult.pity ? (
+                <div className="text-xs text-[var(--muted-foreground)] mb-3">
+                  {lastDeckResult.pity.triggered
+                    ? `Pity сработал: гарантирована редкость ${lastDeckResult.pity.targetRarity}.`
+                    : `До pity осталось ${lastDeckResult.pity.remaining} открытий.`}
+                </div>
+              ) : null}
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {lastDeckResult.cards.map((entry, index) => (
+                  <div key={`${entry.card.characterName ?? "card"}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-3">
+                    <div className="aspect-[3/4] rounded-lg overflow-hidden bg-[var(--muted)] mb-2">
+                      {entry.card.stageImageUrl ? (
+                        <img
+                          src={getDecorationImageUrls(entry.card.stageImageUrl).primary}
+                          alt={entry.card.characterName || "Карточка"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="text-sm font-medium text-[var(--foreground)] truncate">
+                      {entry.card.characterName || "Карточка"}
+                    </div>
+                    <div className="text-xs text-[var(--muted-foreground)] truncate">
+                      {entry.card.titleName || "Без тайтла"} · ранг {entry.card.currentStage ?? "F"}
+                    </div>
+                    <div className="mt-2 text-xs">
+                      {entry.isNew ? (
+                        <span className="games-badge games-badge--primary">Новая</span>
+                      ) : (
+                        <span className="games-badge">+{entry.shardsGained} осколков</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       {filteredDecorations.length === 0 ? (
         <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
           Нет украшений по выбранным фильтрам. Измените качество или цену.
@@ -817,15 +1042,15 @@ export function ShopSection({ type }: ShopSectionProps) {
           className={`grid gap-2 sm:gap-3 md:gap-4 min-w-0 ${
             type === "avatar" || type === "frame" || type === "card"
               ? type === "card"
-                ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 justify-items-stretch items-start"
-                : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 justify-items-stretch items-start"
+                ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 justify-items-stretch items-stretch"
+                : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 justify-items-stretch items-stretch"
               : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
           }`}
         >
           {filteredDecorations.map(decoration => (
             <div
               key={decoration.id}
-              className={`relative group w-full min-w-0 flex justify-center ${type === "frame" ? "h-[281px]" : ""}`}
+              className="relative group w-full min-w-0 flex flex-col items-center justify-start overflow-hidden"
             >
               {isAdmin && (
                 <div className="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">

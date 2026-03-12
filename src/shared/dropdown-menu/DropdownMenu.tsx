@@ -149,7 +149,9 @@ export default function UserDropdown({
 
   const rankInfo = levelToRank(level);
   const rankColor = getRankColor(rankInfo.rank);
-  const { progressPercent } = getLevelProgress(level, experience);
+  const { progressPercent, nextLevelExp } = getLevelProgress(level, experience);
+  const expToNext = Math.max(0, nextLevelExp - experience);
+  const levelTooltip = `${rankInfo.name}. Опыт: ${experience.toLocaleString("ru-RU")} XP · До ур. ${level + 1}: ${expToNext.toLocaleString("ru-RU")} XP`;
 
   const themeLabel =
     mounted && theme
@@ -230,7 +232,7 @@ export default function UserDropdown({
                 <PremiumBadge size="xs" ariaLabel="Премиум" />
               )}
             </h3>
-            <div className="flex items-center gap-2 min-w-0 mt-0.5" title={rankInfo.name}>
+            <div className="flex items-center gap-2 min-w-0 mt-0.5" title={levelTooltip}>
               <span className="inline-flex items-center gap-1 text-xs text-[var(--foreground)]/75 dark:text-[var(--muted-foreground)] shrink-0">
                 <span
                   className="inline-flex items-center justify-center w-4 h-4 rounded text-[10px] font-bold"

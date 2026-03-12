@@ -2,7 +2,7 @@
 
 import NavigationLink from "@/shared/navigation-link/NavigationLink";
 import { usePathname } from "next/navigation";
-import { BookOpen, Crown, Users } from "lucide-react";
+import { Crown, Users } from "lucide-react";
 
 interface NavigationProps {
   vertical?: boolean;
@@ -11,11 +11,6 @@ interface NavigationProps {
 }
 
 const navigationItems = [
-  {
-    name: "Каталог",
-    href: "/titles",
-    icon: BookOpen,
-  },
   {
     name: "Персонажи",
     href: "/characters",
@@ -26,7 +21,14 @@ const navigationItems = [
     href: "/leaders",
     icon: Crown,
   },
-];
+] as const;
+
+const ulClassName = (vertical: boolean) =>
+  `
+  flex
+  ${vertical ? "flex-col space-y-4" : "flex-row gap-2 sm:gap-3"}
+  ${vertical ? "items-stretch" : "items-center"}
+`.trim();
 
 export default function Navigation({
   vertical = false,
@@ -45,15 +47,9 @@ export default function Navigation({
 
   return (
     <nav className={className}>
-      <ul
-        className={`
-          flex
-          ${vertical ? "flex-col space-y-4" : "flex-row gap-2 sm:gap-3"}
-          ${vertical ? "items-stretch" : "items-center"}
-        `}
-      >
-        {navigationItems.map((item, index) => (
-          <li key={index} className={vertical ? "w-full" : ""}>
+      <ul className={ulClassName(vertical)}>
+        {navigationItems.map((item) => (
+          <li key={item.href} className={vertical ? "w-full" : ""}>
             <NavigationLink
               href={item.href}
               isActive={isActive(item.href)}

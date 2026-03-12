@@ -11,6 +11,7 @@ import DailyBonus from "./DailyBonus";
 import NextRankProgress from "./NextRankProgress";
 import ProfileDailyQuests from "./ProfileDailyQuests";
 import ProfileWelcome from "./ProfileWelcome";
+import ProfileCardsShowcase from "./ProfileCardsShowcase";
 import { useClaimDailyBonusMutation } from "@/store/api/authApi";
 import { Trophy, ChevronRight } from "lucide-react";
 
@@ -69,6 +70,7 @@ export default function ProfileContent({
       {!isPublicView && !compactOverview && <ProfileQuickActions />}
       {!isPublicView && <ContinueReading userProfile={userProfile} />}
       {!isPublicView && !compactOverview && <ReadingProgressBlock />}
+      <ProfileCardsShowcase userProfile={userProfile} readOnly={isPublicView} />
       {!isPublicView && (
         <div className={compactOverview ? "space-y-3" : "space-y-4"}>
           <div

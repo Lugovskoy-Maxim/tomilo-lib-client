@@ -25,6 +25,7 @@ import { AchievementsSection } from "@/shared/admin/AchievementsSection";
 import { NotificationsSection } from "@/shared/admin/NotificationsSection";
 import { SiteSettingsSection } from "@/shared/admin/SiteSettingsSection";
 import { AuditLogsSection } from "@/shared/admin/AuditLogsSection";
+import { GamesManagementSection } from "@/shared/admin/GamesManagementSection";
 import { Header } from "@/widgets";
 import { AuthGuard } from "@/guard/AuthGuard";
 import { useEffect, useState } from "react";
@@ -102,6 +103,7 @@ export default function AdminPageClient() {
       "site-settings": "Настройки сайта",
       "audit-logs": "Аудит-логи",
       "work-queue": "Рабочая очередь",
+      "games": "Мини-игры",
     };
     return titles[activeTab] || "Админ-панель";
   };
@@ -163,6 +165,8 @@ export default function AdminPageClient() {
         return <AuditLogsSection />;
       case "work-queue":
         return <WorkQueueSection />;
+      case "games":
+        return <GamesManagementSection />;
       default:
         return <OverviewSection onTabChange={setActiveTab} />;
     }

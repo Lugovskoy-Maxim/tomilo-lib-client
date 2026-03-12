@@ -14,6 +14,8 @@ import {
   MessageSquareReply,
   MoreHorizontal,
   Heart,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
 
@@ -104,6 +106,9 @@ const defaultTypeConfig = {
   icon: MessageSquareReply,
 };
 
+const MESSAGE_TRUNCATE_LEN = 180;
+const RESOLUTION_TRUNCATE_LEN = 80;
+
 export default function NotificationCard({
   notification,
   isSelected = false,
@@ -114,6 +119,8 @@ export default function NotificationCard({
   const [, setImageError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [messageExpanded, setMessageExpanded] = useState(false);
+  const [resolutionExpanded, setResolutionExpanded] = useState(false);
   const [markAsRead] = useMarkAsReadMutation();
   const [markAsUnread] = useMarkAsUnreadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
@@ -418,19 +425,73 @@ export default function NotificationCard({
                   {chapterDisplayName && ` · ${chapterDisplayName}`}
                 </p>
               )}
-              <p
-                className={`text-xs line-clamp-2 mt-0.5 leading-relaxed ${
-                  notification.isRead
-                    ? "text-[var(--muted-foreground)]/80"
-                    : "text-[var(--foreground)]/80"
-                }`}
-              >
-                {displayMessage}
-              </p>
-              {showResolutionBlock && resolutionText && (
-                <p className="mt-1 text-[10px] text-[var(--muted-foreground)] line-clamp-1 pl-2 border-l border-[var(--border)]">
-                  {resolutionText}
+              <div className="mt-0.5">
+                <p
+                  className={`text-xs leading-relaxed ${
+                    notification.isRead
+                      ? "text-[var(--muted-foreground)]/80"
+                      : "text-[var(--foreground)]/80"
+                  } ${!messageExpanded && displayMessage.length > MESSAGE_TRUNCATE_LEN ? "line-clamp-2" : ""}`}
+                >
+                  {displayMessage}
                 </p>
+                {displayMessage.length > MESSAGE_TRUNCATE_LEN && (
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setMessageExpanded(prev => !prev);
+                    }}
+                    className="mt-0.5 flex items-center gap-0.5 text-[10px] font-medium text-[var(--primary)] hover:underline"
+                  >
+                    {messageExpanded ? (
+                      <>
+                        <ChevronUp className="w-3 h-3" />
+                        Свернуть
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-3 h-3" />
+                        Развернуть
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              {showResolutionBlock && resolutionText && (
+                <div className="mt-1">
+                  <p
+                    className={`text-[10px] text-[var(--muted-foreground)] pl-2 border-l border-[var(--border)] ${
+                      !resolutionExpanded && resolutionText.length > RESOLUTION_TRUNCATE_LEN
+                        ? "line-clamp-1"
+                        : ""
+                    }`}
+                  >
+                    {resolutionText}
+                  </p>
+                  {resolutionText.length > RESOLUTION_TRUNCATE_LEN && (
+                    <button
+                      type="button"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setResolutionExpanded(prev => !prev);
+                      }}
+                      className="mt-0.5 flex items-center gap-0.5 text-[10px] font-medium text-[var(--primary)] hover:underline"
+                    >
+                      {resolutionExpanded ? (
+                        <>
+                          <ChevronUp className="w-3 h-3" />
+                          Свернуть
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3 h-3" />
+                          Развернуть
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 

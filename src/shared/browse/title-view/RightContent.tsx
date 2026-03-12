@@ -746,11 +746,16 @@ export function RightContent({
           );
         }
 
-        // Используем данные прогресса с сервера, если доступны, иначе считаем локально
+        // Используем данные прогресса с сервера, если доступны, иначе считаем локально.
+        // totalChapters — максимум из сервера и фактического числа глав, чтобы не показывать «510 из 509»
         const serverProgress = titleProgressData?.data;
-        const totalChaptersCount = serverProgress?.totalChapters ?? chapters.length;
-        const readChaptersCount =
+        const totalChaptersCount = Math.max(
+          serverProgress?.totalChapters ?? 0,
+          chapters.length,
+        ) || chapters.length;
+        const readChaptersCountRaw =
           serverProgress?.chaptersRead ?? chapters.filter(ch => isChapterRead(ch._id || "")).length;
+        const readChaptersCount = Math.min(readChaptersCountRaw, totalChaptersCount);
         const progressPercent =
           serverProgress?.progressPercent ??
           (totalChaptersCount > 0 ? Math.round((readChaptersCount / totalChaptersCount) * 100) : 0);

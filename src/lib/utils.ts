@@ -103,3 +103,16 @@ export function slugify(text: string): string {
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+/**
+ * Извлекает сообщение об ошибке из ответа API / SerializedError для показа пользователю
+ */
+export function getErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === "string") return err;
+  if (err && typeof err === "object") {
+    const o = err as { data?: { message?: string }; message?: string };
+    const msg = o.data?.message ?? o.message;
+    if (typeof msg === "string") return msg;
+  }
+  return fallback;
+}

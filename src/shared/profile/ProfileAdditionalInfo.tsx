@@ -1,3 +1,5 @@
+"use client";
+
 import { UserProfile } from "@/types/user";
 import {
   Calendar,

@@ -3,8 +3,10 @@ import { baseQueryWithReauth } from "./baseQueryWithReauth";
 import type { Decoration } from "@/api/shop";
 import { normalizeRarity } from "@/api/shop";
 import type { CreateDecorationDto, UpdateDecorationDto } from "@/api/shop";
+import type { CardDeck } from "@/types/games";
 
 const SHOP_TAG = "Shop" as const;
+const SHOP_DECKS_TAG = "ShopDecks" as const;
 
 type DecorationType = "avatar" | "frame" | "background" | "card";
 
@@ -148,7 +150,7 @@ function parseDecorationsResponse(response: unknown): Decoration[] {
 export const shopApi = createApi({
   reducerPath: "shopApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: [SHOP_TAG],
+  tagTypes: [SHOP_TAG, SHOP_DECKS_TAG],
   endpoints: builder => ({
     /** Админский список украшений (может включать недоступные в магазине). */
     getAdminDecorations: builder.query<Decoration[], void>({
@@ -179,6 +181,75 @@ export const shopApi = createApi({
         Array.isArray(result)
           ? [...result.map(({ id }) => ({ type: SHOP_TAG, id })), { type: SHOP_TAG, id: "LIST" }]
           : [{ type: SHOP_TAG, id: "LIST" }],
+    }),
+
+    getCardDecks: builder.query<{ decks: CardDeck[] }, void>({
+      query: () => "/shop/decks",
+      transformResponse: (response: { data?: { decks?: Record<string, unknown>[] } }) => ({
+        decks: Array.isArray(response?.data?.decks)
+          ? response.data.decks.map((deck) => ({
+              _id: String(deck._id ?? ""),
+              id: String(deck._id ?? deck.id ?? ""),
+              name: String(deck.name ?? ""),
+              description: String(deck.description ?? ""),
+              imageUrl: String(deck.imageUrl ?? ""),
+              price: Number(deck.price ?? 0),
+              isAvailable: Boolean(deck.isAvailable ?? true),
+              quantity:
+                deck.quantity == null ? undefined : Number(deck.quantity),
+              titleId:
+                typeof deck.titleId === "string"
+                  ? deck.titleId
+                  : typeof deck.titleId === "object" && deck.titleId
+                    ? String((deck.titleId as { _id?: unknown })._id ?? "")
+                    : null,
+              titleName:
+                typeof deck.titleId === "object" && deck.titleId
+                  ? String(
+                      (deck.titleId as { title?: unknown; name?: unknown }).title ??
+                        (deck.titleId as { name?: unknown }).name ??
+                        "",
+                    )
+                  : "",
+              cardsPerOpen: Number(deck.cardsPerOpen ?? 3),
+              titleFocusChance: Number(deck.titleFocusChance ?? 0.75),
+              isTitleDeck: Boolean(deck.isTitleDeck ?? deck.titleId),
+              isPremium: Boolean(deck.isPremium ?? deck.titleId),
+              pityThreshold: Number(deck.pityThreshold ?? 0),
+              pityTargetRarity: String(deck.pityTargetRarity ?? ""),
+              pityProgress: Number(deck.pityProgress ?? 0),
+              pityRemaining: Number(deck.pityRemaining ?? 0),
+            }))
+          : [],
+      }),
+      providesTags: [{ type: SHOP_DECKS_TAG, id: "LIST" }],
+    }),
+
+    openCardDeck: builder.mutation<
+      {
+        deck: CardDeck;
+        openedCards: { isNew: boolean; shardsGained: number; card: unknown }[];
+        balance: number;
+        pity?: {
+          triggered: boolean;
+          hitTarget: boolean;
+          threshold: number;
+          targetRarity: string;
+          progress: number;
+          remaining: number;
+        };
+      },
+      string
+    >({
+      query: deckId => ({
+        url: `/shop/decks/${deckId}/open`,
+        method: "POST",
+      }),
+      transformResponse: (response: { data?: any }) => response.data,
+      invalidatesTags: [
+        { type: SHOP_DECKS_TAG, id: "LIST" },
+        { type: SHOP_TAG, id: "PROFILE" },
+      ],
     }),
 
     createDecoration: builder.mutation<Decoration, CreateDecorationDto>({
@@ -423,6 +494,8 @@ export const {
   useGetAdminDecorationsQuery,
   useGetDecorationsQuery,
   useGetDecorationsByTypeQuery,
+  useGetCardDecksQuery,
+  useOpenCardDeckMutation,
   useGetUserProfileDecorationsQuery,
   useCreateDecorationMutation,
   useCreateDecorationWithImageMutation,

@@ -111,6 +111,7 @@ export function ShopSuggestionsBlock() {
     rarity: "common",
     authorId: s.authorId,
     authorUsername: s.authorUsername,
+    authorLevel: s.authorLevel,
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -425,13 +426,13 @@ export function ShopSuggestionsBlock() {
             Пока нет предложений. Станьте первым!
           </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4 justify-items-stretch items-start">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4 justify-items-stretch items-stretch">
             {suggestions.map((s) => (
               <div
                 key={s.id}
-                className="relative group w-full min-w-0 flex flex-col justify-center"
+                className="relative group w-full min-w-0 flex flex-col items-center justify-start overflow-hidden"
               >
-                <div className="relative w-full min-w-0 flex justify-center">
+                <div className="relative w-full min-w-0 flex flex-col items-center justify-start overflow-hidden">
                   {(isAdmin ||
                     (isAuthenticated &&
                       s.status === "pending" &&
@@ -482,16 +483,47 @@ export function ShopSuggestionsBlock() {
                     cultivatorLevel={s.authorLevel ?? 0}
                   />
                 </div>
-                {isAuthenticated && s.status === "pending" && (
-                  <div
-                    className="p-2 border-t border-[var(--border)] bg-[var(--card)] rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl -mt-px"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-[var(--muted-foreground)]">
-                        <ThumbsUp className="w-3 h-3 shrink-0" aria-hidden />
-                        {s.votesCount}
-                      </span>
+                <div
+                  className="p-2 border-t border-[var(--border)] bg-[var(--card)] rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl -mt-px space-y-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border ${
+                        s.status === "accepted"
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                          : s.status === "rejected"
+                            ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                            : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                      }`}
+                    >
+                      {s.status === "accepted"
+                        ? "Принято"
+                        : s.status === "rejected"
+                          ? "Отклонено"
+                          : "На голосовании"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+                      <ThumbsUp className="w-3 h-3 shrink-0" aria-hidden />
+                      {s.votesCount}
+                    </span>
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+                    {s.authorUsername
+                      ? `Автор: ${s.authorUsername}${s.authorLevel ? ` · ур. ${s.authorLevel}` : ""}`
+                      : s.authorLevel
+                        ? `Автор: уровень ${s.authorLevel}`
+                        : "Автор скрыт"}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewSuggestionId(s.id)}
+                      className="py-1 px-2 rounded-lg text-[10px] font-medium border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                    >
+                      Предпросмотр
+                    </button>
+                    {isAuthenticated && s.status === "pending" ? (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -504,9 +536,9 @@ export function ShopSuggestionsBlock() {
                       >
                         {s.userHasVoted ? "Голос учтён" : "Голосовать"}
                       </button>
-                    </div>
+                    ) : null}
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>

@@ -302,7 +302,7 @@ export default function NotificationsPage() {
     <>
       <Header />
       <main className="min-h-screen bg-[var(--background)]">
-        <div className="w-full max-w-2xl mx-auto px-4 py-6 sm:py-8">
+        <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:py-8">
           {/* Компактный заголовок */}
           <div className="flex items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3 min-w-0">

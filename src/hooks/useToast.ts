@@ -4,10 +4,14 @@ export const useToast = () => {
   const { addToast } = useToastContext();
 
   const toast = {
-    success: (message: string, duration?: number) => addToast("success", message, duration),
-    error: (message: string, duration?: number) => addToast("error", message, duration),
-    warning: (message: string, duration?: number) => addToast("warning", message, duration),
-    info: (message: string, duration?: number) => addToast("info", message, duration),
+    success: (message: string, duration?: number, options?: { icon?: string }) =>
+      addToast("success", message, duration, options),
+    error: (message: string, duration?: number, options?: { icon?: string }) =>
+      addToast("error", message, duration, options),
+    warning: (message: string, duration?: number, options?: { icon?: string }) =>
+      addToast("warning", message, duration, options),
+    info: (message: string, duration?: number, options?: { icon?: string }) =>
+      addToast("info", message, duration, options),
   };
 
   return toast;

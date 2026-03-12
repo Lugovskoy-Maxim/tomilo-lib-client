@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   Edit2,
   X,
+  Lock,
+  Library,
 } from "lucide-react";
 import {
   useGetCharacterByIdQuery,
@@ -19,6 +21,7 @@ import {
   useProposeCharacterImageMutation,
 } from "@/store/api/charactersApi";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
+import { useGetProfileCardsQuery } from "@/store/api/gamesApi";
 import {
   characterRoleLabels,
   characterRoleColors,
@@ -29,13 +32,18 @@ import { Header, Footer } from "@/widgets";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { CharacterProposalForm } from "@/shared/browse/character-form/CharacterProposalForm";
+import { getDecorationImageUrls } from "@/api/shop";
+import type { CardStageRank } from "@/types/games";
+
+const CARD_STAGE_ORDER: CardStageRank[] = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"];
 
 export default function CharacterPageClient() {
   const params = useParams();
   const id = params.id as string;
   const [showEditForm, setShowEditForm] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const toast = useToast();
+  const isAdmin = (user as { role?: string } | null)?.role === "admin";
 
   const { data: character, isLoading, isError } = useGetCharacterByIdQuery(id, {
     skip: !id,
@@ -44,9 +52,25 @@ export default function CharacterPageClient() {
     { id: character?.titleId ?? "" },
     { skip: !character?.titleId },
   );
+  const { data: profileCardsResponse } = useGetProfileCardsQuery(undefined, {
+    skip: !isAuthenticated,
+  });
   const [proposeUpdate, { isLoading: isProposingUpdate }] =
     useProposeCharacterUpdateMutation();
   const [proposeImage] = useProposeCharacterImageMutation();
+
+  const relatedProfileCard = useMemo(() => {
+    const cards = profileCardsResponse?.data?.cards ?? [];
+    return cards.find(card => card.characterId === id) ?? null;
+  }, [id, profileCardsResponse?.data?.cards]);
+
+  const unlockedStages = useMemo(() => {
+    if (!relatedProfileCard) return new Set<CardStageRank>();
+    const currentIndex = CARD_STAGE_ORDER.indexOf(relatedProfileCard.currentStage);
+    return new Set(
+      CARD_STAGE_ORDER.filter((_, index) => currentIndex >= 0 && index <= currentIndex),
+    );
+  }, [relatedProfileCard]);
 
   if (isLoading) {
     return (
@@ -111,13 +135,22 @@ export default function CharacterPageClient() {
     <div className="min-h-screen bg-[var(--background)] flex flex-col">
       <Header />
       <main className="max-w-6xl mx-auto w-full px-4 py-6 sm:py-8 flex-1">
-        <Link
-          href={title?.slug ? `/titles/${title.slug}` : "/"}
-          className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] mb-6"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          {title?.name ?? "К тайтлу"}
-        </Link>
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Link
+            href="/characters"
+            className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+          >
+            <Library className="w-4 h-4" />
+            Все персонажи
+          </Link>
+          <Link
+            href={title?.slug ? `/titles/${title.slug}` : "/"}
+            className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            {title?.name ?? "К тайтлу"}
+          </Link>
+        </div>
 
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6 space-y-6">
@@ -282,14 +315,104 @@ export default function CharacterPageClient() {
             </div>
 
             <div className="pt-4 border-t border-[var(--border)]">
-              <h2 className="flex items-center gap-2 text-sm font-medium text-[var(--foreground)] mb-3">
-                <Sparkles className="w-4 h-4 text-[var(--primary)]" />
-                Декорации
-              </h2>
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Связанных декораций пока нет. Если в магазине появятся рамки или
-                аватарки с этим персонажем, они отобразятся здесь.
-              </p>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="flex items-center gap-2 text-sm font-medium text-[var(--foreground)]">
+                  <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+                  Карточки персонажа
+                </h2>
+                {isAdmin ? (
+                  <Link
+                    href={`/admin?tab=games&gamesTab=cards&characterId=${character._id}&characterName=${encodeURIComponent(character.name)}`}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/10 px-3 py-2 text-xs font-medium text-[var(--primary)] hover:bg-[var(--primary)]/15"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    Добавить карточку
+                  </Link>
+                ) : null}
+              </div>
+              {!isAuthenticated ? (
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  Войдите в аккаунт, чтобы увидеть прогресс карточек этого персонажа.
+                </p>
+              ) : !relatedProfileCard ? (
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  У вас пока нет карточки этого персонажа. Когда она выпадет или
+                  откроется из колоды, стадии появятся здесь.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)]/35 p-3">
+                    <p className="text-sm font-medium text-[var(--foreground)]">
+                      {relatedProfileCard.name}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                      Открытая стадия: {relatedProfileCard.currentStage}. Цветные стадии уже
+                      получены, серые пока заблокированы.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {relatedProfileCard.stages.map(stage => {
+                      const isUnlocked = unlockedStages.has(stage.rank);
+                      const imageUrl = stage.imageUrl
+                        ? getDecorationImageUrls(stage.imageUrl).primary
+                        : "";
+                      return (
+                        <div
+                          key={stage.rank}
+                          className={`rounded-xl border p-3 transition-colors ${
+                            isUnlocked
+                              ? "border-[var(--primary)]/30 bg-[var(--secondary)]/50"
+                              : "border-[var(--border)] bg-[var(--background)]/50"
+                          }`}
+                        >
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                isUnlocked
+                                  ? "bg-emerald-500/15 text-emerald-600"
+                                  : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                              }`}
+                            >
+                              {stage.rank}
+                            </span>
+                            {!isUnlocked ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-[var(--muted-foreground)]">
+                                <Lock className="w-3 h-3" />
+                                Закрыта
+                              </span>
+                            ) : null}
+                          </div>
+                          <div
+                            className={`relative aspect-[3/4] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--muted)] ${
+                              isUnlocked ? "" : "grayscale opacity-55"
+                            }`}
+                          >
+                            {imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={`${character.name} ${stage.rank}`}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-xs text-[var(--muted-foreground)]">
+                                Нет изображения
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-2 space-y-1">
+                            <p className="text-xs font-medium text-[var(--foreground)]">
+                              Стадия {stage.rank}
+                            </p>
+                            <p className="text-[11px] text-[var(--muted-foreground)]">
+                              Нужен уровень: {stage.requiredLevel}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {isAuthenticated && (

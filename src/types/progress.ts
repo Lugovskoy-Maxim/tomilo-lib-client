@@ -76,6 +76,26 @@ export interface UnlockedAchievementFromServer {
   maxProgress: number;
 }
 
+export interface ReadingDropItem {
+  itemId: string;
+  count: number;
+  name?: string;
+  icon?: string;
+}
+
+export interface ReadingCardDropItem {
+  id: string;
+  name: string;
+  characterId?: string | null;
+  characterName?: string;
+  titleId?: string | null;
+  titleName?: string;
+  currentStage: string;
+  stageImageUrl?: string;
+  isNew?: boolean;
+  shardsGained?: number;
+}
+
 export interface ReadingProgressResponse {
   user: {
     _id: string;
@@ -87,4 +107,6 @@ export interface ReadingProgressResponse {
   oldRank?: RankInfoFromServer;
   newRank?: RankInfoFromServer;
   newAchievements?: UnlockedAchievementFromServer[];
+  readingDrops?: ReadingDropItem[];
+  readingCardDrops?: ReadingCardDropItem[];
 }

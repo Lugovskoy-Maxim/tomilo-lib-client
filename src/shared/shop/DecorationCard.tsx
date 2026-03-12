@@ -115,6 +115,28 @@ const PREVIEW_LABELS: Record<"avatar" | "frame" | "background" | "card", string>
   card: "В таблице лидеров",
 };
 
+const TYPE_META: Record<
+  "avatar" | "frame" | "background" | "card",
+  { shortLabel: string; previewHint: string }
+> = {
+  avatar: {
+    shortLabel: "Аватар",
+    previewHint: "Круглая иконка профиля и комментариев",
+  },
+  frame: {
+    shortLabel: "Рамка",
+    previewHint: "Обрамление аватара в профиле и комментариях",
+  },
+  background: {
+    shortLabel: "Фон",
+    previewHint: "Баннер шапки профиля",
+  },
+  card: {
+    shortLabel: "Карточка",
+    previewHint: "Плашка профиля и лидерборда",
+  },
+};
+
 interface DecorationPreviewModalProps {
   decoration: Decoration;
   imageSrc: string;
@@ -235,12 +257,40 @@ function DecorationPreviewModal({
     </div>
   );
 
+  const renderAuthorSummary = (size: "compact" | "regular" = "regular") => {
+    const name = displayAuthorName ?? decoration.authorUsername ?? null;
+    const textClass =
+      size === "compact"
+        ? "text-[10px] sm:text-xs text-[var(--muted-foreground)]"
+        : "text-sm text-[var(--muted-foreground)]";
+
+    if (authorDisplay === "cultivator") {
+      return (
+        <div className="space-y-0.5">
+          {name ? <p className={textClass}>Автор: {name}</p> : null}
+          <p className={textClass}>Культиватор: {getRankDisplay(cultivatorLevel ?? 0)}</p>
+          {(displayAuthorLevel ?? cultivatorLevel) ? (
+            <p className={textClass}>Уровень: {displayAuthorLevel ?? cultivatorLevel}</p>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (!name && displayAuthorLevel == null) return null;
+
+    return (
+      <div className="space-y-0.5">
+        {name ? <p className={textClass}>Автор: {name}</p> : null}
+        {displayAuthorLevel != null ? <p className={textClass}>Уровень {displayAuthorLevel}</p> : null}
+      </div>
+    );
+  };
+
   const renderPreviewProfile = () => {
     if (displayType === "card") {
       return (
         <div
-          className="relative flex flex-col items-center justify-end rounded-2xl border-2 border-[var(--border)] overflow-hidden bg-[var(--card)]"
-          style={{ aspectRatio: "9 / 16", maxWidth: "160px" }}
+          className="relative flex flex-col items-center justify-end rounded-2xl border-2 border-[var(--border)] overflow-hidden bg-[var(--card)] w-[160px] aspect-[3/5]"
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-30"
@@ -390,7 +440,7 @@ function DecorationPreviewModal({
 
     if (displayType === "card") {
       return (
-        <div className="relative w-full max-w-[200px] mx-auto rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)] aspect-[3/4]">
+        <div className="relative w-full max-w-[280px] sm:max-w-[320px] mx-auto rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)] aspect-[3/5]">
           {isImageLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
               <span className="w-6 h-6 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -637,7 +687,16 @@ function DecorationPreviewModal({
                 {PREVIEW_LABELS[displayType]}
               </div>
               <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] min-h-0 flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2.5 py-1 text-[11px] font-medium text-[var(--foreground)]">
+                    {TYPE_META[displayType].shortLabel}
+                  </span>
+                  <span className="text-xs text-[var(--muted-foreground)]">
+                    {TYPE_META[displayType].previewHint}
+                  </span>
+                </div>
                 {renderPreviewProfile()}
+                {renderAuthorSummary()}
                 {/* Кнопка действия внутри блока предпросмотра */}
                 {!hidePurchase && (
                   <div className="flex items-center justify-center gap-2 pt-2 border-t border-[var(--border)]">
@@ -747,6 +806,34 @@ export function DecorationCard({
     authorDisplay === "cultivator"
       ? (cultivatorLevel ?? fetchedLevel ?? 0)
       : cultivatorLevel ?? 0;
+  const renderAuthorSummary = (size: "compact" | "regular" = "regular") => {
+    const name = displayAuthorName ?? decoration.authorUsername ?? null;
+    const textClass =
+      size === "compact"
+        ? "text-[10px] sm:text-xs text-[var(--muted-foreground)]"
+        : "text-sm text-[var(--muted-foreground)]";
+
+    if (authorDisplay === "cultivator") {
+      return (
+        <div className="space-y-0.5">
+          {name ? <p className={textClass}>Автор: {name}</p> : null}
+          <p className={textClass}>Культиватор: {getRankDisplay(effectiveCultivatorLevel)}</p>
+          {(displayAuthorLevel ?? effectiveCultivatorLevel) ? (
+            <p className={textClass}>Уровень: {displayAuthorLevel ?? effectiveCultivatorLevel}</p>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (!name && displayAuthorLevel == null) return null;
+
+    return (
+      <div className="space-y-0.5">
+        {name ? <p className={textClass}>Автор: {name}</p> : null}
+        {displayAuthorLevel != null ? <p className={textClass}>Уровень {displayAuthorLevel}</p> : null}
+      </div>
+    );
+  };
   const displayType = sectionType ?? decoration.type;
   const { success, error: showError } = useToast();
   const actionInProgressRef = useRef(false);
@@ -1040,7 +1127,7 @@ export function DecorationCard({
         <article
           ref={cardRef}
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full min-w-[100px] sm:min-w-[140px] shrink aspect-square w-[240px] h-[241px] rounded-lg sm:rounded-xl md:rounded-2xl border-2 bg-[var(--card)] overflow-hidden cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full min-w-0 self-start rounded-lg sm:rounded-xl md:rounded-2xl border-2 bg-[var(--card)] overflow-hidden cursor-pointer ${rarityStyle.border}`}
         >
           <div
             className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
@@ -1051,12 +1138,12 @@ export function DecorationCard({
             aria-hidden
           />
 
-          <div className="relative flex flex-col p-2 justify-center items-center">
-            <div className="flex-[0] min-h-0 flex items-center justify-center h-[180px] w-[180px]">
+          <div className="relative flex h-full flex-col">
+            <div className="relative flex aspect-square items-center justify-center px-3 py-4 sm:px-4 sm:py-5">
               {/* Аватар: вложенный квадрат (внешний вписан, внутренний 100% — строго 1:1); рамка: 1:1.2 */}
               {isCircleCrop ? (
-                <div className="relative w-full h-full min-w-0 min-h-0 max-w-[70%] max-h-[70%] aspect-square flex-shrink-0">
-                  <div className="relative w-full h-0 pb-[100%] flex-shrink-0">
+                <div className="relative aspect-square h-full w-full max-h-[72%] max-w-[72%] shrink-0">
+                  <div className="relative h-0 w-full pb-[100%] flex-shrink-0">
                     <div
                       className="absolute inset-0 overflow-hidden"
                       style={{ borderRadius: "50%" }}
@@ -1121,7 +1208,8 @@ export function DecorationCard({
                   )}
                 </div>
               ) : (
-                <div className="relative w-[78%] sm:w-[82%] h-0 pb-[93.6%] sm:pb-[98.4%] flex-shrink-0">
+                <div className="relative h-full w-full max-h-[82%] max-w-[82%] shrink-0">
+                  <div className="relative h-0 w-full pb-[120%]">
                   <div className="absolute inset-0">
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div
@@ -1191,38 +1279,20 @@ export function DecorationCard({
                     </span>
                   )}
                 </div>
+                </div>
               )}
             </div>
 
-            <div className="flex-shrink-0 w-full border-t border-[var(--border)] bg-[var(--card)]/80 px-1 py-1.5 sm:px-1.5 sm:py-2 flex flex-col justify-end gap-0.5 rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl">
+            <div className="w-full border-t border-[var(--border)] bg-[var(--card)]/90 px-2 py-2 sm:px-2.5 sm:py-2.5 flex flex-col gap-0.5 rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl">
               <h3
                 className="font-semibold text-[10px] sm:text-xs leading-tight line-clamp-1 text-center text-[var(--foreground)]"
                 title={decoration.name}
               >
                 {decoration.name}
               </h3>
-              {authorDisplay === "cultivator" && (
-                <>
-                  <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
-                    Культиватор
-                  </p>
-                  <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center truncate" title={getRankDisplay(effectiveCultivatorLevel)}>
-                    {getRankDisplay(effectiveCultivatorLevel)}
-                  </p>
-                </>
-              )}
-              {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
-                <>
-                  <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
-                    Автор: {displayAuthorName ?? decoration.authorUsername}
-                  </p>
-                  {displayAuthorLevel != null && (
-                    <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
-                      Уровень {displayAuthorLevel}
-                    </p>
-                  )}
-                </>
-              )}
+              <div className="text-center">
+                {renderAuthorSummary("compact")}
+              </div>
               {showStock && (
                 <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
                   {decoration.stock! <= 0
@@ -1288,7 +1358,7 @@ export function DecorationCard({
             alt={decoration.name}
             fill
             unoptimized
-            className={`object-cover transition-transform duration-300 group-hover/card:scale-105 ${
+            className={`${displayType === "card" ? "object-contain" : "object-cover"} object-center transition-transform duration-300 group-hover/card:scale-105 ${
               isImageLoading ? "opacity-0" : "opacity-100"
             }`}
             onLoad={() => setIsImageLoading(false)}
@@ -1355,6 +1425,14 @@ export function DecorationCard({
     return (
       <div className={`flex flex-col ${isLarge ? "p-4 sm:p-5 gap-2.5" : "p-2.5 sm:p-3 gap-2"}`}>
         <div className="min-w-0">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-0.5 text-[10px] font-medium text-[var(--foreground)]">
+                {TYPE_META[displayType].shortLabel}
+              </span>
+              <span className="text-[10px] text-[var(--muted-foreground)]">
+                {TYPE_META[displayType].previewHint}
+              </span>
+            </div>
           <h3
             className={`font-semibold leading-tight ${isLarge ? "text-base sm:text-lg line-clamp-2" : "text-xs sm:text-sm line-clamp-1"} text-[var(--foreground)]`}
             title={decoration.name}
@@ -1369,28 +1447,7 @@ export function DecorationCard({
                   {decoration.description}
                 </p>
               )}
-              {authorDisplay === "cultivator" && (
-                <>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                    Культиватор
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                    {getRankDisplay(effectiveCultivatorLevel)}
-                  </p>
-                </>
-              )}
-              {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
-                <>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                    Автор: {displayAuthorName ?? decoration.authorUsername}
-                  </p>
-                  {displayAuthorLevel != null && (
-                    <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                      Уровень {displayAuthorLevel}
-                    </p>
-                  )}
-                </>
-              )}
+              {renderAuthorSummary("compact")}
           {showStock && (
             <p className={`${isLarge ? "text-xs" : "text-[11px]"} text-[var(--muted-foreground)]`}>
               {decoration.stock! <= 0
@@ -1562,28 +1619,7 @@ export function DecorationCard({
                   {decoration.description}
                 </p>
               )}
-              {authorDisplay === "cultivator" && (
-                <>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                    Культиватор
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                    {getRankDisplay(effectiveCultivatorLevel)}
-                  </p>
-                </>
-              )}
-              {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
-                <>
-                  <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                    Автор: {displayAuthorName ?? decoration.authorUsername}
-                  </p>
-                  {displayAuthorLevel != null && (
-                    <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
-                      Уровень {displayAuthorLevel}
-                    </p>
-                  )}
-                </>
-              )}
+              {renderAuthorSummary("compact")}
               {showStock && (
                 <p className="text-[11px] text-[var(--muted-foreground)]">
                   {decoration.stock! <= 0

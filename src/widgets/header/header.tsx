@@ -36,13 +36,16 @@ import {
   Users,
   Ticket,
   Loader2,
+  Gamepad2,
 } from "lucide-react";
 import Link from "next/link";
 
 const HEADER_DROPDOWN_ITEMS = [
   { href: "/about", label: "О нас", icon: Info },
   { href: "/contact", label: "Контакты", icon: Mail },
+  { href: "/characters", label: "Персонажи", icon: Users },
   { href: "/tomilo-shop", label: "Магазин", icon: ShoppingBag },
+  { href: "/games", label: "Мини-игры", icon: Gamepad2 },
   { href: "/dmca", label: "Авторские права (DMCA)", icon: Shield },
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
   { href: "/privacy-policy", label: "Политика конфиденциальности", icon: Lock },
@@ -471,6 +474,32 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
+                            href="/characters"
+                            onClick={closeMobileMenu}
+                            className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
+                            data-active={
+                              pathname === "/characters" || pathname?.startsWith("/characters/")
+                                ? "true"
+                                : undefined
+                            }
+                          >
+                            <span
+                              className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300"
+                              aria-hidden
+                            >
+                              <Users className="w-4 h-4" />
+                            </span>
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">
+                              Персонажи
+                            </span>
+                            <ChevronRight
+                              className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250"
+                              aria-hidden
+                            />
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
                             href="/tomilo-shop"
                             onClick={closeMobileMenu}
                             className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
@@ -497,11 +526,11 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            href="/characters"
+                            href="/games"
                             onClick={closeMobileMenu}
                             className="mobile-menu-item relative flex items-center gap-2.5 min-h-11 py-1 px-3 rounded-[calc(var(--radius)-2px)] text-sm font-medium text-[var(--foreground)] no-underline w-full text-left overflow-hidden cursor-pointer bg-transparent border border-transparent transition-all duration-200 [&::-webkit-tap-highlight-color]:transparent"
                             data-active={
-                              pathname === "/characters" || pathname?.startsWith("/characters/")
+                              pathname === "/games" || pathname?.startsWith("/games/")
                                 ? "true"
                                 : undefined
                             }
@@ -510,10 +539,10 @@ export default function Header() {
                               className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300"
                               aria-hidden
                             >
-                              <Users className="w-4 h-4" />
+                              <Gamepad2 className="w-4 h-4" />
                             </span>
                             <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">
-                              Персонажи
+                              Мини-игры
                             </span>
                             <ChevronRight
                               className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250"
