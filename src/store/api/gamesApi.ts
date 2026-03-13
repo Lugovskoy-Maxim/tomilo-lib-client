@@ -264,6 +264,8 @@ export const gamesApi = createApi({
     getAlchemyStatus: builder.query<
       ApiResponseDto<{
         canCraft: boolean;
+        serverNow: string;
+        resetAt: string;
         lastPillCraftedAt: string | null;
         craftsPerDay: number;
         attemptsToday: number;
@@ -288,6 +290,13 @@ export const gamesApi = createApi({
         quality: "common" | "quality" | "legendary";
         rewards: { exp?: number; coins?: number };
         itemsGained?: { itemId: string; count: number; name?: string; icon?: string }[];
+        balance?: number;
+        rewardSummary?: {
+          type: "coins" | "exp" | "item";
+          label: string;
+          amount?: number;
+          icon?: string;
+        }[];
         alchemy?: { level: number; exp: number; expToNext: number; attemptsLeft: number };
         mishap?: { happened: boolean; preventedByStabilizer?: boolean; chancePercent?: number };
       }>,
@@ -298,7 +307,7 @@ export const gamesApi = createApi({
         method: "POST",
         body: { recipeId },
       }),
-      invalidatesTags: ["Alchemy", "ProfileDisciples"],
+      invalidatesTags: ["Alchemy", "ProfileDisciples", "ProfileInventory"],
     }),
 
     alchemyUpgradeCauldron: builder.mutation<ApiResponseDto<{ ok: boolean; tier: number }>, void>({
@@ -323,6 +332,15 @@ export const gamesApi = createApi({
         itemsGained?: { itemId: string; count: number; name?: string; icon?: string }[];
         twistOfFate?: boolean;
         compensationCoins?: number;
+        balance?: number;
+        selectedSegmentIndex?: number;
+        nextSpinAt?: string | null;
+        rewardSummary?: {
+          type: "coins" | "exp" | "item";
+          label: string;
+          amount?: number;
+          icon?: string;
+        }[];
       }>,
       void
     >({
@@ -330,7 +348,7 @@ export const gamesApi = createApi({
         url: "/users/profile/wheel/spin",
         method: "POST",
       }),
-      invalidatesTags: ["Wheel", "ProfileDisciples"],
+      invalidatesTags: ["Wheel", "ProfileDisciples", "ProfileInventory"],
     }),
   }),
 });

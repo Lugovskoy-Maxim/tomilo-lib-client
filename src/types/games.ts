@@ -51,11 +51,25 @@ export interface ProfileCard {
     nextStageUpgradeCoins: number;
     nextStageUpgradeItemId: string;
     nextStageUpgradeItemCount: number;
+    nextStageShardCost?: number;
     nextStageSuccessChance: number;
     canUpgradeByLevel: boolean;
     hasNextStageImage: boolean;
     hasUpgradeMaterials: boolean;
     hasCoins: boolean;
+    upgradeBlockReason?:
+      | "max_stage"
+      | "missing_stage_image"
+      | "disciple_level_too_low"
+      | "not_enough_coins"
+      | "missing_upgrade_materials"
+      | null;
+    shardProgress?: {
+      current: number;
+      required: number;
+      enough: boolean;
+    };
+    copyOverflow?: number;
     canUpgrade: boolean;
   };
 }
@@ -197,6 +211,8 @@ export interface RecipeIngredient {
   itemId: string;
   count: number;
   have: number;
+  name?: string;
+  icon?: string;
 }
 
 /** Рецепт алхимии */
@@ -208,6 +224,11 @@ export interface AlchemyRecipeEntry {
   coinCost: number;
   ingredients: RecipeIngredient[];
   resultType: string;
+  resultPreview?: {
+    common?: { itemId: string; name?: string; icon?: string };
+    quality?: { itemId: string; name?: string; icon?: string };
+    legendary?: { itemId: string; name?: string; icon?: string };
+  };
   canCraft: boolean;
 }
 
@@ -215,7 +236,14 @@ export interface AlchemyRecipeEntry {
 export interface WheelSegment {
   rewardType: string;
   label: string;
+  weight?: number;
   param?: number | { itemId: string; count: number };
+  icon?: string;
+  rarity?: string;
+  rewardMeta?: {
+    kind: string;
+    valueText?: string;
+  };
 }
 
 /** Ответ колеса судьбы */
@@ -224,4 +252,6 @@ export interface WheelResponse {
   spinCostCoins: number;
   canSpin: boolean;
   lastWheelSpinAt: string | null;
+  nextSpinAt?: string | null;
+  balance?: number;
 }

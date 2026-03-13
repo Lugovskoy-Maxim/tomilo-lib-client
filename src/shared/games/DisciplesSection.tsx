@@ -931,7 +931,7 @@ export function DisciplesSection() {
                                   >
                                     Учить ({t.learnCostCoins}🪙)
                                   </button>
-                                ) : disciples.length < (res?.maxDisciples ?? 999) ? (
+                                ) : (
                                   <button
                                     type="button"
                                     disabled={isEquipping}
@@ -950,7 +950,7 @@ export function DisciplesSection() {
                                   >
                                     {isEq ? "Снять" : "Экипировать"}
                                   </button>
-                                ) : null}
+                                )}
                               </div>
                             </div>
                           );

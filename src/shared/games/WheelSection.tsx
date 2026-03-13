@@ -3,9 +3,11 @@
 import { useGetWheelQuery, useWheelSpinMutation } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
-import { useState, useRef, useCallback, useEffect } from "react";
-import { CircleDot } from "lucide-react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { CircleDot, Coins, Sparkles, Gift, CircleOff, Percent, Clock3 } from "lucide-react";
 import type { WheelSegment } from "@/types/games";
+
+import { GameResultReveal } from "./GameResultReveal";
 
 const WHEEL_SIZE = 280;
 const SEGMENT_COLORS = [
@@ -76,6 +78,8 @@ export function WheelSection() {
   const { data, isLoading, isError, refetch } = useGetWheelQuery();
   const [spin, { isLoading: isSpinning }] = useWheelSpinMutation();
   const [lastReward, setLastReward] = useState<{ label: string; expGained?: number; coinsGained?: number; itemsGained?: { itemId: string; count: number; name?: string; icon?: string }[] } | null>(null);
+  const [recentResults, setRecentResults] = useState<Array<{ label: string; at: string }>>([]);
+  const [revealOpen, setRevealOpen] = useState(false);
   const [spinRotation, setSpinRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const spinDurationMs = 6000;
@@ -88,6 +92,10 @@ export function WheelSection() {
   const wheel = data?.data;
   const segments = wheel?.segments ?? [];
   const canSpin = wheel?.canSpin ?? false;
+  const totalWeight = useMemo(
+    () => segments.reduce((sum, segment) => sum + Math.max(0, Number(segment.weight ?? 0)), 0),
+    [segments],
+  );
 
   const showResultToasts = useCallback(
     (d: { label?: string; twistOfFate?: boolean; compensationCoins?: number; coinsGained?: number; expGained?: number; itemsGained?: { itemId: string; count: number; name?: string; icon?: string }[] }) => {
@@ -115,7 +123,9 @@ export function WheelSection() {
       }
       const n = Math.max(1, segments.length);
       const label = d.label ?? "";
-      const winningIndex = segments.findIndex((s) => (s.label ?? "") === label);
+      const winningIndex = typeof d.selectedSegmentIndex === "number"
+        ? d.selectedSegmentIndex
+        : segments.findIndex((s) => (s.label ?? "") === label);
       const index = winningIndex >= 0 ? winningIndex : 0;
       const sliceAngle = 360 / n;
       const fullSpins = 6;
@@ -126,12 +136,14 @@ export function WheelSection() {
         coinsGained: d.coinsGained,
         itemsGained: d.itemsGained,
       });
+      setRecentResults((prev) => [{ label: d.label ?? "—", at: new Date().toISOString() }, ...prev].slice(0, 6));
       setIsAnimating(true);
       setSpinRotation(landingAngle);
       if (spinEndTimeoutRef.current) clearTimeout(spinEndTimeoutRef.current);
       spinEndTimeoutRef.current = setTimeout(() => {
         spinEndTimeoutRef.current = null;
         setIsAnimating(false);
+        setRevealOpen(true);
         showResultToasts(d);
       }, spinDurationMs);
     } catch (e: unknown) {
@@ -160,43 +172,107 @@ export function WheelSection() {
 
   return (
     <div className="space-y-4">
-      <div className="games-panel text-center py-8">
-        <p className="games-muted mb-4">
-          Один спин в день · Стоимость: <strong className="text-[var(--primary)]">{wheel.spinCostCoins}</strong> монет
-        </p>
-        <div className="relative inline-flex items-center justify-center my-6" style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
-          <div
-            className="absolute inset-0 transition-transform ease-out"
-            style={{
-              transform: `rotate(${spinRotation}deg)`,
-              transitionDuration: isAnimating ? `${spinDurationMs}ms` : "0ms",
-              transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-            }}
-          >
-            <WheelSvg segments={segments} />
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,420px)_1fr]">
+        <div className="games-panel text-center py-8">
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+            <span className="games-badge">1 спин в день</span>
+            <span className="games-badge">Стоимость: {wheel.spinCostCoins} монет</span>
+            {typeof wheel.balance === "number" ? <span className="games-badge">Баланс: {wheel.balance}</span> : null}
           </div>
-          <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 z-10 pointer-events-none"
-            style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
-            aria-hidden
+          {wheel.nextSpinAt ? (
+            <p className="games-muted text-xs mb-2 inline-flex items-center gap-1">
+              <Clock3 className="w-3.5 h-3.5" aria-hidden />
+              Следующий доступ после: <strong className="text-[var(--foreground)]">{wheel.nextSpinAt}</strong>
+            </p>
+          ) : null}
+          <div className="relative inline-flex items-center justify-center my-6" style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
+            <div
+              className="absolute inset-0 transition-transform ease-out"
+              style={{
+                transform: `rotate(${spinRotation}deg)`,
+                transitionDuration: isAnimating ? `${spinDurationMs}ms` : "0ms",
+                transitionTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              }}
+            >
+              <WheelSvg segments={segments} />
+            </div>
+            <div
+              className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 z-10 pointer-events-none"
+              style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
+              aria-hidden
+            >
+              <svg width="32" height="28" viewBox="0 0 32 28" fill="none">
+                <path d="M16 0L32 28H0L16 0z" fill="var(--games-gold-dim, #92400e)" stroke="var(--games-parchment)" strokeWidth="2" />
+              </svg>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSpin}
+            disabled={!canSpin || isSpinning || isAnimating}
+            className="games-wheel-cta inline-flex items-center gap-2"
           >
-            <svg width="32" height="28" viewBox="0 0 32 28" fill="none">
-              <path d="M16 0L32 28H0L16 0z" fill="var(--games-gold-dim, #92400e)" stroke="var(--games-parchment)" strokeWidth="2" />
-            </svg>
+            <CircleDot className={`w-7 h-7 ${isSpinning ? "animate-spin" : ""}`} aria-hidden />
+            {isSpinning ? "Крутим..." : isAnimating ? "Крутится..." : "Крутить колесо"}
+          </button>
+          {!canSpin && wheel.lastWheelSpinAt && (
+            <p className="games-muted text-sm mt-3">Уже использовано сегодня. Завтра — снова.</p>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div className="games-panel">
+            <h3 className="games-panel-title">Пул наград</h3>
+            <div className="grid gap-2">
+              {(wheel.segments ?? []).map((segment, index) => {
+                const chancePercent = totalWeight > 0 ? ((Number(segment.weight ?? 0) / totalWeight) * 100) : 0;
+                const icon =
+                  segment.rewardType === "coins" ? <Coins className="w-4 h-4 text-amber-500" aria-hidden /> :
+                  segment.rewardType === "xp" ? <Sparkles className="w-4 h-4 text-violet-500" aria-hidden /> :
+                  segment.rewardType === "item" ? <Gift className="w-4 h-4 text-sky-500" aria-hidden /> :
+                  <CircleOff className="w-4 h-4 text-slate-500" aria-hidden />;
+                return (
+                  <div key={`${segment.label}-${index}`} className="games-wheel-reward-row">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="games-wheel-reward-icon">
+                        {segment.icon ? <img src={segment.icon} alt="" className="w-5 h-5 rounded object-cover" /> : icon}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-[var(--foreground)] truncate">{segment.label}</div>
+                        <div className="games-muted text-xs">
+                          {segment.rewardMeta?.valueText ? `${segment.rewardMeta.valueText} · ` : ""}
+                          {segment.rarity ? `редкость: ${segment.rarity}` : "награда колеса"}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="inline-flex items-center gap-1 text-xs font-medium text-[var(--foreground)]">
+                        <Percent className="w-3.5 h-3.5 text-[var(--muted-foreground)]" aria-hidden />
+                        {chancePercent.toFixed(1)}%
+                      </div>
+                      <div className="games-muted text-[11px]">вес {segment.weight ?? 0}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="games-panel">
+            <h3 className="games-panel-title">Последние результаты</h3>
+            {recentResults.length === 0 ? (
+              <p className="games-muted text-sm">После первого спина здесь появится локальная история текущей сессии.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {recentResults.map((entry, index) => (
+                  <span key={`${entry.at}-${index}`} className="games-reward-chip">
+                    {entry.label}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleSpin}
-          disabled={!canSpin || isSpinning || isAnimating}
-          className="games-wheel-cta inline-flex items-center gap-2"
-        >
-          <CircleDot className={`w-7 h-7 ${isSpinning ? "animate-spin" : ""}`} aria-hidden />
-          {isSpinning ? "Крутим..." : isAnimating ? "Крутится..." : "Крутить колесо"}
-        </button>
-        {!canSpin && wheel.lastWheelSpinAt && (
-          <p className="games-muted text-sm mt-3">Уже использовано сегодня. Завтра — снова.</p>
-        )}
       </div>
 
       {lastReward && (
@@ -223,11 +299,42 @@ export function WheelSection() {
       <div className="games-panel">
         <h3 className="games-panel-title">Возможные награды</h3>
         <div className="flex flex-wrap gap-2">
-          {(wheel.segments ?? []).map((s: { label: string }, i: number) => (
-            <span key={i} className="games-reward-chip">{s.label}</span>
+          {(wheel.segments ?? []).map((s: { label: string; icon?: string }, i: number) => (
+            <span key={i} className="games-reward-chip inline-flex items-center gap-1">
+              {s.icon ? <img src={s.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
+              {s.label}
+            </span>
           ))}
         </div>
       </div>
+      <GameResultReveal
+        open={revealOpen}
+        title={lastReward?.label ? `Колесо выбрало: ${lastReward.label}` : "Результат колеса"}
+        subtitle="Награды уже начислены. Визуальный reveal завершён, можно оценить итог и вернуться к другим режимам."
+        tone="success"
+        onClose={() => setRevealOpen(false)}
+      >
+        <div className="flex flex-wrap gap-2">
+          {lastReward?.coinsGained != null ? (
+            <span className="games-reward-chip inline-flex items-center gap-1">
+              <Coins className="w-3.5 h-3.5" aria-hidden />
+              +{lastReward.coinsGained} монет
+            </span>
+          ) : null}
+          {lastReward?.expGained != null ? (
+            <span className="games-reward-chip inline-flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" aria-hidden />
+              +{lastReward.expGained} опыта
+            </span>
+          ) : null}
+          {lastReward?.itemsGained?.map((item, index) => (
+            <span key={`${item.itemId}-${index}`} className="games-reward-chip inline-flex items-center gap-1">
+              {item.icon ? <img src={item.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
+              {item.name || item.itemId} ×{item.count}
+            </span>
+          ))}
+        </div>
+      </GameResultReveal>
     </div>
   );
 }

@@ -40,10 +40,11 @@ export default function NavigationHeader({
   void progressPercent;
 
   return (
-    <div
-      className={`fixed top-0 left-0 right-0 bg-[var(--background)]/95 backdrop-blur-md border-b border-[var(--border)] z-50 transition-transform duration-300 ease-out ${
-        showControls ? "translate-y-0" : "-translate-y-full"
+    <header
+      className={`fixed top-0 left-0 right-0 bg-[var(--background)]/95 backdrop-blur-md border-b border-[var(--border)] z-50 transition-opacity duration-300 ease-out ${
+        showControls ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
       }`}
+      aria-hidden={!showControls}
     >
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-2 sm:py-4 min-h-[48px] sm:min-h-[64px] flex items-center">
         <div className="flex flex-row items-center justify-between gap-2 sm:gap-3 w-full">
@@ -147,6 +148,6 @@ export default function NavigationHeader({
           )}
         </div>
       </div>
-    </div>
+    </header>
   );
 }

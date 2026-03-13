@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { X, BookOpen, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ReadingPositionRestoreModalProps {
@@ -34,6 +34,8 @@ export default function ReadingPositionRestoreModal({
   const [autoRestoreEnabled, setAutoRestoreEnabled] = useState(true);
   const [instantContinue, setInstantContinue] = useState(false);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const primaryActionRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const savedAlways = localStorage.getItem("reader-always-start-from-beginning");
@@ -172,23 +174,73 @@ export default function ReadingPositionRestoreModal({
     onClose();
   }, [customPage, totalPages, onJumpToPage, onClose]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const dialog = dialogRef.current;
+    const focusableSelector =
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    const focusFirstElement = () => {
+      primaryActionRef.current?.focus({ preventScroll: true });
+    };
+
+    const timeoutId = setTimeout(focusFirstElement, 0);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialog) return;
+
+      const focusableElements = Array.from(
+        dialog.querySelectorAll<HTMLElement>(focusableSelector),
+      ).filter(element => !element.hasAttribute("disabled"));
+
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 animate-fade-in"
-        onClick={() => {
-          onReset();
-          onClose();
-        }}
+        onClick={onClose}
         aria-hidden
       />
 
       <div
+        ref={dialogRef}
         className="relative w-full max-w-[280px] bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl animate-scale-in overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reading-position-restore-title"
       >
         {/* Компактный заголовок */}
         <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2">
@@ -197,7 +249,12 @@ export default function ReadingPositionRestoreModal({
               <BookOpen className="w-4 h-4 text-[var(--primary)]" aria-hidden />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--foreground)] truncate">Продолжить?</p>
+              <p
+                id="reading-position-restore-title"
+                className="text-sm font-medium text-[var(--foreground)] truncate"
+              >
+                Продолжить?
+              </p>
               <p className="text-xs text-[var(--muted-foreground)] tabular-nums">
                 стр. {page} из {totalPages} · {progressPercent}%
               </p>
@@ -205,12 +262,9 @@ export default function ReadingPositionRestoreModal({
           </div>
           <button
             type="button"
-            onClick={() => {
-              onReset();
-              onClose();
-            }}
+            onClick={onClose}
             className="flex-shrink-0 p-1.5 rounded-md hover:bg-[var(--muted)] text-[var(--muted-foreground)]"
-            aria-label="Закрыть"
+            aria-label="Закрыть окно восстановления позиции"
           >
             <X className="w-4 h-4" />
           </button>
@@ -229,6 +283,7 @@ export default function ReadingPositionRestoreModal({
         {/* Кнопки */}
         <div className="px-3 pb-3 flex gap-2">
           <button
+            ref={primaryActionRef}
             type="button"
             onClick={() => {
               onRestore();

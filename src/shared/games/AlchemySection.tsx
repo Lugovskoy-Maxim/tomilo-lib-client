@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useGetAlchemyRecipesQuery, useGetAlchemyStatusQuery, useAlchemyCraftMutation, useAlchemyUpgradeCauldronMutation } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, Sparkles, Coins } from "lucide-react";
+
+import { GameResultReveal } from "./GameResultReveal";
 
 export function AlchemySection() {
   const toast = useToast();
@@ -11,6 +14,14 @@ export function AlchemySection() {
   const { data: statusData } = useGetAlchemyStatusQuery();
   const [craft, { isLoading: isCrafting }] = useAlchemyCraftMutation();
   const [upgradeCauldron, { isLoading: isUpgrading }] = useAlchemyUpgradeCauldronMutation();
+  const [reveal, setReveal] = useState<{
+    open: boolean;
+    title: string;
+    subtitle?: string;
+    items?: { itemId: string; count: number; name?: string; icon?: string }[];
+    rewards?: { exp?: number; coins?: number };
+    tone: "success" | "warning";
+  }>({ open: false, title: "", tone: "success" });
 
   const recipes = (recipesData?.data?.recipes ?? []) as Array<{
     _id: string;
@@ -18,8 +29,13 @@ export function AlchemySection() {
     description: string;
     icon: string;
     coinCost: number;
-    ingredients: { itemId: string; count: number; have: number }[];
+    ingredients: { itemId: string; count: number; have: number; name?: string; icon?: string }[];
     resultType: string;
+    resultPreview?: {
+      common?: { itemId: string; name?: string; icon?: string };
+      quality?: { itemId: string; name?: string; icon?: string };
+      legendary?: { itemId: string; name?: string; icon?: string };
+    };
     element?: string | null;
     mishapChancePercent?: number;
     effectiveMishapChancePercent?: number;
@@ -40,6 +56,14 @@ export function AlchemySection() {
         ? ` · попыток осталось: ${result.data.alchemy.attemptsLeft}`
         : "";
       if (result?.data?.success === false && mishap?.happened) {
+        setReveal({
+          open: true,
+          title: "Котёл сорвался",
+          subtitle: "Попытка потрачена, но вы всё равно получили утешительные награды и опыт алхимика.",
+          rewards: result?.data?.rewards,
+          items: result?.data?.itemsGained,
+          tone: "warning",
+        });
         toast.error(
           `Котёл сорвался (риск ${mishap.chancePercent ?? "?"}%). ` +
             `Утешение: +${result?.data?.rewards?.exp ?? 0} опыта, +${result?.data?.rewards?.coins ?? 0} монет${left}`,
@@ -57,6 +81,19 @@ export function AlchemySection() {
           ? `Варка: ${q === "legendary" ? "Легендарное" : q === "quality" ? "Улучшенное" : "Обычное"} качество. +${result?.data?.rewards?.exp ?? 0} опыта, +${result?.data?.rewards?.coins ?? 0} монет${items}${saved}${left}`
           : "Варка завершена",
       );
+      setReveal({
+        open: true,
+        title:
+          q === "legendary"
+            ? "Легендарная варка"
+            : q === "quality"
+              ? "Улучшенная варка"
+              : "Варка завершена",
+        subtitle: saved ? "Стабилизатор удержал рецепт и сохранил результат." : "Награды уже начислены в инвентарь и баланс.",
+        rewards: result?.data?.rewards,
+        items: result?.data?.itemsGained,
+        tone: "success",
+      });
       (result?.data?.itemsGained ?? []).forEach((item) => {
         const label = item.name || item.itemId;
         toast.success(`Получено: ${label} ×${item.count}`, 5000, { icon: item.icon });
@@ -115,6 +152,11 @@ export function AlchemySection() {
               Котёл: <strong className="text-[var(--foreground)]">T{status.cauldronTier}</strong>
               {" · "}Стабилизатор: <strong className="text-[var(--foreground)]">{status.stabilizers?.count ?? 0}</strong>
             </div>
+            {status.resetAt ? (
+              <div className="games-muted text-xs">
+                Сброс попыток: <strong className="text-[var(--foreground)]">{status.resetAt}</strong>
+              </div>
+            ) : null}
             <button
               type="button"
               disabled={!status.cauldronUpgrade?.canUpgrade || isUpgrading}
@@ -153,9 +195,28 @@ export function AlchemySection() {
                 {r.element && <span className="games-reward-chip">Стихия: {r.element}</span>}
               </div>
               <p className="games-muted mt-2 text-xs">
-                Ингредиенты: {r.ingredients.map((i) => `${i.itemId} ×${i.count} (есть ${i.have})`).join(", ")}
+                Ингредиенты: {r.ingredients.map((i) => `${i.name || i.itemId} ×${i.count} (есть ${i.have})`).join(", ")}
               </p>
               {r.coinCost > 0 && <p className="games-muted text-xs mt-0.5">Монет: {r.coinCost}</p>}
+              {r.resultPreview ? (
+                <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                  {r.resultPreview.common?.itemId ? (
+                    <span className="games-badge">
+                      Обычн.: {r.resultPreview.common.name || r.resultPreview.common.itemId}
+                    </span>
+                  ) : null}
+                  {r.resultPreview.quality?.itemId ? (
+                    <span className="games-badge">
+                      Улучш.: {r.resultPreview.quality.name || r.resultPreview.quality.itemId}
+                    </span>
+                  ) : null}
+                  {r.resultPreview.legendary?.itemId ? (
+                    <span className="games-badge">
+                      Легенд.: {r.resultPreview.legendary.name || r.resultPreview.legendary.itemId}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
             <button
               type="button"
@@ -168,6 +229,34 @@ export function AlchemySection() {
           </div>
         ))}
       </div>
+      <GameResultReveal
+        open={reveal.open}
+        title={reveal.title}
+        subtitle={reveal.subtitle}
+        tone={reveal.tone}
+        onClose={() => setReveal(prev => ({ ...prev, open: false }))}
+      >
+        <div className="flex flex-wrap gap-2">
+          {reveal.rewards?.coins ? (
+            <span className="games-reward-chip inline-flex items-center gap-1">
+              <Coins className="w-3.5 h-3.5" aria-hidden />
+              +{reveal.rewards.coins} монет
+            </span>
+          ) : null}
+          {reveal.rewards?.exp ? (
+            <span className="games-reward-chip inline-flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" aria-hidden />
+              +{reveal.rewards.exp} опыта
+            </span>
+          ) : null}
+          {reveal.items?.map(item => (
+            <span key={`${item.itemId}-${item.count}`} className="games-reward-chip inline-flex items-center gap-1">
+              {item.icon ? <img src={item.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
+              {item.name || item.itemId} ×{item.count}
+            </span>
+          ))}
+        </div>
+      </GameResultReveal>
     </div>
   );
 }

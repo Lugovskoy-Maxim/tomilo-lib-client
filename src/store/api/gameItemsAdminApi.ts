@@ -86,6 +86,8 @@ export interface AlchemyRecipeAdmin {
   coinCost: number;
   ingredients: { itemId: string; count: number }[];
   resultType: string;
+  element?: "fire" | "water" | "earth" | "wood" | "metal" | null;
+  mishapChancePercent?: number;
   qualityWeights: { common: number; quality: number; legendary: number };
   isActive: boolean;
   sortOrder: number;

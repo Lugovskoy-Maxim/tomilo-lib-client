@@ -16,12 +16,19 @@ import {
   useUpdateReadingDropMutation,
   useDeleteReadingDropMutation,
   useListDailyQuestRewardsQuery,
+  useCreateDailyQuestRewardMutation,
+  useUpdateDailyQuestRewardMutation,
   useDeleteDailyQuestRewardMutation,
   useListLeaderboardRewardsQuery,
+  useCreateLeaderboardRewardMutation,
+  useUpdateLeaderboardRewardMutation,
   useDeleteLeaderboardRewardMutation,
   useGetDisciplesConfigQuery,
   useUpdateDisciplesConfigMutation,
   useListRecipesQuery,
+  useCreateRecipeMutation,
+  useUpdateRecipeMutation,
+  useDeleteRecipeMutation,
   useGetWheelConfigQuery,
   useUpdateWheelConfigMutation,
   type GameItemAdmin,
@@ -35,6 +42,7 @@ import {
   useDeleteCardDeckMutation,
   type CharacterCardAdmin,
   type CharacterCardStageAdmin,
+  type AlchemyRecipeAdmin,
 } from "@/store/api/gameItemsAdminApi";
 import { useGetCharactersQuery } from "@/store/api/charactersApi";
 import { useGetTitlesQuery } from "@/store/api/titlesApi";
@@ -43,7 +51,7 @@ import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
 import { AdminCard } from "./ui";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
-import { Gamepad2, Trash2, RefreshCw, BookOpen, Pencil, Plus, X } from "lucide-react";
+import { Gamepad2, Trash2, RefreshCw, BookOpen, Pencil, Plus, X, Coins, Sparkles, Gift, CircleOff, Percent, RotateCcw } from "lucide-react";
 
 const GAME_ITEM_TYPE_LABELS: Record<GameItemType, string> = {
   material: "Материал",
@@ -78,6 +86,33 @@ const READING_DROP_DEFAULTS_BY_RARITY: Record<GameItemRarity, { chance: number; 
 };
 
 const CARD_STAGE_RANKS: CardStageRank[] = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS"];
+
+const WHEEL_REWARD_TYPE_LABELS: Record<string, string> = {
+  coins: "Монеты",
+  xp: "Опыт",
+  item: "Предмет",
+  empty: "Пусто",
+  element_bonus: "Бонус стихии",
+};
+
+const createEmptyWheelSegment = (rewardType: "coins" | "xp" | "item" | "empty" | "element_bonus" = "coins") => ({
+  rewardType,
+  label:
+    rewardType === "coins"
+      ? "Монеты"
+      : rewardType === "xp"
+        ? "Опыт"
+        : rewardType === "item"
+          ? "Предмет"
+          : rewardType === "empty"
+            ? "Пусто"
+            : "Бонус стихии",
+  weight: rewardType === "empty" ? 5 : 10,
+  paramType: rewardType === "item" ? "item" as const : "number" as const,
+  paramNumber: rewardType === "coins" ? "10" : rewardType === "xp" ? "5" : rewardType === "element_bonus" ? "5" : "0",
+  itemId: "",
+  itemCount: "1",
+});
 
 const createEmptyCardStages = (): CharacterCardStageAdmin[] =>
   CARD_STAGE_RANKS.map((rank, index) => ({
@@ -128,8 +163,66 @@ export function GamesManagementSection() {
     return () => URL.revokeObjectURL(url);
   }, [iconFile]);
   const [newDrop, setNewDrop] = useState({ itemId: "", chance: 0.05, minChaptersToday: 1, maxDropsPerDay: 3 });
+  const [editingQuestRewardId, setEditingQuestRewardId] = useState<string | null>(null);
+  const [questRewardForm, setQuestRewardForm] = useState({
+    questType: "read_chapters",
+    itemId: "",
+    countMin: 1,
+    countMax: 1,
+    chance: 0.5,
+    sortOrder: 0,
+    isActive: true,
+  });
+  const [editingLbRewardId, setEditingLbRewardId] = useState<string | null>(null);
+  const [lbRewardForm, setLbRewardForm] = useState({
+    category: "weekly_pvp",
+    period: "weekly",
+    rankMin: 1,
+    rankMax: 1,
+    itemId: "",
+    itemCount: 1,
+    coins: 0,
+    isActive: true,
+  });
   const [disciplesForm, setDisciplesForm] = useState({ rerollCostCoins: 50, trainCostCoins: 15, maxDisciples: 5, maxBattlesPerDay: 5, rerollCandidateTtlMinutes: 10 });
-  const [wheelForm, setWheelForm] = useState({ spinCostCoins: 20 });
+  const [recipeEditingId, setRecipeEditingId] = useState<string | null>(null);
+  const [recipeForm, setRecipeForm] = useState<{
+    name: string;
+    description: string;
+    icon: string;
+    coinCost: number;
+    resultType: string;
+    element: "" | "fire" | "water" | "earth" | "wood" | "metal";
+    mishapChancePercent: number;
+    sortOrder: number;
+    isActive: boolean;
+    ingredients: { itemId: string; count: number }[];
+    qualityWeights: { common: number; quality: number; legendary: number };
+  }>({
+    name: "",
+    description: "",
+    icon: "",
+    coinCost: 0,
+    resultType: "pill_common",
+    element: "",
+    mishapChancePercent: 8,
+    sortOrder: 0,
+    isActive: true,
+    ingredients: [{ itemId: "", count: 1 }],
+    qualityWeights: { common: 70, quality: 25, legendary: 5 },
+  });
+  const [wheelForm, setWheelForm] = useState({
+    spinCostCoins: 20,
+    segments: [] as {
+      rewardType: string;
+      label: string;
+      weight: number;
+      paramType: "number" | "item";
+      paramNumber: string;
+      itemId: string;
+      itemCount: string;
+    }[],
+  });
   const [editingCharacterCardId, setEditingCharacterCardId] = useState<string | null>(null);
   const [cardForm, setCardForm] = useState<{
     name: string;
@@ -225,10 +318,14 @@ export function GamesManagementSection() {
   const [isAddingMissingDrops, setIsAddingMissingDrops] = useState(false);
 
   const { data: questRewardsData, isError: questRewardsError, refetch: refetchQuestRewards } = useListDailyQuestRewardsQuery();
+  const [createQuestReward, { isLoading: isSavingQuestReward }] = useCreateDailyQuestRewardMutation();
+  const [updateQuestReward] = useUpdateDailyQuestRewardMutation();
   const [deleteQuestReward] = useDeleteDailyQuestRewardMutation();
   const questRewards = Array.isArray(questRewardsData?.data?.rewards) ? questRewardsData.data.rewards : [];
 
   const { data: lbRewardsData, isError: lbError, refetch: refetchLb } = useListLeaderboardRewardsQuery({});
+  const [createLbReward, { isLoading: isSavingLbReward }] = useCreateLeaderboardRewardMutation();
+  const [updateLbReward] = useUpdateLeaderboardRewardMutation();
   const [deleteLbReward] = useDeleteLeaderboardRewardMutation();
   const lbRewards = Array.isArray(lbRewardsData?.data?.rewards) ? lbRewardsData.data.rewards : [];
 
@@ -238,6 +335,9 @@ export function GamesManagementSection() {
 
   const { data: recipesData, isError: recipesError, refetch: refetchRecipes } = useListRecipesQuery();
   const recipes = Array.isArray(recipesData?.data?.recipes) ? recipesData.data.recipes : [];
+  const [createRecipe, { isLoading: isSavingRecipe }] = useCreateRecipeMutation();
+  const [updateRecipe] = useUpdateRecipeMutation();
+  const [deleteRecipe] = useDeleteRecipeMutation();
 
   const { data: wheelData, isError: wheelConfigError, refetch: refetchWheelConfig } = useGetWheelConfigQuery();
   const wheelConfig = wheelData?.data;
@@ -301,7 +401,41 @@ export function GamesManagementSection() {
   }, [disciplesConfig]);
   useEffect(() => {
     if (wheelConfig) {
-      setWheelForm({ spinCostCoins: wheelConfig.spinCostCoins ?? 20 });
+      setWheelForm({
+        spinCostCoins: wheelConfig.spinCostCoins ?? 20,
+        segments: (wheelConfig.segments ?? []).map(segment => ({
+          rewardType: segment.rewardType ?? "coins",
+          label: segment.label ?? "",
+          weight: Number(segment.weight ?? 1),
+          paramType:
+            segment.rewardType === "item" &&
+            segment.param &&
+            typeof segment.param === "object" &&
+            "itemId" in segment.param
+              ? "item"
+              : "number",
+          paramNumber:
+            typeof segment.param === "number"
+              ? String(segment.param)
+              : segment.rewardType === "coins" || segment.rewardType === "xp"
+                ? String(Number((segment.param as number | undefined) ?? 0))
+                : "",
+          itemId:
+            segment.rewardType === "item" &&
+            segment.param &&
+            typeof segment.param === "object" &&
+            "itemId" in segment.param
+              ? String(segment.param.itemId ?? "")
+              : "",
+          itemCount:
+            segment.rewardType === "item" &&
+            segment.param &&
+            typeof segment.param === "object" &&
+            "count" in segment.param
+              ? String(segment.param.count ?? 1)
+              : "1",
+        })),
+      });
     }
   }, [wheelConfig]);
 
@@ -350,6 +484,50 @@ export function GamesManagementSection() {
     });
   };
 
+  const resetQuestRewardForm = () => {
+    setEditingQuestRewardId(null);
+    setQuestRewardForm({
+      questType: "read_chapters",
+      itemId: "",
+      countMin: 1,
+      countMax: 1,
+      chance: 0.5,
+      sortOrder: 0,
+      isActive: true,
+    });
+  };
+
+  const resetLbRewardForm = () => {
+    setEditingLbRewardId(null);
+    setLbRewardForm({
+      category: "weekly_pvp",
+      period: "weekly",
+      rankMin: 1,
+      rankMax: 1,
+      itemId: "",
+      itemCount: 1,
+      coins: 0,
+      isActive: true,
+    });
+  };
+
+  const resetRecipeForm = () => {
+    setRecipeEditingId(null);
+    setRecipeForm({
+      name: "",
+      description: "",
+      icon: "",
+      coinCost: 0,
+      resultType: "pill_common",
+      element: "",
+      mishapChancePercent: 8,
+      sortOrder: 0,
+      isActive: true,
+      ingredients: [{ itemId: "", count: 1 }],
+      qualityWeights: { common: 70, quality: 25, legendary: 5 },
+    });
+  };
+
   const uploadStageImage = async (rank: CardStageRank, file: File) => {
     const res = await uploadIcon(file).unwrap();
     const url = res?.data?.url ?? "";
@@ -374,6 +552,21 @@ export function GamesManagementSection() {
     { id: "grant", label: "Выдать предмет" },
     { id: "user-data", label: "Игровые данные пользователя" },
   ];
+
+  const wheelTotalWeight = useMemo(
+    () => wheelForm.segments.reduce((sum, segment) => sum + Math.max(0, Number(segment.weight) || 0), 0),
+    [wheelForm.segments],
+  );
+
+  const wheelValidationError = useMemo(() => {
+    if (wheelForm.segments.length === 0) return "Добавьте хотя бы один сегмент.";
+    for (const [index, segment] of wheelForm.segments.entries()) {
+      if (!segment.label.trim()) return `Сегмент #${index + 1}: укажите подпись.`;
+      if ((Number(segment.weight) || 0) <= 0) return `Сегмент #${index + 1}: вес должен быть больше 0.`;
+      if (segment.rewardType === "item" && !segment.itemId) return `Сегмент #${index + 1}: выберите предмет.`;
+    }
+    return null;
+  }, [wheelForm.segments]);
 
   return (
     <div className="space-y-6">
@@ -944,30 +1137,236 @@ export function GamesManagementSection() {
         )}
 
         {subTab === "drops-quest" && (
-          <div>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h4 className="text-sm font-semibold">
+                  {editingQuestRewardId ? "Редактировать награду квеста" : "Создать награду квеста"}
+                </h4>
+                {editingQuestRewardId ? (
+                  <button type="button" className="admin-btn admin-btn-secondary" onClick={resetQuestRewardForm}>
+                    Сбросить
+                  </button>
+                ) : null}
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  type="text"
+                  value={questRewardForm.questType}
+                  onChange={(e) => setQuestRewardForm(prev => ({ ...prev, questType: e.target.value }))}
+                  className="admin-input w-full"
+                  placeholder="Тип квеста"
+                />
+                <select
+                  value={questRewardForm.itemId}
+                  onChange={(e) => setQuestRewardForm(prev => ({ ...prev, itemId: e.target.value }))}
+                  className="admin-input w-full"
+                >
+                  <option value="">— Предмет —</option>
+                  {items.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} · {item.id}
+                    </option>
+                  ))}
+                </select>
+                <input type="number" min={1} value={questRewardForm.countMin} onChange={(e) => setQuestRewardForm(prev => ({ ...prev, countMin: Number(e.target.value) || 1 }))} className="admin-input w-full" placeholder="Мин. количество" />
+                <input type="number" min={1} value={questRewardForm.countMax} onChange={(e) => setQuestRewardForm(prev => ({ ...prev, countMax: Number(e.target.value) || 1 }))} className="admin-input w-full" placeholder="Макс. количество" />
+                <input type="number" min={0} max={1} step={0.05} value={questRewardForm.chance} onChange={(e) => setQuestRewardForm(prev => ({ ...prev, chance: Number(e.target.value) || 0 }))} className="admin-input w-full" placeholder="Шанс" />
+                <input type="number" min={0} value={questRewardForm.sortOrder} onChange={(e) => setQuestRewardForm(prev => ({ ...prev, sortOrder: Number(e.target.value) || 0 }))} className="admin-input w-full" placeholder="Порядок" />
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm mt-3">
+                <input type="checkbox" checked={questRewardForm.isActive} onChange={(e) => setQuestRewardForm(prev => ({ ...prev, isActive: e.target.checked }))} />
+                Активно
+              </label>
+              <button
+                type="button"
+                disabled={!questRewardForm.questType.trim() || !questRewardForm.itemId || isSavingQuestReward}
+                className="admin-btn admin-btn-primary mt-3"
+                onClick={async () => {
+                  if (questRewardForm.countMax < questRewardForm.countMin) {
+                    toast.error("Максимум не может быть меньше минимума");
+                    return;
+                  }
+                  const payload = {
+                    ...questRewardForm,
+                    questType: questRewardForm.questType.trim(),
+                    itemId: questRewardForm.itemId,
+                  };
+                  try {
+                    if (editingQuestRewardId) {
+                      await updateQuestReward({ id: editingQuestRewardId, body: payload }).unwrap();
+                      toast.success("Награда квеста обновлена");
+                    } else {
+                      await createQuestReward(payload).unwrap();
+                      toast.success("Награда квеста создана");
+                    }
+                    resetQuestRewardForm();
+                    refetchQuestRewards();
+                  } catch (e) {
+                    toast.error(getErrorMessage(e, "Не удалось сохранить награду квеста"));
+                  }
+                }}
+              >
+                {isSavingQuestReward ? "Сохранение…" : editingQuestRewardId ? "Сохранить награду" : "Создать награду"}
+              </button>
+            </div>
+
             <p className="text-sm text-[var(--muted-foreground)] mb-2">Наград за квесты: {questRewards.length}</p>
-            <ul className="space-y-1 text-sm">
-              {questRewards.map((r: { _id: string; questType: string; itemId: string; countMin: number; countMax: number }) => (
-                <li key={r._id} className="flex justify-between">
-                  {r.questType} → {r.itemId} ×{r.countMin}-{r.countMax}
-                  <button type="button" onClick={async () => { try { await deleteQuestReward(r._id).unwrap(); toast.success("Удалено"); refetchQuestRewards(); } catch (e) { toast.error(getErrorMessage(e, "Ошибка удаления")); } }} className="text-[var(--destructive)]">Удалить</button>
-                </li>
+            <div className="grid gap-3 md:grid-cols-2">
+              {questRewards.map((r: { _id: string; questType: string; itemId: string; countMin: number; countMax: number; chance?: number; sortOrder?: number; isActive?: boolean }) => (
+                <div key={r._id} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm">
+                      <div className="font-medium">{r.questType}</div>
+                      <div className="text-[var(--muted-foreground)]">
+                        {r.itemId} ×{r.countMin}-{r.countMax} · шанс {Math.round((r.chance ?? 1) * 100)}%
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="p-1.5 rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                        onClick={() => {
+                          setEditingQuestRewardId(r._id);
+                          setQuestRewardForm({
+                            questType: r.questType,
+                            itemId: r.itemId,
+                            countMin: r.countMin,
+                            countMax: r.countMax,
+                            chance: Number(r.chance ?? 1),
+                            sortOrder: Number(r.sortOrder ?? 0),
+                            isActive: r.isActive !== false,
+                          });
+                        }}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button type="button" onClick={async () => { try { await deleteQuestReward(r._id).unwrap(); toast.success("Удалено"); refetchQuestRewards(); } catch (e) { toast.error(getErrorMessage(e, "Ошибка удаления")); } }} className="p-1.5 rounded text-[var(--destructive)] hover:bg-[var(--destructive)]/10">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3 text-xs">
+                    <span className="px-2 py-1 rounded bg-[var(--muted)]">{r.isActive === false ? "Отключено" : "Активно"}</span>
+                    <span className="px-2 py-1 rounded bg-[var(--muted)]">sort {r.sortOrder ?? 0}</span>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
         {subTab === "rewards-lb" && (
-          <div>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h4 className="text-sm font-semibold">
+                  {editingLbRewardId ? "Редактировать награду лидерборда" : "Создать награду лидерборда"}
+                </h4>
+                {editingLbRewardId ? (
+                  <button type="button" className="admin-btn admin-btn-secondary" onClick={resetLbRewardForm}>
+                    Сбросить
+                  </button>
+                ) : null}
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <input type="text" value={lbRewardForm.category} onChange={(e) => setLbRewardForm(prev => ({ ...prev, category: e.target.value }))} className="admin-input w-full" placeholder="Категория" />
+                <input type="text" value={lbRewardForm.period} onChange={(e) => setLbRewardForm(prev => ({ ...prev, period: e.target.value }))} className="admin-input w-full" placeholder="Период" />
+                <input type="number" min={1} value={lbRewardForm.rankMin} onChange={(e) => setLbRewardForm(prev => ({ ...prev, rankMin: Number(e.target.value) || 1 }))} className="admin-input w-full" placeholder="Место от" />
+                <input type="number" min={1} value={lbRewardForm.rankMax} onChange={(e) => setLbRewardForm(prev => ({ ...prev, rankMax: Number(e.target.value) || 1 }))} className="admin-input w-full" placeholder="Место до" />
+                <select value={lbRewardForm.itemId} onChange={(e) => setLbRewardForm(prev => ({ ...prev, itemId: e.target.value }))} className="admin-input w-full">
+                  <option value="">Без предмета</option>
+                  {items.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} · {item.id}
+                    </option>
+                  ))}
+                </select>
+                <input type="number" min={0} value={lbRewardForm.itemCount} onChange={(e) => setLbRewardForm(prev => ({ ...prev, itemCount: Number(e.target.value) || 0 }))} className="admin-input w-full" placeholder="Кол-во предмета" />
+                <input type="number" min={0} value={lbRewardForm.coins} onChange={(e) => setLbRewardForm(prev => ({ ...prev, coins: Number(e.target.value) || 0 }))} className="admin-input w-full" placeholder="Монеты" />
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm mt-3">
+                <input type="checkbox" checked={lbRewardForm.isActive} onChange={(e) => setLbRewardForm(prev => ({ ...prev, isActive: e.target.checked }))} />
+                Активно
+              </label>
+              <button
+                type="button"
+                disabled={!lbRewardForm.category.trim() || !lbRewardForm.period.trim() || isSavingLbReward}
+                className="admin-btn admin-btn-primary mt-3"
+                onClick={async () => {
+                  if (lbRewardForm.rankMax < lbRewardForm.rankMin) {
+                    toast.error("rankMax не может быть меньше rankMin");
+                    return;
+                  }
+                  const payload = {
+                    ...lbRewardForm,
+                    category: lbRewardForm.category.trim(),
+                    period: lbRewardForm.period.trim(),
+                    itemId: lbRewardForm.itemId || undefined,
+                  };
+                  try {
+                    if (editingLbRewardId) {
+                      await updateLbReward({ id: editingLbRewardId, body: payload }).unwrap();
+                      toast.success("Награда лидерборда обновлена");
+                    } else {
+                      await createLbReward(payload).unwrap();
+                      toast.success("Награда лидерборда создана");
+                    }
+                    resetLbRewardForm();
+                    refetchLb();
+                  } catch (e) {
+                    toast.error(getErrorMessage(e, "Не удалось сохранить награду лидерборда"));
+                  }
+                }}
+              >
+                {isSavingLbReward ? "Сохранение…" : editingLbRewardId ? "Сохранить награду" : "Создать награду"}
+              </button>
+            </div>
+
             <p className="text-sm text-[var(--muted-foreground)] mb-2">Наград лидерборда: {lbRewards.length}</p>
-            <ul className="space-y-1 text-sm">
-              {lbRewards.map((r: { _id: string; category: string; period: string; rankMin: number; rankMax: number; itemId?: string; itemCount: number; coins: number }) => (
-                <li key={r._id} className="flex justify-between">
-                  {r.category} / {r.period} места {r.rankMin}-{r.rankMax}: item {r.itemId ?? "-"} ×{r.itemCount}, coins {r.coins}
-                  <button type="button" onClick={async () => { try { await deleteLbReward(r._id).unwrap(); toast.success("Удалено"); refetchLb(); } catch (e) { toast.error(getErrorMessage(e, "Ошибка удаления")); } }} className="text-[var(--destructive)]">Удалить</button>
-                </li>
+            <div className="grid gap-3 md:grid-cols-2">
+              {lbRewards.map((r: { _id: string; category: string; period: string; rankMin: number; rankMax: number; itemId?: string; itemCount: number; coins: number; isActive?: boolean }) => (
+                <div key={r._id} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-medium">{r.category} / {r.period}</div>
+                      <div className="text-sm text-[var(--muted-foreground)]">
+                        Места {r.rankMin}-{r.rankMax}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="p-1.5 rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                        onClick={() => {
+                          setEditingLbRewardId(r._id);
+                          setLbRewardForm({
+                            category: r.category,
+                            period: r.period,
+                            rankMin: r.rankMin,
+                            rankMax: r.rankMax,
+                            itemId: r.itemId ?? "",
+                            itemCount: Number(r.itemCount ?? 0),
+                            coins: Number(r.coins ?? 0),
+                            isActive: r.isActive !== false,
+                          });
+                        }}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button type="button" onClick={async () => { try { await deleteLbReward(r._id).unwrap(); toast.success("Удалено"); refetchLb(); } catch (e) { toast.error(getErrorMessage(e, "Ошибка удаления")); } }} className="p-1.5 rounded text-[var(--destructive)] hover:bg-[var(--destructive)]/10">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3 text-xs">
+                    {r.itemId ? <span className="px-2 py-1 rounded bg-[var(--muted)]">{r.itemId} ×{r.itemCount}</span> : null}
+                    {r.coins ? <span className="px-2 py-1 rounded bg-[var(--muted)]">Монеты: {r.coins}</span> : null}
+                    <span className="px-2 py-1 rounded bg-[var(--muted)]">{r.isActive === false ? "Отключено" : "Активно"}</span>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
@@ -1508,14 +1907,205 @@ export function GamesManagementSection() {
         )}
 
         {subTab === "recipes" && (
-          <div>
+          <div className="space-y-4">
             {recipesError && <p className="text-red-600 dark:text-red-400 text-sm mb-2">Не удалось загрузить рецепты.</p>}
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h4 className="text-sm font-semibold">
+                  {recipeEditingId ? "Редактировать рецепт" : "Создать рецепт"}
+                </h4>
+                {recipeEditingId ? (
+                  <button type="button" className="admin-btn admin-btn-secondary" onClick={resetRecipeForm}>
+                    Сбросить
+                  </button>
+                ) : null}
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <input type="text" value={recipeForm.name} onChange={(e) => setRecipeForm(prev => ({ ...prev, name: e.target.value }))} className="admin-input w-full" placeholder="Название" />
+                <input type="text" value={recipeForm.icon} onChange={(e) => setRecipeForm(prev => ({ ...prev, icon: e.target.value }))} className="admin-input w-full" placeholder="URL иконки" />
+                <input type="text" value={recipeForm.resultType} onChange={(e) => setRecipeForm(prev => ({ ...prev, resultType: e.target.value }))} className="admin-input w-full" placeholder="resultType" />
+                <select value={recipeForm.element} onChange={(e) => setRecipeForm(prev => ({ ...prev, element: e.target.value as typeof prev.element }))} className="admin-input w-full">
+                  <option value="">Без стихии</option>
+                  <option value="fire">fire</option>
+                  <option value="water">water</option>
+                  <option value="earth">earth</option>
+                  <option value="wood">wood</option>
+                  <option value="metal">metal</option>
+                </select>
+                <input type="number" min={0} value={recipeForm.coinCost} onChange={(e) => setRecipeForm(prev => ({ ...prev, coinCost: Number(e.target.value) || 0 }))} className="admin-input w-full" placeholder="Цена в монетах" />
+                <input type="number" min={0} max={100} value={recipeForm.mishapChancePercent} onChange={(e) => setRecipeForm(prev => ({ ...prev, mishapChancePercent: Number(e.target.value) || 0 }))} className="admin-input w-full" placeholder="Риск провала %" />
+                <input type="number" min={0} value={recipeForm.sortOrder} onChange={(e) => setRecipeForm(prev => ({ ...prev, sortOrder: Number(e.target.value) || 0 }))} className="admin-input w-full" placeholder="Порядок" />
+                <textarea value={recipeForm.description} onChange={(e) => setRecipeForm(prev => ({ ...prev, description: e.target.value }))} className="admin-input w-full md:col-span-2 min-h-24" placeholder="Описание рецепта" />
+              </div>
+              <div className="mt-4">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h5 className="text-sm font-medium">Ингредиенты</h5>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-secondary"
+                    onClick={() => setRecipeForm(prev => ({ ...prev, ingredients: [...prev.ingredients, { itemId: "", count: 1 }] }))}
+                  >
+                    <Plus className="w-4 h-4" /> Добавить ингредиент
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {recipeForm.ingredients.map((ingredient, index) => (
+                    <div key={`${index}-${ingredient.itemId}`} className="grid gap-2 md:grid-cols-[1fr_140px_40px]">
+                      <select
+                        value={ingredient.itemId}
+                        onChange={(e) => setRecipeForm(prev => ({
+                          ...prev,
+                          ingredients: prev.ingredients.map((entry, entryIndex) => entryIndex === index ? { ...entry, itemId: e.target.value } : entry),
+                        }))}
+                        className="admin-input w-full"
+                      >
+                        <option value="">— Предмет —</option>
+                        {items.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name} · {item.id}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        min={1}
+                        value={ingredient.count}
+                        onChange={(e) => setRecipeForm(prev => ({
+                          ...prev,
+                          ingredients: prev.ingredients.map((entry, entryIndex) => entryIndex === index ? { ...entry, count: Number(e.target.value) || 1 } : entry),
+                        }))}
+                        className="admin-input w-full"
+                        placeholder="Кол-во"
+                      />
+                      <button
+                        type="button"
+                        className="p-2 rounded bg-[var(--muted)] text-[var(--destructive)]"
+                        onClick={() => setRecipeForm(prev => ({
+                          ...prev,
+                          ingredients: prev.ingredients.filter((_, entryIndex) => entryIndex !== index),
+                        }))}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3 mt-4">
+                <input type="number" min={0} value={recipeForm.qualityWeights.common} onChange={(e) => setRecipeForm(prev => ({ ...prev, qualityWeights: { ...prev.qualityWeights, common: Number(e.target.value) || 0 } }))} className="admin-input w-full" placeholder="Вес common" />
+                <input type="number" min={0} value={recipeForm.qualityWeights.quality} onChange={(e) => setRecipeForm(prev => ({ ...prev, qualityWeights: { ...prev.qualityWeights, quality: Number(e.target.value) || 0 } }))} className="admin-input w-full" placeholder="Вес quality" />
+                <input type="number" min={0} value={recipeForm.qualityWeights.legendary} onChange={(e) => setRecipeForm(prev => ({ ...prev, qualityWeights: { ...prev.qualityWeights, legendary: Number(e.target.value) || 0 } }))} className="admin-input w-full" placeholder="Вес legendary" />
+              </div>
+              <label className="inline-flex items-center gap-2 text-sm mt-3">
+                <input type="checkbox" checked={recipeForm.isActive} onChange={(e) => setRecipeForm(prev => ({ ...prev, isActive: e.target.checked }))} />
+                Активно
+              </label>
+              <button
+                type="button"
+                disabled={!recipeForm.name.trim() || !recipeForm.resultType.trim() || isSavingRecipe}
+                className="admin-btn admin-btn-primary mt-3"
+                onClick={async () => {
+                  const ingredients = recipeForm.ingredients.filter((ingredient) => ingredient.itemId.trim());
+                  if (ingredients.length === 0) {
+                    toast.error("Добавьте хотя бы один ингредиент");
+                    return;
+                  }
+                  const payload = {
+                    name: recipeForm.name.trim(),
+                    description: recipeForm.description.trim(),
+                    icon: recipeForm.icon.trim(),
+                    coinCost: recipeForm.coinCost,
+                    resultType: recipeForm.resultType.trim(),
+                    element: recipeForm.element || null,
+                    mishapChancePercent: recipeForm.mishapChancePercent,
+                    sortOrder: recipeForm.sortOrder,
+                    isActive: recipeForm.isActive,
+                    ingredients,
+                    qualityWeights: recipeForm.qualityWeights,
+                  };
+                  try {
+                    if (recipeEditingId) {
+                      await updateRecipe({ id: recipeEditingId, body: payload }).unwrap();
+                      toast.success("Рецепт обновлён");
+                    } else {
+                      await createRecipe(payload).unwrap();
+                      toast.success("Рецепт создан");
+                    }
+                    resetRecipeForm();
+                    refetchRecipes();
+                  } catch (e) {
+                    toast.error(getErrorMessage(e, "Не удалось сохранить рецепт"));
+                  }
+                }}
+              >
+                {isSavingRecipe ? "Сохранение…" : recipeEditingId ? "Сохранить рецепт" : "Создать рецепт"}
+              </button>
+            </div>
+
             <p className="text-sm text-[var(--muted-foreground)] mb-2">Рецептов: {recipes.length}</p>
-            <ul className="space-y-1 text-sm">
-              {recipes.map((r: { _id: string; name: string; ingredients?: { itemId: string; count: number }[] }) => (
-                <li key={r._id}>{r.name} — ингредиенты: {(r.ingredients ?? []).map((i: { itemId: string; count: number }) => `${i.itemId}×${i.count}`).join(", ")}</li>
+            <div className="grid gap-3 md:grid-cols-2">
+              {recipes.map((r: AlchemyRecipeAdmin) => (
+                <div key={r._id} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-medium">{r.name}</div>
+                      <div className="text-sm text-[var(--muted-foreground)]">
+                        {(r.ingredients ?? []).map((i) => `${i.itemId}×${i.count}`).join(", ")}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="p-1.5 rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                        onClick={() => {
+                          setRecipeEditingId(r._id);
+                          setRecipeForm({
+                            name: r.name ?? "",
+                            description: r.description ?? "",
+                            icon: r.icon ?? "",
+                            coinCost: Number(r.coinCost ?? 0),
+                            resultType: r.resultType ?? "pill_common",
+                            element: (r.element as "" | "fire" | "water" | "earth" | "wood" | "metal" | undefined) ?? "",
+                            mishapChancePercent: Number(r.mishapChancePercent ?? 8),
+                            sortOrder: Number(r.sortOrder ?? 0),
+                            isActive: r.isActive !== false,
+                            ingredients: (r.ingredients ?? []).map((ingredient) => ({ itemId: ingredient.itemId, count: ingredient.count })),
+                            qualityWeights: {
+                              common: Number(r.qualityWeights?.common ?? 70),
+                              quality: Number(r.qualityWeights?.quality ?? 25),
+                              legendary: Number(r.qualityWeights?.legendary ?? 5),
+                            },
+                          });
+                        }}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1.5 rounded text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
+                        onClick={async () => {
+                          try {
+                            await deleteRecipe(r._id).unwrap();
+                            toast.success("Рецепт удалён");
+                            refetchRecipes();
+                            if (recipeEditingId === r._id) resetRecipeForm();
+                          } catch (e) {
+                            toast.error(getErrorMessage(e, "Не удалось удалить рецепт"));
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3 text-xs">
+                    <span className="px-2 py-1 rounded bg-[var(--muted)]">result: {r.resultType}</span>
+                    <span className="px-2 py-1 rounded bg-[var(--muted)]">риск: {r.mishapChancePercent ?? 8}%</span>
+                    <span className="px-2 py-1 rounded bg-[var(--muted)]">{r.element || "без стихии"}</span>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
@@ -1523,20 +2113,284 @@ export function GamesManagementSection() {
           <div className="space-y-4">
             {wheelConfigError && <p className="text-red-600 dark:text-red-400 text-sm">Не удалось загрузить конфиг колеса.</p>}
             {wheelConfig && (
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 max-w-md">
-                <h4 className="text-sm font-semibold mb-3">Колесо судьбы</h4>
-                <div>
-                  <label className="block text-xs text-[var(--muted-foreground)] mb-1">Стоимость спина (монет)</label>
-                  <input type="number" min={0} value={wheelForm.spinCostCoins} onChange={(e) => setWheelForm(prev => ({ ...prev, spinCostCoins: Number(e.target.value) || 0 }))} className="admin-input w-32" />
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-semibold">Колесо судьбы</h4>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                      Настройте не только цену спина, но и сами награды, их шанс и визуальную подпись для игрока.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-secondary inline-flex items-center gap-2"
+                    onClick={() => {
+                      if (!wheelConfig) return;
+                      setWheelForm({
+                        spinCostCoins: wheelConfig.spinCostCoins ?? 20,
+                        segments: (wheelConfig.segments ?? []).map((segment) => ({
+                          rewardType: segment.rewardType ?? "coins",
+                          label: segment.label ?? "",
+                          weight: Number(segment.weight ?? 1),
+                          paramType:
+                            segment.rewardType === "item" &&
+                            segment.param &&
+                            typeof segment.param === "object" &&
+                            "itemId" in segment.param
+                              ? "item"
+                              : "number",
+                          paramNumber: typeof segment.param === "number" ? String(segment.param) : "0",
+                          itemId:
+                            segment.rewardType === "item" &&
+                            segment.param &&
+                            typeof segment.param === "object" &&
+                            "itemId" in segment.param
+                              ? String(segment.param.itemId ?? "")
+                              : "",
+                          itemCount:
+                            segment.rewardType === "item" &&
+                            segment.param &&
+                            typeof segment.param === "object" &&
+                            "count" in segment.param
+                              ? String(segment.param.count ?? 1)
+                              : "1",
+                        })),
+                      });
+                    }}
+                  >
+                    <RotateCcw className="w-4 h-4" aria-hidden />
+                    Сбросить к текущему конфигу
+                  </button>
                 </div>
-                <p className="text-xs text-[var(--muted-foreground)] mt-2">Сегментов: {wheelConfig.segments?.length ?? 0}. Изменение сегментов — через API.</p>
+
+                <div className="grid gap-4 lg:grid-cols-[260px_1fr] mt-4">
+                  <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)]/20 p-4 space-y-3 h-fit">
+                    <div>
+                      <label className="block text-xs text-[var(--muted-foreground)] mb-1">Стоимость спина (монет)</label>
+                      <input type="number" min={0} value={wheelForm.spinCostCoins} onChange={(e) => setWheelForm(prev => ({ ...prev, spinCostCoins: Number(e.target.value) || 0 }))} className="admin-input w-full" />
+                    </div>
+                    <div className="grid gap-2 text-xs">
+                      <div className="flex items-center justify-between rounded-md bg-[var(--card)] px-3 py-2 border border-[var(--border)]">
+                        <span>Сегментов</span>
+                        <strong>{wheelForm.segments.length}</strong>
+                      </div>
+                      <div className="flex items-center justify-between rounded-md bg-[var(--card)] px-3 py-2 border border-[var(--border)]">
+                        <span>Общий вес</span>
+                        <strong>{wheelTotalWeight}</strong>
+                      </div>
+                      <div className="flex items-center justify-between rounded-md bg-[var(--card)] px-3 py-2 border border-[var(--border)]">
+                        <span>Ошибка валидации</span>
+                        <strong className={wheelValidationError ? "text-[var(--destructive)]" : "text-emerald-600"}>
+                          {wheelValidationError ? "Есть" : "Нет"}
+                        </strong>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-[var(--muted-foreground)]">Быстро добавить</div>
+                      <div className="flex flex-wrap gap-2">
+                        {(["coins", "xp", "item", "empty"] as const).map((type) => (
+                          <button
+                            key={type}
+                            type="button"
+                            className="admin-btn admin-btn-secondary"
+                            onClick={() => setWheelForm(prev => ({
+                              ...prev,
+                              segments: [...prev.segments, createEmptyWheelSegment(type)],
+                            }))}
+                          >
+                            <Plus className="w-4 h-4" aria-hidden />
+                            {WHEEL_REWARD_TYPE_LABELS[type]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {wheelValidationError ? (
+                      <p className="text-xs text-[var(--destructive)]">{wheelValidationError}</p>
+                    ) : (
+                      <p className="text-xs text-[var(--muted-foreground)]">
+                        Шанс сегмента для игрока считается как `вес / общий вес`.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    {wheelForm.segments.map((segment, index) => {
+                      const itemMeta = items.find((item) => item.id === segment.itemId);
+                      const chancePercent = wheelTotalWeight > 0 ? ((Number(segment.weight) || 0) / wheelTotalWeight) * 100 : 0;
+                      const previewIcon =
+                        segment.rewardType === "coins" ? <Coins className="w-4 h-4" aria-hidden /> :
+                        segment.rewardType === "xp" ? <Sparkles className="w-4 h-4" aria-hidden /> :
+                        segment.rewardType === "item" ? <Gift className="w-4 h-4" aria-hidden /> :
+                        <CircleOff className="w-4 h-4" aria-hidden />;
+
+                      return (
+                        <div key={`${index}-${segment.label}-${segment.rewardType}`} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--muted)] border border-[var(--border)]">
+                                {previewIcon}
+                              </span>
+                              <div>
+                                <div className="text-sm font-medium">{segment.label || `Сегмент #${index + 1}`}</div>
+                                <div className="text-xs text-[var(--muted-foreground)]">
+                                  {WHEEL_REWARD_TYPE_LABELS[segment.rewardType] ?? segment.rewardType} · шанс {chancePercent.toFixed(1)}%
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className="p-2 rounded bg-[var(--muted)] text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
+                              onClick={() => setWheelForm(prev => ({
+                                ...prev,
+                                segments: prev.segments.filter((_, entryIndex) => entryIndex !== index),
+                              }))}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                            <div>
+                              <label className="block text-xs text-[var(--muted-foreground)] mb-1">Тип награды</label>
+                              <select
+                                value={segment.rewardType}
+                                onChange={(e) => setWheelForm(prev => ({
+                                  ...prev,
+                                  segments: prev.segments.map((entry, entryIndex) => entryIndex === index ? {
+                                    ...entry,
+                                    ...createEmptyWheelSegment(e.target.value as "coins" | "xp" | "item" | "empty" | "element_bonus"),
+                                    label: entry.label && entry.label !== WHEEL_REWARD_TYPE_LABELS[entry.rewardType] ? entry.label : createEmptyWheelSegment(e.target.value as "coins" | "xp" | "item" | "empty" | "element_bonus").label,
+                                  } : entry),
+                                }))}
+                                className="admin-input w-full"
+                              >
+                                <option value="coins">Монеты</option>
+                                <option value="xp">Опыт</option>
+                                <option value="item">Предмет</option>
+                                <option value="empty">Пусто</option>
+                                <option value="element_bonus">Бонус стихии</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs text-[var(--muted-foreground)] mb-1">Подпись игроку</label>
+                              <input
+                                type="text"
+                                value={segment.label}
+                                onChange={(e) => setWheelForm(prev => ({
+                                  ...prev,
+                                  segments: prev.segments.map((entry, entryIndex) => entryIndex === index ? { ...entry, label: e.target.value } : entry),
+                                }))}
+                                className="admin-input w-full"
+                                placeholder="Например: 50 монет"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-[var(--muted-foreground)] mb-1">Вес</label>
+                              <input
+                                type="number"
+                                min={1}
+                                value={segment.weight}
+                                onChange={(e) => setWheelForm(prev => ({
+                                  ...prev,
+                                  segments: prev.segments.map((entry, entryIndex) => entryIndex === index ? { ...entry, weight: Number(e.target.value) || 1 } : entry),
+                                }))}
+                                className="admin-input w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-[var(--muted-foreground)] mb-1">Шанс</label>
+                              <div className="admin-input w-full flex items-center justify-between bg-[var(--muted)]/20">
+                                <span>{chancePercent.toFixed(1)}%</span>
+                                <Percent className="w-4 h-4 text-[var(--muted-foreground)]" aria-hidden />
+                              </div>
+                            </div>
+                          </div>
+
+                          {segment.rewardType === "item" ? (
+                            <div className="grid gap-3 md:grid-cols-2">
+                              <div>
+                                <label className="block text-xs text-[var(--muted-foreground)] mb-1">Предмет</label>
+                                <select
+                                  value={segment.itemId}
+                                  onChange={(e) => setWheelForm(prev => ({
+                                    ...prev,
+                                    segments: prev.segments.map((entry, entryIndex) => entryIndex === index ? { ...entry, itemId: e.target.value } : entry),
+                                  }))}
+                                  className="admin-input w-full"
+                                >
+                                  <option value="">— Предмет —</option>
+                                  {items.map((item) => (
+                                    <option key={item.id} value={item.id}>
+                                      {item.name} · {item.id}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-xs text-[var(--muted-foreground)] mb-1">Количество</label>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={segment.itemCount}
+                                  onChange={(e) => setWheelForm(prev => ({
+                                    ...prev,
+                                    segments: prev.segments.map((entry, entryIndex) => entryIndex === index ? { ...entry, itemCount: e.target.value } : entry),
+                                  }))}
+                                  className="admin-input w-full"
+                                />
+                              </div>
+                              {itemMeta ? (
+                                <div className="md:col-span-2 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--muted)]/10 px-3 py-2 text-sm">
+                                  {itemMeta.icon ? <img src={itemMeta.icon} alt="" className="w-6 h-6 rounded object-cover" /> : <Gift className="w-4 h-4" aria-hidden />}
+                                  <span>{itemMeta.name} · {itemMeta.id}</span>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : segment.rewardType !== "empty" ? (
+                            <div>
+                              <label className="block text-xs text-[var(--muted-foreground)] mb-1">Числовое значение</label>
+                              <input
+                                type="number"
+                                min={0}
+                                value={segment.paramNumber}
+                                onChange={(e) => setWheelForm(prev => ({
+                                  ...prev,
+                                  segments: prev.segments.map((entry, entryIndex) => entryIndex === index ? { ...entry, paramNumber: e.target.value } : entry),
+                                }))}
+                                className="admin-input w-full md:max-w-xs"
+                                placeholder="Например: 25"
+                              />
+                            </div>
+                          ) : (
+                            <div className="text-xs text-[var(--muted-foreground)]">
+                              Этот сегмент ничего не выдаёт и используется как пустой результат.
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
                 <button
                   type="button"
-                  disabled={isSavingWheel}
+                  disabled={isSavingWheel || !!wheelValidationError}
                   className="admin-btn admin-btn-primary mt-3"
                   onClick={async () => {
                     try {
-                      await updateWheelConfig({ spinCostCoins: wheelForm.spinCostCoins }).unwrap();
+                      await updateWheelConfig({
+                        spinCostCoins: wheelForm.spinCostCoins,
+                        segments: wheelForm.segments.map((segment) => ({
+                          rewardType: segment.rewardType,
+                          label: segment.label,
+                          weight: segment.weight,
+                          param:
+                            segment.rewardType === "item"
+                              ? { itemId: segment.itemId, count: Number(segment.itemCount) || 1 }
+                              : segment.rewardType === "empty"
+                                ? undefined
+                                : Number(segment.paramNumber) || 0,
+                        })),
+                      }).unwrap();
                       toast.success("Конфиг сохранён");
                       refetchWheelConfig();
                     } catch (e) {

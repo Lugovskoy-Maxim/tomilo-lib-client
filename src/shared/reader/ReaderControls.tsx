@@ -159,7 +159,12 @@ export default function ReaderControls({
   }, []);
 
   const settingsPanelRef = useRef<HTMLDivElement>(null);
+  const desktopSettingsPanelRef = useRef<HTMLDivElement>(null);
   const settingsTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileSettingsTriggerRef = useRef<HTMLButtonElement>(null);
+  const desktopCommentsPanelRef = useRef<HTMLDivElement>(null);
+  const desktopCommentsTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileCommentsTriggerRef = useRef<HTMLButtonElement>(null);
   const desktopJumpPopoverRef = useRef<HTMLDivElement>(null);
   const mobileJumpPopoverRef = useRef<HTMLDivElement>(null);
 
@@ -223,6 +228,51 @@ export default function ReaderControls({
     [isSettingsOpen],
   );
 
+  const getFocusableElements = useCallback((container: HTMLElement | null) => {
+    if (!container) return [];
+
+    return Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter(element => !element.hasAttribute("disabled"));
+  }, []);
+
+  const trapFocus = useCallback(
+    (event: KeyboardEvent, container: HTMLElement | null) => {
+      if (event.key !== "Tab" || !container) return;
+
+      const focusableElements = getFocusableElements(container);
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    },
+    [getFocusableElements],
+  );
+
+  const getResponsiveDialogContainer = useCallback(
+    (desktopContainer: HTMLElement | null, mobileContainer: HTMLElement | null) => {
+      if (typeof window === "undefined") {
+        return desktopContainer ?? mobileContainer;
+      }
+
+      return window.matchMedia("(max-width: 639px)").matches
+        ? (mobileContainer ?? desktopContainer)
+        : (desktopContainer ?? mobileContainer);
+    },
+    [],
+  );
+
   useEffect(() => {
     if (isSettingsOpen) {
       document.addEventListener("mousedown", handleSettingsClickOutside);
@@ -280,17 +330,85 @@ export default function ReaderControls({
   }, [forceStopAutoScroll, isAutoScrolling, stopAutoScroll]);
 
   useEffect(() => {
-    if (isSettingsOpen && settingsPanelRef.current) {
-      const focusable = settingsPanelRef.current.querySelector<HTMLElement>(
-        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    if (isSettingsOpen) {
+      const settingsDialog = getResponsiveDialogContainer(
+        desktopSettingsPanelRef.current,
+        mobileSettingsPanelRef.current,
       );
+      const focusable = getFocusableElements(settingsDialog)[0];
       const t = setTimeout(() => focusable?.focus(), 100);
       return () => clearTimeout(t);
     }
     if (!isSettingsOpen) {
-      settingsTriggerRef.current?.focus({ preventScroll: true });
+      if (typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches) {
+        mobileSettingsTriggerRef.current?.focus({ preventScroll: true });
+      } else {
+        settingsTriggerRef.current?.focus({ preventScroll: true });
+      }
     }
-  }, [isSettingsOpen]);
+  }, [isSettingsOpen, getFocusableElements, getResponsiveDialogContainer]);
+
+  useEffect(() => {
+    if (!isSettingsOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const settingsDialog = getResponsiveDialogContainer(
+        desktopSettingsPanelRef.current,
+        mobileSettingsPanelRef.current,
+      );
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsSettingsOpen(false);
+        return;
+      }
+
+      trapFocus(event, settingsDialog);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isSettingsOpen, getResponsiveDialogContainer, trapFocus]);
+
+  useEffect(() => {
+    if (!isCommentsOpen) return;
+
+    const commentsDialog = getResponsiveDialogContainer(
+      desktopCommentsPanelRef.current,
+      mobileCommentsPanelRef.current,
+    );
+    const focusable = getFocusableElements(commentsDialog)[0];
+    const desktopCommentsTrigger = desktopCommentsTriggerRef.current;
+    const mobileCommentsTrigger = mobileCommentsTriggerRef.current;
+    const focusTimeoutId = setTimeout(() => focusable?.focus(), 100);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const activeCommentsDialog = getResponsiveDialogContainer(
+        desktopCommentsPanelRef.current,
+        mobileCommentsPanelRef.current,
+      );
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsCommentsOpen(false);
+        return;
+      }
+
+      trapFocus(event, activeCommentsDialog);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      clearTimeout(focusTimeoutId);
+      document.removeEventListener("keydown", handleKeyDown);
+      if (typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches) {
+        mobileCommentsTrigger?.focus({ preventScroll: true });
+      } else {
+        desktopCommentsTrigger?.focus({ preventScroll: true });
+      }
+    };
+  }, [isCommentsOpen, getFocusableElements, getResponsiveDialogContainer, trapFocus]);
 
   return (
     <>
@@ -304,10 +422,19 @@ export default function ReaderControls({
           />
 
           {/* Десктопная панель */}
-          <div className="absolute inset-y-0 right-0 w-[400px] lg:w-[420px] bg-[var(--card)] border-l border-[var(--border)] shadow-2xl sm:flex hidden flex-col animate-in slide-in-from-right duration-300">
+          <div
+            ref={desktopSettingsPanelRef}
+            id="reader-settings-dialog-desktop"
+            className="absolute inset-y-0 right-0 w-[400px] lg:w-[420px] bg-[var(--card)] border-l border-[var(--border)] shadow-2xl sm:flex hidden flex-col animate-in slide-in-from-right duration-300"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reader-settings-title-desktop"
+          >
             {/* Заголовок */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
-              <span className="font-semibold text-base">Настройки читалки</span>
+              <h2 id="reader-settings-title-desktop" className="font-semibold text-base">
+                Настройки читалки
+              </h2>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -343,6 +470,7 @@ export default function ReaderControls({
           {/* Мобильная панель */}
           <div
             ref={mobileSettingsPanelRef}
+            id="reader-settings-dialog-mobile"
             className="sm:hidden fixed inset-x-0 bottom-0 max-h-[90vh] bg-[var(--card)] border-t border-[var(--border)] shadow-2xl z-[70] overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom duration-300 flex flex-col"
             style={{
               transform: `translateY(${settingsDragY}px)`,
@@ -351,6 +479,9 @@ export default function ReaderControls({
             onTouchStart={handleSettingsTouchStart}
             onTouchMove={handleSettingsTouchMove}
             onTouchEnd={handleSettingsTouchEnd}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reader-settings-title-mobile"
           >
             {/* Ручка для свайпа */}
             <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
@@ -359,7 +490,9 @@ export default function ReaderControls({
 
             {/* Заголовок */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
-              <span className="font-semibold text-base">Настройки читалки</span>
+              <h2 id="reader-settings-title-mobile" className="font-semibold text-base">
+                Настройки читалки
+              </h2>
               <div className="flex items-center gap-2">
                 <button
                   onClick={resetToDefaults}
@@ -484,6 +617,7 @@ export default function ReaderControls({
             title="Настройки"
             aria-label="Настройки читалки"
             aria-expanded={isSettingsOpen}
+            aria-controls="reader-settings-dialog-desktop"
           >
             <Settings className="w-5 h-5" />
           </button>
@@ -532,11 +666,14 @@ export default function ReaderControls({
           )}
 
           <button
+            ref={desktopCommentsTriggerRef}
             type="button"
             onClick={() => setIsCommentsOpen(!isCommentsOpen)}
             className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center relative bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:scale-110 active:scale-95"
             title="Комментарии"
             aria-label={`Комментарии${commentsCount > 0 ? `, ${commentsCount}` : ""}`}
+            aria-expanded={isCommentsOpen}
+            aria-controls="reader-comments-dialog-desktop"
           >
             <MessageCircle className={`w-5 h-5 ${isCommentsOpen ? "text-[var(--primary)]" : ""}`} />
             {commentsCount > 0 && (
@@ -717,11 +854,16 @@ export default function ReaderControls({
             </button>
 
             <button
+              ref={mobileSettingsTriggerRef}
+              type="button"
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
               className={`shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
                 isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
               }`}
               title="Настройки"
+              aria-label="Настройки читалки"
+              aria-expanded={isSettingsOpen}
+              aria-controls="reader-settings-dialog-mobile"
             >
               <Settings className="w-4 h-4 xs:w-5 xs:h-5 max-[360px]:w-3 max-[360px]:h-3" />
             </button>
@@ -758,11 +900,15 @@ export default function ReaderControls({
 
             {/* Кнопка комментариев */}
             <button
+              ref={mobileCommentsTriggerRef}
               onClick={() => setIsCommentsOpen(!isCommentsOpen)}
               className={`relative shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
                 isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
               }`}
               title="Комментарии"
+              aria-label={`Комментарии${commentsCount > 0 ? `, ${commentsCount}` : ""}`}
+              aria-expanded={isCommentsOpen}
+              aria-controls="reader-comments-dialog-mobile"
             >
               <MessageCircle className="w-4 h-4 xs:w-5 xs:h-5 max-[360px]:w-3 max-[360px]:h-3" />
               {commentsCount > 0 && (
@@ -818,7 +964,14 @@ export default function ReaderControls({
           />
 
           {/* Боковая панель комментариев (десктоп) */}
-          <div className="hidden sm:block fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[440px] max-h-[85vh] bg-[var(--card)] backdrop-blur-xl border border-[var(--border)]/50 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div
+            ref={desktopCommentsPanelRef}
+            id="reader-comments-dialog-desktop"
+            className="hidden sm:block fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[440px] max-h-[85vh] bg-[var(--card)] backdrop-blur-xl border border-[var(--border)]/50 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reader-comments-title-desktop"
+          >
             {/* Header с градиентом */}
             <div className="relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-[var(--primary)]/10 via-transparent to-[var(--primary)]/5" />
@@ -828,7 +981,10 @@ export default function ReaderControls({
                     <MessageCircle className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-base text-[var(--foreground)]">
+                    <h3
+                      id="reader-comments-title-desktop"
+                      className="font-semibold text-base text-[var(--foreground)]"
+                    >
                       Комментарии
                     </h3>
                     <p className="text-xs text-[var(--muted-foreground)]">
@@ -858,6 +1014,7 @@ export default function ReaderControls({
           {/* Мобильная панель комментариев */}
           <div
             ref={mobileCommentsPanelRef}
+            id="reader-comments-dialog-mobile"
             className="sm:hidden fixed bottom-0 left-0 right-0 z-[60] bg-[var(--card)] backdrop-blur-xl border-t border-[var(--border)]/50 shadow-2xl max-h-[85vh] flex flex-col rounded-t-3xl animate-in fade-in slide-in-from-bottom-4 duration-300"
             style={{
               transform: `translateY(${commentsDragY}px)`,
@@ -866,6 +1023,9 @@ export default function ReaderControls({
             onTouchStart={handleCommentsTouchStart}
             onTouchMove={handleCommentsTouchMove}
             onTouchEnd={handleCommentsTouchEnd}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reader-comments-title-mobile"
           >
             {/* Drag indicator для свайпа */}
             <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
@@ -881,7 +1041,10 @@ export default function ReaderControls({
                     <MessageCircle className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-base text-[var(--foreground)]">
+                    <h3
+                      id="reader-comments-title-mobile"
+                      className="font-semibold text-base text-[var(--foreground)]"
+                    >
                       Комментарии
                     </h3>
                     <p className="text-xs text-[var(--muted-foreground)]">

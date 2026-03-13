@@ -517,3 +517,114 @@
   fill: var(--card);
   stroke: var(--border);
 }
+
+.games-hub .games-wheel-reward-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--accent) 78%, transparent);
+}
+
+.games-hub .games-wheel-reward-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  flex-shrink: 0;
+}
+
+@keyframes games-reveal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.games-hub .games-reveal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(2, 8, 23, 0.58);
+  backdrop-filter: blur(10px);
+}
+
+.games-hub .games-reveal-card {
+  position: relative;
+  width: min(100%, 34rem);
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in oklch, var(--card) 88%, white 12%), var(--card));
+  box-shadow: 0 20px 80px rgba(15, 23, 42, 0.28);
+  padding: 1.25rem;
+  animation: games-reveal-pop 0.3s ease-out forwards;
+}
+
+.games-hub .games-reveal-card--success {
+  border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
+}
+
+.games-hub .games-reveal-card--warning {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.games-hub .games-reveal-card--danger {
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+.games-hub .games-reveal-badge {
+  width: 3.5rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), color-mix(in oklch, var(--primary) 55%, white 45%));
+  margin-bottom: 1rem;
+}
+
+.games-hub .games-reveal-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.games-hub .games-reveal-subtitle {
+  margin-top: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.games-hub .games-reveal-body {
+  margin-top: 1rem;
+}
+
+.games-hub .games-reveal-close {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+}
+
+.games-hub .games-reveal-close:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
