@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ArrowDownAZ,
   ArrowUpAZ,
+  Plus,
 } from "lucide-react";
 
 const PAGE_SIZE = 24;
@@ -457,14 +458,18 @@ export default function TitlesCatalogPage() {
 
           {/* Строка 2: Жанры, год, возраст, теги */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 min-w-0">
               <span className="text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide shrink-0">
                 Жанры
               </span>
+              {filters.genres.map(g => (
+                <ActiveChip key={g} label={g} onRemove={() => removeFilter("genre", g)} />
+              ))}
               <GenreMultiSelect
                 selected={filters.genres}
                 options={options?.genres ?? []}
                 onChange={genres => applyFilters({ ...filters, genres })}
+                triggerLabel="Добавить"
               />
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -633,41 +638,23 @@ export default function TitlesCatalogPage() {
             }}
           >
             <div className="space-y-3 max-w-lg mx-auto">
-              {/* Тип */}
-              <section className="rounded-xl bg-[var(--card)] border border-[var(--border)] p-3">
-                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
-                  Тип
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  <FilterChip
-                    label="Все"
-                    active={!filters.type}
-                    onClick={() => applyFilters({ ...filters, type: "" })}
-                    variant="sheet"
-                  />
-                  {(options?.types ?? []).map(t => (
-                    <FilterChip
-                      key={t}
-                      label={translateTitleType(t)}
-                      active={filters.type === t}
-                      onClick={() => applyFilters({ ...filters, type: filters.type === t ? "" : t })}
-                      variant="sheet"
-                    />
-                  ))}
-                </div>
-              </section>
-
               {/* Жанры */}
               <section className="rounded-xl bg-[var(--card)] border border-[var(--border)] p-3">
                 <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
                   Жанры
                 </h3>
-                <GenreMultiSelect
-                  selected={filters.genres}
-                  options={options?.genres ?? []}
-                  onChange={genres => applyFilters({ ...filters, genres })}
-                  variant="sheet"
-                />
+                <div className="flex flex-wrap gap-2">
+                  {filters.genres.map(g => (
+                    <ActiveChip key={g} label={g} onRemove={() => removeFilter("genre", g)} />
+                  ))}
+                  <GenreMultiSelect
+                    selected={filters.genres}
+                    options={options?.genres ?? []}
+                    onChange={genres => applyFilters({ ...filters, genres })}
+                    variant="sheet"
+                    triggerLabel="Добавить жанры"
+                  />
+                </div>
               </section>
 
               {/* Год и возраст в одной карточке */}
@@ -780,6 +767,30 @@ export default function TitlesCatalogPage() {
                       onClick={() =>
                         applyFilters({ ...filters, status: filters.status === s ? "" : s })
                       }
+                      variant="sheet"
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* Тип (внизу) */}
+              <section className="rounded-xl bg-[var(--card)] border border-[var(--border)] p-3">
+                <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
+                  Тип
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  <FilterChip
+                    label="Все"
+                    active={!filters.type}
+                    onClick={() => applyFilters({ ...filters, type: "" })}
+                    variant="sheet"
+                  />
+                  {(options?.types ?? []).map(t => (
+                    <FilterChip
+                      key={t}
+                      label={translateTitleType(t)}
+                      active={filters.type === t}
+                      onClick={() => applyFilters({ ...filters, type: filters.type === t ? "" : t })}
                       variant="sheet"
                     />
                   ))}
@@ -1001,15 +1012,19 @@ function GenreMultiSelect({
   options,
   onChange,
   variant = "inline",
+  triggerLabel,
 }: {
   selected: string[];
   options: string[];
   onChange: (genres: string[]) => void;
   variant?: "inline" | "sheet";
+  /** Если задано, на кнопке показывается только эта подпись (для варианта «выбранные снаружи + добавить») */
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const isSheet = variant === "sheet";
+  const isAddButton = triggerLabel != null;
   const filtered = useMemo(
     () =>
       search.trim()
@@ -1017,6 +1032,18 @@ function GenreMultiSelect({
         : options,
     [options, search],
   );
+  const customSelected = useMemo(
+    () => selected.filter(g => !options.includes(g)),
+    [selected, options],
+  );
+  const displayList = useMemo(() => {
+    const list = [...filtered];
+    const q = search.trim().toLowerCase();
+    customSelected.forEach(g => {
+      if (!list.includes(g) && (!q || g.toLowerCase().includes(q))) list.push(g);
+    });
+    return list;
+  }, [filtered, customSelected, search]);
 
   const toggle = (g: string) => {
     if (selected.includes(g)) {
@@ -1026,43 +1053,74 @@ function GenreMultiSelect({
     }
   };
 
+  const addManual = () => {
+    const value = search.trim();
+    if (!value || selected.includes(value)) return;
+    onChange([...selected, value]);
+    setSearch("");
+  };
+
+  const buttonLabel = isAddButton
+    ? triggerLabel
+    : selected.length === 0
+      ? "Жанры"
+      : selected.length <= 2
+        ? selected.join(", ")
+        : `${selected.length}`;
+
   return (
-    <div className={`relative w-full ${isSheet ? "" : "max-w-[200px]"}`}>
+    <div
+      className={`relative ${isSheet ? (isAddButton ? "shrink-0" : "w-full") : isAddButton ? "shrink-0" : "w-full max-w-[200px]"}`}
+    >
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
-        className={`flex items-center justify-between gap-2 w-full border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--accent)] text-left ${
+        className={`flex items-center justify-between gap-2 border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--accent)] text-left ${
           isSheet
-            ? "min-h-11 px-3 py-2.5 rounded-xl text-sm"
-            : "px-2 py-1.5 rounded-lg text-xs"
+            ? isAddButton
+              ? "min-h-11 px-3 py-2.5 rounded-xl text-sm border-dashed"
+              : "w-full min-h-11 px-3 py-2.5 rounded-xl text-sm"
+            : isAddButton
+              ? "px-2 py-1 rounded-lg text-xs border-dashed"
+              : "w-full px-2 py-1.5 rounded-lg text-xs"
         }`}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="truncate">
-          {selected.length === 0
-            ? "Жанры"
-            : selected.length <= 2
-              ? selected.join(", ")
-              : `${selected.length}`}
-        </span>
+        <span className="truncate">{buttonLabel}</span>
         <ChevronDown className={`shrink-0 transition-transform ${open ? "rotate-180" : ""} ${isSheet ? "w-4 h-4" : "w-3.5 h-3.5"}`} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" aria-hidden onClick={() => setOpen(false)} />
           <div className="absolute z-50 mt-1 left-0 right-0 min-w-[260px] max-h-72 overflow-hidden flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xl">
-            <div className="p-2 border-b border-[var(--border)] shrink-0">
+            <div className="p-2 border-b border-[var(--border)] shrink-0 space-y-1.5">
               <input
                 type="search"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Найти жанр..."
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addManual();
+                  }
+                }}
+                placeholder="Найти или ввести жанр..."
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
               />
+              {search.trim() && !selected.includes(search.trim()) && (
+                <button
+                  type="button"
+                  onClick={addManual}
+                  className="w-full px-3 py-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--background)] hover:bg-[var(--accent)] text-sm text-[var(--foreground)] text-left flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4 shrink-0 text-[var(--muted-foreground)]" />
+                  Добавить «{search.trim()}»
+                </button>
+              )}
             </div>
             <ul className="overflow-y-auto py-1 max-h-60">
-              {filtered.map(opt => (
+              {displayList.map(opt => (
                 <li key={opt}>
                   <button
                     type="button"
@@ -1086,9 +1144,9 @@ function GenreMultiSelect({
                   </button>
                 </li>
               ))}
-              {filtered.length === 0 && (
+              {displayList.length === 0 && (
                 <li className="px-3 py-2 text-sm text-[var(--muted-foreground)]">
-                  Нет подходящих жанров
+                  Нет подходящих жанров. Введите название и нажмите Enter или кнопку выше.
                 </li>
               )}
             </ul>

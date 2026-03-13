@@ -689,8 +689,8 @@ export default function ProfileAchievements({
           </div>
         </div>
 
-        {/* Список достижений — сетка как у ежедневных заданий */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {/* Список достижений — сетка как у ежедневных заданий; items-start чтобы при раскрытии одной карточки остальные в строке не растягивались */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-start">
           {displayedAchievements.map(achievement => (
             <AchievementCard
               key={achievement.id}
