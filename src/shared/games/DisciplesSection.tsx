@@ -30,7 +30,45 @@ import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
 import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart } from "lucide-react";
 import { Compass } from "lucide-react";
 
-const STAT_CAP = 50;
+/** Тип ответа экспедиции (inProgress, lastResult, completesAt и т.д.) */
+interface ExpeditionStatusData {
+  inProgress?: boolean;
+  completesAt?: string;
+  nextExpeditionAt?: string;
+  canStart?: boolean;
+  balance?: number;
+  ambushRiskPercent?: number | null;
+  hasDisciples?: boolean;
+  costs?: Record<string, number>;
+  lastResult?: {
+    at?: string;
+    success?: boolean;
+    difficulty?: string;
+    coinsGained?: number;
+    expGained?: number;
+    log?: string[];
+    ambush?: { happened?: boolean; preventedByTalisman?: boolean };
+    itemsGained?: Array<{ itemId: string; count: number; name?: string; icon?: string }>;
+  };
+}
+/** Элемент лога боя */
+interface BattleLogEntry {
+  action?: string;
+  turn?: number;
+  actor?: string;
+  techniqueName?: string;
+  itemId?: string;
+  value?: number;
+  absorbed?: number;
+  items?: Array<{ itemId: string; name?: string }>;
+}
+/** Результат боя (battleLog, userCard, opponentCard и др.) */
+interface BattleResultState {
+  battleLog?: BattleLogEntry[];
+  userCard?: { mediaUrl?: string };
+  opponentCard?: { mediaUrl?: string };
+  [key: string]: unknown;
+}
 
 /** Общий аватар ученика/кандидата — один источник (getCoverUrls) и один плейсхолдер */
 function DiscipleAvatar({
@@ -131,9 +169,9 @@ export function DisciplesSection() {
   const [startExpedition, { isLoading: isStartingExpedition }] = useDisciplesStartExpeditionMutation();
   const [upgradeProfileCard, { isLoading: isUpgradingCard }] = useUpgradeProfileCardMutation();
   const lastShownExpeditionResultAt = useRef<string | null>(null);
-  const expeditionData = expeditionStatusData?.data as any;
+  const expeditionData = expeditionStatusData?.data as ExpeditionStatusData | undefined;
   const inProgress = expeditionData?.inProgress ?? false;
-  const [countdownNow, setCountdownNow] = useState(() => Date.now());
+  const [, setCountdownNow] = useState(() => Date.now());
   const expeditionTargetMs =
     expeditionData?.inProgress && expeditionData?.completesAt
       ? new Date(expeditionData.completesAt).getTime()
@@ -185,7 +223,7 @@ export function DisciplesSection() {
   const [opponent, setOpponent] = useState<{ userId: string; username: string; combatRating: number } | null>(null);
   const [triggerWeeklyMatch, { isLoading: findingWeeklyMatch }] = useLazyDisciplesWeeklyBattleMatchQuery();
   const [weeklyOpponent, setWeeklyOpponent] = useState<{ userId: string; username: string; weeklyRating?: number } | null>(null);
-  const [battleResult, setBattleResult] = useState<any | null>(null);
+  const [battleResult, setBattleResult] = useState<BattleResultState | null>(null);
   const [selectedSupportItems, setSelectedSupportItems] = useState<string[]>([]);
   const [selectedWeeklySupportItems, setSelectedWeeklySupportItems] = useState<string[]>([]);
   const [candidateAvatarError, setCandidateAvatarError] = useState(false);
@@ -327,7 +365,7 @@ export function DisciplesSection() {
       (result?.data?.consumedItems ?? []).forEach((item) => {
         toast.success(`Использовано: ${item.name || item.itemId} ×${item.count}`, 3500, { icon: item.icon });
       });
-      if (result?.data?.resultScreen) setBattleResult(result.data.resultScreen);
+      if (result?.data?.resultScreen) setBattleResult(result.data.resultScreen as BattleResultState);
       setSelectedSupportItems([]);
       setOpponent(null);
     } catch (e: unknown) {
@@ -366,7 +404,7 @@ export function DisciplesSection() {
       (result?.data?.consumedItems ?? []).forEach((item) => {
         toast.success(`Использовано: ${item.name || item.itemId} ×${item.count}`, 3500, { icon: item.icon });
       });
-      if (result?.data?.resultScreen) setBattleResult(result.data.resultScreen);
+      if (result?.data?.resultScreen) setBattleResult(result.data.resultScreen as BattleResultState);
       setSelectedWeeklySupportItems([]);
       setWeeklyOpponent(null);
     } catch (e: unknown) {
@@ -442,11 +480,11 @@ export function DisciplesSection() {
                 Лог боя
               </div>
               <ul className="space-y-1 text-sm">
-                {battleResult.battleLog.slice(0, 10).map((e: any, i: number) => (
+                {battleResult.battleLog.slice(0, 10).map((e: BattleLogEntry, i: number) => (
                   <li key={i} className="games-muted">
                     {e.action === "support_items"
-                      ? `Подготовка: ${(e.items ?? []).map((item: InventoryEntry) => item.name || getItemLabel(item.itemId, inventoryById)).join(", ")}`
-                      : `Ход ${e.turn}: ${e.actor === "user" ? "Вы" : "Противник"} — ${e.techniqueName || getItemLabel(e.itemId || "", inventoryById)} (${BATTLE_ACTION_LABELS[e.action] ?? e.action}) ${typeof e.value === "number" ? (e.value > 0 ? `+${e.value}` : e.value) : ""}${e.absorbed ? ` · блок ${e.absorbed}` : ""}`}
+                      ? `Подготовка: ${(e.items ?? []).map((item) => item.name || getItemLabel(item.itemId, inventoryById)).join(", ")}`
+                      : `Ход ${e.turn}: ${e.actor === "user" ? "Вы" : "Противник"} — ${e.techniqueName || getItemLabel(e.itemId || "", inventoryById)} (${BATTLE_ACTION_LABELS[e.action ?? ""] ?? e.action}) ${typeof e.value === "number" ? (e.value > 0 ? `+${e.value}` : e.value) : ""}${e.absorbed ? ` · блок ${e.absorbed}` : ""}`}
                   </li>
                 ))}
               </ul>
@@ -541,7 +579,7 @@ export function DisciplesSection() {
                     }
                   }}
                 >
-                  {d === "easy" ? "Лёгкая" : d === "normal" ? "Обычная" : "Тяжёлая"} ({expeditionData.costs[d]}🪙)
+                  {d === "easy" ? "Лёгкая" : d === "normal" ? "Обычная" : "Тяжёлая"} ({expeditionData.costs?.[d]}🪙)
                 </button>
               ))}
             </div>

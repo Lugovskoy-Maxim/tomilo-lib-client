@@ -245,7 +245,20 @@ export const shopApi = createApi({
         url: `/shop/decks/${deckId}/open`,
         method: "POST",
       }),
-      transformResponse: (response: { data?: any }) => response.data,
+      transformResponse: (response: { data?: unknown }) =>
+        response.data as {
+          deck: CardDeck;
+          openedCards: { isNew: boolean; shardsGained: number; card: unknown }[];
+          balance: number;
+          pity?: {
+            triggered: boolean;
+            hitTarget: boolean;
+            threshold: number;
+            targetRarity: string;
+            progress: number;
+            remaining: number;
+          };
+        },
       invalidatesTags: [
         { type: SHOP_DECKS_TAG, id: "LIST" },
         { type: SHOP_TAG, id: "PROFILE" },

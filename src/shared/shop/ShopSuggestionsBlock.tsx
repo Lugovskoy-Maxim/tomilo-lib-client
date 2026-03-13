@@ -77,7 +77,7 @@ export function ShopSuggestionsBlock() {
     Math.max(0, nextAcceptance.getTime() - Date.now()),
   );
   useEffect(() => {
-    const tick = () => setCountdownMs((prev) => Math.max(0, nextAcceptance.getTime() - Date.now()));
+    const tick = () => setCountdownMs(() => Math.max(0, nextAcceptance.getTime() - Date.now()));
     const id = setInterval(tick, 60_000);
     tick();
     return () => clearInterval(id);
@@ -122,7 +122,7 @@ export function ShopSuggestionsBlock() {
         setEditingSuggestionId(null);
         setForm({ type: "avatar", name: "", description: "" });
         setImageFile(null);
-        fileInputRef.current && (fileInputRef.current.value = "");
+        if (fileInputRef.current) fileInputRef.current.value = "";
       } catch (err: unknown) {
         const msg =
           err && typeof err === "object" && "data" in err
@@ -151,7 +151,7 @@ export function ShopSuggestionsBlock() {
       toast.success("Предложение отправлено");
       setForm({ type: "avatar", name: "", description: "" });
       setImageFile(null);
-      fileInputRef.current && (fileInputRef.current.value = "");
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "data" in err
@@ -169,7 +169,7 @@ export function ShopSuggestionsBlock() {
       description: s.description ?? "",
     });
     setImageFile(null);
-    fileInputRef.current && (fileInputRef.current.value = "");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const cancelEdit = () => {
