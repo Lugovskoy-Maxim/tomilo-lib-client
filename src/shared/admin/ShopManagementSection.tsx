@@ -20,6 +20,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { ErrorState as SharedErrorState } from "@/shared/error-state";
 import { useToast } from "@/hooks/useToast";
+import { SuggestionsSection } from "./SuggestionsSection";
 
 const DECORATION_TYPES: { value: DecorationType; label: string }[] = [
   { value: "avatar", label: "Аватар" },
@@ -52,8 +53,11 @@ const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gi
 /** 20MB — GIF может быть большим */
 const MAX_DECORATION_FILE_SIZE = 20 * 1024 * 1024;
 
+type ShopSubTab = "decorations" | "suggestions";
+
 export function ShopManagementSection() {
   const toast = useToast();
+  const [subTab, setSubTab] = useState<ShopSubTab>("decorations");
   const [typeFilter, setTypeFilter] = useState<DecorationType | "all">("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDecoration, setEditingDecoration] = useState<Decoration | null>(null);
@@ -286,8 +290,48 @@ export function ShopManagementSection() {
     );
   }
 
+  if (subTab === "suggestions") {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setSubTab("decorations")}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--secondary)] text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
+          >
+            Украшения магазина
+          </button>
+          <button
+            type="button"
+            onClick={() => setSubTab("suggestions")}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)]"
+          >
+            Предложенные декорации
+          </button>
+        </div>
+        <SuggestionsSection />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setSubTab("decorations")}
+          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--primary)] text-[var(--primary-foreground)]"
+        >
+          Украшения магазина
+        </button>
+        <button
+          type="button"
+          onClick={() => setSubTab("suggestions")}
+          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--secondary)] text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
+        >
+          Предложенные декорации
+        </button>
+      </div>
       {is404 && (
         <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 px-4 py-3 text-sm text-[var(--muted-foreground)]">
           Эндпоинт{" "}

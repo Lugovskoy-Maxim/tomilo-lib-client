@@ -13,6 +13,7 @@ export { ReportEntityInfo } from "./ReportEntityInfo";
 export { ReportsSection } from "./ReportsSection";
 export { CharacterModerationSection } from "./CharacterModerationSection";
 export { ShopManagementSection } from "./ShopManagementSection";
+export { SuggestionsSection } from "./SuggestionsSection";
 export { TitlesSection } from "./TitlesSection";
 export { UsersSection } from "./UsersSection";
 export { WorkQueueSection } from "./WorkQueueSection";

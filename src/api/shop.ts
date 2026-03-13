@@ -85,6 +85,7 @@ export function getDecorationImageUrls(imageUrl: string | undefined): {
     try {
       const u = new URL(imageUrl);
       const pathname = u.pathname;
+      // Сначала пробуем облако (S3), при ошибке загрузки — fallback на основной сервер
       if (s3Origin) {
         return {
           primary: `${s3Origin}${pathname}`,

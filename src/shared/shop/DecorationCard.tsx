@@ -15,7 +15,6 @@ import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 import { useGetProfileByIdQuery } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import { getImageUrls } from "@/lib/asset-url";
-import { getRankDisplay } from "@/lib/rank-utils";
 import type { EquippedDecorations } from "@/types/user";
 import ProfileHeaderPreview from "@/shared/profile/ProfileHeaderPreview";
 
@@ -41,6 +40,8 @@ export interface DecorationCardProps {
   authorDisplay?: "author" | "cultivator";
   /** Уровень культиватора для отображения ранга (только при authorDisplay === "cultivator"). */
   cultivatorLevel?: number;
+  /** В сетке (напр. предложения): карточка сжимается по ширине ячейки, без фиксированного min-width. */
+  compactGrid?: boolean;
 }
 
 const RARITY_STYLES: Record<
@@ -268,7 +269,6 @@ function DecorationPreviewModal({
       return (
         <div className="space-y-0.5">
           {name ? <p className={textClass}>Автор: {name}</p> : null}
-          <p className={textClass}>Культиватор: {getRankDisplay(cultivatorLevel ?? 0)}</p>
           {(displayAuthorLevel ?? cultivatorLevel) ? (
             <p className={textClass}>Уровень: {displayAuthorLevel ?? cultivatorLevel}</p>
           ) : null}
@@ -549,12 +549,7 @@ function DecorationPreviewModal({
                   </p>
                 )}
                 {authorDisplay === "cultivator" && (
-                  <>
-                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Культиватор</p>
-                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                      {getRankDisplay(cultivatorLevel ?? 0)}
-                    </p>
-                  </>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Культиватор</p>
                 )}
                 {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
                   <>
@@ -780,6 +775,7 @@ export function DecorationCard({
   onPreviewClose,
   authorDisplay,
   cultivatorLevel,
+  compactGrid = false,
 }: DecorationCardProps) {
   const { isAuthenticated, user } = useAuth();
   const shouldFetchAuthor =
@@ -817,7 +813,6 @@ export function DecorationCard({
       return (
         <div className="space-y-0.5">
           {name ? <p className={textClass}>Автор: {name}</p> : null}
-          <p className={textClass}>Культиватор: {getRankDisplay(effectiveCultivatorLevel)}</p>
           {(displayAuthorLevel ?? effectiveCultivatorLevel) ? (
             <p className={textClass}>Уровень: {displayAuthorLevel ?? effectiveCultivatorLevel}</p>
           ) : null}
@@ -1523,6 +1518,7 @@ export function DecorationCard({
     );
   };
 
+  const cardMinW = compactGrid ? "min-w-0" : "min-w-[140px] sm:min-w-[160px]";
   /* Фон профиля: превью как обложка, горизонтальный прямоугольник */
   if (displayType === "background") {
     return (
@@ -1531,7 +1527,7 @@ export function DecorationCard({
         <article
           ref={cardRef}
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full min-w-[140px] sm:min-w-[160px] self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full max-w-full ${cardMinW} self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
         >
           <div
             className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
@@ -1655,13 +1651,14 @@ export function DecorationCard({
 
   /* Декорация профиля (карточка): вертикальный прямоугольник — увеличенный размер */
   if (displayType === "card") {
+    const cardMaxW = compactGrid ? "max-w-full" : "sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px]";
     return (
       <>
         {previewModal}
         <article
           ref={cardRef}
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full sm:max-w-[180px] md:max-w-[200px] lg:max-w-[200px] xl:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full ${cardMaxW} ${cardMinW} rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
         >
           <div
             className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
@@ -1679,13 +1676,14 @@ export function DecorationCard({
   }
 
   /* Прочие декорации: вертикальный формат 9:16 (fallback) */
+  const fallbackMaxW = compactGrid ? "max-w-full" : "sm:max-w-[200px] lg:max-w-[220px]";
   return (
     <>
       {previewModal}
       <article
         ref={cardRef}
         onClick={handleCardClick}
-        className={`group/card relative w-full max-w-full sm:max-w-[200px] lg:max-w-[220px] min-w-[140px] sm:min-w-[160px] rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+        className={`group/card relative w-full ${fallbackMaxW} ${cardMinW} rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
       >
         <div
           className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}

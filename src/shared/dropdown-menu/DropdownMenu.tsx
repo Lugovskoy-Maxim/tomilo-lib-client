@@ -258,7 +258,7 @@ export default function UserDropdown({
         </Link>
 
         {/* Топы и баланс — одна строка, компактно */}
-        <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-1.5">
+        <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-2.5 mt-1">
           <div className="flex items-center gap-1 min-w-0 flex-1 overflow-x-auto shrink-0">
             {leaderboardPositions.length > 0 ? (
               leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {

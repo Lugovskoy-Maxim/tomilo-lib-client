@@ -466,10 +466,17 @@ export const shopApi = createApi({
       invalidatesTags: [{ type: SHOP_TAG, id: "SUGGESTIONS" }],
     }),
 
-    /** Редактировать предложение (только автор, в течение 1 часа). */
+    /** Редактировать предложение (автор — в течение 1 часа; админ — голоса и др.). */
     updateSuggestion: builder.mutation<
       SuggestedDecoration,
-      { id: string; name?: string; description?: string; imageUrl?: string }
+      {
+        id: string;
+        name?: string;
+        description?: string;
+        imageUrl?: string;
+        /** Установить число голосов (только для админа). */
+        votesCount?: number;
+      }
     >({
       query: ({ id, ...body }) => ({
         url: `/shop/suggestions/${id}`,
