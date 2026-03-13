@@ -314,7 +314,7 @@ export function ChapterReactions({
               )}
             </div>
             <div
-              className="flex flex-nowrap items-center gap-1 sm:gap-1.5"
+              className="flex flex-wrap items-center gap-1 sm:gap-1.5"
               role="group"
               aria-label={`Рейтинг от 1 до ${CHAPTER_RATING_MAX}`}
             >
@@ -327,7 +327,7 @@ export function ChapterReactions({
                     type="button"
                     disabled={!mounted || !isAuthenticated || isRatingLoading}
                     onClick={() => handleRating(value)}
-                    className={`flex-shrink-0 flex items-center justify-center min-w-[44px] min-h-[44px] w-11 h-11 sm:min-w-0 sm:min-h-0 sm:w-auto sm:h-auto sm:p-1 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--secondary)]/60 ${
+                    className={`flex-shrink-0 flex items-center justify-center min-w-[36px] min-h-[36px] w-9 h-9 sm:min-w-[44px] sm:min-h-[44px] sm:w-11 sm:h-11 sm:min-w-0 sm:min-h-0 sm:w-auto sm:h-auto sm:p-1 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--secondary)]/60 ${
                       isSelected
                         ? "text-[var(--primary)]"
                         : "text-[var(--muted-foreground)]/50 hover:text-[var(--muted-foreground)]"
@@ -335,7 +335,7 @@ export function ChapterReactions({
                     title={`${value} из ${CHAPTER_RATING_MAX}`}
                   >
                     <Star
-                      className="w-5 h-5 sm:w-5 sm:h-5"
+                      className="w-4 h-4 sm:w-5 sm:h-5"
                       fill={isSelected ? "currentColor" : "none"}
                       stroke="currentColor"
                       strokeWidth={1.5}
