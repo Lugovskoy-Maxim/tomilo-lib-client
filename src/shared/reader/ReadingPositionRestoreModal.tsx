@@ -36,6 +36,12 @@ export default function ReadingPositionRestoreModal({
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const primaryActionRef = useRef<HTMLButtonElement>(null);
+  const onRestoreRef = useRef(onRestore);
+  const onResetRef = useRef(onReset);
+  const onCloseRef = useRef(onClose);
+  onRestoreRef.current = onRestore;
+  onResetRef.current = onReset;
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const savedAlways = localStorage.getItem("reader-always-start-from-beginning");
@@ -81,16 +87,16 @@ export default function ReadingPositionRestoreModal({
 
     if (isAlwaysStartFromBeginning) {
       setTimeout(() => {
-        onReset();
-        onClose();
+        onResetRef.current();
+        onCloseRef.current();
       }, 0);
       return;
     }
 
     if (instantContinue) {
       setTimeout(() => {
-        onRestore();
-        onClose();
+        onRestoreRef.current();
+        onCloseRef.current();
       }, 0);
       return;
     }
@@ -102,8 +108,8 @@ export default function ReadingPositionRestoreModal({
         if (prev <= 1) {
           clearInterval(timer);
           setTimeout(() => {
-            onRestore();
-            onClose();
+            onRestoreRef.current();
+            onCloseRef.current();
           }, 0);
           return 0;
         }
@@ -119,9 +125,6 @@ export default function ReadingPositionRestoreModal({
     instantContinue,
     autoRestoreEnabled,
     isPaused,
-    onRestore,
-    onReset,
-    onClose,
   ]);
 
   const progressPercent = Math.round((page / totalPages) * 100);

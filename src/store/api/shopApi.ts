@@ -494,6 +494,7 @@ export const {
   useGetAdminDecorationsQuery,
   useGetDecorationsQuery,
   useGetDecorationsByTypeQuery,
+  useGetCardDecksQuery,
   useGetUserProfileDecorationsQuery,
   useCreateDecorationMutation,
   useCreateDecorationWithImageMutation,
@@ -502,6 +503,7 @@ export const {
   useDeleteDecorationMutation,
   useEquipDecorationMutation,
   useUnequipDecorationMutation,
+  useOpenCardDeckMutation,
   useGetSuggestionsQuery,
   useUploadSuggestionImageMutation,
   useCreateSuggestionMutation,
@@ -509,6 +511,3 @@ export const {
   useUpdateSuggestionMutation,
   useDeleteSuggestionMutation,
 } = shopApi;
-
-export const useGetCardDecksQuery = shopApi.endpoints.getCardDecks.useQuery;
-export const useOpenCardDeckMutation = shopApi.endpoints.openCardDeck.useMutation;
