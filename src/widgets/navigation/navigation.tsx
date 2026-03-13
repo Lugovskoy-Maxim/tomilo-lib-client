@@ -2,7 +2,7 @@
 
 import NavigationLink from "@/shared/navigation-link/NavigationLink";
 import { usePathname } from "next/navigation";
-import { Crown, Users } from "lucide-react";
+import { BookOpen, Crown } from "lucide-react";
 
 interface NavigationProps {
   vertical?: boolean;
@@ -12,9 +12,9 @@ interface NavigationProps {
 
 const navigationItems = [
   {
-    name: "Персонажи",
-    href: "/characters",
-    icon: Users,
+    name: "Каталог",
+    href: "/titles",
+    icon: BookOpen,
   },
   {
     name: "Лидеры",

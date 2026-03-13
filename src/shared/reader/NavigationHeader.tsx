@@ -41,11 +41,15 @@ export default function NavigationHeader({
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 bg-[var(--background)]/95 backdrop-blur-md border-b border-[var(--border)] z-50 transition-opacity duration-300 ease-out ${
-        showControls ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      className={`fixed top-0 left-0 right-0 z-50 transition-[transform,opacity] duration-300 ease-out ${
+        showControls
+          ? "translate-y-0 opacity-100 pointer-events-auto"
+          : "pointer-events-none -translate-y-full opacity-0"
       }`}
       aria-hidden={!showControls}
+      style={{ willChange: showControls ? "auto" : "transform, opacity" }}
     >
+      <div className="bg-[var(--background)]/95 backdrop-blur-md border-b border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-2 sm:py-4 min-h-[48px] sm:min-h-[64px] flex items-center">
         <div className="flex flex-row items-center justify-between gap-2 sm:gap-3 w-full">
           {/* Одна строка: кнопка назад, обложка, название и глава; справа — навигация по главам (десктоп) и кнопка ошибки */}
@@ -123,10 +127,10 @@ export default function NavigationHeader({
 
           {/* Кнопка «Сообщить об ошибке» в углу (мобильная версия — в одной строке с названием) */}
           {onReportError && (
-            <div className="flex sm:hidden flex-shrink-0">
+            <div className="flex items-center justify-center sm:hidden flex-shrink-0">
               <button
                 onClick={onReportError}
-                className="group p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--destructive)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 min-h-[36px] min-w-[36px] touch-manipulation flex-shrink-0"
+                className="group flex items-center justify-center p-2 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--destructive)] border border-[var(--border)] rounded-lg hover:bg-[var(--accent)]/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 min-h-[36px] min-w-[36px] touch-manipulation flex-shrink-0"
                 title="Сообщить об ошибке"
               >
                 <AlertTriangle className="w-4 h-4 transition-transform group-hover:scale-110" />
@@ -136,10 +140,10 @@ export default function NavigationHeader({
 
           {/* Кнопка ошибки — только на sm и выше (на мобильном в блоке прогресса выше) */}
           {onReportError && (
-            <div className="hidden sm:block flex-shrink-0">
+            <div className="hidden sm:flex sm:items-center sm:justify-center flex-shrink-0">
               <button
                 onClick={onReportError}
-                className="group p-2.5 sm:p-3 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--destructive)] border border-[var(--border)] rounded-xl hover:bg-[var(--accent)]/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px] touch-manipulation flex-shrink-0"
+                className="group flex items-center justify-center p-2.5 sm:p-3 bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--destructive)] border border-[var(--border)] rounded-xl hover:bg-[var(--accent)]/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px] touch-manipulation flex-shrink-0"
                 title="Сообщить об ошибке"
               >
                 <AlertTriangle className="w-5 h-5 sm:w-5 sm:h-5 transition-transform group-hover:scale-110" />
@@ -147,6 +151,7 @@ export default function NavigationHeader({
             </div>
           )}
         </div>
+      </div>
       </div>
     </header>
   );

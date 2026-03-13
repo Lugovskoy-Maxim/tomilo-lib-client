@@ -64,9 +64,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const [triedFallback, setTriedFallback] = useState(false);
   const [triedErrorSrc, setTriedErrorSrc] = useState(false);
+  const prevSrcRef = useRef<string>(src ?? "");
 
-  // Сброс состояния при смене основного src
+  // Сброс состояния только при реальной смене URL (сравнение по значению), чтобы не мигать при ре-рендерах
   useEffect(() => {
+    const srcVal = src ?? "";
+    if (prevSrcRef.current === srcVal) return;
+    prevSrcRef.current = srcVal;
     setCurrentSrc(src);
     setIsLoaded(false);
     setHasError(false);
@@ -173,7 +177,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   if (hasError) return renderError();
 
-  const showImage = isLoaded && visible;
+  // Если placeholder скрыт (hidePlaceholder), не прячем само изображение до onLoad,
+  // чтобы избежать «пустых» состояний при быстрой смене src (например, в каруселях).
+  const showImage = (hidePlaceholder ? shouldLoad : isLoaded) && visible;
 
   // В dev-режиме next/image optimization может вызывать timeout при обращении к удалённым серверам.
   // Используем unoptimized для всех http/https URL чтобы избежать проблем.

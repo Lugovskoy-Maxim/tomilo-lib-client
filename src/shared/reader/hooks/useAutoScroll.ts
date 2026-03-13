@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 export type AutoScrollSpeed = "slow" | "medium" | "fast";
 
+/** Общая скорость для всех экземпляров useAutoScroll (настройки и прокрутка в разных компонентах). */
+const sharedAutoScrollSpeedRef = { current: "medium" as AutoScrollSpeed };
+
 interface UseAutoScrollOptions {
   onAutoScrollStart?: () => void;
 }
@@ -22,8 +25,9 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
 
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const isAutoScrollingRef = useRef(isAutoScrolling);
-  const [autoScrollSpeed, setAutoScrollSpeedState] = useState<AutoScrollSpeed>("medium");
-  const autoScrollSpeedRef = useRef(autoScrollSpeed);
+  const [autoScrollSpeed, setAutoScrollSpeedState] = useState<AutoScrollSpeed>(
+    () => sharedAutoScrollSpeedRef.current,
+  );
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopAutoScrollRef = useRef<(() => void) | null>(null);
 
@@ -36,14 +40,16 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   }, [isAutoScrolling]);
 
   useEffect(() => {
-    autoScrollSpeedRef.current = autoScrollSpeed;
+    sharedAutoScrollSpeedRef.current = autoScrollSpeed;
   }, [autoScrollSpeed]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const saved = localStorage.getItem("reader-auto-scroll-speed");
     if (saved && ["slow", "medium", "fast"].includes(saved)) {
-      setAutoScrollSpeedState(saved as AutoScrollSpeed);
+      const speed = saved as AutoScrollSpeed;
+      sharedAutoScrollSpeedRef.current = speed;
+      setAutoScrollSpeedState(speed);
     }
   }, []);
 
@@ -53,6 +59,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   }, [autoScrollSpeed]);
 
   const setAutoScrollSpeed = useCallback((speed: AutoScrollSpeed) => {
+    sharedAutoScrollSpeedRef.current = speed;
     setAutoScrollSpeedState(speed);
   }, []);
 
@@ -88,7 +95,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
         return;
       }
 
-      const pxPerSecond = speedMap[autoScrollSpeedRef.current];
+      const pxPerSecond = speedMap[sharedAutoScrollSpeedRef.current];
       const pxPerFrame = pxPerSecond * (INTERVAL_MS / 1000);
 
       // Check if user manually scrolled

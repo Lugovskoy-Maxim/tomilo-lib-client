@@ -20,8 +20,11 @@ import { ReadingProgressResponse } from "@/types/progress";
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
 import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
 import { useToast } from "@/hooks/useToast";
+import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 
 const USER_DATA_KEY = "tomilo_lib_user";
+/** Временно отключить тосты за предметы и карточки при чтении */
+const SHOW_READING_DROP_TOASTS = false;
 /** Время (ms), когда токен был записан — чтобы не делать logout по 401 от устаревшего запроса profile сразу после логина */
 const TOKEN_SET_AT_KEY = "tomilo_lib_token_set_at";
 const IGNORE_401_AFTER_LOGIN_MS = 3000;
@@ -38,6 +41,7 @@ export const useAuth = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state: RootState) => state.auth);
   const toast = useToast();
+  const { showExpGain } = useProgressNotification();
 
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
@@ -459,13 +463,18 @@ export const useAuth = () => {
             // Обновляем список истории явно, чтобы UI не оставался устаревшим у части пользователей
           }
         }
-        if (result.data?.readingDrops?.length) {
+        // Тосты опыта: fallback из ответа API (WebSocket может не успеть или не подключиться)
+        const progress = result.data?.progress;
+        if (progress && typeof progress.expGained === "number" && progress.expGained > 0) {
+          showExpGain(progress.expGained, progress.reason ?? "Чтение главы");
+        }
+        if (SHOW_READING_DROP_TOASTS && result.data?.readingDrops?.length) {
           for (const item of result.data.readingDrops) {
             const label = item.name || item.itemId;
             toast.success(`Найден при чтении: ${label} ×${item.count}`, 5000, { icon: item.icon });
           }
         }
-        if (result.data?.readingCardDrops?.length) {
+        if (SHOW_READING_DROP_TOASTS && result.data?.readingCardDrops?.length) {
           for (const card of result.data.readingCardDrops) {
             const label = card.characterName || card.name || "Карточка";
             const suffix = card.isNew
@@ -579,7 +588,7 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
-    [addToReadingHistory, refetchProfile, refetchReadingHistory, token, toast],
+    [addToReadingHistory, refetchProfile, refetchReadingHistory, showExpGain, token, toast],
   );
 
   const removeFromReadingHistoryFunc = async (

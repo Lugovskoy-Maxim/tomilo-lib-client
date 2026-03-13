@@ -136,6 +136,7 @@ function ReadChapterPageContent({
   const [currentPage, setCurrentPage] = useState(1);
   const [imageWidth, setImageWidth] = useState(768);
   const [isPositionRestored, setIsPositionRestored] = useState(false);
+  const isPositionRestoredRef = useRef(false);
 
   const [savedReadingPage, setSavedReadingPage] = useState<number | null>(null);
   const [savedPositionTimestamp, setSavedPositionTimestamp] = useState<number>(0);
@@ -661,53 +662,75 @@ function ReadChapterPageContent({
     }
   };
 
-  // Unified scroll handler: логика появления/скрытия хедера
+  // Unified scroll handler: логика появления/скрытия хедера (мобильный и десктоп)
   const lastScrollYRef = useRef(0);
+  const headerVisibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SCROLL_TOP_ZONE = 120; // в начале страницы хедер всегда виден
-  const SCROLL_DOWN_THRESHOLD = 50; // скрыть хедер только после прокрутки вниз на N px
-  const SCROLL_UP_THRESHOLD = 25; // показать хедер при прокрутке вверх на N px
+  const SCROLL_DOWN_THRESHOLD = 70; // скрыть хедер после прокрутки вниз
+  const SCROLL_UP_THRESHOLD = 50; // показать хедер при прокрутке вверх
+  const HEADER_DEBOUNCE_MS = 120; // задержка перед сменой видимости, чтобы не мигало
+
+  // Начальное состояние по текущей позиции скролла при монтировании (десктоп/мобильный)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const y = window.scrollY;
+    lastScrollYRef.current = y;
+    setLastScrollY(y);
+    setIsHeaderVisible(y <= SCROLL_TOP_ZONE);
+  }, []);
 
   useEffect(() => {
     let ticking = false;
-    let animationFrameId: number | null = null;
+    let rafId: number | null = null;
+
+    const applyHeaderVisibility = (visible: boolean) => {
+      setIsHeaderVisible(visible);
+      if (visible) {
+        if (hideBottomMenuSetting) showMenuAndResetTimeout();
+        setForceStopAutoScroll(false);
+      } else {
+        if (hideBottomMenuSetting) setIsMenuCollapsed(true);
+      }
+    };
+
+    const scheduleHeaderVisibility = (visible: boolean, delayMs: number) => {
+      if (headerVisibilityTimeoutRef.current) {
+        clearTimeout(headerVisibilityTimeoutRef.current);
+        headerVisibilityTimeoutRef.current = null;
+      }
+      headerVisibilityTimeoutRef.current = setTimeout(() => {
+        headerVisibilityTimeoutRef.current = null;
+        applyHeaderVisibility(visible);
+      }, delayMs);
+    };
 
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
 
-      animationFrameId = requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => {
         const currentScrollY = window.scrollY;
         const prevScrollY = lastScrollYRef.current;
         const delta = currentScrollY - prevScrollY;
 
-        // В начале страницы хедер всегда показываем
+        // В начале страницы хедер показываем сразу (без дебаунса)
         if (currentScrollY <= SCROLL_TOP_ZONE) {
-          setIsHeaderVisible(true);
-          if (hideBottomMenuSetting) {
-            showMenuAndResetTimeout();
+          if (headerVisibilityTimeoutRef.current) {
+            clearTimeout(headerVisibilityTimeoutRef.current);
+            headerVisibilityTimeoutRef.current = null;
           }
-          setForceStopAutoScroll(false);
+          applyHeaderVisibility(true);
         } else if (delta > SCROLL_DOWN_THRESHOLD) {
-          // Прокрутка вниз — скрыть хедер
-          setIsHeaderVisible(false);
-          if (hideBottomMenuSetting) {
-            setIsMenuCollapsed(true);
-          }
+          scheduleHeaderVisibility(false, HEADER_DEBOUNCE_MS);
         } else if (delta < -SCROLL_UP_THRESHOLD) {
-          // Прокрутка вверх — показать хедер
-          setIsHeaderVisible(true);
-          if (hideBottomMenuSetting) {
-            showMenuAndResetTimeout();
-          }
-          setForceStopAutoScroll(false);
-        } else if (currentScrollY === prevScrollY) {
-          setForceStopAutoScroll(false);
+          scheduleHeaderVisibility(true, HEADER_DEBOUNCE_MS);
         }
 
-        if (window.innerHeight + currentScrollY >= document.body.offsetHeight - 100) {
-          if (hideBottomMenuSetting) {
-            setIsMenuCollapsed(true);
-          }
+        if (
+          window.innerHeight + currentScrollY >=
+          document.documentElement.scrollHeight - 100
+        ) {
+          if (hideBottomMenuSetting) setIsMenuCollapsed(true);
         }
 
         lastScrollYRef.current = currentScrollY;
@@ -719,8 +742,9 @@ function ReadChapterPageContent({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      if (rafId != null) cancelAnimationFrame(rafId);
+      if (headerVisibilityTimeoutRef.current) {
+        clearTimeout(headerVisibilityTimeoutRef.current);
       }
     };
   }, [hideBottomMenuSetting, showMenuAndResetTimeout]);
@@ -880,6 +904,11 @@ function ReadChapterPageContent({
     }
   }, [titleId, chapterId]);
 
+  // Синхронизируем ref с isPositionRestored, чтобы обработчик скролла всегда видел актуальное значение
+  useEffect(() => {
+    isPositionRestoredRef.current = isPositionRestored;
+  }, [isPositionRestored]);
+
   // Измерение реальной высоты контента после загрузки изображений
   useEffect(() => {
     if (isPagedMode || !isPositionRestored) return;
@@ -992,8 +1021,8 @@ function ReadChapterPageContent({
     }
 
     const updateCurrentPage = () => {
-      // Не обновляем страницу сразу после восстановления позиции
-      if (!isPositionRestored) {
+      // Используем ref, чтобы всегда читать актуальное значение (избегаем устаревшего замыкания)
+      if (!isPositionRestoredRef.current) {
         return;
       }
 
@@ -1302,7 +1331,10 @@ function ReadChapterPageContent({
       {/* Модальное окно восстановления позиции */}
       <ReadingPositionRestoreModal
         isOpen={isRestoreModalOpen}
-        onClose={() => setIsRestoreModalOpen(false)}
+        onClose={() => {
+          setIsRestoreModalOpen(false);
+          setIsPositionRestored(true);
+        }}
         onRestore={() => restorePosition(savedReadingPage || 1)}
         onReset={resetPosition}
         onJumpToPage={page => {
@@ -1384,8 +1416,9 @@ function ReadChapterPageContent({
           }
           const pageElement = findPageElementInChapter(effectiveChapter._id, page);
           if (pageElement) {
+            const jumpDistance = Math.abs(page - currentPage);
             pageElement.scrollIntoView({
-              behavior: "smooth",
+              behavior: jumpDistance > 5 ? "auto" : "smooth",
               block: "center",
             });
           }
@@ -1536,7 +1569,7 @@ function ReadChapterPageContent({
 
                           {!isError ? (
                             <Image
-                              key={`${ch._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
+                              key={`${ch._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
                               loader={imageLoader}
                               src={imageUrl}
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
@@ -1746,7 +1779,7 @@ function ReadChapterPageContent({
                               {!isError ? (
                                 <>
                                   <Image
-                                    key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
+                                    key={`${displayChapter._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
                                     loader={imageLoader}
                                     src={imageUrl}
                                     alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
@@ -1955,7 +1988,7 @@ function ReadChapterPageContent({
 
                           {!isError ? (
                             <Image
-                              key={`${displayChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
+                              key={`${displayChapter._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
                               loader={imageLoader}
                               src={imageUrl}
                               alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
@@ -2305,7 +2338,7 @@ function ReadChapterPageContent({
 
                                   {!isError ? (
                                     <Image
-                                      key={`${loadedChapter._id}-${imageIndex}-${imageWidth}-${imageQuality}-${useFallback ? "fb" : "pr"}`}
+                                      key={`${loadedChapter._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
                                       loader={imageLoader}
                                       src={imageUrl}
                                       alt={`Глава ${loadedChapter.number}, Страница ${imageIndex + 1}`}

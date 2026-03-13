@@ -328,7 +328,7 @@ function DecorationPreviewModal({
 
     if (displayType === "background") {
       return (
-        <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card)]">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]">
           <ProfileHeaderPreview
             compact
             username={username}
@@ -615,30 +615,55 @@ function DecorationPreviewModal({
                 </p>
               )}
 
-              <div className="flex items-center gap-2 mt-4 w-full md:w-auto">
-                {!isAuthenticated ? (
-                  <p className="text-sm text-[var(--muted-foreground)]">Войдите для покупки</p>
-                ) : isOwned ? (
-                  isEquipped ? (
-                    <button
-                      type="button"
-                      onClick={onUnequip}
-                      disabled={isLoading}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] font-medium text-sm hover:bg-[var(--muted)] disabled:opacity-50 transition-colors"
-                    >
-                      {isLoading ? (
-                        <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <Check className="w-4 h-4" />
-                          Снять
-                        </>
-                      )}
-                    </button>
+              {/* Основная кнопка действия: скрываем её для предложений (hidePurchase && !isOwned),
+                  чтобы в блоке предложенных украшений не было покупки до победы. */}
+              {!(hidePurchase && !isOwned) && (
+                <div className="flex items-center gap-2 mt-4 w-full md:w-auto">
+                  {!isAuthenticated ? (
+                    <p className="text-sm text-[var(--muted-foreground)]">Войдите для покупки</p>
+                  ) : isOwned ? (
+                    isEquipped ? (
+                      <button
+                        type="button"
+                        onClick={onUnequip}
+                        disabled={isLoading}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] font-medium text-sm hover:bg-[var(--muted)] disabled:opacity-50 transition-colors"
+                      >
+                        {isLoading ? (
+                          <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Снять
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={onEquip}
+                        disabled={isLoading}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                      >
+                        {isLoading ? (
+                          <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" />
+                            Надеть
+                          </>
+                        )}
+                      </button>
+                    )
+                  ) : soldOut ? (
+                    <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
+                      <PackageX className="w-4 h-4" />
+                      Распродано
+                    </div>
                   ) : (
                     <button
                       type="button"
-                      onClick={onEquip}
+                      onClick={onPurchase}
                       disabled={isLoading}
                       className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
                     >
@@ -646,35 +671,14 @@ function DecorationPreviewModal({
                         <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4" />
-                          Надеть
+                          <ShoppingBag className="w-4 h-4" />
+                          Купить
                         </>
                       )}
                     </button>
-                  )
-                ) : soldOut ? (
-                  <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
-                    <PackageX className="w-4 h-4" />
-                    Распродано
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={onPurchase}
-                    disabled={isLoading}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
-                  >
-                    {isLoading ? (
-                      <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <ShoppingBag className="w-4 h-4" />
-                        Купить
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex-1 flex flex-col min-w-0">

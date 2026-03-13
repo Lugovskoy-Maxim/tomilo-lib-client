@@ -88,11 +88,7 @@ export default function ProfileHeaderPreview({
           />
         )}
         <div
-          className="absolute inset-0 pointer-events-none z-20"
-          style={{
-            background:
-              "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 65%)",
-          }}
+          className="absolute inset-0 pointer-events-none z-20 banner-overlay"
           aria-hidden
         />
 
