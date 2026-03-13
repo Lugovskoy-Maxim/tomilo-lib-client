@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ClipboardList, Check, Loader2, Coins, Sparkles, Gift } from "lucide-react";
+import { ClipboardList, Check, Loader2, Coins, Sparkles, Gift, Target } from "lucide-react";
 import { useGetDailyQuestsQuery, useClaimDailyQuestMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import { GameResultReveal } from "@/shared/games";
@@ -9,6 +9,25 @@ import { GameResultReveal } from "@/shared/games";
 interface ProfileDailyQuestsProps {
   /** Показать только первые N заданий (для компактного обзора) */
   maxVisible?: number;
+}
+
+/** Форматирует время до сброса: "5 ч 23 мин", "менее минуты", "завтра в 00:00" */
+function formatResetIn(resetAtIso: string): string {
+  const reset = new Date(resetAtIso);
+  const now = new Date();
+  const ms = reset.getTime() - now.getTime();
+  if (ms <= 0) return "скоро";
+  const totalMinutes = Math.floor(ms / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24);
+    return days === 1 ? "завтра в 00:00" : `через ${days} д.`;
+  }
+  if (hours > 0) {
+    return minutes > 0 ? `${hours} ч ${minutes} мин` : `${hours} ч`;
+  }
+  return totalMinutes < 1 ? "менее минуты" : `${totalMinutes} мин`;
 }
 
 export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsProps = {}) {
@@ -28,7 +47,8 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
 
   const data = response?.success ? response.data : null;
   const allQuests = data?.quests ?? [];
-  const quests = maxVisible != null ? allQuests.slice(0, maxVisible) : allQuests;
+  const capped = maxVisible != null ? allQuests.slice(0, maxVisible) : allQuests;
+  const quests = capped.slice(0, 6);
 
   const handleClaim = async (questId: string) => {
     try {
@@ -59,17 +79,17 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
 
   if (isLoading) {
     return (
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)] p-4 sm:p-5">
+      <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
-            <ClipboardList className="w-5 h-5 text-indigo-500" />
+          <div className="p-2.5 rounded-2xl bg-violet-500/15 border border-violet-500/25">
+            <ClipboardList className="w-5 h-5 text-violet-500" />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-[var(--foreground)]">Ежедневные задания</h3>
             <p className="text-xs text-[var(--muted-foreground)]">Загрузка...</p>
           </div>
         </div>
-        <div className="flex justify-center py-6">
+        <div className="flex justify-center py-8">
           <Loader2 className="w-8 h-8 animate-spin text-[var(--muted-foreground)]" />
         </div>
       </div>
@@ -81,122 +101,145 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
   }
 
   return (
-    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)] overflow-hidden">
+    <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm overflow-hidden shadow-sm">
       <div className="p-4 sm:p-5">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
-            <ClipboardList className="w-5 h-5 text-indigo-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--foreground)]">Ежедневные задания</h3>
-            <p className="text-xs text-[var(--muted-foreground)]">
-              Выполняйте задания и забирайте награды до обновления дня
-            </p>
-            {data.resetAt ? (
-              <p className="text-[11px] text-[var(--muted-foreground)] mt-1">
-                Следующий сброс: {data.resetAt}
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-violet-500/15 border border-violet-500/25">
+              <ClipboardList className="w-5 h-5 text-violet-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">Ежедневные задания</h3>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Выполняйте и забирайте награды до сброса
               </p>
-            ) : null}
+            </div>
           </div>
+          {data.resetAt ? (
+            <p className="text-[11px] text-[var(--muted-foreground)] tabular-nums">
+              Обновление через: {formatResetIn(data.resetAt)}
+            </p>
+          ) : null}
         </div>
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {quests.length === 0 ? (
-            <p className="text-xs text-[var(--muted-foreground)] py-2">
-              На сегодня заданий нет. Зайдите завтра.
-            </p>
+            <div className="col-span-full rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--secondary)]/20 py-8 text-center">
+              <Target className="w-8 h-8 mx-auto text-[var(--muted-foreground)]/60 mb-2" />
+              <p className="text-sm text-[var(--muted-foreground)]">На сегодня заданий нет</p>
+              <p className="text-xs text-[var(--muted-foreground)]/80 mt-0.5">Зайдите завтра</p>
+            </div>
           ) : (
             quests.map(q => {
               const done = q.progress >= q.target;
               const claimed = !!q.claimedAt;
               const canClaim = done && !claimed;
+              const progressPct = Math.min(100, (q.progress / q.target) * 100);
 
               return (
-                <div
+                <article
                   key={q.id}
-                  className={`rounded-xl border p-3 transition-all ${
-                    claimed
-                      ? "bg-green-500/10 border-green-500/30"
-                      : done
-                        ? "bg-indigo-500/10 border-indigo-500/30"
-                        : "bg-[var(--secondary)]/30 border-[var(--border)]/50"
-                  }`}
+                  className={`
+                    group relative rounded-xl overflow-hidden
+                    flex flex-col min-h-0 transition-all duration-200
+                    border
+                    ${claimed
+                      ? "bg-emerald-500/5 border-emerald-500/20 shadow-none"
+                      : canClaim
+                        ? "bg-violet-500/8 border-violet-500/25 ring-1 ring-violet-500/10"
+                        : "bg-[var(--secondary)]/20 border-[var(--border)]/40 hover:border-[var(--border)]/60"
+                    }
+                  `}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-[var(--foreground)] truncate">
+                  {/* Верх: название + бейдж прогресса + награды */}
+                  <div className="p-3 pb-0 flex flex-col gap-2 min-h-0 shrink-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="text-[13px] font-semibold text-[var(--foreground)] line-clamp-2 leading-tight min-w-0 flex-1">
                         {q.name}
-                      </p>
-                      {q.description && (
-                        <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
-                          {q.description}
-                        </p>
-                      )}
+                      </h4>
+                      <span
+                        className={`
+                          shrink-0 flex items-center justify-center min-w-[2rem] h-7 rounded-lg text-xs font-bold tabular-nums
+                          ${claimed
+                            ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                            : done
+                              ? "bg-violet-500/20 text-violet-600 dark:text-violet-400"
+                              : "bg-[var(--secondary)]/80 text-[var(--muted-foreground)]"
+                          }
+                        `}
+                      >
+                        {claimed ? "✓" : `${q.progress}/${q.target}`}
+                      </span>
                     </div>
-                    <div className="shrink-0 flex items-center gap-1 text-[10px] text-[var(--muted-foreground)]">
+
+                    {/* Награды — компактный ряд */}
+                    <div className="flex flex-wrap gap-1.5 items-center">
                       {q.rewardExp > 0 && (
-                        <span className="flex items-center gap-0.5">
-                          <Sparkles className="w-3 h-3 text-amber-500" />
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400 tabular-nums">
+                          <Sparkles className="w-3 h-3" />
                           +{q.rewardExp}
                         </span>
                       )}
                       {q.rewardCoins > 0 && (
-                        <span className="flex items-center gap-0.5">
-                          <Coins className="w-3 h-3 text-amber-500" />
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400 tabular-nums">
+                          <Coins className="w-3 h-3" />
                           +{q.rewardCoins}
                         </span>
                       )}
-                    </div>
-                  </div>
-                  {q.rewardItems?.length ? (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {q.rewardItems.map(item => (
-                        <span key={`${q.id}-${item.itemId}`} className="games-reward-chip inline-flex items-center gap-1">
-                          {item.icon ? <img src={item.icon} alt="" className="w-3.5 h-3.5 rounded object-cover" /> : <Gift className="w-3.5 h-3.5" />}
-                          {item.name || item.itemId}
-                          {" "}
-                          {item.countMin === item.countMax ? `×${item.countMin}` : `×${item.countMin}-${item.countMax}`}
-                          {" "}
-                          <span className="opacity-70">{Math.round((item.chance ?? 1) * 100)}%</span>
+                      {q.rewardItems?.slice(0, 2).map(item => (
+                        <span
+                          key={`${q.id}-${item.itemId}`}
+                          className="inline-flex items-center gap-1 rounded-md bg-[var(--secondary)]/60 px-1.5 py-0.5 text-[10px] text-[var(--foreground)]/90 max-w-[80px] truncate"
+                        >
+                          {item.icon ? (
+                            <img src={item.icon} alt="" className="w-3 h-3 rounded shrink-0 object-cover" />
+                          ) : (
+                            <Gift className="w-3 h-3 shrink-0 text-[var(--muted-foreground)]" />
+                          )}
+                          <span className="truncate">{item.name || item.itemId}</span>
                         </span>
                       ))}
                     </div>
-                  ) : null}
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 rounded-full bg-[var(--secondary)] overflow-hidden">
+                  </div>
+
+                  {/* Прогресс-бар на всю ширину */}
+                  <div className="px-3 pb-2 pt-1 shrink-0">
+                    <div className="h-1.5 w-full rounded-full bg-[var(--secondary)]/60 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-indigo-500 transition-all duration-300"
-                        style={{
-                          width: `${Math.min(100, (q.progress / q.target) * 100)}%`,
-                        }}
+                        className={`
+                          h-full rounded-full transition-all duration-500
+                          ${claimed ? "bg-emerald-500" : done ? "bg-violet-500" : "bg-violet-500/70"}
+                        `}
+                        style={{ width: `${progressPct}%` }}
                       />
                     </div>
-                    <span className="text-[10px] tabular-nums text-[var(--muted-foreground)] shrink-0">
-                      {q.progress}/{q.target}
-                    </span>
                   </div>
-                  {canClaim && (
-                    <button
-                      type="button"
-                      onClick={() => handleClaim(q.id)}
-                      disabled={isClaiming}
-                      className="mt-2 w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-indigo-500 text-white text-xs font-medium hover:bg-indigo-600 disabled:opacity-70"
-                    >
-                      {isClaiming ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Check className="w-3.5 h-3.5" />
-                      )}
-                      Забрать награду
-                    </button>
-                  )}
-                  {claimed && (
-                    <div className="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-green-500">
-                      <Check className="w-3.5 h-3.5" />
-                      Награда получена
-                    </div>
-                  )}
-                </div>
+
+                  {/* Кнопка / статус внизу */}
+                  <div className="px-3 pb-3 pt-0 shrink-0">
+                    {canClaim && (
+                      <button
+                        type="button"
+                        onClick={() => handleClaim(q.id)}
+                        disabled={isClaiming}
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-violet-500 text-white text-xs font-semibold hover:bg-violet-600 active:scale-[0.98] disabled:opacity-70 transition-all"
+                      >
+                        {isClaiming ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Gift className="w-4 h-4" />
+                        )}
+                        Забрать награду
+                      </button>
+                    )}
+                    {claimed && (
+                      <div className="flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        <Check className="w-4 h-4" />
+                        Получено
+                      </div>
+                    )}
+                  </div>
+                </article>
               );
             })
           )}

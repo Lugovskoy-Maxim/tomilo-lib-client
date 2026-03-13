@@ -449,103 +449,120 @@ const AchievementCard = memo(function AchievementCard({
     return val.toLocaleString();
   };
 
-  return (
-    <div
-      className={`relative rounded-xl border overflow-hidden transition-all duration-300 ${
-        isUnlocked
-          ? "border-[var(--border)]/80 bg-[var(--card)]"
-          : "border-[var(--border)]/40 bg-[var(--secondary)]/20 opacity-70"
-      }`}
-    >
-      {/* Main content */}
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full p-3 min-[360px]:p-3.5 flex items-center gap-2.5 min-[360px]:gap-3 text-left"
-      >
-        {/* Icon */}
-        <div
-          className={`relative shrink-0 w-10 h-10 min-[360px]:w-11 min-[360px]:h-11 rounded-xl flex items-center justify-center ${
-            isUnlocked ? `bg-gradient-to-br ${achievement.bgColor}` : "bg-[var(--secondary)]"
-          }`}
-          style={isUnlocked ? { boxShadow: `0 0 16px ${achievement.color}30` } : undefined}
-        >
-          <Icon
-            className="w-5 h-5 min-[360px]:w-5.5 min-[360px]:h-5.5"
-            style={{ color: isUnlocked ? achievement.color : "var(--muted-foreground)" }}
-          />
-          {isUnlocked && (
-            <div
-              className="absolute -top-1 -right-1 w-5 h-5 min-[360px]:w-5.5 min-[360px]:h-5.5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-              style={{ backgroundColor: achievement.color }}
-            >
-              {achievement.currentLevel}
-            </div>
-          )}
-        </div>
+  const badgeLabel = nextLevelData
+    ? `${formatValue(achievement.currentValue, achievement.id)}/${formatValue(nextThreshold, achievement.id)}`
+    : String(achievement.currentValue);
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-[360px]:gap-2 mb-0.5">
+  return (
+    <article
+      className={`
+        group relative rounded-xl overflow-hidden
+        flex flex-col min-h-0 transition-all duration-200 border
+        ${isUnlocked
+          ? "bg-[var(--card)]/90 border-[var(--border)]/60"
+          : "bg-[var(--secondary)]/20 border-[var(--border)]/40 hover:border-[var(--border)]/60"
+        }
+      `}
+      style={
+        isUnlocked && achievement.color
+          ? {
+              borderColor: `${achievement.color}40`,
+              backgroundColor: `${achievement.color}08`,
+            }
+          : undefined
+      }
+    >
+      {/* Верх: название + бейдж прогресса — как у ежедневных заданий */}
+      <div className="p-3 pb-0 flex flex-col gap-2 min-h-0 shrink-0">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div
+              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border"
+              style={
+                isUnlocked
+                  ? { backgroundColor: `${achievement.color}18`, borderColor: `${achievement.color}35` }
+                  : { backgroundColor: "var(--secondary)", borderColor: "var(--border)" }
+              }
+            >
+              <Icon
+                className="w-4 h-4"
+                style={{ color: isUnlocked ? achievement.color : "var(--muted-foreground)" }}
+              />
+            </div>
             <h3
-              className={`text-sm font-semibold truncate ${isUnlocked ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
+              className={`text-[13px] font-semibold line-clamp-2 leading-tight min-w-0 ${
+                isUnlocked ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
+              }`}
             >
               {achievement.name}
             </h3>
-            {isUnlocked && currentLevelData && (
-              <span
-                className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                style={{
-                  backgroundColor: `${achievement.color}20`,
-                  color: achievement.color,
-                }}
-              >
-                {currentLevelData.name}
-              </span>
-            )}
           </div>
-
-          {/* Progress bar */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-1.5 rounded-full bg-[var(--secondary)] overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${progressPercent}%`,
-                  backgroundColor: achievement.color,
-                }}
-              />
-            </div>
-            <span className="shrink-0 text-[10px] text-[var(--muted-foreground)] tabular-nums">
-              {formatValue(achievement.currentValue, achievement.id)}
-              {nextLevelData && (
-                <span className="opacity-60">/{formatValue(nextThreshold, achievement.id)}</span>
-              )}
-            </span>
-          </div>
+          <span
+            className={`shrink-0 flex items-center justify-center min-w-[2rem] h-7 rounded-lg text-xs font-bold tabular-nums px-1.5 ${
+              isUnlocked && achievement.color ? "" : "bg-[var(--secondary)]/80 text-[var(--muted-foreground)]"
+            }`}
+            style={
+              isUnlocked && achievement.color
+                ? { backgroundColor: `${achievement.color}20`, color: achievement.color }
+                : undefined
+            }
+          >
+            {badgeLabel}
+          </span>
         </div>
+        {isUnlocked && currentLevelData && (
+          <p
+            className="text-[11px] font-medium truncate -mt-0.5"
+            style={{ color: achievement.color }}
+          >
+            {currentLevelData.name}
+          </p>
+        )}
+      </div>
 
-        {/* Expand button */}
-        <div className="shrink-0 p-1">
+      {/* Прогресс-бар на всю ширину — как у ежедневных заданий */}
+      <div className="px-3 pb-2 pt-1 shrink-0">
+        <div className="h-1.5 w-full rounded-full bg-[var(--secondary)]/60 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${progressPercent}%`,
+              backgroundColor: achievement.color || "var(--muted-foreground)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Кнопка «Подробнее» / раскрытие */}
+      <div className="px-3 pb-3 pt-0 shrink-0">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-lg hover:bg-[var(--secondary)]/50 transition-colors"
+        >
           {expanded ? (
-            <ChevronUp className="w-4 h-4 text-[var(--muted-foreground)]" />
+            <>
+              <ChevronUp className="w-4 h-4" />
+              Свернуть
+            </>
           ) : (
-            <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]" />
+            <>
+              <ChevronRight className="w-4 h-4" />
+              Подробнее
+            </>
           )}
-        </div>
-      </button>
+        </button>
+      </div>
 
-      {/* Expanded levels */}
       {expanded && (
-        <div className="px-3 min-[360px]:px-3.5 pb-3 min-[360px]:pb-3.5 pt-1 border-t border-[var(--border)]/50">
+        <div className="px-3 pb-3 pt-1 border-t border-[var(--border)]/50">
           <p className="text-[11px] text-[var(--muted-foreground)] mb-2">
             {achievement.description}
           </p>
-          <div className="grid grid-cols-1 gap-1.5">
+          <div className="flex flex-col gap-1.5">
             {achievement.levels.map((lvl, idx) => {
               const levelNum = idx + 1;
               const isCompleted = levelNum <= achievement.currentLevel;
-              const isCurrent = levelNum === achievement.currentLevel;
               const isNext = levelNum === achievement.currentLevel + 1;
 
               return (
@@ -560,25 +577,27 @@ const AchievementCard = memo(function AchievementCard({
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+                    style={
                       isCompleted
-                        ? "text-white"
-                        : "text-[var(--muted-foreground)] bg-[var(--secondary)]"
-                    }`}
-                    style={isCompleted ? { backgroundColor: achievement.color } : undefined}
+                        ? { backgroundColor: achievement.color, color: "#fff" }
+                        : { backgroundColor: "var(--secondary)", color: "var(--muted-foreground)" }
+                    }
                   >
                     {isCompleted ? "✓" : levelNum}
                   </div>
                   <span
-                    className={`flex-1 ${isCompleted ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}
+                    className={`flex-1 truncate ${
+                      isCompleted ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
+                    }`}
                   >
                     {lvl.name}
                   </span>
-                  <span className="text-[var(--muted-foreground)] tabular-nums">
+                  <span className="text-[var(--muted-foreground)] tabular-nums shrink-0">
                     {formatValue(lvl.threshold, achievement.id)}
                   </span>
-                  {isCurrent && (
-                    <Sparkles className="w-3 h-3" style={{ color: achievement.color }} />
+                  {levelNum === achievement.currentLevel && (
+                    <Sparkles className="w-3 h-3 shrink-0" style={{ color: achievement.color }} />
                   )}
                 </div>
               );
@@ -586,7 +605,7 @@ const AchievementCard = memo(function AchievementCard({
           </div>
         </div>
       )}
-    </div>
+    </article>
   );
 });
 
@@ -627,26 +646,14 @@ export default function ProfileAchievements({
 
   if (isAchievementsHidden) {
     return (
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-[var(--muted-foreground)]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
+      <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm overflow-hidden shadow-sm">
+        <div className="rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--secondary)]/20 py-12 px-4 text-center">
+          <Trophy className="w-10 h-10 mx-auto text-[var(--muted-foreground)]/60 mb-3" />
+          <p className="text-sm font-medium text-[var(--foreground)]">Достижения скрыты</p>
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+            Пользователь ограничил доступ в настройках приватности.
+          </p>
         </div>
-        <p className="text-[var(--foreground)] font-medium mb-1">Достижения скрыты</p>
-        <p className="text-sm text-[var(--muted-foreground)]">
-          Пользователь ограничил доступ к своим достижениям в настройках приватности.
-        </p>
       </div>
     );
   }
@@ -660,87 +667,56 @@ export default function ProfileAchievements({
   const hasMoreAchievements = !compact && achievements.length > INITIAL_FULL && !showAllAchievements;
 
   return (
-    <div
-      className={`rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm shadow-sm ${compact ? "p-3 min-[360px]:p-3.5" : "p-3 min-[360px]:p-4"}`}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-3 min-[360px]:mb-4">
-        <div className="flex items-center gap-2 min-[360px]:gap-2.5 min-w-0">
-          <div className="shrink-0 p-2 min-[360px]:p-2.5 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30">
-            <Trophy className="w-4 h-4 min-[360px]:w-5 min-[360px]:h-5 text-amber-500" />
+    <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm overflow-hidden shadow-sm">
+      <div className={compact ? "p-3 sm:p-4" : "p-4 sm:p-5"}>
+        {/* Header — в стиле ежедневных заданий */}
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/25">
+              <Trophy className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-[var(--foreground)]">Достижения</h2>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                {unlockedLevels} из {totalLevels} уровней
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h2 className="text-sm min-[360px]:text-base font-bold text-[var(--foreground)] truncate">
-              Достижения
-            </h2>
-            <p className="text-[10px] min-[360px]:text-xs text-[var(--muted-foreground)]">
-              {unlockedLevels} из {totalLevels} уровней
-            </p>
-          </div>
-        </div>
-
-        {/* Progress ring */}
-        <div className="shrink-0 relative w-10 h-10 min-[360px]:w-12 min-[360px]:h-12">
-          <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-            <path
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              fill="none"
-              stroke="var(--secondary)"
-              strokeWidth="3.5"
-            />
-            <path
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              fill="none"
-              stroke="url(#achievementGradient)"
-              strokeWidth="3.5"
-              strokeDasharray={`${overallPercent}, 100`}
-              strokeLinecap="round"
-            />
-            <defs>
-              <linearGradient id="achievementGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#f59e0b" />
-                <stop offset="100%" stopColor="#f97316" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[10px] min-[360px]:text-xs font-bold text-[var(--foreground)]">
+          <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <span className="text-xs font-bold text-[var(--foreground)] tabular-nums">
               {overallPercent}%
             </span>
           </div>
         </div>
-      </div>
 
-      {/* Achievements list */}
-      <div className="flex flex-col gap-2">
-        {displayedAchievements.map(achievement => (
-          <AchievementCard
-            key={achievement.id}
-            achievement={achievement}
-            expanded={expandedId === achievement.id}
-            onToggle={() => setExpandedId(expandedId === achievement.id ? null : achievement.id)}
-          />
-        ))}
-      </div>
-
-      {hasMoreAchievements && (
-        <button
-          type="button"
-          onClick={() => setShowAllAchievements(true)}
-          className="mt-3 py-2 w-full rounded-lg text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10 border border-[var(--border)]/60 transition-colors"
-        >
-          Показать ещё ({achievements.length - INITIAL_FULL})
-        </button>
-      )}
-
-      {/* Show more for compact mode */}
-      {compact && achievements.length > 3 && (
-        <div className="mt-2 text-center">
-          <span className="text-[11px] text-[var(--muted-foreground)]">
-            +{achievements.length - 3} ещё
-          </span>
+        {/* Список достижений — сетка как у ежедневных заданий */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {displayedAchievements.map(achievement => (
+            <AchievementCard
+              key={achievement.id}
+              achievement={achievement}
+              expanded={expandedId === achievement.id}
+              onToggle={() => setExpandedId(expandedId === achievement.id ? null : achievement.id)}
+            />
+          ))}
         </div>
-      )}
+
+        {hasMoreAchievements && (
+          <button
+            type="button"
+            onClick={() => setShowAllAchievements(true)}
+            className="mt-3 w-full py-2.5 rounded-xl text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 border border-[var(--border)]/60 transition-colors"
+          >
+            Показать ещё ({achievements.length - INITIAL_FULL})
+          </button>
+        )}
+
+        {compact && achievements.length > 3 && (
+          <p className="mt-2 text-center text-[11px] text-[var(--muted-foreground)]">
+            +{achievements.length - 3} ещё
+          </p>
+        )}
+      </div>
     </div>
   );
 }
