@@ -214,11 +214,11 @@ export default function UserDropdown({
           title={levelTooltip}
           className="flex items-center gap-2.5 rounded-lg p-1.5 -m-1.5 transition-colors cursor-pointer hover:bg-[var(--accent)] focus:bg-[var(--accent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div className="shrink-0 w-12 h-12 rounded-full overflow-hidden ring-2 ring-[var(--border)] bg-[var(--muted)]">
+          <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center overflow-visible">
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
-              size={53}
+              size={36}
               className="rounded-full w-full h-full object-cover"
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
