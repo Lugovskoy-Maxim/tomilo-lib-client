@@ -244,6 +244,8 @@ function ReadChapterPageContent({
   const [loadingPrev, setLoadingPrev] = useState(false);
   const [loadingNext, setLoadingNext] = useState(false);
   const [visibleChapterId, setVisibleChapterId] = useState<string>(chapterId);
+  const activeReadingChapterId =
+    isChaptersInRowMode || infiniteScroll ? visibleChapterId : chapterId;
   const chapterSectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const firstChapterContainerRef = useRef<HTMLDivElement | null>(null);
   const loadingChapterIdsRef = useRef<Set<string>>(new Set());
@@ -460,22 +462,15 @@ function ReadChapterPageContent({
 
     const chapterKey = `${title._id}-${chapter._id}`;
 
-    // Обновляем просмотры только один раз (для всех пользователей)
+    // Обновляем просмотры только один раз (для всех пользователей).
+    // Помечаем chapterKey в ref сразу, до вызова API, чтобы повторный запуск effect
+    // (из-за обновления Redux после мутации) не вызывал мутацию снова.
     if (!viewsUpdatedRef.current.has(chapterKey)) {
+      viewsUpdatedRef.current.add(chapterKey);
       if (isAuthenticated) {
-        // Для авторизованных пользователей используем полную функцию с обновлением в БД
-        updateChapterViews(chapter._id)
-          .then(() => {
-            viewsUpdatedRef.current.add(chapterKey);
-          })
-          .catch(console.error);
+        updateChapterViews(chapter._id).catch(console.error);
       } else {
-        // Для неавторизованных используем специальную функцию увеличения просмотров
-        incrementChapterViews(chapter._id)
-          .then(() => {
-            viewsUpdatedRef.current.add(chapterKey);
-          })
-          .catch(console.error);
+        incrementChapterViews(chapter._id).catch(console.error);
       }
     }
 
@@ -547,9 +542,41 @@ function ReadChapterPageContent({
     return slug ? `/titles/${slug}` : `/titles/${titleId}`;
   }, [slug, titleId]);
 
+  const isEditableTarget = useCallback((target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+
+    return Boolean(
+      target.closest(
+        'input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]',
+      ),
+    );
+  }, []);
+
+  const isReaderDialogOpen = useCallback(() => {
+    return Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'));
+  }, []);
+
+  const getChapterRootElement = useCallback((targetChapterId: string) => {
+    return (
+      chapterSectionRefs.current.get(targetChapterId) ??
+      document.querySelector<HTMLDivElement>(`[data-chapter-root="${targetChapterId}"]`)
+    );
+  }, []);
+
+  const findPageElementInChapter = useCallback(
+    (targetChapterId: string, page: number) => {
+      const chapterRoot = getChapterRootElement(targetChapterId);
+      return chapterRoot?.querySelector<HTMLElement>(`[data-page="${page}"]`) ?? null;
+    },
+    [getChapterRootElement],
+  );
+
   // Навигация по клавиатуре
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (isEditableTarget(e.target) || isReaderDialogOpen()) return;
+
       switch (e.key) {
         case "ArrowLeft":
           if (currentChapterIndex > 0) {
@@ -577,7 +604,16 @@ function ReadChapterPageContent({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [currentChapterIndex, chapters, titleId, router, getChapterPath, triggerHaptic]);
+  }, [
+    currentChapterIndex,
+    chapters,
+    titleId,
+    router,
+    getChapterPath,
+    triggerHaptic,
+    isEditableTarget,
+    isReaderDialogOpen,
+  ]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -587,6 +623,32 @@ function ReadChapterPageContent({
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+
+  useEffect(() => {
+    const handleOverlayEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      if (zoomedImage) {
+        event.preventDefault();
+        setZoomedImage(null);
+        return;
+      }
+
+      if (showKeyboardHints) {
+        event.preventDefault();
+        setShowKeyboardHints(false);
+        return;
+      }
+
+      if (isRestoreModalOpen) {
+        event.preventDefault();
+        setIsRestoreModalOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleOverlayEscape);
+    return () => document.removeEventListener("keydown", handleOverlayEscape);
+  }, [zoomedImage, showKeyboardHints, isRestoreModalOpen]);
 
   // Обработчики для мобильных контролов
   const handleMobileTap = () => {
@@ -749,7 +811,7 @@ function ReadChapterPageContent({
 
       const timeoutId = setTimeout(async () => {
         try {
-          const pageElement = document.querySelector(`[data-page="${page}"]`);
+          const pageElement = findPageElementInChapter(chapterId, page);
           if (pageElement) {
             pageElement.scrollIntoView({
               behavior: "auto",
@@ -782,7 +844,7 @@ function ReadChapterPageContent({
 
       return () => clearTimeout(timeoutId);
     },
-    [chapter.images],
+    [chapter.images, chapterId, findPageElementInChapter],
   );
 
   // Функция сброса позиции (начать сначала)
@@ -898,12 +960,12 @@ function ReadChapterPageContent({
 
   useEffect(() => {
     debouncedSavePositionRef.current = createDebouncedSave((page: number) => {
-      saveReadingPosition(titleId, chapterId, page);
+      saveReadingPosition(titleId, activeReadingChapterId, page);
     }, 1000);
 
     const saveNow = () => {
       const page = currentPageRef.current;
-      if (page > 1) saveReadingPosition(titleId, chapterId, page);
+      if (page > 1) saveReadingPosition(titleId, activeReadingChapterId, page);
     };
 
     const handleBeforeUnload = () => {
@@ -917,7 +979,7 @@ function ReadChapterPageContent({
       saveNow();
       debouncedSavePositionRef.current = null;
     };
-  }, [titleId, chapterId]);
+  }, [titleId, activeReadingChapterId]);
 
   const debouncedSavePosition = useCallback((page: number) => {
     debouncedSavePositionRef.current?.(page);
@@ -935,7 +997,8 @@ function ReadChapterPageContent({
         return;
       }
 
-      const currentPageNum = getCurrentPageEnhanced();
+      const chapterRoot = getChapterRootElement(activeReadingChapterId);
+      const currentPageNum = getCurrentPageEnhanced(chapterRoot ?? undefined);
       setCurrentPage(currentPageNum);
 
       // Сохраняем позицию с debounce, только если страница больше 1
@@ -979,7 +1042,15 @@ function ReadChapterPageContent({
       window.removeEventListener("scroll", debouncedScrollHandler);
       window.removeEventListener("resize", updateCurrentPage);
     };
-  }, [chapter.images, debouncedSavePosition, isPositionRestored, savedReadingPage, isPagedMode]);
+  }, [
+    chapter.images,
+    debouncedSavePosition,
+    isPositionRestored,
+    savedReadingPage,
+    isPagedMode,
+    getChapterRootElement,
+    activeReadingChapterId,
+  ]);
 
   // В постраничном режиме сохраняем текущую страницу при каждом переходе
   useEffect(() => {
@@ -1311,7 +1382,7 @@ function ReadChapterPageContent({
             setCurrentPage(page);
             return;
           }
-          const pageElement = document.querySelector(`[data-page="${page}"]`);
+          const pageElement = findPageElementInChapter(effectiveChapter._id, page);
           if (pageElement) {
             pageElement.scrollIntoView({
               behavior: "smooth",
@@ -1328,6 +1399,13 @@ function ReadChapterPageContent({
         }
         shareTitleName={title.title}
         shareChapterNumber={effectiveChapter.number}
+      />
+
+      <div
+        aria-hidden
+        className={`transition-[height] duration-300 ease-out ${
+          isHeaderVisible ? "h-20 sm:h-24" : "h-0"
+        }`}
       />
 
       {/* Хедер */}
@@ -1366,7 +1444,7 @@ function ReadChapterPageContent({
 
       {/* Основной контент */}
       <main
-        className={`pt-20 sm:pt-24 ${isMenuCollapsed ? "pb-0" : "pb-[calc(4rem+env(safe-area-inset-bottom,0px))]"} reader-scroll-container reader-prevent-refresh`}
+        className={`${isMenuCollapsed ? "pb-0" : "pb-[calc(4rem+env(safe-area-inset-bottom,0px))]"} reader-scroll-container reader-prevent-refresh`}
         onClick={handleMobileTap}
       >
         <div className="container mx-auto">
@@ -1386,9 +1464,14 @@ function ReadChapterPageContent({
                 <div
                   key={ch._id}
                   ref={el => {
-                    if (el) chapterSectionRefs.current.set(ch._id, el);
+                    if (el) {
+                      chapterSectionRefs.current.set(ch._id, el);
+                    } else {
+                      chapterSectionRefs.current.delete(ch._id);
+                    }
                   }}
                   data-chapter-id={ch._id}
+                  data-chapter-root={ch._id}
                   className="chapter-container"
                 >
                   <div className="bg-[var(--primary)]/10 py-6">
@@ -1553,9 +1636,20 @@ function ReadChapterPageContent({
           ) : (
             <>
               <div
-                ref={infiniteScroll && !isPagedMode ? firstChapterContainerRef : undefined}
+                ref={el => {
+                  if (infiniteScroll && !isPagedMode) {
+                    firstChapterContainerRef.current = el;
+                  }
+
+                  if (el) {
+                    chapterSectionRefs.current.set(displayChapter._id, el);
+                  } else {
+                    chapterSectionRefs.current.delete(displayChapter._id);
+                  }
+                }}
                 className="chapter-container"
                 data-infinite-chapter={displayChapter._id}
+                data-chapter-root={displayChapter._id}
               >
                 {/* Заголовок главы */}
                 <div className="bg-[var(--primary)]/10 py-6">
@@ -2108,7 +2202,18 @@ function ReadChapterPageContent({
                     const hasMoreChapters = loadedChapterIndex < chapters.length - 1;
 
                     return (
-                      <div key={loadedChapter._id} className="mt-0">
+                      <div
+                        key={loadedChapter._id}
+                        className="mt-0"
+                        ref={el => {
+                          if (el) {
+                            chapterSectionRefs.current.set(loadedChapter._id, el);
+                          } else {
+                            chapterSectionRefs.current.delete(loadedChapter._id);
+                          }
+                        }}
+                        data-chapter-root={loadedChapter._id}
+                      >
                         <div
                           className="bg-[var(--primary)]/10 py-6"
                           data-infinite-chapter={loadedChapter._id}
@@ -2364,7 +2469,7 @@ function ReadChapterPageContent({
         <div
           className="fixed top-0 left-0 right-0 z-[60] h-1 overflow-hidden rounded-b-full"
           role="progressbar"
-          aria-valuenow={Math.round((currentPage / Math.max(chapter.images.length, 1)) * 100)}
+          aria-valuenow={Math.round((currentPage / Math.max(effectiveChapter.images.length, 1)) * 100)}
           aria-valuemin={0}
           aria-valuemax={100}
         >
@@ -2374,7 +2479,7 @@ function ReadChapterPageContent({
           <div
             className="absolute inset-y-0 left-0 min-w-[4px] rounded-r-full bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--accent)] transition-[width] duration-500 ease-out"
             style={{
-              width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
+              width: `${Math.max(0, Math.min(100, (currentPage / Math.max(effectiveChapter.images.length, 1)) * 100))}%`,
               boxShadow: "0 0 12px rgba(var(--primary-rgb), 0.35)",
             }}
           />
@@ -2382,7 +2487,7 @@ function ReadChapterPageContent({
           <div
             className="absolute inset-y-0 left-0 rounded-r-full pointer-events-none opacity-30 transition-[width] duration-500 ease-out"
             style={{
-              width: `${Math.max(0, Math.min(100, (currentPage / Math.max(chapter.images.length, 1)) * 100))}%`,
+              width: `${Math.max(0, Math.min(100, (currentPage / Math.max(effectiveChapter.images.length, 1)) * 100))}%`,
               background: "linear-gradient(to bottom, rgba(255,255,255,0.35) 0%, transparent 60%)",
             }}
           />
@@ -2402,7 +2507,12 @@ function ReadChapterPageContent({
 
       {/* Keyboard Shortcuts Modal */}
       {showKeyboardHints && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reader-keyboard-hints-title"
+        >
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowKeyboardHints(false)}
@@ -2413,7 +2523,12 @@ function ReadChapterPageContent({
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                   <Keyboard className="w-5 h-5 text-[var(--primary)]" />
                 </div>
-                <h3 className="font-semibold text-lg text-[var(--foreground)]">Горячие клавиши</h3>
+                <h3
+                  id="reader-keyboard-hints-title"
+                  className="font-semibold text-lg text-[var(--foreground)]"
+                >
+                  Горячие клавиши
+                </h3>
               </div>
             </div>
             <div className="p-5 space-y-3">
@@ -2453,6 +2568,9 @@ function ReadChapterPageContent({
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-zoom-out"
           onClick={() => setZoomedImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Увеличенное изображение страницы"
         >
           <div className="relative max-w-[95vw] max-h-[95vh] animate-in zoom-in-90 duration-200">
             <Image

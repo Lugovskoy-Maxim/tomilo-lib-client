@@ -254,10 +254,11 @@ export const getCurrentPage = (): number => {
 /**
  * Улучшенная версия определения страницы с дополнительной логикой
  */
-export const getCurrentPageEnhanced = (): number => {
+export const getCurrentPageEnhanced = (root?: ParentNode): number => {
   if (typeof window === "undefined") return 1;
 
-  const pageElements = document.querySelectorAll("[data-page]");
+  const queryRoot = root ?? document;
+  const pageElements = queryRoot.querySelectorAll("[data-page]");
   if (pageElements.length === 0) return 1;
 
   // Простой и надежный способ определения текущей страницы

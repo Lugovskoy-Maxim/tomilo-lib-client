@@ -1,8 +1,10 @@
 "use client";
 
-import { ClipboardList, Check, Loader2, Coins, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ClipboardList, Check, Loader2, Coins, Sparkles, Gift } from "lucide-react";
 import { useGetDailyQuestsQuery, useClaimDailyQuestMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
+import { GameResultReveal } from "@/shared/games";
 
 interface ProfileDailyQuestsProps {
   /** Показать только первые N заданий (для компактного обзора) */
@@ -15,6 +17,14 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
   });
   const [claimQuest, { isLoading: isClaiming }] = useClaimDailyQuestMutation();
   const toast = useToast();
+  const [reveal, setReveal] = useState<{
+    open: boolean;
+    title: string;
+    subtitle?: string;
+    items?: { itemId: string; count: number; name?: string; icon?: string }[];
+    exp?: number;
+    coins?: number;
+  }>({ open: false, title: "" });
 
   const data = response?.success ? response.data : null;
   const allQuests = data?.quests ?? [];
@@ -29,6 +39,16 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
         if (d.expGained) parts.push(`+${d.expGained} XP`);
         if (d.coinsGained) parts.push(`+${d.coinsGained} монет`);
         if (parts.length) toast.success(`Награда: ${parts.join(", ")}`);
+        setReveal({
+          open: true,
+          title: "Награда получена",
+          subtitle: d.itemsGained?.length
+            ? "Квест закрылся с дополнительными предметами."
+            : "Базовые награды уже начислены на аккаунт.",
+          items: d.itemsGained,
+          exp: d.expGained,
+          coins: d.coinsGained,
+        });
       } else {
         toast.info(d?.message ?? "Награда уже получена");
       }
@@ -70,8 +90,13 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
           <div>
             <h3 className="text-sm font-semibold text-[var(--foreground)]">Ежедневные задания</h3>
             <p className="text-xs text-[var(--muted-foreground)]">
-              Выполняйте задания и забирайте награды
+              Выполняйте задания и забирайте награды до обновления дня
             </p>
+            {data.resetAt ? (
+              <p className="text-[11px] text-[var(--muted-foreground)] mt-1">
+                Следующий сброс: {data.resetAt}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -123,6 +148,20 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
                       )}
                     </div>
                   </div>
+                  {q.rewardItems?.length ? (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {q.rewardItems.map(item => (
+                        <span key={`${q.id}-${item.itemId}`} className="games-reward-chip inline-flex items-center gap-1">
+                          {item.icon ? <img src={item.icon} alt="" className="w-3.5 h-3.5 rounded object-cover" /> : <Gift className="w-3.5 h-3.5" />}
+                          {item.name || item.itemId}
+                          {" "}
+                          {item.countMin === item.countMax ? `×${item.countMin}` : `×${item.countMin}-${item.countMax}`}
+                          {" "}
+                          <span className="opacity-70">{Math.round((item.chance ?? 1) * 100)}%</span>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-2 rounded-full bg-[var(--secondary)] overflow-hidden">
                       <div
@@ -163,6 +202,24 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
           )}
         </div>
       </div>
+      <GameResultReveal
+        open={reveal.open}
+        title={reveal.title}
+        subtitle={reveal.subtitle}
+        tone="success"
+        onClose={() => setReveal(prev => ({ ...prev, open: false }))}
+      >
+        <div className="flex flex-wrap gap-2">
+          {reveal.exp ? <span className="games-reward-chip">+{reveal.exp} XP</span> : null}
+          {reveal.coins ? <span className="games-reward-chip">+{reveal.coins} монет</span> : null}
+          {reveal.items?.map(item => (
+            <span key={`${item.itemId}-${item.count}`} className="games-reward-chip inline-flex items-center gap-1">
+              {item.icon ? <img src={item.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
+              {item.name || item.itemId} ×{item.count}
+            </span>
+          ))}
+        </div>
+      </GameResultReveal>
     </div>
   );
 }

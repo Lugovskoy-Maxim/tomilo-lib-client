@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import AssetImage from "@/shared/ui/AssetImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,7 @@ import { CharacterProposalForm } from "@/shared/browse/character-form/CharacterP
 import { getTitlePath } from "@/lib/title-paths";
 
 const PAGE_SIZE = 24;
+const FETCH_LIMIT = 1000;
 
 function CharacterCard({ character }: { character: Character }) {
   const [imageError, setImageError] = useState(false);
@@ -90,10 +91,18 @@ export default function CharactersListClient() {
   const [titleSearch, setTitleSearch] = useState("");
   const [titleSearchTrigger, setTitleSearchTrigger] = useState("");
   const [selectedTitle, setSelectedTitle] = useState<{ _id: string; name: string } | null>(null);
+  const [nameFilter, setNameFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState<Character["role"] | "all">("all");
+  const [characterTitleSearch, setCharacterTitleSearch] = useState("");
+  const [characterTitleSearchTrigger, setCharacterTitleSearchTrigger] = useState("");
+  const [characterTitleFilter, setCharacterTitleFilter] = useState<{
+    _id: string;
+    name: string;
+  } | null>(null);
 
   const { data, isLoading, isError } = useGetCharactersQuery({
-    page,
-    limit: PAGE_SIZE,
+    page: 1,
+    limit: FETCH_LIMIT,
   });
   const { isAuthenticated } = useAuth();
   const toast = useToast();
@@ -107,11 +116,53 @@ export default function CharactersListClient() {
     { search: titleSearchTrigger || undefined, limit: 15 },
     { skip: titleSearchTrigger.length < 2 },
   );
+  const { data: characterTitleSearchData } = useSearchTitlesQuery(
+    { search: characterTitleSearchTrigger || undefined, limit: 15 },
+    { skip: characterTitleSearchTrigger.length < 2 },
+  );
   const searchResults = useMemo(() => searchData?.data?.data ?? [], [searchData?.data?.data]);
+  const characterTitleSearchResults = useMemo(
+    () => characterTitleSearchData?.data?.data ?? [],
+    [characterTitleSearchData?.data?.data],
+  );
 
-  const characters = data?.characters ?? [];
-  const total = data?.total ?? 0;
+  const allCharacters = data?.characters ?? [];
+  const filteredCharacters = useMemo(() => {
+    const normalizedNameFilter = nameFilter.trim().toLowerCase();
+
+    return allCharacters.filter(character => {
+      const matchesName =
+        !normalizedNameFilter ||
+        character.name.toLowerCase().includes(normalizedNameFilter) ||
+        character.altNames?.some(name => name.toLowerCase().includes(normalizedNameFilter));
+      const matchesRole = roleFilter === "all" || character.role === roleFilter;
+      const matchesTitle = !characterTitleFilter || character.titleId === characterTitleFilter._id;
+
+      return matchesName && matchesRole && matchesTitle;
+    });
+  }, [allCharacters, characterTitleFilter, nameFilter, roleFilter]);
+  const total = filteredCharacters.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedCharacters = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredCharacters.slice(start, start + PAGE_SIZE);
+  }, [currentPage, filteredCharacters]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const resetFilters = () => {
+    setNameFilter("");
+    setRoleFilter("all");
+    setCharacterTitleSearch("");
+    setCharacterTitleSearchTrigger("");
+    setCharacterTitleFilter(null);
+    setPage(1);
+  };
 
   if (isLoading) {
     return (
@@ -210,6 +261,149 @@ export default function CharactersListClient() {
               )}
             </>
           )}
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 p-4 sm:p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-[var(--foreground)]">Фильтры</h2>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Поиск по имени, роли и тайтлу персонажа
+              </p>
+            </div>
+            {(nameFilter || roleFilter !== "all" || characterTitleFilter) && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="text-xs text-[var(--primary)] hover:underline"
+              >
+                Сбросить фильтры
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
+                Имя персонажа
+              </label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+                <input
+                  type="text"
+                  value={nameFilter}
+                  onChange={e => {
+                    setNameFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Например, Игон"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/40"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
+                Роль
+              </label>
+              <select
+                value={roleFilter}
+                onChange={e => {
+                  setRoleFilter(e.target.value as Character["role"] | "all");
+                  setPage(1);
+                }}
+                className="w-full py-2 px-3 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/40"
+              >
+                <option value="all">Все роли</option>
+                {Object.entries(characterRoleLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-[var(--muted-foreground)]">
+                Тайтл
+              </label>
+              {!characterTitleFilter ? (
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+                    <input
+                      type="text"
+                      value={characterTitleSearch}
+                      onChange={e => setCharacterTitleSearch(e.target.value)}
+                      onKeyDown={e =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(),
+                        setCharacterTitleSearchTrigger(characterTitleSearch.trim()))
+                      }
+                      placeholder="Поиск тайтла..."
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/40"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCharacterTitleSearchTrigger(characterTitleSearch.trim())}
+                    className="min-h-[40px] px-4 rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] text-sm font-medium hover:bg-[var(--secondary)]/80 transition-colors"
+                  >
+                    Найти
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)]/50 px-3 py-2">
+                  <span className="text-sm text-[var(--foreground)] truncate">
+                    {characterTitleFilter.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCharacterTitleFilter(null);
+                      setCharacterTitleSearch("");
+                      setCharacterTitleSearchTrigger("");
+                      setPage(1);
+                    }}
+                    className="text-xs text-[var(--primary)] hover:underline shrink-0"
+                  >
+                    Очистить
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {!characterTitleFilter && characterTitleSearchTrigger.length >= 2 && (
+            <ul className="max-h-48 overflow-y-auto rounded-lg border border-[var(--border)] divide-y divide-[var(--border)]">
+              {characterTitleSearchResults.length === 0 ? (
+                <li className="px-3 py-4 text-sm text-[var(--muted-foreground)]">
+                  Ничего не найдено. Введите другое название.
+                </li>
+              ) : (
+                characterTitleSearchResults.map((t: { _id: string; name?: string }) => (
+                  <li key={t._id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCharacterTitleFilter({ _id: t._id, name: t.name ?? "Тайтл" });
+                        setCharacterTitleSearch("");
+                        setCharacterTitleSearchTrigger("");
+                        setPage(1);
+                      }}
+                      className="w-full text-left px-3 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--secondary)]/70 transition-colors"
+                    >
+                      {t.name ?? t._id}
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
+
+          <div className="text-xs text-[var(--muted-foreground)]">
+            Найдено персонажей: {total}
+          </div>
         </div>
 
         {showProposalSection && isAuthenticated && (
@@ -312,15 +506,17 @@ export default function CharactersListClient() {
           </div>
         )}
 
-        {characters.length === 0 ? (
+        {paginatedCharacters.length === 0 ? (
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 text-center">
             <User className="w-12 h-12 mx-auto text-[var(--muted-foreground)] mb-3" />
-            <p className="text-[var(--muted-foreground)]">Пока нет персонажей.</p>
+            <p className="text-[var(--muted-foreground)]">
+              По выбранным фильтрам персонажи не найдены.
+            </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {characters.map(character => (
+              {paginatedCharacters.map(character => (
                 <CharacterCard key={character._id} character={character} />
               ))}
             </div>
@@ -336,12 +532,12 @@ export default function CharactersListClient() {
                   Назад
                 </button>
                 <span className="text-sm text-[var(--muted-foreground)] px-3">
-                  {page} из {totalPages}
+                  {currentPage} из {totalPages}
                 </span>
                 <button
                   type="button"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
+                  disabled={currentPage >= totalPages}
                   className="min-h-[44px] px-4 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-1"
                 >
                   Вперёд

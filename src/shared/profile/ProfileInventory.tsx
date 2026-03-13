@@ -10,11 +10,13 @@ import {
   useUnequipDecorationMutation,
 } from "@/store/api/shopApi";
 import { useGetProfileQuery } from "@/store/api/authApi";
+import { useGetProfileCardsQuery, useUpdateProfileCardsShowcaseMutation } from "@/store/api/gamesApi";
 import { DecorationCard } from "@/shared/shop/DecorationCard";
 import { getDecorationImageUrl, normalizeRarity, type Decoration } from "@/api/shop";
 import type { UserProfile } from "@/types/user";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
+import { getDecorationImageUrls } from "@/api/shop";
 
 /** Как в магазине: достаёт id из значения API (строка, объект с id/_id). URL не возвращаются. */
 function getEquippedId(value: unknown): string {
@@ -116,6 +118,8 @@ export default function ProfileInventory() {
     user?.equippedDecorations) as UserProfile["equippedDecorations"] | undefined;
   const [equipDecoration] = useEquipDecorationMutation();
   const [unequipDecoration] = useUnequipDecorationMutation();
+  const { data: cardsResponse, refetch: refetchCards } = useGetProfileCardsQuery();
+  const [updateProfileCardsShowcase, { isLoading: isSavingCardsShowcase }] = useUpdateProfileCardsShowcaseMutation();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"avatar" | "frame" | "background" | "card" | "all">(
     "all",
@@ -230,6 +234,52 @@ export default function ProfileInventory() {
     };
     return { total, equipped, byType, byRarity };
   }, [displayList, effectiveEquipped]);
+  const profileCards = cardsResponse?.data?.cards ?? [];
+  const profileCardsShowcase = cardsResponse?.data?.showcase ?? [];
+  const showcaseSort = cardsResponse?.data?.showcaseSort ?? "manual";
+  const showcaseIds = new Set(profileCardsShowcase.map(card => card.id));
+  const sortedProfileCards = useMemo(() => {
+    const rarityRank: Record<string, number> = {
+      common: 1,
+      uncommon: 2,
+      rare: 3,
+      epic: 4,
+      legendary: 5,
+    };
+    const stageRank: Record<string, number> = {
+      F: 1,
+      E: 2,
+      D: 3,
+      C: 4,
+      B: 5,
+      A: 6,
+      S: 7,
+      SS: 8,
+      SSS: 9,
+    };
+    return [...profileCards].sort((a, b) => {
+      if (showcaseSort === "rarity") {
+        return (
+          (rarityRank[b.rarity] ?? 0) - (rarityRank[a.rarity] ?? 0) ||
+          (stageRank[b.currentStage] ?? 0) - (stageRank[a.currentStage] ?? 0)
+        );
+      }
+      if (showcaseSort === "favorites") {
+        return (
+          Number(Boolean(b.isFavorite)) - Number(Boolean(a.isFavorite)) ||
+          (rarityRank[b.rarity] ?? 0) - (rarityRank[a.rarity] ?? 0)
+        );
+      }
+      if (showcaseSort === "last_upgraded") {
+        return (
+          new Date(b.lastUpgradedAt ?? 0).getTime() -
+            new Date(a.lastUpgradedAt ?? 0).getTime() ||
+          (rarityRank[b.rarity] ?? 0) - (rarityRank[a.rarity] ?? 0)
+        );
+      }
+      return 0;
+    });
+  }, [profileCards, showcaseSort]);
 
   const handleEquip = async (
     type: "avatar" | "frame" | "background" | "card",
@@ -340,6 +390,135 @@ export default function ProfileInventory() {
                 </span>
               </div>
             )}
+          </div>
+        )}
+
+        {profileCards.length > 0 && (
+          <div className="mb-6 rounded-xl border border-[var(--border)]/60 bg-[var(--background)] p-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--foreground)]">Витрина карточек</h3>
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  Выберите до 6 карточек для публичного профиля. Сейчас в коллекции {profileCards.length}.
+                </p>
+              </div>
+              <select
+                value={showcaseSort}
+                onChange={async (e) => {
+                  try {
+                    await updateProfileCardsShowcase({
+                      cardIds: profileCardsShowcase.map((entry) => entry.id),
+                      sortMode: e.target.value as "manual" | "rarity" | "favorites" | "last_upgraded",
+                    }).unwrap();
+                    await refetchCards();
+                    toast.success("Сортировка витрины обновлена");
+                  } catch {
+                    toast.error("Не удалось обновить сортировку витрины");
+                  }
+                }}
+                className="admin-input max-w-[220px]"
+                disabled={isSavingCardsShowcase}
+              >
+                <option value="manual">Сортировка: вручную</option>
+                <option value="rarity">Сортировка: по редкости</option>
+                <option value="favorites">Сортировка: по любимым</option>
+                <option value="last_upgraded">Сортировка: по последнему апгрейду</option>
+              </select>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3 text-xs text-[var(--muted-foreground)]">
+              <span className="px-2 py-1 rounded-full bg-[var(--card)] border border-[var(--border)]">
+                На витрине: {profileCardsShowcase.length}/6
+              </span>
+              <span className="px-2 py-1 rounded-full bg-[var(--card)] border border-[var(--border)]">
+                Свободно слотов: {Math.max(0, 6 - profileCardsShowcase.length)}
+              </span>
+              {showcaseSort !== "manual" ? (
+                <span className="px-2 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--foreground)]">
+                  Порядок на публичной витрине управляется сортировкой
+                </span>
+              ) : null}
+            </div>
+            {profileCardsShowcase.length > 0 ? (
+              <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2">
+                  Текущая витрина
+                </div>
+                <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+                  {profileCardsShowcase.map((card) => (
+                    <div key={card.id} className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-2">
+                      <div className="aspect-[3/4] rounded-md overflow-hidden bg-[var(--muted)] mb-2">
+                        {card.stageImageUrl ? (
+                          <img
+                            src={getDecorationImageUrls(card.stageImageUrl).primary}
+                            alt={card.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : null}
+                      </div>
+                      <div className="text-xs font-medium truncate">{card.characterName || card.name}</div>
+                      <div className="text-[11px] text-[var(--muted-foreground)] truncate">
+                        {card.currentStage} · {card.titleName || "Без тайтла"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {sortedProfileCards.map((card) => {
+                const isSelected = showcaseIds.has(card.id);
+                return (
+                  <button
+                    key={card.id}
+                    type="button"
+                    className={`text-left rounded-xl border p-3 transition-colors ${
+                      isSelected
+                        ? "border-[var(--primary)] bg-[var(--primary)]/5"
+                        : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/40"
+                    }`}
+                    onClick={async () => {
+                      const nextIds = isSelected
+                        ? profileCardsShowcase.filter((entry) => entry.id !== card.id).map((entry) => entry.id)
+                        : [...profileCardsShowcase.map((entry) => entry.id), card.id].slice(0, 6);
+                      try {
+                        await updateProfileCardsShowcase({
+                          cardIds: nextIds,
+                          sortMode: showcaseSort,
+                        }).unwrap();
+                        await refetchCards();
+                        toast.success(isSelected ? "Карточка убрана из витрины" : "Карточка добавлена в витрину");
+                      } catch {
+                        toast.error("Не удалось обновить витрину");
+                      }
+                    }}
+                    disabled={isSavingCardsShowcase}
+                  >
+                    <div className="aspect-[3/4] rounded-lg overflow-hidden bg-[var(--muted)] mb-2">
+                      {card.stageImageUrl ? (
+                        <img
+                          src={getDecorationImageUrls(card.stageImageUrl).primary}
+                          alt={card.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="font-medium text-sm">{card.characterName || card.name}</div>
+                    <div className="text-xs text-[var(--muted-foreground)]">
+                      {card.titleName || "Без тайтла"} · ранг {card.currentStage}
+                    </div>
+                    <div className="text-xs text-[var(--muted-foreground)] mt-1 flex flex-wrap gap-2">
+                      {card.isFavorite ? <span>Любимый персонаж</span> : null}
+                      {card.lastUpgradedAt ? (
+                        <span>Апгрейд: {new Date(card.lastUpgradedAt).toLocaleDateString()}</span>
+                      ) : null}
+                    </div>
+                    <div className="text-xs text-[var(--muted-foreground)] mt-1">
+                      {isSelected ? "На витрине" : "Нажмите, чтобы показать"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 

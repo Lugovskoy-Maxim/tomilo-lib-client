@@ -314,7 +314,7 @@ export function ChapterReactions({
               )}
             </div>
             <div
-              className="flex flex-nowrap items-center gap-0.5 sm:gap-1"
+              className="flex flex-nowrap items-center gap-1 sm:gap-1.5"
               role="group"
               aria-label={`Рейтинг от 1 до ${CHAPTER_RATING_MAX}`}
             >
@@ -327,7 +327,7 @@ export function ChapterReactions({
                     type="button"
                     disabled={!mounted || !isAuthenticated || isRatingLoading}
                     onClick={() => handleRating(value)}
-                    className={`flex-shrink-0 p-0.5 sm:p-1 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--secondary)]/60 ${
+                    className={`flex-shrink-0 flex items-center justify-center min-w-[44px] min-h-[44px] w-11 h-11 sm:min-w-0 sm:min-h-0 sm:w-auto sm:h-auto sm:p-1 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--secondary)]/60 ${
                       isSelected
                         ? "text-[var(--primary)]"
                         : "text-[var(--muted-foreground)]/50 hover:text-[var(--muted-foreground)]"
@@ -335,7 +335,7 @@ export function ChapterReactions({
                     title={`${value} из ${CHAPTER_RATING_MAX}`}
                   >
                     <Star
-                      className="w-4 h-4 sm:w-5 sm:h-5"
+                      className="w-5 h-5 sm:w-5 sm:h-5"
                       fill={isSelected ? "currentColor" : "none"}
                       stroke="currentColor"
                       strokeWidth={1.5}
@@ -365,7 +365,7 @@ export function ChapterReactions({
             <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
               Реакции
             </span>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap gap-2 sm:gap-2">
               {CHAPTER_ALLOWED_REACTION_EMOJIS.map(emoji => {
                 const isSelected = displaySelectedEmoji === emoji;
                 const count = countByEmoji[emoji] ?? 0;
@@ -378,7 +378,7 @@ export function ChapterReactions({
                     onClick={() => handleReaction(emoji)}
                     disabled={isLoading}
                     title={EMOJI_LABELS[emoji] ?? emoji}
-                    className={`flex items-center gap-1 sm:gap-2 h-8 sm:h-10 pl-2 pr-1.5 sm:pl-3 sm:pr-2.5 rounded-lg sm:rounded-xl border transition-all duration-150 active:scale-[0.98] disabled:opacity-50 ${
+                    className={`flex items-center gap-1 sm:gap-2 min-h-[44px] h-11 pl-3 pr-2.5 sm:h-10 sm:min-h-0 sm:pl-3 sm:pr-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] disabled:opacity-50 ${
                       isSelected
                         ? "bg-[var(--primary)]/15 border-[var(--primary)]/30 text-[var(--foreground)] shadow-sm"
                         : "border-[var(--border)]/50 bg-[var(--background)]/50 text-[var(--muted-foreground)] hover:border-[var(--border)] hover:bg-[var(--secondary)]/60 hover:text-[var(--foreground)]"

@@ -28,9 +28,11 @@ export function AuthGuard({
         router.push(redirectTo);
       } else if (!requireAuth && isAuthenticated) {
         router.push("/profile");
+      } else if (requiredRole && user && user.role !== requiredRole) {
+        router.push(redirectTo);
       }
     }
-  }, [isAuthenticated, isLoading, requireAuth, redirectTo, router, hasMounted]);
+  }, [isAuthenticated, isLoading, requireAuth, redirectTo, router, hasMounted, requiredRole, user]);
 
   // Same outer wrapper as layout content area so server/client HTML structure matches (avoids hydration mismatch)
   const contentWrapperClass = "max-lg:pb-[var(--mobile-footer-bar-height)]";
@@ -67,5 +69,6 @@ export function AuthGuard({
     return <div className={contentWrapperClass} />;
   }
 
-  return <div className={contentWrapperClass}>{children}</div>;
+  // Без обёртки: layout уже даёт max-lg:pb, лишний div давал двойной отступ и ломал вёрстку
+  return <>{children}</>;
 }

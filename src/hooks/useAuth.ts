@@ -19,6 +19,7 @@ import { ReadingProgressResponse } from "@/types/progress";
 
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
 import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
+import { useToast } from "@/hooks/useToast";
 
 const USER_DATA_KEY = "tomilo_lib_user";
 /** Время (ms), когда токен был записан — чтобы не делать logout по 401 от устаревшего запроса profile сразу после логина */
@@ -36,6 +37,7 @@ function isValidAvatarUrl(url: string | null | undefined): boolean {
 export const useAuth = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state: RootState) => state.auth);
+  const toast = useToast();
 
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
@@ -457,6 +459,23 @@ export const useAuth = () => {
             // Обновляем список истории явно, чтобы UI не оставался устаревшим у части пользователей
           }
         }
+        if (result.data?.readingDrops?.length) {
+          for (const item of result.data.readingDrops) {
+            const label = item.name || item.itemId;
+            toast.success(`Найден при чтении: ${label} ×${item.count}`, 5000, { icon: item.icon });
+          }
+        }
+        if (result.data?.readingCardDrops?.length) {
+          for (const card of result.data.readingCardDrops) {
+            const label = card.characterName || card.name || "Карточка";
+            const suffix = card.isNew
+              ? `Получена карточка ${label} [${card.currentStage}]`
+              : `Дубликат ${label}: +${card.shardsGained ?? 0} осколков`;
+            toast.success(suffix, 5000, {
+              icon: card.stageImageUrl,
+            });
+          }
+        }
         return { success: true, progress: result.data };
       };
 
@@ -560,7 +579,7 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
-    [addToReadingHistory, refetchProfile, refetchReadingHistory, token],
+    [addToReadingHistory, refetchProfile, refetchReadingHistory, token, toast],
   );
 
   const removeFromReadingHistoryFunc = async (

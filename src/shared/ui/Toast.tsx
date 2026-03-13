@@ -71,9 +71,13 @@ export const Toast: React.FC<ToastProps> = ({ toast }) => {
       `}
     >
       <div
-        className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center ${config.iconBg}`}
+        className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center overflow-hidden ${toast.icon ? "bg-[var(--muted)]/50 p-0.5" : config.iconBg}`}
       >
-        <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden />
+        {toast.icon ? (
+          <img src={toast.icon} alt="" className="w-full h-full object-contain rounded-md" />
+        ) : (
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden />
+        )}
       </div>
       <div className="flex-1 min-w-0 pt-0.5">
         <p className="text-[13px] sm:text-sm font-medium text-[var(--foreground)] leading-snug">

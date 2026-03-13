@@ -29,6 +29,8 @@ import { subscriptionsApi } from "./api/subscriptionsApi";
 import { searchApi } from "./api/searchApi";
 import { adminApi } from "./api/adminApi";
 import { promocodesApi } from "./api/promocodesApi";
+import { gamesApi } from "./api/gamesApi";
+import { gameItemsAdminApi } from "./api/gameItemsAdminApi";
 import authReducer from "./slices/authSlice";
 
 const apiList = [
@@ -57,6 +59,8 @@ const apiList = [
   searchApi,
   adminApi,
   promocodesApi,
+  gamesApi,
+  gameItemsAdminApi,
 ];
 
 const slices = {

@@ -35,6 +35,7 @@ import {
   EyeOff,
   Bot,
   UserCheck,
+  Gamepad2,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -65,7 +66,8 @@ export type AdminTab =
   | "promo-codes"
   | "site-settings"
   | "audit-logs"
-  | "work-queue";
+  | "work-queue"
+  | "games";
 
 export const ADMIN_TABS: AdminTab[] = [
   "overview",
@@ -92,6 +94,7 @@ export const ADMIN_TABS: AdminTab[] = [
   "site-settings",
   "audit-logs",
   "work-queue",
+  "games",
 ];
 
 interface AdminTabsProps {
@@ -157,6 +160,7 @@ const tabGroups: TabGroup[] = [
       { id: "site-settings", label: "Настройки сайта", icon: Wrench },
       { id: "audit-logs", label: "Аудит-логи", icon: ScrollText },
       { id: "work-queue", label: "Рабочая очередь", icon: ClipboardList },
+      { id: "games", label: "Мини-игры", icon: Gamepad2 },
     ],
   },
 ];

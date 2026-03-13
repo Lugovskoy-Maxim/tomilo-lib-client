@@ -1,4 +1,5 @@
 import { ReadingHistoryEntry } from "./store";
+import type { ProfileCard } from "./games";
 
 // Privacy settings type
 export type UserPrivacy = {
@@ -107,6 +108,10 @@ export interface UserProfile {
   equippedDecorations?: EquippedDecorations;
   /** Купленные декорации (из API users/profile). Используется для инвентаря, если GET /shop/profile/decorations пуст. */
   ownedDecorations?: OwnedDecorationEntry[];
+  profileCards?: ProfileCard[];
+  profileCardsShowcase?: ProfileCard[];
+  profileCardsShowcaseSort?: "manual" | "rarity" | "favorites" | "last_upgraded";
+  profileCardsStats?: { total: number; uniqueTitles: number };
   /** Подключённые способы входа: "yandex", "vk" и т.д. */
   linkedProviders?: string[];
   /** Полученные достижения пользователя (старый формат — только разблокированные) */

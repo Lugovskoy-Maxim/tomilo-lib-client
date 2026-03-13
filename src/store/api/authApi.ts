@@ -581,6 +581,8 @@ export const authApi = createApi({
     getDailyQuests: builder.query<
       ApiResponseDto<{
         date: string;
+        serverNow: string;
+        resetAt: string;
         quests: {
           id: string;
           type: string;
@@ -590,6 +592,14 @@ export const authApi = createApi({
           progress: number;
           rewardExp: number;
           rewardCoins: number;
+          rewardItems?: {
+            itemId: string;
+            countMin: number;
+            countMax: number;
+            chance: number;
+            name?: string;
+            icon?: string;
+          }[];
           completed: boolean;
           claimedAt: string | null;
         }[];
@@ -600,7 +610,14 @@ export const authApi = createApi({
       providesTags: ["DailyQuests"],
     }),
     claimDailyQuest: builder.mutation<
-      ApiResponseDto<{ success: boolean; expGained?: number; coinsGained?: number; message?: string }>,
+      ApiResponseDto<{
+        success: boolean;
+        expGained?: number;
+        coinsGained?: number;
+        itemsGained?: { itemId: string; count: number; name?: string; icon?: string }[];
+        balance?: number;
+        message?: string;
+      }>,
       string
     >({
       query: questId => ({

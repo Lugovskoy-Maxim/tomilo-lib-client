@@ -13,57 +13,21 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { getDecorationImageUrls } from "@/api/shop";
-import type { Decoration } from "@/api/shop";
-import { Lightbulb, Upload, ThumbsUp, Image as ImageIcon, ChevronDown, ChevronUp, Pencil, FileText, Trash2, Clock } from "lucide-react";
+import {
+  suggestionToDecoration,
+  SUGGESTION_TYPES,
+  DECORATION_RULES,
+  isWithinOneHour,
+  getNextAcceptanceDate,
+  formatCountdown,
+} from "@/lib/suggestions";
+import { Lightbulb, Upload, ThumbsUp, ChevronDown, ChevronUp, Pencil, FileText, Trash2, Clock, EyeOff, Eye } from "lucide-react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { DecorationCard } from "@/shared/shop/DecorationCard";
 
-const SUGGESTION_TYPES: { id: SuggestedDecoration["type"]; label: string }[] = [
-  { id: "avatar", label: "Аватар" },
-  { id: "frame", label: "Рамка" },
-  { id: "background", label: "Фон" },
-  { id: "card", label: "Карточка" },
-];
-
 const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
-const ONE_HOUR_MS = 60 * 60 * 1000;
-
-function isWithinOneHour(createdAt: string): boolean {
-  return Date.now() - new Date(createdAt).getTime() < ONE_HOUR_MS;
-}
-
-const DECORATION_RULES = [
-  "Изображение: PNG, JPG, WEBP или GIF, не более 20 МБ.",
-  "Только своя работа или работа с разрешения автора; не нарушайте авторские права.",
-  "Контент должен соответствовать правилам сайта: без оскорбительного, неприемлемого и NSFW-материала.",
-  "Один аккаунт — одно предложение в неделю. Редактировать можно только в течение 1 часа после отправки.",
-];
-
-/** Следующий понедельник 00:00 (локальное время) — момент принятия победителя недели. */
-function getNextAcceptanceDate(): Date {
-  const now = new Date();
-  const next = new Date(now);
-  const day = now.getDay();
-  const daysToAdd = day === 0 ? 1 : (8 - day) % 7;
-  next.setDate(now.getDate() + daysToAdd);
-  next.setHours(0, 0, 0, 0);
-  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 7);
-  return next;
-}
-
-function formatCountdown(ms: number): string {
-  if (ms <= 0) return "0 мин.";
-  const s = Math.floor(ms / 1000) % 60;
-  const m = Math.floor(ms / 60000) % 60;
-  const h = Math.floor(ms / 3600000) % 24;
-  const d = Math.floor(ms / 86400000);
-  const parts: string[] = [];
-  if (d > 0) parts.push(`${d} д.`);
-  if (h > 0) parts.push(`${h} ч.`);
-  parts.push(`${m} мин.`);
-  return parts.join(" ");
-}
+const STORAGE_KEY_HIDDEN = "shop:suggestions-block-hidden";
 
 export function ShopSuggestionsBlock() {
   const toast = useToast();
@@ -86,32 +50,38 @@ export function ShopSuggestionsBlock() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isBlockHidden, setIsBlockHidden] = useState(false);
   const [editingSuggestionId, setEditingSuggestionId] = useState<string | null>(null);
   const [previewSuggestionId, setPreviewSuggestionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setIsBlockHidden(localStorage.getItem(STORAGE_KEY_HIDDEN) === "true");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const setBlockHidden = (hidden: boolean) => {
+    setIsBlockHidden(hidden);
+    try {
+      if (hidden) localStorage.setItem(STORAGE_KEY_HIDDEN, "true");
+      else localStorage.removeItem(STORAGE_KEY_HIDDEN);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const nextAcceptance = useMemo(() => getNextAcceptanceDate(), []);
   const [countdownMs, setCountdownMs] = useState(() =>
     Math.max(0, nextAcceptance.getTime() - Date.now()),
   );
   useEffect(() => {
-    const tick = () => setCountdownMs((prev) => Math.max(0, nextAcceptance.getTime() - Date.now()));
+    const tick = () => setCountdownMs(() => Math.max(0, nextAcceptance.getTime() - Date.now()));
     const id = setInterval(tick, 60_000);
     tick();
     return () => clearInterval(id);
   }, [nextAcceptance]);
-
-  /** Преобразовать предложение в вид Decoration для превью и карточки */
-  const suggestionToDecoration = (s: SuggestedDecoration): Decoration => ({
-    id: s.id,
-    name: s.name,
-    description: s.description || "",
-    price: 0,
-    imageUrl: s.imageUrl,
-    type: s.type,
-    rarity: "common",
-    authorId: s.authorId,
-    authorUsername: s.authorUsername,
-  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -152,7 +122,7 @@ export function ShopSuggestionsBlock() {
         setEditingSuggestionId(null);
         setForm({ type: "avatar", name: "", description: "" });
         setImageFile(null);
-        fileInputRef.current && (fileInputRef.current.value = "");
+        if (fileInputRef.current) fileInputRef.current.value = "";
       } catch (err: unknown) {
         const msg =
           err && typeof err === "object" && "data" in err
@@ -181,7 +151,7 @@ export function ShopSuggestionsBlock() {
       toast.success("Предложение отправлено");
       setForm({ type: "avatar", name: "", description: "" });
       setImageFile(null);
-      fileInputRef.current && (fileInputRef.current.value = "");
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "data" in err
@@ -199,7 +169,7 @@ export function ShopSuggestionsBlock() {
       description: s.description ?? "",
     });
     setImageFile(null);
-    fileInputRef.current && (fileInputRef.current.value = "");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const cancelEdit = () => {
@@ -235,29 +205,67 @@ export function ShopSuggestionsBlock() {
     }
   };
 
+  if (isBlockHidden) {
+    return (
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--muted-foreground)]">
+            <Lightbulb className="w-5 h-5 text-amber-500/70 shrink-0" aria-hidden />
+            Предложенные украшения
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+              beta
+            </span>
+            <span className="text-sm font-normal text-[var(--muted-foreground)]">(блок скрыт)</span>
+          </h2>
+          <button
+            type="button"
+            onClick={() => setBlockHidden(false)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+          >
+            <Eye className="w-4 h-4" aria-hidden />
+            Показать блок
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
-      <button
-        type="button"
-        onClick={() => setIsOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 text-left"
-        aria-expanded={isOpen}
-        aria-controls="shop-suggestions-content"
-        id="shop-suggestions-heading"
-      >
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
-          <Lightbulb className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
-          Предложенные украшения
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
-            beta
-          </span>
-        </h2>
-        {isOpen ? (
-          <ChevronUp className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
-        )}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className="flex flex-1 min-w-0 items-center justify-between gap-2 text-left"
+          aria-expanded={isOpen}
+          aria-controls="shop-suggestions-content"
+          id="shop-suggestions-heading"
+        >
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
+            <Lightbulb className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
+            Предложенные украшения
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+              beta
+            </span>
+          </h2>
+          {isOpen ? (
+            <ChevronUp className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setBlockHidden(true);
+          }}
+          className="shrink-0 p-2 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+          title="Скрыть блок"
+        >
+          <EyeOff className="w-5 h-5" aria-hidden />
+        </button>
+      </div>
 
       <p className="mt-2 flex items-center gap-2 text-xs text-[var(--muted-foreground)]" role="status">
         <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden />
@@ -268,13 +276,19 @@ export function ShopSuggestionsBlock() {
         id="shop-suggestions-content"
         role="region"
         aria-labelledby="shop-suggestions-heading"
-        className={`mt-4 min-w-0 ${!isOpen ? "max-h-[300px] overflow-hidden" : ""}`}
+        className={`mt-4 min-w-0 ${!isOpen ? "max-h-[480px] overflow-hidden" : ""}`}
       >
         {isOpen && (
           <>
             <p className="text-sm text-[var(--muted-foreground)] mb-4">
               Предложите своё украшение или голосуйте за понравившиеся. Раз в неделю победитель по голосам добавляется в магазин (цена зависит от числа голосов). Автор получает 10% от продаж.
             </p>
+            <div className="mb-4 p-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)]">
+              <p className="text-xs font-medium text-[var(--foreground)] mb-1">Как выбирается победитель</p>
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Ранг (кто попадёт в магазин) присваивается предложению с наибольшим числом голосов к концу недели (понедельник 00:00). При равенстве голосов выше ставится предложение, созданное раньше.
+              </p>
+            </div>
 
             <div className="mb-4 p-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)]">
               <p className="flex items-center gap-2 text-xs font-medium text-[var(--foreground)] mb-2">
@@ -425,13 +439,13 @@ export function ShopSuggestionsBlock() {
             Пока нет предложений. Станьте первым!
           </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4 justify-items-stretch items-start">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 justify-items-stretch items-stretch min-w-0">
             {suggestions.map((s) => (
               <div
                 key={s.id}
-                className="relative group w-full min-w-0 flex flex-col justify-center"
+                className="relative group w-full min-w-0 flex flex-col items-center justify-start overflow-hidden"
               >
-                <div className="relative w-full min-w-0 flex justify-center">
+                <div className="relative w-full min-w-0 flex flex-col items-center justify-start overflow-hidden">
                   {(isAdmin ||
                     (isAuthenticated &&
                       s.status === "pending" &&
@@ -480,18 +494,43 @@ export function ShopSuggestionsBlock() {
                     isEquipped={false}
                     authorDisplay="cultivator"
                     cultivatorLevel={s.authorLevel ?? 0}
+                    compactGrid
                   />
                 </div>
-                {isAuthenticated && s.status === "pending" && (
-                  <div
-                    className="p-2 border-t border-[var(--border)] bg-[var(--card)] rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl -mt-px"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-[var(--muted-foreground)]">
-                        <ThumbsUp className="w-3 h-3 shrink-0" aria-hidden />
-                        {s.votesCount}
-                      </span>
+                <div
+                  className="p-2 border-t border-[var(--border)] bg-[var(--card)] rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl -mt-px space-y-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border ${
+                        s.status === "accepted"
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                          : s.status === "rejected"
+                            ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                            : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                      }`}
+                    >
+                      {s.status === "accepted"
+                        ? "Принято"
+                        : s.status === "rejected"
+                          ? "Отклонено"
+                          : "На голосовании"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+                      <ThumbsUp className="w-3 h-3 shrink-0" aria-hidden />
+                      {s.votesCount}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewSuggestionId(s.id)}
+                      className="py-1 px-2 rounded-lg text-[10px] font-medium border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                    >
+                      Предпросмотр
+                    </button>
+                    {isAuthenticated && s.status === "pending" ? (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -504,9 +543,9 @@ export function ShopSuggestionsBlock() {
                       >
                         {s.userHasVoted ? "Голос учтён" : "Голосовать"}
                       </button>
-                    </div>
+                    ) : null}
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>

@@ -38,9 +38,9 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   }, []);
 
   const addToast = useCallback(
-    (type: Toast["type"], message: string, duration = 5000) => {
+    (type: Toast["type"], message: string, duration = 5000, options?: { icon?: string }) => {
       const id = Date.now().toString();
-      const toast: Toast = { id, type, message, duration };
+      const toast: Toast = { id, type, message, duration, icon: options?.icon };
 
       setToasts(prev => [...prev, toast]);
 
