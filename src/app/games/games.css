@@ -618,6 +618,9 @@
   right: 0.875rem;
   width: 2rem;
   height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--card);

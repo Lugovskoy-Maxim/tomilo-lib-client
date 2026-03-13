@@ -250,7 +250,11 @@ export function ShopSection({ type }: ShopSectionProps) {
   const [updateDecorationWithImage, { isLoading: isUpdatingWithImage }] =
     useUpdateDecorationWithImageMutation();
   const [deleteDecoration] = useDeleteDecorationMutation();
-  const { data: decksData, isLoading: decksLoading, refetch: refetchDecks } = useGetCardDecksQuery(undefined, {
+  const {
+    data: decksData,
+    isLoading: decksLoading,
+    refetch: refetchDecks,
+  } = useGetCardDecksQuery(undefined, {
     skip: type !== "card",
   });
   const [openCardDeck, { isLoading: isOpeningDeck }] = useOpenCardDeckMutation();

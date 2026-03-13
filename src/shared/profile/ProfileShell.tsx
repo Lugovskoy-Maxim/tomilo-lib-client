@@ -279,25 +279,6 @@ export default function ProfileShell({
 
   return (
     <main className="relative min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
-      {/* Фиксированный фон на весь экран — при скролле остаётся в viewport */}
-      {userProfile && (
-        <div
-          className="fixed inset-0 z-0 bg-[var(--background)] bg-no-repeat bg-top bg-cover"
-          style={{
-            backgroundImage: `url(${backgroundUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "top center",
-          }}
-          aria-hidden
-        >
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: "linear-gradient(to bottom, transparent 0%, var(--background) 55%, var(--background) 100%)",
-            }}
-          />
-        </div>
-      )}
       <div className="relative z-10 flex flex-col flex-1 min-h-0">
         <Header />
         {wrapWithProvider ? (

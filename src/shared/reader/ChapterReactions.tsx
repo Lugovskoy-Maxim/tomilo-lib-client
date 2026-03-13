@@ -365,7 +365,7 @@ export function ChapterReactions({
             <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
               Реакции
             </span>
-            <div className="flex flex-wrap gap-2 sm:gap-2">
+            <div className="w-full max-w-[500px] min-w-0 sm:min-w-[355px] mx-auto flex flex-wrap gap-2 sm:gap-2">
               {CHAPTER_ALLOWED_REACTION_EMOJIS.map(emoji => {
                 const isSelected = displaySelectedEmoji === emoji;
                 const count = countByEmoji[emoji] ?? 0;

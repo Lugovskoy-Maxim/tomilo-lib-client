@@ -771,11 +771,15 @@ export default function ReaderControls({
                 </span>
               </button>
               {isJumpPopoverOpen && onJumpToPage && (
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[80] w-[220px] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl">
+                <div
+                  className={`absolute bottom-full mb-2 z-[80] w-[220px] max-w-[min(220px,calc(100vw-1rem))] p-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl ${
+                    isMenuHidden ? "right-0" : "left-1/2 -translate-x-1/2"
+                  }`}
+                >
                   <div className="text-[11px] text-[var(--muted-foreground)] mb-2 px-1">
                     Выберите страницу
                   </div>
-                  <div className="max-h-44 overflow-y-auto pr-1">
+                  <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1">
                     <div className="grid grid-cols-5 gap-1">
                       {jumpPageItems.map(item => (
                         <button
@@ -807,7 +811,7 @@ export default function ReaderControls({
             onToggleMenu?.();
             onMenuOpen?.();
           }}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] p-2 xs:p-2.5 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center ${
+          className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] p-2 xs:p-2.5 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-500 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center ${
             hideBottomMenuSetting && isMenuHidden
               ? "opacity-100 visible pointer-events-auto"
               : "opacity-0 invisible pointer-events-none"
@@ -841,7 +845,7 @@ export default function ReaderControls({
           <div className="w-max mx-auto flex items-center gap-1.5 max-[360px]:gap-1 py-0.5">
             <button
               onClick={toggleAutoScroll}
-              className={`shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              className={`shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 hover:scale-110 active:scale-95 ${
                 isAutoScrolling ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
               }`}
               title={isAutoScrolling ? "Остановить автопрокрутку" : "Начать автопрокрутку"}
@@ -857,7 +861,7 @@ export default function ReaderControls({
               ref={mobileSettingsTriggerRef}
               type="button"
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className={`shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              className={`shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 hover:scale-110 active:scale-95 ${
                 isSettingsOpen ? "text-[var(--primary)] bg-[var(--background)]/90" : ""
               }`}
               title="Настройки"
@@ -902,7 +906,7 @@ export default function ReaderControls({
             <button
               ref={mobileCommentsTriggerRef}
               onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-              className={`relative shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 ${
+              className={`relative shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 hover:scale-110 active:scale-95 ${
                 isCommentsOpen ? "text-[var(--primary)] bg-[var(--primary)]/10" : ""
               }`}
               title="Комментарии"
@@ -927,7 +931,7 @@ export default function ReaderControls({
                 onTouchStart={startPressing}
                 onTouchEnd={stopPressing}
                 onClick={handleSimpleClick}
-                className={`relative shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? "scale-95" : ""}`}
+                className={`relative shrink-0 min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] p-2 xs:p-2.5 max-[360px]:p-1.5 flex items-center justify-center bg-[var(--card)] border border-[var(--border)] rounded-full hover:bg-[var(--accent)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 hover:scale-110 active:scale-95 overflow-hidden ${isPressing ? "scale-95" : ""}`}
                 title="Удерживайте 5 секунд"
               >
                 {isPressing && (

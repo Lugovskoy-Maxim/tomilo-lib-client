@@ -214,11 +214,11 @@ export default function UserDropdown({
           title={levelTooltip}
           className="flex items-center gap-2.5 rounded-lg p-1.5 -m-1.5 transition-colors cursor-pointer hover:bg-[var(--accent)] focus:bg-[var(--accent)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
         >
-          <div className="shrink-0 w-12 h-12 rounded-full overflow-hidden ring-2 ring-[var(--border)] bg-[var(--muted)]">
+          <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center overflow-visible">
             <UserAvatar
               avatarUrl={user?.avatar}
               username={displayName}
-              size={53}
+              size={36}
               className="rounded-full w-full h-full object-cover"
               frameUrl={frameUrl ?? undefined}
               avatarDecorationUrl={avatarDecorationUrl ?? undefined}
@@ -235,8 +235,8 @@ export default function UserDropdown({
             </div>
             <div className="flex items-center gap-2 min-w-0">
               <span
-                className="shrink-0 inline-flex items-center justify-center min-w-[28px] h-5 rounded-md text-[10px] font-bold tabular-nums"
-                style={{ backgroundColor: `${rankColor}22`, color: rankColor }}
+                className="shrink-0 inline-flex items-center justify-center min-w-[28px] h-5 rounded-md text-[10px] font-bold tabular-nums bg-[var(--background)]/90 border"
+                style={{ borderColor: rankColor, color: rankColor }}
               >
                 {level}
               </span>
@@ -247,7 +247,10 @@ export default function UserDropdown({
                 />
               </div>
             </div>
-            <p className="text-[11px] text-[var(--muted-foreground)] leading-snug flex items-center gap-1.5 flex-wrap" aria-hidden>
+            <p
+              className="text-[10px] text-[var(--muted-foreground)] leading-snug flex items-center gap-1 whitespace-nowrap"
+              aria-hidden
+            >
               <span className="tabular-nums">{experience.toLocaleString("ru-RU")} XP</span>
               <span className="text-[var(--border)]">·</span>
               <span>до {level + 1} ур.:</span>
@@ -268,7 +271,7 @@ export default function UserDropdown({
                     key={category}
                     href={`/leaders?category=${category}`}
                     onClick={onClose}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-500/15 dark:text-amber-300 hover:bg-amber-500/20 dark:hover:bg-amber-500/20 transition-colors shrink-0"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200 hover:bg-amber-500/25 dark:hover:bg-amber-500/25 transition-colors shrink-0"
                     title={label}
                   >
                     <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />#{position}
