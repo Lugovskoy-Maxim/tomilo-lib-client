@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   useListGameItemsQuery,
@@ -49,9 +49,25 @@ import { useGetTitlesQuery } from "@/store/api/titlesApi";
 import type { CardDeck, CardStageRank, GameItemType, GameItemRarity } from "@/types/games";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
+import { getImageUrls } from "@/lib/asset-url";
 import { AdminCard } from "./ui";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
-import { Gamepad2, Trash2, RefreshCw, BookOpen, Pencil, Plus, X, Coins, Sparkles, Gift, CircleOff, Percent, RotateCcw } from "lucide-react";
+import { Gamepad2, Trash2, RefreshCw, BookOpen, Pencil, Plus, X, Coins, Sparkles, Gift, CircleOff, Percent, RotateCcw, ImageOff } from "lucide-react";
+
+/** Иконка предмета с fallback при отсутствии или ошибке загрузки */
+function GameItemIcon({ src }: { src: string | null | undefined }) {
+  const [error, setError] = useState(false);
+  const handleError = useCallback(() => setError(true), []);
+  if (!src || error) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1 p-2 bg-[var(--muted)]/20">
+        <ImageOff className="w-6 h-6 text-[var(--muted-foreground)]" aria-hidden />
+        <span className="text-[10px] text-[var(--muted-foreground)] text-center">нет изображения</span>
+      </div>
+    );
+  }
+  return <img src={src} alt="" className="w-full h-full object-cover" onError={handleError} />;
+}
 
 const GAME_ITEM_TYPE_LABELS: Record<GameItemType, string> = {
   material: "Материал",
@@ -710,7 +726,7 @@ export function GamesManagementSection() {
                   />
                   {(iconPreviewUrl || newItem.icon) && (
                     <img
-                      src={iconPreviewUrl || newItem.icon}
+                      src={iconPreviewUrl || (newItem.icon ? getImageUrls(newItem.icon).primary : "")}
                       alt=""
                       className="mt-1 h-16 w-16 object-contain rounded border border-[var(--border)]"
                     />
@@ -786,7 +802,7 @@ export function GamesManagementSection() {
                         }}
                       />
                       {(editIconPreviewUrl || editForm.icon) && (
-                        <img src={editIconPreviewUrl || editForm.icon} alt="" className="mt-1 h-16 w-16 object-contain rounded border border-[var(--border)]" />
+                        <img src={editIconPreviewUrl || (editForm.icon ? getImageUrls(editForm.icon).primary : "")} alt="" className="mt-1 h-16 w-16 object-contain rounded border border-[var(--border)]" />
                       )}
                     </div>
                   </div>
@@ -868,19 +884,15 @@ export function GamesManagementSection() {
                     return (
                     <div
                       key={item.id}
-                      className={`rounded-lg border border-[var(--border)] border-l-4 ${styles.border} bg-[var(--card)] flex min-h-[100px] overflow-hidden`}
+                      className={`rounded-lg border border-[var(--border)] border-l-4 ${styles.border} bg-[var(--card)] flex h-[172px] overflow-hidden`}
                     >
-                      <div className="shrink-0 h-full aspect-square min-w-0 rounded-l-lg border-r border-[var(--border)] bg-[var(--muted)]/30 flex items-center justify-center overflow-hidden">
-                        {item.icon ? (
-                          <img src={item.icon} alt="" className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-[10px] text-[var(--muted-foreground)] text-center px-0.5">нет</span>
-                        )}
+                      <div className="shrink-0 w-[120px] h-full rounded-l-lg border-r border-[var(--border)] bg-[var(--muted)]/30 flex items-center justify-center overflow-hidden">
+                        <GameItemIcon src={item.icon ? getImageUrls(item.icon).primary : ""} />
                       </div>
-                      <div className="min-w-0 flex-1 flex flex-col p-3">
-                        <div className="font-semibold text-sm truncate" title={item.name}>{item.name}</div>
-                        <div className="text-xs text-[var(--muted-foreground)] truncate" title={item.id}>{item.id}</div>
-                        <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="min-w-0 flex-1 flex flex-col p-3 min-h-0">
+                        <div className="font-semibold text-sm line-clamp-2 leading-snug break-words shrink-0" title={item.name}>{item.name}</div>
+                        <div className="text-xs text-[var(--muted-foreground)] truncate mt-0.5 shrink-0" title={item.id}>{item.id}</div>
+                        <div className="flex flex-wrap gap-1 mt-1 shrink-0">
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)]">
                             {GAME_ITEM_TYPE_LABELS[item.type as GameItemType] ?? item.type}
                           </span>
@@ -888,10 +900,12 @@ export function GamesManagementSection() {
                             {GAME_ITEM_RARITY_LABELS[rarity] ?? item.rarity}
                           </span>
                         </div>
-                        {item.description && (
-                          <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-2 flex-1 min-h-0" title={item.description}>{item.description}</p>
+                        {item.description ? (
+                          <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-2 min-h-0 flex-1 overflow-hidden break-words" title={item.description}>{item.description}</p>
+                        ) : (
+                          <div className="flex-1 min-h-[0.5rem]" />
                         )}
-                        <div className="flex justify-end gap-1 mt-2 pt-2 border-t border-[var(--border)]">
+                        <div className="flex justify-end gap-1 mt-2 pt-2 border-t border-[var(--border)] shrink-0">
                         <button
                           type="button"
                           onClick={() => {
@@ -2341,7 +2355,7 @@ export function GamesManagementSection() {
                               </div>
                               {itemMeta ? (
                                 <div className="md:col-span-2 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--muted)]/10 px-3 py-2 text-sm">
-                                  {itemMeta.icon ? <img src={itemMeta.icon} alt="" className="w-6 h-6 rounded object-cover" /> : <Gift className="w-4 h-4" aria-hidden />}
+                                  {itemMeta.icon ? <img src={getImageUrls(itemMeta.icon).primary} alt="" className="w-6 h-6 rounded object-cover" /> : <Gift className="w-4 h-4" aria-hidden />}
                                   <span>{itemMeta.name} · {itemMeta.id}</span>
                                 </div>
                               ) : null}

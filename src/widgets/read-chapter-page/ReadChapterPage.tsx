@@ -462,22 +462,15 @@ function ReadChapterPageContent({
 
     const chapterKey = `${title._id}-${chapter._id}`;
 
-    // Обновляем просмотры только один раз (для всех пользователей)
+    // Обновляем просмотры только один раз (для всех пользователей).
+    // Помечаем chapterKey в ref сразу, до вызова API, чтобы повторный запуск effect
+    // (из-за обновления Redux после мутации) не вызывал мутацию снова.
     if (!viewsUpdatedRef.current.has(chapterKey)) {
+      viewsUpdatedRef.current.add(chapterKey);
       if (isAuthenticated) {
-        // Для авторизованных пользователей используем полную функцию с обновлением в БД
-        updateChapterViews(chapter._id)
-          .then(() => {
-            viewsUpdatedRef.current.add(chapterKey);
-          })
-          .catch(console.error);
+        updateChapterViews(chapter._id).catch(console.error);
       } else {
-        // Для неавторизованных используем специальную функцию увеличения просмотров
-        incrementChapterViews(chapter._id)
-          .then(() => {
-            viewsUpdatedRef.current.add(chapterKey);
-          })
-          .catch(console.error);
+        incrementChapterViews(chapter._id).catch(console.error);
       }
     }
 

@@ -11,6 +11,7 @@ const URL_PATTERNS = [
 ];
 
 const PROHIBITED_WORDS = [
+  // Наркотики и закладки (без "соль" — обычное слово)
   "наркот",
   "кокаин",
   "героин",
@@ -22,24 +23,18 @@ const PROHIBITED_WORDS = [
   "лсд",
   "мефедрон",
   "спайс",
-  "соль",
   "закладк",
   "кладмен",
   "барыг",
   "дилер",
-  "порох",
+  // Терроризм (без "взрыв"/"бомб"/"убийств"/"убить"/"порох" — обычные слова и сюжеты)
   "терроризм",
   "террорист",
-  "взрыв",
-  "бомб",
-  "убийств",
-  "убить",
   "суицид",
   "самоубийств",
   "порно",
   "педофил",
   "детское порн",
-  "cp",
   "нацизм",
   "нацист",
   "фашизм",
@@ -56,15 +51,15 @@ const PROHIBITED_WORDS = [
   "хохол",
   "москал",
   "кацап",
+  // Даркнет (без "гидра" — миф. существо в манге/играх; hydra оставлен как маркетплейс)
   "даркнет",
   "даркмаркет",
   "hydra",
-  "гидра",
   "rutor",
   "рутор",
   "silk road",
+  // Казино и букмекеры (без "ставк" — входит в "поставка")
   "казино",
-  "ставк",
   "букмекер",
   "1xbet",
   "мелбет",
@@ -72,25 +67,36 @@ const PROHIBITED_WORDS = [
   "пинап",
   "пин ап",
   "леон бет",
+  // Крипто/пирамиды (без "крипт" — криптография/криптид; без "заработ" — "заработал достижение"; без "cp" — аббревиатура)
   "криптовалют",
   "биткоин",
   "эфириум",
-  "крипт",
   "инвестиц",
-  "заработ",
   "пассивный доход",
   "финансовая пирамид",
   "млм",
   "сетевой маркетинг",
 ];
 
+/** Минимальная длина комментария (символов после trim) */
+export const MIN_COMMENT_LENGTH = 2;
+
 export interface ContentValidationResult {
   isValid: boolean;
   error?: string;
-  errorType?: "url" | "prohibited_word";
+  errorType?: "url" | "prohibited_word" | "min_length";
 }
 
 export function validateContent(text: string): ContentValidationResult {
+  const trimmed = text.trim();
+  if (trimmed.length < MIN_COMMENT_LENGTH) {
+    return {
+      isValid: false,
+      error: `Минимум ${MIN_COMMENT_LENGTH} символа`,
+      errorType: "min_length",
+    };
+  }
+
   const lowerText = text.toLowerCase();
 
   for (const pattern of URL_PATTERNS) {

@@ -43,8 +43,8 @@ import Link from "next/link";
 const HEADER_DROPDOWN_ITEMS = [
   { href: "/about", label: "О нас", icon: Info },
   { href: "/contact", label: "Контакты", icon: Mail },
-  { href: "/characters", label: "Персонажи", icon: Users },
-  { href: "/games", label: "Мини-игры", icon: Gamepad2 },
+  { href: "/characters", label: "Персонажи", icon: Users, beta: true },
+  { href: "/games", label: "Мини-игры", icon: Gamepad2, beta: true },
   { href: "/tomilo-shop", label: "Магазин", icon: ShoppingBag },
   { href: "/dmca", label: "Авторские права (DMCA)", icon: Shield },
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
@@ -337,7 +337,7 @@ export default function Header() {
                         </button>
                       </div>
                     </form>
-                    {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
+                    {HEADER_DROPDOWN_ITEMS.map(({ href, label, icon: Icon, beta }) => (
                       <Link
                         key={href}
                         href={href}
@@ -350,6 +350,11 @@ export default function Header() {
                           aria-hidden
                         />
                         {label}
+                        {beta && (
+                          <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+                            бета
+                          </span>
+                        )}
                       </Link>
                     ))}
                   </div>
@@ -489,8 +494,11 @@ export default function Header() {
                             >
                               <Users className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200 flex items-center gap-1.5">
                               Персонажи
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+                                бета
+                              </span>
                             </span>
                             <ChevronRight
                               className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250"
@@ -541,8 +549,11 @@ export default function Header() {
                             >
                               <Gamepad2 className="w-4 h-4" />
                             </span>
-                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200">
+                            <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200 flex items-center gap-1.5">
                               Мини-игры
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+                                бета
+                              </span>
                             </span>
                             <ChevronRight
                               className="mobile-menu-item-arrow shrink-0 w-4 h-4 text-[var(--muted-foreground)] opacity-50 transition-all duration-250"
