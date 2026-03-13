@@ -124,7 +124,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
   return (
     <div className={`group relative overflow-visible ${sizeClass}`}>
       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[var(--primary)] via-[var(--chart-1)] to-[var(--chart-2)] opacity-75 group-hover:opacity-100 blur-sm transition-all duration-500" />
-      <div className="absolute -inset-2 rounded-full bg-[var(--primary)]/20 blur-xl transition-all duration-500" />
+      <div className="absolute -inset-2 rounded-full blur-xl transition-all duration-500" />
       <div className={wrapperClass}>{avatarInner}</div>
       {frameUrl && (
         <img

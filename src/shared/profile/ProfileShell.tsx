@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -154,7 +155,7 @@ export default function ProfileShell({
   ) : !userProfile ? (
     renderEmptyState()
   ) : (
-    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-24 sm:pt-44">
+    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-24 sm:pt-44 bg-[var(--background)]/20">
       <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-6xl min-w-0 overflow-x-hidden flex flex-1 flex-col">
         {/* Верхняя панель: назад + контекстная ссылка */}
         <div className="flex items-center justify-between gap-3 py-3">
@@ -278,8 +279,27 @@ export default function ProfileShell({
   const wrapWithProvider = variant === "own" && profileContextValue;
 
   return (
-    <main className="relative min-h-screen flex flex-col bg-[var(--background)] min-w-0 overflow-x-hidden">
-      <div className="relative z-10 flex flex-col flex-1 min-h-0">
+    <main className="relative min-h-screen flex flex-col min-w-0 overflow-x-hidden">
+      {/* Глобальный фон профиля: во всю ширину экрана, фиксированный при скролле */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <Image
+          src="/user/banner.jpg"
+          alt=""
+          fill
+          unoptimized
+          className="object-cover object-center"
+        />
+        {backgroundUrl && (
+          <Image
+            src={backgroundUrl}
+            alt=""
+            fill
+            unoptimized
+            className="object-cover object-center"
+          />
+        )}
+      </div>
+      <div className="relative z-10 flex flex-col flex-1 min-h-0 bg-[var(--background)]/80">
         <Header />
         {wrapWithProvider ? (
           <ProfileProvider value={profileContextValue}>{content}</ProfileProvider>

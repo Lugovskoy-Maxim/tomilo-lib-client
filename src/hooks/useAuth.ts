@@ -20,7 +20,6 @@ import { ReadingProgressResponse } from "@/types/progress";
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
 import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
 import { useToast } from "@/hooks/useToast";
-import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 
 const USER_DATA_KEY = "tomilo_lib_user";
 /** Временно отключить тосты за предметы и карточки при чтении */
@@ -41,7 +40,6 @@ export const useAuth = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state: RootState) => state.auth);
   const toast = useToast();
-  const { showExpGain } = useProgressNotification();
 
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
@@ -463,11 +461,7 @@ export const useAuth = () => {
             // Обновляем список истории явно, чтобы UI не оставался устаревшим у части пользователей
           }
         }
-        // Тосты опыта: fallback из ответа API (WebSocket может не успеть или не подключиться)
-        const progress = result.data?.progress;
-        if (progress && typeof progress.expGained === "number" && progress.expGained > 0) {
-          showExpGain(progress.expGained, progress.reason ?? "Чтение главы");
-        }
+        // Тосты опыта показываются только из WebSocket (ProgressNotificationContext), чтобы не дублировать
         if (SHOW_READING_DROP_TOASTS && result.data?.readingDrops?.length) {
           for (const item of result.data.readingDrops) {
             const label = item.name || item.itemId;
@@ -588,7 +582,7 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
-    [addToReadingHistory, refetchProfile, refetchReadingHistory, showExpGain, token, toast],
+    [addToReadingHistory, refetchProfile, refetchReadingHistory, token, toast],
   );
 
   const removeFromReadingHistoryFunc = async (

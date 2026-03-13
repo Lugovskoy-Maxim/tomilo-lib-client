@@ -83,11 +83,15 @@ export const titlesApi = createApi({
       }>,
       {
         search?: string;
-        genres?: string;
+        genres?: string; // несколько через запятую
         types?: string;
         status?: string;
         releaseYear?: number;
-
+        releaseYearFrom?: number;
+        releaseYearTo?: number;
+        /** Список годов через запятую (сервер может ожидать именно его вместо from/to) */
+        releaseYears?: string;
+        tags?: string; // несколько через запятую
         ageLimits?: string | string[] | number; // строка, массив (join) или число
         sortBy?: string;
         sortOrder?: "asc" | "desc";
