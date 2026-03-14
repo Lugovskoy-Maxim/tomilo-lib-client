@@ -83,7 +83,7 @@ export default function ProfileContent({
             <NextRankProgress userProfile={userProfile} onShowStats={onShowStats} />
             <DailyBonus userProfile={userProfile} />
           </div>
-          <ProfileDailyQuests maxVisible={compactOverview ? 2 : undefined} />
+          <ProfileDailyQuests maxVisible={compactOverview ? 6 : undefined} />
         </div>
       )}
 
