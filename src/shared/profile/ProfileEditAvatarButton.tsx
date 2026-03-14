@@ -6,11 +6,13 @@ import { Edit, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 
+const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png"] as const;
+
 interface EditAvatarButtonProps {
   onAvatarUpdate?: (newAvatarUrl: string) => void;
 }
 
-function EditAvatarButton({}: EditAvatarButtonProps) {
+function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
   const { updateAvatar, refetchProfile } = useAuth();
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,9 +26,9 @@ function EditAvatarButton({}: EditAvatarButtonProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Проверка типа файла
-    if (!file.type.startsWith("image/")) {
-      toast.warning("Пожалуйста, выберите файл изображения");
+    // Только JPG и PNG
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type as (typeof ALLOWED_AVATAR_TYPES)[number])) {
+      toast.warning("Разрешены только файлы JPG и PNG");
       return;
     }
 
@@ -80,7 +82,7 @@ function EditAvatarButton({}: EditAvatarButtonProps) {
         type="file"
         ref={inputRef}
         onChange={handleFileChange}
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png"
         className="hidden"
         disabled={isLoading}
       />

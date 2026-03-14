@@ -50,7 +50,11 @@ export function SuggestionsSection() {
   const [editingVotesId, setEditingVotesId] = useState<string | null>(null);
   const [editingVotesValue, setEditingVotesValue] = useState<string>("");
 
-  const { data: suggestions = [], isLoading, error, refetch } = useGetSuggestionsQuery();
+  const { data: suggestions = [], isLoading, error, refetch } = useGetSuggestionsQuery(
+    statusFilter === "pending"
+      ? undefined
+      : { status: statusFilter },
+  );
   const [deleteSuggestion] = useDeleteSuggestionMutation();
   const [updateSuggestion, { isLoading: updatingVotes }] = useUpdateSuggestionMutation();
 

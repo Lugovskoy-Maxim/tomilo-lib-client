@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Crown } from "lucide-react";
 import Image from "next/image";
 import {
@@ -109,13 +110,6 @@ function formatPrice(n: number): string {
   return n.toLocaleString("ru-RU");
 }
 
-const PREVIEW_LABELS: Record<"avatar" | "frame" | "background" | "card", string> = {
-  avatar: "Как будет в профиле",
-  frame: "Как будет в профиле",
-  background: "Шапка профиля",
-  card: "В таблице лидеров",
-};
-
 const TYPE_META: Record<
   "avatar" | "frame" | "background" | "card",
   { shortLabel: string; previewHint: string }
@@ -210,16 +204,6 @@ function DecorationPreviewModal({
       setIsImageLoading(false);
     }
   };
-  const GAP = 12;
-  const anchorStyle = anchorRect
-    ? {
-        position: "fixed" as const,
-        top: anchorRect.top + GAP,
-        left: "50%",
-        transform: "translateX(-50%)",
-        maxHeight: "calc(100vh - 24px)",
-      }
-    : undefined;
   const isGif = effectiveImageSrc?.toLowerCase().includes(".gif");
 
   const resolvedUserAvatar = useMemo(() => {
@@ -233,30 +217,38 @@ function DecorationPreviewModal({
   const frameToShow = displayType === "frame" ? effectiveImageSrc : userFrameUrl;
   /** В превью аватара показываем ту декорацию, которую смотрят; в остальных — текущий вид пользователя (resolvedUserAvatar). */
   const avatarSrcInPreview = displayType === "avatar" ? effectiveImageSrc : resolvedUserAvatar;
-  const AvatarWithOptionalFrame = ({ size }: { size: number }) => (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
+  /** Обёртка даёт место рамке (120% от размера аватара), чтобы не обрезало. */
+  const AvatarWithOptionalFrame = ({ size }: { size: number }) => {
+    const box = Math.ceil(size * 1.25);
+    return (
       <div
-        className="relative overflow-hidden border-2 border-[var(--background)] shadow-lg rounded-full bg-[var(--muted)]"
-        style={{ width: size, height: size }}
+        className="relative shrink-0 flex items-center justify-center overflow-visible"
+        style={{ width: box, height: box, minWidth: box, minHeight: box }}
       >
-        <Image
-          src={avatarSrcInPreview}
-          alt={username}
-          fill
-          unoptimized
-          className="object-cover rounded-full"
-        />
+        <div
+          className="relative rounded-full border-2 border-[var(--background)] shadow-lg bg-[var(--muted)] overflow-hidden"
+          style={{ width: size, height: size }}
+        >
+          <Image
+            src={avatarSrcInPreview}
+            alt={username}
+            fill
+            unoptimized
+            className="object-cover rounded-full"
+          />
+        </div>
+        {frameToShow && (
+          <img
+            src={frameToShow}
+            alt=""
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10 max-w-none max-h-none"
+            style={{ width: size * 1.2, height: size * 1.2 }}
+            aria-hidden
+          />
+        )}
       </div>
-      {frameToShow && (
-        <img
-          src={frameToShow}
-          alt=""
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none object-contain z-10 w-[120%] h-[120%] max-w-none max-h-none"
-          aria-hidden
-        />
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderAuthorSummary = (size: "compact" | "regular" = "regular") => {
     const name = displayAuthorName ?? decoration.authorUsername ?? null;
@@ -289,22 +281,25 @@ function DecorationPreviewModal({
   const renderPreviewProfile = () => {
     if (displayType === "card") {
       return (
-        <div
-          className="relative flex flex-col items-center justify-end rounded-2xl border-2 border-[var(--border)] overflow-hidden bg-[var(--card)] w-[160px] aspect-[3/5]"
-        >
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-[11px] text-[var(--muted-foreground)] text-center">
+            Плашка в рейтинге и на странице профиля
+          </p>
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${effectiveImageSrc})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
+            className="relative flex flex-col items-center justify-end rounded-2xl border-2 border-[var(--border)] overflow-hidden bg-[var(--card)] w-[160px] aspect-[3/5] shadow-lg"
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-40"
+              style={{ backgroundImage: `url(${effectiveImageSrc})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
 
-          <div className="absolute top-2 right-2 w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-950 shadow z-10 border border-white/20">
-            <Crown className="w-5 h-5" />
-          </div>
+            <div className="absolute top-2 right-2 w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-950 shadow z-10 border border-white/20">
+              <Crown className="w-5 h-5" />
+            </div>
 
-          <div className="relative z-10 mb-4 flex flex-col items-center">
-            <div className="relative">
-              <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] shadow-md bg-[var(--secondary)]">
+            <div className="relative z-10 mb-4 flex flex-col items-center">
+              <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] shadow-md bg-[var(--secondary)] ring-2 ring-[var(--background)]">
                 <Image
                   src={resolvedUserAvatar}
                   alt={username}
@@ -314,13 +309,15 @@ function DecorationPreviewModal({
                 />
               </div>
             </div>
-          </div>
 
-          <div className="relative z-10 w-full px-3 py-3 rounded-b-2xl bg-gradient-to-t from-black/75 to-transparent">
-            <p className="font-semibold text-white text-sm truncate text-center">{username}</p>
-            <p className="text-xs text-white/80 mt-1 text-center">
-              Уровень {Math.max(1, userLevel)}
-            </p>
+            <div className="relative z-10 w-full px-3 py-3 rounded-b-2xl bg-gradient-to-t from-black/80 to-transparent">
+              <p className="font-semibold text-white text-sm truncate text-center drop-shadow-sm">
+                {username}
+              </p>
+              <p className="text-xs text-white/90 mt-1 text-center">
+                Уровень {Math.max(1, userLevel)}
+              </p>
+            </div>
           </div>
         </div>
       );
@@ -328,7 +325,7 @@ function DecorationPreviewModal({
 
     if (displayType === "background") {
       return (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]">
+        <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--background)] shadow-inner">
           <ProfileHeaderPreview
             compact
             username={username}
@@ -343,25 +340,28 @@ function DecorationPreviewModal({
 
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <AvatarWithOptionalFrame size={56} />
-          <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm text-[var(--foreground)] truncate">
-              {username}
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)]">
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">
-                {userLevel}
+        <div>
+          <p className="text-[11px] text-[var(--muted-foreground)] mb-2">В профиле</p>
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--muted)]/50 border border-[var(--border)] overflow-visible">
+            <AvatarWithOptionalFrame size={56} />
+            <div className="flex flex-col justify-center min-w-0">
+              <span className="font-semibold text-sm text-[var(--foreground)] truncate">
+                {username}
               </span>
-              Уровень
-            </span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] mt-0.5">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold shrink-0">
+                  {userLevel}
+                </span>
+                Уровень
+              </span>
+            </div>
           </div>
         </div>
-        <div className="p-3 rounded-xl bg-[var(--muted)]/80 border border-[var(--border)]">
-          <p className="text-[11px] text-[var(--muted-foreground)] mb-2">Как в комментариях</p>
-          <div className="flex items-center gap-2">
+        <div>
+          <p className="text-[11px] text-[var(--muted-foreground)] mb-2">В комментариях</p>
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--muted)]/50 border border-[var(--border)] overflow-visible">
             <AvatarWithOptionalFrame size={32} />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
               <span className="text-xs font-medium text-[var(--foreground)] truncate block">
                 {username}
               </span>
@@ -501,8 +501,7 @@ function DecorationPreviewModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-2xl mx-auto my-4 bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden animate-in zoom-in-95 duration-200 ${anchorRect ? "overflow-y-auto" : ""}`}
-        style={anchorStyle}
+        className="relative w-full max-w-2xl mx-auto my-4 bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden animate-in zoom-in-95 duration-200 overflow-y-auto max-h-[calc(100vh-2rem)]"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-[var(--border)] bg-[var(--background)]">
@@ -681,80 +680,14 @@ function DecorationPreviewModal({
               )}
             </div>
 
-            <div className="flex-1 flex flex-col min-w-0">
-              <div className="text-sm font-medium text-[var(--muted-foreground)] mb-3">
-                {PREVIEW_LABELS[displayType]}
-              </div>
-              <div className="flex-1 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] min-h-0 flex flex-col gap-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2.5 py-1 text-[11px] font-medium text-[var(--foreground)]">
-                    {TYPE_META[displayType].shortLabel}
-                  </span>
-                  <span className="text-xs text-[var(--muted-foreground)]">
-                    {TYPE_META[displayType].previewHint}
-                  </span>
+            <div className="flex-1 flex flex-col min-w-0 items-start">
+              <div className="w-full p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
+                  <h4 className="text-xs font-semibold text-[var(--foreground)] uppercase tracking-wide">
+                    Предпросмотр
+                  </h4>
+                  {renderPreviewProfile()}
                 </div>
-                {renderPreviewProfile()}
-                {renderAuthorSummary()}
-                {/* Кнопка действия внутри блока предпросмотра */}
-                {!hidePurchase && (
-                  <div className="flex items-center justify-center gap-2 pt-2 border-t border-[var(--border)]">
-                    {!isAuthenticated ? (
-                      <p className="text-sm text-[var(--muted-foreground)]">Войдите для покупки</p>
-                    ) : isOwned ? (
-                      isEquipped ? (
-                        <button
-                          type="button"
-                          onClick={onUnequip}
-                          disabled={isLoading}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] font-medium text-sm hover:bg-[var(--muted)] disabled:opacity-50 transition-colors"
-                        >
-                          {isLoading ? (
-                            <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <>
-                              <Check className="w-4 h-4" /> Снять
-                            </>
-                          )}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={onEquip}
-                          disabled={isLoading}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
-                        >
-                          {isLoading ? (
-                            <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <>
-                              <Sparkles className="w-4 h-4" /> Надеть
-                            </>
-                          )}
-                        </button>
-                      )
-                    ) : soldOut ? (
-                      <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)] font-medium text-sm">
-                        <PackageX className="w-4 h-4" /> Распродано
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={onPurchase}
-                        disabled={isLoading}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] font-medium text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
-                      >
-                        {isLoading ? (
-                          <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <>
-                            <ShoppingBag className="w-4 h-4" /> Купить
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -1081,7 +1014,7 @@ export function DecorationCard({
     if (previewOnly) onPreviewClose?.();
   };
 
-  const previewModal =
+  const previewModalContent =
     isPreviewOpen && imageSrc ? (
       <DecorationPreviewModal
         decoration={decoration}
@@ -1112,6 +1045,11 @@ export function DecorationCard({
         displayAuthorLevel={displayAuthorLevel}
       />
     ) : null;
+
+  const previewModal =
+    previewModalContent && typeof document !== "undefined"
+      ? createPortal(previewModalContent, document.body)
+      : previewModalContent;
 
   if (previewOnly) {
     return <>{previewModal}</>;

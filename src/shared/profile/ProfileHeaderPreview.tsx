@@ -61,9 +61,9 @@ export default function ProfileHeaderPreview({
 }: ProfileHeaderPreviewProps) {
   // В профиле это /user/banner.jpg, поверх — надетый фон.
   const baseBannerUrl = "/user/banner.jpg";
-  const bannerHeightClass = compact ? "h-28 sm:h-32" : "h-44 sm:h-56 lg:h-64";
-  const avatarSize = compact ? 56 : 144;
-  const avatarPadClass = compact ? "p-2.5" : "p-10 sm:p-12";
+  const bannerHeightClass = compact ? "h-36 sm:h-40" : "h-44 sm:h-56 lg:h-64";
+  const avatarSize = compact ? 40 : 144;
+  const avatarPad = compact ? "p-1.5" : "p-4 sm:p-6";
   const lvl = Math.max(1, level);
   const rankColor = getRankColor(levelToRank(lvl).rank);
 
@@ -75,7 +75,7 @@ export default function ProfileHeaderPreview({
           alt=""
           fill
           unoptimized
-          className="absolute inset-0 object-cover object-center"
+          className="absolute inset-0 object-cover object-top"
         />
         {backgroundUrl && (
           <Image
@@ -83,49 +83,34 @@ export default function ProfileHeaderPreview({
             alt=""
             fill
             unoptimized
-            className="absolute inset-0 object-cover object-center z-10 pointer-events-none"
+            className="absolute inset-0 object-cover object-top z-10 pointer-events-none"
             aria-hidden
           />
         )}
-        <div
-          className="absolute inset-0 pointer-events-none z-20 banner-overlay"
-          aria-hidden
-        />
 
-        <div className="absolute top-3 right-3 z-30">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-xs font-medium text-white border border-white/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Онлайн
-          </span>
-        </div>
-
-        <div className="absolute left-4 sm:left-6 bottom-0 z-30 translate-y-1/2">
-          <div
-            className={`relative ring-4 ring-[var(--background)] rounded-2xl shadow-lg bg-[var(--background)] ${avatarPadClass} flex items-center justify-center min-w-[72px] min-h-[72px]`}
-          >
-            <AvatarWithFramePreview avatarUrl={avatarUrl} frameUrl={frameUrl} size={avatarSize} />
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={
-          compact
-            ? "relative pt-10 pb-4 px-4 bg-[var(--background)]"
-            : "relative pt-14 sm:pt-16 pb-5 px-4 sm:px-6 sm:pb-6 bg-[var(--background)]"
-        }
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="font-semibold text-[var(--foreground)] truncate">{username}</div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
-            <span
-              className="w-4 h-4 rounded text-[10px] font-bold inline-flex items-center justify-center"
-              style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
+        {/* Блок аватар + ник + уровень над фоном (имитация профиля) */}
+        <div className="absolute left-2 sm:left-3 bottom-12 right-2 sm:right-3 z-30 translate-y-1/2">
+          <div className="flex items-center gap-2 px-2 py-1.5 sm:gap-2.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-[var(--border)]/80 bg-[var(--background)] shadow-md ring-1 ring-[var(--background)] min-w-0">
+            <div
+              className={`relative shrink-0 rounded-lg overflow-hidden bg-[var(--background)] ${avatarPad} flex items-center justify-center`}
             >
-              {lvl}
-            </span>
-            Уровень
-          </span>
+              <AvatarWithFramePreview avatarUrl={avatarUrl} frameUrl={frameUrl} size={avatarSize} />
+            </div>
+            <div className="flex items-center gap-1.5 min-w-0 flex-1 flex-nowrap">
+              <span className="font-semibold text-xs text-[var(--foreground)] truncate min-w-0">
+                {username}
+              </span>
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--secondary)] border border-[var(--border)] text-[10px] font-medium text-[var(--foreground)] shrink-0 whitespace-nowrap">
+                <span
+                  className="w-3.5 h-3.5 rounded text-[9px] font-bold inline-flex items-center justify-center"
+                  style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
+                >
+                  {lvl}
+                </span>
+                Уровень
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
