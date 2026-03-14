@@ -321,85 +321,78 @@ export default function ProfileInventory() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 min-h-[300px] flex items-center justify-center shadow-sm">
-        <div className="w-10 h-10 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 min-h-[200px] flex items-center justify-center shadow-sm">
+        <div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="w-full animate-fade-in-up">
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-4 border-b border-[var(--border)]/60">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-[var(--chart-2)]/15 text-[var(--chart-2)]">
-              <Package className="w-5 h-5" />
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-[var(--border)]/60">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-1.5 rounded-lg bg-[var(--chart-2)]/15 text-[var(--chart-2)] shrink-0">
+              <Package className="w-4 h-4" />
             </div>
-            <div>
-              <h2 className="text-sm font-semibold text-[var(--foreground)]">Инвентарь</h2>
-              <p className="text-[var(--muted-foreground)] text-sm">
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-[var(--foreground)] truncate">Инвентарь</h2>
+              <p className="text-[var(--muted-foreground)] text-xs truncate">
                 {inventoryStats.total}{" "}
                 {inventoryStats.total === 1
                   ? "предмет"
                   : inventoryStats.total < 5
                     ? "предмета"
                     : "предметов"}{" "}
-                • {inventoryStats.equipped} надето
+                · {inventoryStats.equipped} надето
               </p>
             </div>
           </div>
           <Link
             href="/tomilo-shop"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-white text-xs font-medium hover:opacity-90 transition-opacity shadow-sm shrink-0"
           >
-            <ShoppingBag className="w-4 h-4" />В магазин
+            <ShoppingBag className="w-3.5 h-3.5" />
+            В магазин
           </Link>
         </div>
 
         {inventoryStats.total > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {inventoryStats.byRarity.legendary > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-                <Crown className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-medium text-amber-500">
-                  {inventoryStats.byRarity.legendary} легенд.
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px] font-medium text-amber-500">
+                <Crown className="w-3 h-3" />
+                {inventoryStats.byRarity.legendary}
+              </span>
             )}
             {inventoryStats.byRarity.epic > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                <Sparkles className="w-4 h-4 text-purple-500" />
-                <span className="text-xs font-medium text-purple-500">
-                  {inventoryStats.byRarity.epic} эпич.
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-[10px] font-medium text-purple-500">
+                <Sparkles className="w-3 h-3" />
+                {inventoryStats.byRarity.epic}
+              </span>
             )}
             {inventoryStats.byRarity.rare > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                <Package className="w-4 h-4 text-blue-500" />
-                <span className="text-xs font-medium text-blue-500">
-                  {inventoryStats.byRarity.rare} редких
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] font-medium text-blue-500">
+                <Package className="w-3 h-3" />
+                {inventoryStats.byRarity.rare}
+              </span>
             )}
             {inventoryStats.byRarity.common > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)]/60">
-                <Package className="w-4 h-4 text-[var(--muted-foreground)]" />
-                <span className="text-xs font-medium text-[var(--muted-foreground)]">
-                  {inventoryStats.byRarity.common} обычных
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--secondary)]/50 border border-[var(--border)]/60 text-[10px] font-medium text-[var(--muted-foreground)]">
+                <Package className="w-3 h-3" />
+                {inventoryStats.byRarity.common}
+              </span>
             )}
           </div>
         )}
 
         {profileCards.length > 0 && (
-          <div className="mb-6 rounded-xl border border-[var(--border)]/60 bg-[var(--background)] p-4">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--foreground)]">Витрина карточек</h3>
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  Выберите до 6 карточек для публичного профиля. Сейчас в коллекции {profileCards.length}.
+          <div className="mb-4 rounded-lg border border-[var(--border)]/60 bg-[var(--background)] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div className="min-w-0">
+                <h3 className="text-xs font-semibold text-[var(--foreground)]">Витрина карточек</h3>
+                <p className="text-[11px] text-[var(--muted-foreground)]">
+                  До 6 карточек · в коллекции {profileCards.length}
                 </p>
               </div>
               <select
@@ -411,42 +404,39 @@ export default function ProfileInventory() {
                       sortMode: e.target.value as "manual" | "rarity" | "favorites" | "last_upgraded",
                     }).unwrap();
                     await refetchCards();
-                    toast.success("Сортировка витрины обновлена");
+                    toast.success("Сортировка обновлена");
                   } catch {
-                    toast.error("Не удалось обновить сортировку витрины");
+                    toast.error("Не удалось обновить сортировку");
                   }
                 }}
-                className="admin-input max-w-[220px]"
+                className="admin-input text-xs py-1.5 max-w-[160px]"
                 disabled={isSavingCardsShowcase}
               >
-                <option value="manual">Сортировка: вручную</option>
-                <option value="rarity">Сортировка: по редкости</option>
-                <option value="favorites">Сортировка: по любимым</option>
-                <option value="last_upgraded">Сортировка: по последнему апгрейду</option>
+                <option value="manual">Вручную</option>
+                <option value="rarity">По редкости</option>
+                <option value="favorites">По любимым</option>
+                <option value="last_upgraded">По апгрейду</option>
               </select>
             </div>
-            <div className="flex flex-wrap gap-2 mb-3 text-xs text-[var(--muted-foreground)]">
-              <span className="px-2 py-1 rounded-full bg-[var(--card)] border border-[var(--border)]">
-                На витрине: {profileCardsShowcase.length}/6
+            <div className="flex flex-wrap gap-1.5 mb-2 text-[10px] text-[var(--muted-foreground)]">
+              <span className="px-1.5 py-0.5 rounded bg-[var(--card)] border border-[var(--border)]">
+                Витрина: {profileCardsShowcase.length}/6
               </span>
-              <span className="px-2 py-1 rounded-full bg-[var(--card)] border border-[var(--border)]">
-                Свободно слотов: {Math.max(0, 6 - profileCardsShowcase.length)}
-              </span>
-              {showcaseSort !== "manual" ? (
-                <span className="px-2 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--foreground)]">
-                  Порядок на публичной витрине управляется сортировкой
+              {showcaseSort !== "manual" && (
+                <span className="px-1.5 py-0.5 rounded bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--foreground)]">
+                  Порядок по сортировке
                 </span>
-              ) : null}
+              )}
             </div>
             {profileCardsShowcase.length > 0 ? (
-              <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2">
-                  Текущая витрина
+              <div className="mb-3 rounded-lg border border-[var(--border)] bg-[var(--card)] p-2">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-1.5">
+                  На витрине
                 </div>
-                <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+                <div className="grid gap-1.5 grid-cols-3 sm:grid-cols-4 md:grid-cols-6">
                   {profileCardsShowcase.map((card) => (
-                    <div key={card.id} className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-2">
-                      <div className="aspect-[3/4] rounded-md overflow-hidden bg-[var(--muted)] mb-2">
+                    <div key={card.id} className="rounded-md border border-[var(--border)] bg-[var(--background)] p-1.5">
+                      <div className="aspect-[3/4] rounded overflow-hidden bg-[var(--muted)] mb-1">
                         {card.stageImageUrl ? (
                           <img
                             src={getDecorationImageUrls(card.stageImageUrl).primary}
@@ -455,23 +445,23 @@ export default function ProfileInventory() {
                           />
                         ) : null}
                       </div>
-                      <div className="text-xs font-medium truncate">{card.characterName || card.name}</div>
-                      <div className="text-[11px] text-[var(--muted-foreground)] truncate">
-                        {card.currentStage} · {card.titleName || "Без тайтла"}
+                      <div className="text-[10px] font-medium truncate">{card.characterName || card.name}</div>
+                      <div className="text-[9px] text-[var(--muted-foreground)] truncate">
+                        {card.currentStage} · {card.titleName || "—"}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             ) : null}
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
               {sortedProfileCards.map((card) => {
                 const isSelected = showcaseIds.has(card.id);
                 return (
                   <button
                     key={card.id}
                     type="button"
-                    className={`text-left rounded-xl border p-3 transition-colors ${
+                    className={`text-left rounded-lg border p-2 transition-colors ${
                       isSelected
                         ? "border-[var(--primary)] bg-[var(--primary)]/5"
                         : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/40"
@@ -486,14 +476,14 @@ export default function ProfileInventory() {
                           sortMode: showcaseSort,
                         }).unwrap();
                         await refetchCards();
-                        toast.success(isSelected ? "Карточка убрана из витрины" : "Карточка добавлена в витрину");
+                        toast.success(isSelected ? "Убрано с витрины" : "Добавлено на витрину");
                       } catch {
                         toast.error("Не удалось обновить витрину");
                       }
                     }}
                     disabled={isSavingCardsShowcase}
                   >
-                    <div className="aspect-[3/4] rounded-lg overflow-hidden bg-[var(--muted)] mb-2">
+                    <div className="aspect-[3/4] rounded overflow-hidden bg-[var(--muted)] mb-1.5">
                       {card.stageImageUrl ? (
                         <img
                           src={getDecorationImageUrls(card.stageImageUrl).primary}
@@ -502,18 +492,12 @@ export default function ProfileInventory() {
                         />
                       ) : null}
                     </div>
-                    <div className="font-medium text-sm">{card.characterName || card.name}</div>
-                    <div className="text-xs text-[var(--muted-foreground)]">
-                      {card.titleName || "Без тайтла"} · ранг {card.currentStage}
+                    <div className="font-medium text-xs truncate">{card.characterName || card.name}</div>
+                    <div className="text-[10px] text-[var(--muted-foreground)] truncate">
+                      {card.titleName || "—"} · {card.currentStage}
                     </div>
-                    <div className="text-xs text-[var(--muted-foreground)] mt-1 flex flex-wrap gap-2">
-                      {card.isFavorite ? <span>Любимый персонаж</span> : null}
-                      {card.lastUpgradedAt ? (
-                        <span>Апгрейд: {new Date(card.lastUpgradedAt).toLocaleDateString()}</span>
-                      ) : null}
-                    </div>
-                    <div className="text-xs text-[var(--muted-foreground)] mt-1">
-                      {isSelected ? "На витрине" : "Нажмите, чтобы показать"}
+                    <div className="text-[9px] text-[var(--muted-foreground)] mt-0.5">
+                      {isSelected ? "На витрине" : "Добавить"}
                     </div>
                   </button>
                 );
@@ -522,7 +506,7 @@ export default function ProfileInventory() {
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-1.5 mb-4">
           {(["all", "avatar", "frame", "background", "card"] as const).map(t => {
             const config = t === "all" ? null : TYPE_CONFIG[t];
             return (
@@ -530,7 +514,7 @@ export default function ProfileInventory() {
                 key={t}
                 type="button"
                 onClick={() => setTypeFilter(t)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   typeFilter === t
                     ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                     : "bg-[var(--secondary)]/60 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
@@ -539,8 +523,8 @@ export default function ProfileInventory() {
                 {t === "all"
                   ? "Все"
                   : config && (
-                      <span className="flex items-center gap-2">
-                        <config.icon className="w-4 h-4" />
+                      <span className="flex items-center gap-1.5">
+                        <config.icon className="w-3.5 h-3.5" />
                         {config.label}
                       </span>
                     )}
@@ -550,64 +534,64 @@ export default function ProfileInventory() {
         </div>
 
         {filteredDecorations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4 text-center rounded-xl bg-gradient-to-b from-[var(--secondary)]/30 to-transparent border border-[var(--border)]/50">
-            <div className="relative mb-5">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-purple-500/30 shadow-lg shadow-purple-500/10">
-                <Package className="h-10 w-10 text-purple-500" />
+          <div className="flex flex-col items-center justify-center py-8 px-3 text-center rounded-lg bg-gradient-to-b from-[var(--secondary)]/30 to-transparent border border-[var(--border)]/50">
+            <div className="relative mb-3">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-purple-500/30 shadow-md">
+                <Package className="h-7 w-7 text-purple-500" />
               </div>
               {displayList.length === 0 && (
-                <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[var(--chart-2)] flex items-center justify-center shadow-md">
-                  <ShoppingBag className="w-3 h-3 text-white" />
+                <div className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-[var(--chart-2)] flex items-center justify-center shadow">
+                  <ShoppingBag className="w-2.5 h-2.5 text-white" />
                 </div>
               )}
             </div>
-            <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
+            <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1.5">
               {isError
                 ? "Ошибка загрузки"
                 : displayList.length === 0
                   ? "Инвентарь пуст"
                   : "Категория пуста"}
             </h3>
-            <p className="text-sm text-[var(--muted-foreground)] max-w-sm mb-5">
+            <p className="text-xs text-[var(--muted-foreground)] max-w-xs mb-3">
               {isError
-                ? "Не удалось загрузить инвентарь. Проверьте подключение и попробуйте снова."
+                ? "Не удалось загрузить. Проверьте подключение."
                 : displayList.length === 0
-                  ? "Украсьте свой профиль уникальными рамками, аватарами и фонами из магазина!"
-                  : "В этой категории пока ничего нет. Посетите магазин за новыми предметами."}
+                  ? "Рамки, аватары и фоны — в магазине."
+                  : "В этой категории пусто. Загляните в магазин."}
             </p>
             {isError ? (
               <button
                 type="button"
                 onClick={() => refetchDecorations()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--primary)] text-white text-xs font-medium hover:opacity-90 transition-opacity shadow-sm"
               >
-                Повторить попытку
+                Повторить
               </button>
             ) : (
               <Link
                 href="/tomilo-shop"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:opacity-90 transition-opacity shadow-md"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium hover:opacity-90 transition-opacity shadow-sm"
               >
-                <Sparkles className="w-4 h-4" />
-                Открыть магазин
+                <Sparkles className="w-3.5 h-3.5" />
+                В магазин
               </Link>
             )}
             {displayList.length === 0 && !isError && (
-              <div className="mt-6 flex items-center gap-3 opacity-40">
-                <div className="w-12 h-12 rounded-lg bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
-                  <User className="w-5 h-5 text-[var(--muted-foreground)]" />
+              <div className="mt-4 flex items-center gap-2 opacity-40">
+                <div className="w-9 h-9 rounded-md bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
+                  <User className="w-4 h-4 text-[var(--muted-foreground)]" />
                 </div>
-                <div className="w-12 h-12 rounded-lg bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
-                  <Layers className="w-5 h-5 text-[var(--muted-foreground)]" />
+                <div className="w-9 h-9 rounded-md bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
+                  <Layers className="w-4 h-4 text-[var(--muted-foreground)]" />
                 </div>
-                <div className="w-20 h-12 rounded-lg bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
-                  <ImageIcon className="w-5 h-5 text-[var(--muted-foreground)]" />
+                <div className="w-14 h-9 rounded-md bg-[var(--secondary)] border border-[var(--border)] flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 text-[var(--muted-foreground)]" />
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
             {filteredDecorations.map((decoration: Decoration) => (
               <div
                 key={decoration.id}
@@ -629,6 +613,7 @@ export default function ProfileInventory() {
                   }
                   hidePurchase
                   showActionToast={false}
+                  compactGrid
                 />
               </div>
             ))}

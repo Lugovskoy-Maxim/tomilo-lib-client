@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Crown } from "lucide-react";
 import Image from "next/image";
 import {
@@ -203,16 +204,6 @@ function DecorationPreviewModal({
       setIsImageLoading(false);
     }
   };
-  const GAP = 12;
-  const anchorStyle = anchorRect
-    ? {
-        position: "fixed" as const,
-        top: anchorRect.top + GAP,
-        left: "50%",
-        transform: "translateX(-50%)",
-        maxHeight: "calc(100vh - 24px)",
-      }
-    : undefined;
   const isGif = effectiveImageSrc?.toLowerCase().includes(".gif");
 
   const resolvedUserAvatar = useMemo(() => {
@@ -510,8 +501,7 @@ function DecorationPreviewModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-2xl mx-auto my-4 bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden animate-in zoom-in-95 duration-200 ${anchorRect ? "overflow-y-auto" : ""}`}
-        style={anchorStyle}
+        className="relative w-full max-w-2xl mx-auto my-4 bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden animate-in zoom-in-95 duration-200 overflow-y-auto max-h-[calc(100vh-2rem)]"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-[var(--border)] bg-[var(--background)]">
@@ -1024,7 +1014,7 @@ export function DecorationCard({
     if (previewOnly) onPreviewClose?.();
   };
 
-  const previewModal =
+  const previewModalContent =
     isPreviewOpen && imageSrc ? (
       <DecorationPreviewModal
         decoration={decoration}
@@ -1055,6 +1045,11 @@ export function DecorationCard({
         displayAuthorLevel={displayAuthorLevel}
       />
     ) : null;
+
+  const previewModal =
+    previewModalContent && typeof document !== "undefined"
+      ? createPortal(previewModalContent, document.body)
+      : previewModalContent;
 
   if (previewOnly) {
     return <>{previewModal}</>;

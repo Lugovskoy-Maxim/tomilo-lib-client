@@ -129,6 +129,17 @@ export const DECORATION_PRICE_BY_RARITY: Record<DecorationRarity, number> = {
   legendary: 4000,
 };
 
+/** Минимальное число голосов у победителя недели для ранга (должно совпадать с сервером shop.service VOTES_FOR_RARITY). */
+export const VOTES_FOR_RARITY: Record<DecorationRarity, number> = {
+  common: 1,
+  rare: 5,
+  epic: 15,
+  legendary: 30,
+};
+
+/** Монеты активности за один голос по предложению (должно совпадать с сервером shop.service VOTE_REWARD_COINS). */
+export const VOTE_REWARD_COINS = 100;
+
 export function getPriceByRarity(rarity: DecorationRarity): number {
   return DECORATION_PRICE_BY_RARITY[rarity] ?? DECORATION_PRICE_BY_RARITY.common;
 }

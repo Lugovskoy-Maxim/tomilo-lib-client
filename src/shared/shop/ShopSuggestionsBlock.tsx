@@ -12,7 +12,7 @@ import {
 } from "@/store/api/shopApi";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getDecorationImageUrls } from "@/api/shop";
+import { getDecorationImageUrls, VOTES_FOR_RARITY, DECORATION_PRICE_BY_RARITY, VOTE_REWARD_COINS } from "@/api/shop";
 import {
   suggestionToDecoration,
   SUGGESTION_TYPES,
@@ -21,6 +21,9 @@ import {
   getNextAcceptanceDate,
   formatCountdown,
 } from "@/lib/suggestions";
+
+/** Типы для формы предложения: карточки предлагать нельзя. */
+const SUGGESTION_TYPES_FOR_SUBMIT = SUGGESTION_TYPES.filter((t) => t.id !== "card");
 import { Lightbulb, Upload, ThumbsUp, ChevronDown, ChevronUp, Pencil, FileText, Trash2, Clock, EyeOff, Eye } from "lucide-react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { DecorationCard } from "@/shared/shop/DecorationCard";
@@ -28,6 +31,13 @@ import { DecorationCard } from "@/shared/shop/DecorationCard";
 const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const STORAGE_KEY_HIDDEN = "shop:suggestions-block-hidden";
+
+/** Доля от цены украшения, которая отправляется автору при покупке (0–100). Должно совпадать с сервером (shop.service: requiredPrice * 0.1 = 10%). Берётся из NEXT_PUBLIC_AUTHOR_REVENUE_PERCENT или fallback 10. */
+const AUTHOR_REVENUE_PERCENT =
+  typeof process.env.NEXT_PUBLIC_AUTHOR_REVENUE_PERCENT !== "undefined" &&
+  process.env.NEXT_PUBLIC_AUTHOR_REVENUE_PERCENT !== ""
+    ? Math.min(100, Math.max(0, Number(process.env.NEXT_PUBLIC_AUTHOR_REVENUE_PERCENT) || 10))
+    : 10;
 
 export function ShopSuggestionsBlock() {
   const toast = useToast();
@@ -49,10 +59,10 @@ export function ShopSuggestionsBlock() {
     description: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
   const [isBlockHidden, setIsBlockHidden] = useState(false);
+  const [formExpanded, setFormExpanded] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [editingSuggestionId, setEditingSuggestionId] = useState<string | null>(null);
-  const [previewSuggestionId, setPreviewSuggestionId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -122,6 +132,7 @@ export function ShopSuggestionsBlock() {
         setEditingSuggestionId(null);
         setForm({ type: "avatar", name: "", description: "" });
         setImageFile(null);
+        setFormExpanded(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } catch (err: unknown) {
         const msg =
@@ -151,6 +162,7 @@ export function ShopSuggestionsBlock() {
       toast.success("Предложение отправлено");
       setForm({ type: "avatar", name: "", description: "" });
       setImageFile(null);
+      setFormExpanded(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err: unknown) {
       const msg =
@@ -207,22 +219,27 @@ export function ShopSuggestionsBlock() {
 
   if (isBlockHidden) {
     return (
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--muted-foreground)]">
-            <Lightbulb className="w-5 h-5 text-amber-500/70 shrink-0" aria-hidden />
-            Предложенные украшения
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
-              beta
-            </span>
-            <span className="text-sm font-normal text-[var(--muted-foreground)]">(блок скрыт)</span>
-          </h2>
+          <div className="flex flex-col gap-0.5">
+            <h2 className="flex items-center gap-1.5 text-base font-semibold text-[var(--muted-foreground)]">
+              <Lightbulb className="w-4 h-4 text-amber-500/70 shrink-0" aria-hidden />
+              Предложенные украшения
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
+                beta
+              </span>
+              <span className="text-sm font-normal text-[var(--muted-foreground)]">(блок скрыт)</span>
+            </h2>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {AUTHOR_REVENUE_PERCENT}% от цены — авторам
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setBlockHidden(false)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--accent)]"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--accent)]"
           >
-            <Eye className="w-4 h-4" aria-hidden />
+            <Eye className="w-3.5 h-3.5" aria-hidden />
             Показать блок
           </button>
         </div>
@@ -231,215 +248,231 @@ export function ShopSuggestionsBlock() {
   }
 
   return (
-    <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setIsOpen((v) => !v)}
-          className="flex flex-1 min-w-0 items-center justify-between gap-2 text-left"
-          aria-expanded={isOpen}
-          aria-controls="shop-suggestions-content"
-          id="shop-suggestions-heading"
-        >
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)]">
-            <Lightbulb className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
-            Предложенные украшения
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
-              beta
-            </span>
-          </h2>
-          {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setBlockHidden(true);
-          }}
-          className="shrink-0 p-2 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-          title="Скрыть блок"
-        >
-          <EyeOff className="w-5 h-5" aria-hidden />
-        </button>
+    <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+      {/* Шапка: заголовок + таймер + действия */}
+      <div className="flex flex-wrap items-center gap-2 p-3 sm:p-4 border-b border-[var(--border)]/60 bg-[var(--card)]">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
+            <Lightbulb className="w-4 h-4" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-[var(--foreground)] truncate">
+              Предложенные украшения
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                beta
+              </span>
+            </h2>
+            <p className="text-[11px] text-[var(--muted-foreground)] truncate">
+              {AUTHOR_REVENUE_PERCENT}% авторам · победитель каждый понедельник
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--muted)]/60 border border-[var(--border)]/60 text-[11px] font-medium text-[var(--foreground)]">
+            <Clock className="w-3.5 h-3.5 text-[var(--muted-foreground)]" aria-hidden />
+            {formatCountdown(countdownMs)}
+          </span>
+          <button
+            type="button"
+            onClick={() => setBlockHidden(true)}
+            className="p-2 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)] transition-colors"
+            title="Скрыть блок"
+          >
+            <EyeOff className="w-4 h-4" aria-hidden />
+          </button>
+        </div>
       </div>
 
-      <p className="mt-2 flex items-center gap-2 text-xs text-[var(--muted-foreground)]" role="status">
-        <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden />
-        До принятия топ‑1: {formatCountdown(countdownMs)}
-      </p>
-
-      <div
-        id="shop-suggestions-content"
-        role="region"
-        aria-labelledby="shop-suggestions-heading"
-        className={`mt-4 min-w-0 ${!isOpen ? "max-h-[480px] overflow-hidden" : ""}`}
-      >
-        {isOpen && (
-          <>
-            <p className="text-sm text-[var(--muted-foreground)] mb-4">
-              Предложите своё украшение или голосуйте за понравившиеся. Раз в неделю победитель по голосам добавляется в магазин (цена зависит от числа голосов). Автор получает 10% от продаж.
-            </p>
-            <div className="mb-4 p-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)]">
-              <p className="text-xs font-medium text-[var(--foreground)] mb-1">Как выбирается победитель</p>
-              <p className="text-xs text-[var(--muted-foreground)]">
-                Ранг (кто попадёт в магазин) присваивается предложению с наибольшим числом голосов к концу недели (понедельник 00:00). При равенстве голосов выше ставится предложение, созданное раньше.
-              </p>
-            </div>
-
-            <div className="mb-4 p-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)]">
-              <p className="flex items-center gap-2 text-xs font-medium text-[var(--foreground)] mb-2">
-                <FileText className="w-4 h-4 shrink-0" aria-hidden />
-                Требования к декорациям
-              </p>
-              <ul className="text-xs text-[var(--muted-foreground)] space-y-1 list-disc list-inside">
-                {DECORATION_RULES.map((rule, i) => (
-                  <li key={i}>{rule}</li>
-                ))}
-              </ul>
-            </div>
-
-            {isAuthenticated && (
-        <form
-          onSubmit={handleSubmitSuggestion}
-          className="mb-6 p-4 rounded-lg bg-[var(--muted)]/30 border border-[var(--border)] space-y-3"
-        >
-          {editingSuggestionId && (
-            <p className="text-sm text-[var(--muted-foreground)]">
-              Редактирование (доступно в течение 1 часа после отправки). Изображение можно не менять.
-            </p>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-[var(--foreground)] mb-1">
-                Тип
-              </label>
-              <select
-                value={form.type}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, type: e.target.value as SuggestedDecoration["type"] }))
-                }
-                disabled={!!editingSuggestionId}
-                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm disabled:opacity-60"
-              >
-                {SUGGESTION_TYPES.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[var(--foreground)] mb-1">
-                Название *
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Название украшения"
-                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[var(--foreground)] mb-1">
-              Описание
-            </label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Краткое описание"
-              rows={2}
-              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[var(--foreground)] mb-1">
-              Изображение {editingSuggestionId ? "(оставьте пустым, чтобы не менять)" : "* (только загрузка файла)"}
-            </label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={ACCEPTED_IMAGE_TYPES}
-              onChange={handleFileChange}
-              className="text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-[var(--primary)] file:text-[var(--primary-foreground)]"
-            />
-            {imageFile && (
-              <div className="mt-2 w-20 h-20 rounded-lg overflow-hidden bg-[var(--muted)] flex items-center justify-center">
-                <img
-                  src={URL.createObjectURL(imageFile)}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-            {editingSuggestion && !imageFile && editingSuggestion.imageUrl && (
-              <div className="mt-2 w-20 h-20 rounded-lg overflow-hidden bg-[var(--muted)]">
-                <OptimizedImage
-                  src={getDecorationImageUrls(editingSuggestion.imageUrl).primary}
-                  fallbackSrc={getDecorationImageUrls(editingSuggestion.imageUrl).fallback}
-                  alt=""
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
+      <div className="p-3 sm:p-4">
+        {/* Ранги по голосам и награда за голос */}
+        <div className="mb-4 space-y-3">
+          <p className="text-xs font-medium text-[var(--muted-foreground)]">
+            По числу голосов победителю назначается ранг и цена в магазине:
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(["common", "rare", "epic", "legendary"] as const).map((r) => {
+              const label = r === "common" ? "Обычная" : r === "rare" ? "Редкая" : r === "epic" ? "Эпическая" : "Легендарная";
+              const boxStyles = {
+                common: "bg-[var(--muted)]/30 border-[var(--border)]",
+                rare: "bg-blue-500/10 border-blue-500/30",
+                epic: "bg-violet-500/10 border-violet-500/30",
+                legendary: "bg-amber-500/10 border-amber-500/30",
+              };
+              const labelStyles = {
+                common: "text-[var(--foreground)]",
+                rare: "text-blue-700 dark:text-blue-300",
+                epic: "text-violet-700 dark:text-violet-300",
+                legendary: "text-amber-700 dark:text-amber-300",
+              };
+              return (
+                <div
+                  key={r}
+                  className={`rounded-lg border px-3 py-2 ${boxStyles[r]}`}
+                >
+                  <div className={`text-[11px] font-semibold ${labelStyles[r]}`}>{label}</div>
+                  <div className="mt-0.5 text-[10px] text-[var(--muted-foreground)]">
+                    от {VOTES_FOR_RARITY[r]} голосов → {DECORATION_PRICE_BY_RARITY[r]} монет
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+              <ThumbsUp className="w-3.5 h-3.5 shrink-0" aria-hidden />
+              За первый голос в неделю — <strong>{VOTE_REWARD_COINS} монет</strong>
+            </span>
+          </div>
+        </div>
+
+        {/* Форма или призыв войти */}
+        {isAuthenticated ? (
+          <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--background)]/50 p-3">
             <button
-              type="submit"
-              disabled={creating || uploading || updating}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              type="button"
+              onClick={() => setFormExpanded((v) => !v)}
+              className="flex w-full items-center gap-2 text-left"
             >
-              {creating || uploading || updating ? (
-                <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4" />
+              <Upload className="w-4 h-4 shrink-0 text-[var(--primary)]" aria-hidden />
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                {editingSuggestionId ? "Редактирование" : "Добавить предложение"}
+              </span>
+              {editingSuggestionId && (
+                <span className="text-[11px] text-[var(--muted-foreground)]">(до 1 ч после отправки)</span>
               )}
-              {editingSuggestionId ? "Сохранить" : "Предложить"}
+              {formExpanded ? (
+                <ChevronUp className="w-4 h-4 shrink-0 ml-auto text-[var(--muted-foreground)]" aria-hidden />
+              ) : (
+                <ChevronDown className="w-4 h-4 shrink-0 ml-auto text-[var(--muted-foreground)]" aria-hidden />
+              )}
             </button>
-            {editingSuggestionId && (
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-4 py-2 rounded-lg border border-[var(--border)] text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/50"
-              >
-                Отмена
-              </button>
+            {(formExpanded || editingSuggestionId) && (
+            <form onSubmit={handleSubmitSuggestion} className="space-y-2 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-medium text-[var(--foreground)] mb-0.5">Тип</label>
+                  <select
+                    value={form.type === "card" ? "avatar" : form.type}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, type: e.target.value as SuggestedDecoration["type"] }))
+                    }
+                    disabled={!!editingSuggestionId}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-xs disabled:opacity-60"
+                  >
+                    {SUGGESTION_TYPES_FOR_SUBMIT.map((t) => (
+                      <option key={t.id} value={t.id}>{t.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">Предложения карточек не принимаются.</p>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-[var(--foreground)] mb-0.5">Название *</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="Название"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-xs"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-[var(--foreground)] mb-0.5">Описание</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Кратко"
+                  rows={2}
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] text-xs resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-[var(--foreground)] mb-0.5">
+                  Изображение {editingSuggestionId ? "(пусто = не менять)" : "*"}
+                </label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_IMAGE_TYPES}
+                  onChange={handleFileChange}
+                  className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-[var(--primary)] file:text-[var(--primary-foreground)]"
+                />
+                {(imageFile || (editingSuggestion && editingSuggestion.imageUrl && !imageFile)) && (
+                  <div className="mt-1.5 w-16 h-16 rounded-md overflow-hidden bg-[var(--muted)] flex-shrink-0">
+                    {imageFile ? (
+                      <img src={URL.createObjectURL(imageFile)} alt="" className="w-full h-full object-cover" />
+                    ) : editingSuggestion?.imageUrl ? (
+                      <OptimizedImage
+                        src={getDecorationImageUrls(editingSuggestion.imageUrl).primary}
+                        fallbackSrc={getDecorationImageUrls(editingSuggestion.imageUrl).fallback}
+                        alt=""
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={creating || uploading || updating}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                >
+                  {creating || uploading || updating ? (
+                    <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-3.5 h-3.5" />
+                  )}
+                  {editingSuggestionId ? "Сохранить" : "Отправить"}
+                </button>
+                {editingSuggestionId && (
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                  >
+                    Отмена
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setRulesOpen((v) => !v)}
+                  className="inline-flex items-center gap-1 text-[11px] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  {rulesOpen ? "Скрыть правила" : "Правила"}
+                </button>
+              </div>
+              {rulesOpen && (
+                <ul className="text-[11px] text-[var(--muted-foreground)] space-y-0.5 list-disc list-inside pt-2 border-t border-[var(--border)]/60 mt-2">
+                  {DECORATION_RULES.map((rule, i) => (
+                    <li key={i}>{rule}</li>
+                  ))}
+                </ul>
+              )}
+            </form>
             )}
           </div>
-        </form>
-      )}
-
-            {!isAuthenticated && (
-              <p className="text-sm text-[var(--muted-foreground)] mb-4">
-                Войдите в аккаунт, чтобы предложить украшение или проголосовать.
-              </p>
-            )}
-
-            <p className="text-xs font-medium text-[var(--muted-foreground)] mb-2 mt-4">
-              Уже предложенные (ниже)
-            </p>
-          </>
+        ) : (
+          <p className="text-xs text-[var(--muted-foreground)] mb-4">
+            Войдите, чтобы предложить украшение или голосовать.
+          </p>
         )}
 
-        {/* Один ряд карточек всегда виден; при развороте — полная сетка */}
+        {/* Сетка предложений */}
         {loadingSuggestions ? (
-          <div className="flex justify-center py-8">
-            <span className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          <div className="flex justify-center py-6">
+            <span className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : suggestions.length === 0 ? (
-          <p className="text-sm text-[var(--muted-foreground)] py-4">
+          <p className="text-xs text-[var(--muted-foreground)] py-3">
             Пока нет предложений. Станьте первым!
           </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 justify-items-stretch items-stretch min-w-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 justify-items-stretch items-stretch min-w-0">
             {suggestions.map((s) => (
               <div
                 key={s.id}
@@ -498,12 +531,12 @@ export function ShopSuggestionsBlock() {
                   />
                 </div>
                 <div
-                  className="p-2 border-t border-[var(--border)] bg-[var(--card)] rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl -mt-px space-y-2"
+                  className="p-1.5 border-t border-[var(--border)] bg-[var(--card)] rounded-b-lg sm:rounded-b-xl -mt-px flex flex-wrap items-center justify-between gap-1.5"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border ${
+                      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium border shrink-0 ${
                         s.status === "accepted"
                           ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                           : s.status === "rejected"
@@ -515,21 +548,14 @@ export function ShopSuggestionsBlock() {
                         ? "Принято"
                         : s.status === "rejected"
                           ? "Отклонено"
-                          : "На голосовании"}
+                          : "Голос"}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-[var(--muted-foreground)]">
-                      <ThumbsUp className="w-3 h-3 shrink-0" aria-hidden />
+                    <span className="inline-flex items-center gap-0.5 text-[9px] text-[var(--muted-foreground)]">
+                      <ThumbsUp className="w-2.5 h-2.5 shrink-0" aria-hidden />
                       {s.votesCount}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPreviewSuggestionId(s.id)}
-                      className="py-1 px-2 rounded-lg text-[10px] font-medium border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]/50"
-                    >
-                      Предпросмотр
-                    </button>
+                  <div className="flex items-center gap-1 shrink-0">
                     {isAuthenticated && s.status === "pending" ? (
                       <button
                         type="button"
@@ -539,9 +565,9 @@ export function ShopSuggestionsBlock() {
                           handleVote(s.id);
                         }}
                         disabled={s.userHasVoted || voting}
-                        className="py-1 px-2 rounded-lg text-[10px] font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="py-0.5 px-1.5 rounded text-[9px] font-medium bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {s.userHasVoted ? "Голос учтён" : "Голосовать"}
+                        {s.userHasVoted ? "Учтён" : "Голосовать"}
                       </button>
                     ) : null}
                   </div>
@@ -552,22 +578,6 @@ export function ShopSuggestionsBlock() {
         )}
       </div>
 
-      {previewSuggestionId && (() => {
-        const s = suggestions.find((x) => x.id === previewSuggestionId);
-        if (!s) return null;
-        const deco = suggestionToDecoration(s);
-        return (
-          <DecorationCard
-            decoration={deco}
-            hidePurchase
-            previewOnly
-            onPreviewClose={() => setPreviewSuggestionId(null)}
-            sectionType={s.type}
-            authorDisplay="cultivator"
-            cultivatorLevel={s.authorLevel ?? 0}
-          />
-        );
-      })()}
     </section>
   );
 }
