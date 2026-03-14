@@ -139,6 +139,22 @@ export const usersApi = createApi({
       }),
       providesTags: ["Users"],
     }),
+
+    /** Рейтинг вкладчиков: пользователи, чьи предложения персонажей были приняты (для страницы благодарностей). */
+    getCharacterContributors: builder.query<
+      { users: { _id: string; username: string; avatar?: string; charactersAcceptedCount: number }[] },
+      { limit?: number } | void
+    >({
+      query: (params) => ({
+        url: "/users/character-contributors",
+        params: params && typeof params === "object" ? params : {},
+      }),
+      transformResponse: (
+        response: ApiResponse<{ users: { _id: string; username: string; avatar?: string; charactersAcceptedCount: number }[] }>,
+      ) => response.data ?? { users: [] },
+      providesTags: ["Users"],
+    }),
+
     deleteUser: builder.mutation<ApiResponse<void>, string>({
       query: userId => ({
         url: `/users/admin/${userId}`,
@@ -268,6 +284,7 @@ export const {
   useDeleteUserMutation,
   useGetUserByIdQuery,
   useGetHomepageActiveUsersQuery,
+  useGetCharacterContributorsQuery,
   useUpdateUserRoleMutation,
   useBanUserMutation,
   useUnbanUserMutation,
