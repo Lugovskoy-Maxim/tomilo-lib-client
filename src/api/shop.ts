@@ -121,6 +121,18 @@ export function getDecorationImageUrl(imageUrl: string | undefined): string {
 
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";
 
+/** Фиксированные цены декораций по редкости (в монетах). Должны совпадать с сервером. */
+export const DECORATION_PRICE_BY_RARITY: Record<DecorationRarity, number> = {
+  common: 800,
+  rare: 1200,
+  epic: 1800,
+  legendary: 4000,
+};
+
+export function getPriceByRarity(rarity: DecorationRarity): number {
+  return DECORATION_PRICE_BY_RARITY[rarity] ?? DECORATION_PRICE_BY_RARITY.common;
+}
+
 const RARITY_VALUES: DecorationRarity[] = ["common", "rare", "epic", "legendary"];
 
 /** Нормализует редкость из API (разный регистр, числа 1–4 или строки). */

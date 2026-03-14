@@ -155,7 +155,7 @@ export default function ProfileShell({
   ) : !userProfile ? (
     renderEmptyState()
   ) : (
-    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-24 sm:pt-44 bg-[var(--background)]/20">
+    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-24 sm:pt-44 bg-[var(--background)]/50">
       <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-6xl min-w-0 overflow-x-hidden flex flex-1 flex-col">
         {/* Верхняя панель: назад + контекстная ссылка */}
         <div className="flex items-center justify-between gap-3 py-3">

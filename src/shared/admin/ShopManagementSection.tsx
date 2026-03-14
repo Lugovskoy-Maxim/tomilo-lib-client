@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import type { Decoration, DecorationRarity } from "@/api/shop";
-import { getDecorationImageUrls } from "@/api/shop";
+import { getDecorationImageUrls, getPriceByRarity } from "@/api/shop";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import type { DecorationType } from "@/api/shop";
 import {
@@ -39,7 +39,7 @@ const RARITY_OPTIONS: { value: DecorationRarity; label: string }[] = [
 const emptyForm = {
   name: "",
   description: "",
-  price: 0,
+  price: getPriceByRarity("common"),
   imageUrl: "",
   type: "avatar" as DecorationType,
   rarity: "common" as DecorationRarity,
@@ -101,13 +101,14 @@ export function ShopManagementSection() {
 
   const openEdit = (d: Decoration) => {
     setEditingDecoration(d);
+    const rarity = (d.rarity ?? "common") as DecorationRarity;
     setForm({
       name: d.name,
       description: d.description,
-      price: d.price,
+      price: getPriceByRarity(rarity),
       imageUrl: d.imageUrl,
       type: d.type,
-      rarity: d.rarity ?? "common",
+      rarity,
       isAvailable: d.isAvailable ?? true,
       stock: d.stock !== undefined && d.stock !== null ? d.stock : "",
     });
@@ -569,14 +570,15 @@ export function ShopManagementSection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
-                Цена (монеты)
+                Цена (по редкости)
               </label>
               <input
                 type="number"
                 min={0}
+                readOnly
                 value={form.price}
-                onChange={e => setForm(f => ({ ...f, price: parseInt(e.target.value, 10) || 0 }))}
-                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 text-[var(--foreground)] cursor-default"
+                title="Цена задаётся автоматически по редкости: 800 / 1200 / 1800 / 4000"
               />
             </div>
             <div>
@@ -599,7 +601,10 @@ export function ShopManagementSection() {
               </label>
               <select
                 value={form.rarity}
-                onChange={e => setForm(f => ({ ...f, rarity: e.target.value as DecorationRarity }))}
+                onChange={e => {
+                  const rarity = e.target.value as DecorationRarity;
+                  setForm(f => ({ ...f, rarity, price: getPriceByRarity(rarity) }));
+                }}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               >
                 {RARITY_OPTIONS.map(({ value, label }) => (

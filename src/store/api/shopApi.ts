@@ -406,9 +406,18 @@ export const shopApi = createApi({
       ],
     }),
 
-    /** Предложенные пользователями украшения (голосование). */
-    getSuggestions: builder.query<SuggestedDecoration[], void>({
-      query: () => "/shop/suggestions",
+    /** Предложенные пользователями украшения (голосование). Для админа: передайте { status: 'all' | 'accepted' | 'rejected' } для списка по статусу. */
+    getSuggestions: builder.query<
+      SuggestedDecoration[],
+      { status?: "all" | "accepted" | "rejected" } | void
+    >({
+      query: (arg) => {
+        const status =
+          arg && typeof arg === "object" && "status" in arg ? arg.status : undefined;
+        const url = "/shop/suggestions";
+        if (status) return `${url}?status=${encodeURIComponent(status)}`;
+        return url;
+      },
       transformResponse: (response: unknown) => {
         const r = response as { data?: unknown };
         const data = r?.data;
