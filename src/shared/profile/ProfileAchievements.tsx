@@ -21,6 +21,7 @@ import {
   Heart,
   Compass,
   ShieldAlert,
+  UserPlus,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState, useMemo, memo } from "react";
@@ -40,6 +41,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   heart: Heart,
   compass: Compass,
   "shield-alert": ShieldAlert,
+  "user-plus": UserPlus,
 };
 
 const ACHIEVEMENT_STYLE: Record<string, { color: string; bgColor: string }> = {
@@ -58,6 +60,7 @@ const ACHIEVEMENT_STYLE: Record<string, { color: string; bgColor: string }> = {
   popular: { color: "#f43f5e", bgColor: "from-rose-500/20 to-pink-500/20" },
   explorer: { color: "#14b8a6", bgColor: "from-teal-500/20 to-cyan-500/20" },
   reporter: { color: "#64748b", bgColor: "from-slate-500/20 to-zinc-500/20" },
+  contributor: { color: "#0d9488", bgColor: "from-teal-500/20 to-emerald-500/20" },
 };
 
 function serverToDisplayAchievements(

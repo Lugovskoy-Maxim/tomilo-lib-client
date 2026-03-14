@@ -22,6 +22,7 @@ import {
   HelpCircle,
   Ticket,
   Scale,
+  Heart,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -38,6 +39,7 @@ const FOOTER_NAV_GROUPS = [
     items: [
       { href: "/about", label: "О нас", icon: Info },
       { href: "/faq", label: "Частые вопросы", icon: HelpCircle },
+      { href: "/thanks", label: "Благодарности", icon: Heart },
       { href: "/contact", label: "Контакты", icon: Mail },
       { href: "/updates", label: "Лента новых глав", icon: Rss },
     ],
@@ -60,6 +62,7 @@ const MOBILE_MENU_SECTIONS = [
     items: [
       { href: "/about", label: "О проекте", icon: Info },
       { href: "/faq", label: "Частые вопросы", icon: HelpCircle },
+      { href: "/thanks", label: "Благодарности", icon: Heart },
       { href: "/leaders", label: "Лидеры", icon: Crown },
       { href: "/contact", label: "Связаться с нами", icon: Mail },
       { href: "/updates", label: "Новые главы", icon: Rss, badge: "NEW" },

@@ -161,14 +161,26 @@ export function CharactersSection({ titleId, titleSlug }: CharactersSectionProps
       {isAuthenticated && (
         <>
           {!showProposalForm ? (
-            <button
-              type="button"
-              onClick={() => setShowProposalForm(true)}
-              className="mt-4 w-full min-h-[44px] flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl border-2 border-dashed border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
-            >
-              <Plus className="w-4 h-4" />
-              Предложить персонажа
-            </button>
+            <div className="mt-4 space-y-2">
+              <p className="text-xs text-[var(--muted-foreground)] text-center">
+                За принятие предложенного персонажа начисляется 50 монет и 100
+                опыта.{" "}
+                <Link
+                  href="/thanks"
+                  className="text-[var(--primary)] hover:underline"
+                >
+                  Рейтинг вкладчиков
+                </Link>
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowProposalForm(true)}
+                className="w-full min-h-[44px] flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl border-2 border-dashed border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2"
+              >
+                <Plus className="w-4 h-4" />
+                Предложить персонажа
+              </button>
+            </div>
           ) : (
             <div className="mt-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--background)]/50">
               <div className="flex items-center justify-between mb-4">
