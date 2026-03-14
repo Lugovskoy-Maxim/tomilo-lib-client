@@ -171,6 +171,11 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
                         {claimed ? "✓" : `${q.progress}/${q.target}`}
                       </span>
                     </div>
+                    {q.description ? (
+                      <p className="text-xs text-[var(--muted-foreground)] line-clamp-2 leading-snug">
+                        {q.description}
+                      </p>
+                    ) : null}
 
                     {/* Награды — компактный ряд */}
                     <div className="flex flex-wrap gap-1.5 items-center">

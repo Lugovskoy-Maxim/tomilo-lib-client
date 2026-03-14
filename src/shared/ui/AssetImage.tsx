@@ -1,13 +1,15 @@
 "use client";
 
-import { normalizeAssetUrl } from "@/lib/asset-url";
+import { useState, useEffect } from "react";
+import { getImageUrls } from "@/lib/asset-url";
 
 /**
  * Изображение из S3/asset storage. Рендерит нативный <img>, без Next.js Image Optimization,
  * чтобы картинки гарантированно грузились на проде (нет зависимости от sharp / _next/image).
+ * При ошибке загрузки primary (S3) автоматически пробует fallback (основной сервер uploads).
  */
 export interface AssetImageProps {
-  /** Путь или URL изображения (будет нормализован через normalizeAssetUrl) */
+  /** Путь или URL изображения (будет нормализован через getImageUrls) */
   src: string;
   alt: string;
   className?: string;
@@ -29,18 +31,35 @@ export default function AssetImage({
   onError,
   onLoad,
 }: AssetImageProps) {
-  const url = normalizeAssetUrl(src);
-  if (!url) return null;
+  const { primary, fallback } = getImageUrls(src);
+  const [currentUrl, setCurrentUrl] = useState(primary);
+  const [errored, setErrored] = useState(false);
+
+  useEffect(() => {
+    setCurrentUrl(primary);
+    setErrored(false);
+  }, [src, primary]);
+
+  if (!primary) return null;
+
+  const handleError = () => {
+    if (!errored && fallback && fallback !== currentUrl) {
+      setErrored(true);
+      setCurrentUrl(fallback);
+    } else {
+      onError?.();
+    }
+  };
 
   const img = (
     <img
-      src={url}
+      src={currentUrl}
       alt={alt}
       loading={loading}
       decoding="async"
       className={fill ? `absolute inset-0 h-full w-full object-cover ${className}` : className}
       sizes={sizes}
-      onError={onError}
+      onError={handleError}
       onLoad={onLoad}
     />
   );
