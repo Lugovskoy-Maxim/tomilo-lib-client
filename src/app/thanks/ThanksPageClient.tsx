@@ -79,8 +79,8 @@ export default function ThanksPageClient() {
           <div className="max-w-3xl mx-auto mt-4 sm:mt-6">
             <Breadcrumbs
               items={[
-                { label: "Главная", href: "/" },
-                { label: "Благодарности", href: "/thanks" },
+                { name: "Главная", href: "/" },
+                { name: "Благодарности", href: "/thanks", isCurrent: true },
               ]}
             />
 
@@ -142,11 +142,11 @@ export default function ThanksPageClient() {
                   </div>
                 )}
 
-                {error && (
+                {error ? (
                   <p className="text-sm text-[var(--destructive)]">
                     Не удалось загрузить список. Попробуйте позже.
                   </p>
-                )}
+                ) : null}
 
                 {!isLoading && !error && characterUsers.length === 0 && (
                   <p className="text-sm text-[var(--muted-foreground)] py-6">
