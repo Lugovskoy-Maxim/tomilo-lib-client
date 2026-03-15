@@ -187,11 +187,6 @@ export function RightContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, userBirthDate]);
 
-  // Лёгкий запрос: только id прочитанных глав (для статуса «прочитано»). Полная история по тайтлу — из user.readingHistory (useAuth, GET /history?limit=200)
-  const { data: readIdsData } = useGetReadingHistoryReadIdsQuery(titleId, {
-    skip: !user || !titleId,
-  });
-
   const readingHistoryEntryForTitle = useMemo((): ReadingHistoryEntry | null => {
     if (!titleId || !user?.readingHistory?.length) return null;
     const entry = user.readingHistory.find(
@@ -199,6 +194,11 @@ export function RightContent({
     );
     return entry ?? null;
   }, [titleId, user?.readingHistory]);
+
+  // Полный список прочитанных глав — только эндпоинт read-ids (список истории может быть в light-формате с одной главой).
+  const { data: readIdsData } = useGetReadingHistoryReadIdsQuery(titleId, {
+    skip: !user || !titleId,
+  });
 
   // Статистика тайтла (расширенные данные о просмотрах и закладках)
   const { data: titleStatsData } = useGetTitleStatsQuery(titleId, {

@@ -10,9 +10,10 @@ import { useIntersectionTrigger } from "@/hooks/useIntersectionTrigger";
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { Chapter } from "@/types/title";
-import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, ZoomIn } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, Search, X, ZoomIn } from "lucide-react";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
+import { useGetReadingHistoryQuery } from "@/store/api/authApi";
 import {
   useIncrementChapterViewsMutation,
   useLazyGetChapterByIdQuery,
@@ -31,6 +32,8 @@ import {
   getCurrentPageEnhanced,
   clearOtherChaptersPositions,
 } from "@/lib/reading-position";
+import { formatNumber } from "@/lib/utils";
+import { formatNotificationTime } from "@/lib/date-utils";
 
 import ChapterErrorState from "@/shared/error-state/ChapterErrorState";
 import ChapterNoPagesState from "@/shared/error-state/ChapterNoPagesState";
@@ -87,7 +90,12 @@ function ReadChapterPageContent({
 }) {
   const router = useRouter();
 
-  const { updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
+  const { user, updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
+  const { data: readingHistoryResponse } = useGetReadingHistoryQuery(
+    { limit: 200, light: false },
+    { skip: !isAuthenticated || !user },
+  );
+  const readingHistoryList = readingHistoryResponse?.data ?? user?.readingHistory ?? [];
   const {
     readChaptersInRow,
     readingMode,
@@ -283,6 +291,8 @@ function ReadChapterPageContent({
 
   // Report state
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isChapterPickerOpen, setIsChapterPickerOpen] = useState(false);
+  const [chapterPickerSearch, setChapterPickerSearch] = useState("");
 
   // Определение мобильного устройства
   const [isMobile, setIsMobile] = useState(false);
@@ -553,8 +563,10 @@ function ReadChapterPageContent({
     );
   }, []);
 
+  const isChapterPickerOpenRef = useRef(false);
+  isChapterPickerOpenRef.current = isChapterPickerOpen;
   const isReaderDialogOpen = useCallback(() => {
-    return Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'));
+    return isChapterPickerOpenRef.current || Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'));
   }, []);
 
   const getChapterRootElement = useCallback((targetChapterId: string) => {
@@ -641,6 +653,12 @@ function ReadChapterPageContent({
         return;
       }
 
+      if (isChapterPickerOpen) {
+        event.preventDefault();
+        setIsChapterPickerOpen(false);
+        return;
+      }
+
       if (isRestoreModalOpen) {
         event.preventDefault();
         setIsRestoreModalOpen(false);
@@ -649,7 +667,7 @@ function ReadChapterPageContent({
 
     document.addEventListener("keydown", handleOverlayEscape);
     return () => document.removeEventListener("keydown", handleOverlayEscape);
-  }, [zoomedImage, showKeyboardHints, isRestoreModalOpen]);
+  }, [zoomedImage, showKeyboardHints, isRestoreModalOpen, isChapterPickerOpen]);
 
   // Обработчики для мобильных контролов
   const handleMobileTap = () => {
@@ -1255,6 +1273,72 @@ function ReadChapterPageContent({
       ? (loadedChapters.find(c => c._id === visibleChapterId) ?? chapter)
       : chapter;
 
+  // Список глав для модалки — по номерам по возрастанию (текущая в списке на своём месте)
+  const chaptersSortedByNumber = useMemo(
+    () => [...chapters].sort((a, b) => a.number - b.number),
+    [chapters],
+  );
+  const currentChapterListItemRef = useRef<HTMLLIElement>(null);
+
+  // При открытии модалки выбора главы — сброс поиска и скролл к текущей главе
+  useEffect(() => {
+    if (!isChapterPickerOpen) return;
+    setChapterPickerSearch("");
+    const t = requestAnimationFrame(() => {
+      currentChapterListItemRef.current?.scrollIntoView({
+        block: "center",
+        behavior: "auto",
+        inline: "nearest",
+      });
+    });
+    return () => cancelAnimationFrame(t);
+  }, [isChapterPickerOpen]);
+
+  // Прочитанные главы по этому тайтлу: по ID и по номерам (в истории есть и то и другое — подсветка по любому совпадению)
+  const { readChapterIdsForTitle, readChapterNumbersForTitle } = useMemo(() => {
+    const list = readingHistoryList;
+    const ids = new Set<string>();
+    const numbers = new Set<number>();
+    if (!Array.isArray(list) || list.length === 0 || !titleId) {
+      return { readChapterIdsForTitle: ids, readChapterNumbersForTitle: numbers };
+    }
+    const titleIdStr = String(titleId);
+    const entry = list.find(item => {
+      const entryTitleId =
+        typeof item.titleId === "string"
+          ? item.titleId
+          : item.titleId != null && typeof (item.titleId as { _id?: unknown })._id !== "undefined"
+            ? String((item.titleId as { _id: string })._id)
+            : "";
+      return entryTitleId === titleIdStr;
+    });
+    if (!entry?.chapters?.length) {
+      return { readChapterIdsForTitle: ids, readChapterNumbersForTitle: numbers };
+    }
+    for (const ch of entry.chapters) {
+      const id = ch.chapterId;
+      const idStr =
+        typeof id === "object" && id != null && !Array.isArray(id)
+          ? String((id as { _id?: string })._id ?? (id as { id?: string }).id ?? "")
+          : String(id ?? "");
+      if (idStr) ids.add(idStr);
+      const num = ch.chapterNumber;
+      if (num != null && !Number.isNaN(Number(num))) numbers.add(Number(num));
+    }
+    return { readChapterIdsForTitle: ids, readChapterNumbersForTitle: numbers };
+  }, [readingHistoryList, titleId]);
+
+  // Фильтр глав по введённому номеру или названию (для модалки выбора)
+  const chaptersFilteredBySearch = useMemo(() => {
+    const q = chapterPickerSearch.trim().toLowerCase();
+    if (!q) return chaptersSortedByNumber;
+    return chaptersSortedByNumber.filter(
+      ch =>
+        String(ch.number).includes(chapterPickerSearch.trim()) ||
+        (ch.title && ch.title.toLowerCase().includes(q)),
+    );
+  }, [chaptersSortedByNumber, chapterPickerSearch]);
+
   // В бесконечном чтении первый блок — первая глава из списка; при выходе из viewport она размонтируется
   const displayChapter =
     infiniteScroll && !isPagedMode && loadedChapters.length > 0 ? loadedChapters[0] : chapter;
@@ -1432,6 +1516,7 @@ function ReadChapterPageContent({
         }
         shareTitleName={title.title}
         shareChapterNumber={effectiveChapter.number}
+        onOpenChapterPicker={() => setIsChapterPickerOpen(true)}
       />
 
       <div
@@ -1441,20 +1526,23 @@ function ReadChapterPageContent({
         }`}
       />
 
-      {/* Хедер */}
+      {/* Хедер: totalChapters не меньше текущей главы и не меньше числа глав, чтобы не показывать «510 / 509» */}
       <NavigationHeader
-        title={title}
+        title={{
+          ...title,
+          totalChapters: Math.max(
+            title.totalChapters ?? 0,
+            chapters.length,
+            effectiveChapter.number,
+          ),
+        }}
         chapter={effectiveChapter}
         currentImageIndex={currentPage - 1}
         showControls={isHeaderVisible}
         onImageIndexChange={() => {}}
         imagesCount={effectiveChapter.images.length}
         onReportError={() => setIsReportModalOpen(true)}
-        onChapterMenuOpen={() => {
-          // Открываем меню выбора главы через ReaderControls
-          const event = new CustomEvent("openChapterMenu");
-          window.dispatchEvent(event);
-        }}
+        onChapterMenuOpen={() => setIsChapterPickerOpen(true)}
         onPrevChapter={() => {
           if (currentChapterIndex > 0) {
             const prevChapter = chapters[currentChapterIndex - 1];
@@ -1543,14 +1631,14 @@ function ReadChapterPageContent({
                           style={{
                             maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                             transition: "filter 200ms ease-out",
+                            ...(isImageLoaded || isError ? {} : { aspectRatio: "3/4" }),
                             ...imageFilterStyle,
                           }}
                         >
-                          {/* Skeleton loader */}
+                          {/* Skeleton loader — высота контейнера 3:4, как у картинки */}
                           {!isImageLoaded && !isError && (
                             <div
                               className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                              style={{ minHeight: isMobile ? "400px" : "600px" }}
                             >
                               <div
                                 className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
@@ -1746,6 +1834,7 @@ function ReadChapterPageContent({
                               style={{
                                 maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                                 transition: "filter 200ms ease-out",
+                                ...(isImageLoaded || isError ? {} : { aspectRatio: "3/4" }),
                                 ...imageFilterStyle,
                               }}
                               onClick={() =>
@@ -1755,11 +1844,10 @@ function ReadChapterPageContent({
                                 )
                               }
                             >
-                              {/* Skeleton loader */}
+                              {/* Skeleton loader — высота как у картинки (3:4) */}
                               {!isImageLoaded && !isError && (
                                 <div
                                   className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                                  style={{ minHeight: isMobile ? "400px" : "600px" }}
                                 >
                                   <div
                                     className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
@@ -1960,16 +2048,14 @@ function ReadChapterPageContent({
                           style={{
                             maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                             transition: "filter 200ms ease-out",
+                            ...(isImageLoaded || isError ? {} : { aspectRatio: "3/4" }),
                             ...imageFilterStyle,
                           }}
                         >
-                          {/* Skeleton loader пока изображение загружается */}
+                          {/* Skeleton loader — высота как у картинки (3:4) */}
                           {!isImageLoaded && !isError && (
                             <div
                               className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                              style={{
-                                minHeight: isMobile ? "400px" : "600px",
-                              }}
                             >
                               <div
                                 className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
@@ -2307,17 +2393,14 @@ function ReadChapterPageContent({
                                     maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                                     opacity: visible ? 1 : 0,
                                     transition: "opacity 200ms ease-out, filter 200ms ease-out",
+                                    ...(isImageLoaded || isError ? {} : { aspectRatio: "3/4" }),
                                     ...imageFilterStyle,
                                   }}
                                 >
-                                  {/* Skeleton loader пока изображение загружается */}
+                                  {/* Skeleton loader — высота как у картинки (3:4) */}
                                   {!isImageLoaded && !isError && (
                                     <div
                                       className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden"
-                                      style={{
-                                        minHeight: isMobile ? "400px" : "600px",
-                                        aspectRatio: "3/4",
-                                      }}
                                     >
                                       {/* Анимированный gradient skeleton */}
                                       <div
@@ -2486,6 +2569,138 @@ function ReadChapterPageContent({
           <p className="md:hidden">Свайпайте влево/вправо или используйте кнопки для навигации</p>
         </div>
       </footer> */}
+
+      {/* Модальное окно выбора главы: список по номерам, текущая на своём месте, при открытии скролл к ней */}
+      {isChapterPickerOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col sm:items-center sm:justify-center p-0 sm:p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Выбрать главу"
+        >
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm sm:rounded-2xl"
+            onClick={() => setIsChapterPickerOpen(false)}
+            aria-hidden
+          />
+          <div className="relative flex flex-col w-full sm:max-w-md sm:rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl max-h-[90vh] sm:max-h-[85vh] min-h-0 mt-auto sm:mt-0">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[var(--border)] flex-shrink-0">
+              <h2 className="text-base font-semibold text-[var(--foreground)]">Выбрать главу</h2>
+              <button
+                type="button"
+                onClick={() => setIsChapterPickerOpen(false)}
+                className="p-2 -mr-1 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors touch-manipulation"
+                aria-label="Закрыть"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-shrink-0 px-3 pb-2">
+              <label htmlFor="chapter-picker-search" className="sr-only">
+                Поиск по номеру или названию главы
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+                <input
+                  id="chapter-picker-search"
+                  type="text"
+                  inputMode="search"
+                  placeholder="Номер или название главы"
+                  value={chapterPickerSearch}
+                  onChange={e => setChapterPickerSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-[var(--secondary)] border border-[var(--border)] rounded-xl text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                  autoComplete="off"
+                />
+                {chapterPickerSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setChapterPickerSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)]"
+                    aria-label="Очистить"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {chapterPickerSearch.trim() && (
+                <p className="text-xs text-[var(--muted-foreground)] mt-1.5">
+                  Найдено: {chaptersFilteredBySearch.length} из {chaptersSortedByNumber.length}
+                </p>
+              )}
+            </div>
+            <div className="overflow-y-auto flex-1 overscroll-contain px-2 py-3 min-h-0">
+              {chaptersFilteredBySearch.length === 0 ? (
+                <p className="text-sm text-[var(--muted-foreground)] text-center py-8 px-4">
+                  По запросу «{chapterPickerSearch.trim()}» глав не найдено. Измените номер или название.
+                </p>
+              ) : (
+              <ul className="space-y-0.5" role="list">
+                {chaptersFilteredBySearch.map(ch => {
+                  const isCurrent = ch._id === effectiveChapter._id;
+                  const isRead =
+                    readChapterIdsForTitle.has(String(ch._id)) ||
+                    readChapterNumbersForTitle.has(Number(ch.number));
+                  return (
+                    <li
+                      key={ch._id}
+                      ref={isCurrent ? currentChapterListItemRef : undefined}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (ch._id === effectiveChapter._id) {
+                            setIsChapterPickerOpen(false);
+                            return;
+                          }
+                          clearOtherChaptersPositions(titleId, ch._id);
+                          router.push(getChapterPath(ch._id));
+                          setIsChapterPickerOpen(false);
+                        }}
+                        className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors touch-manipulation ${
+                          isCurrent
+                            ? "bg-[var(--primary)]/20 text-[var(--primary)] font-medium ring-1 ring-[var(--primary)]/40"
+                            : "hover:bg-[var(--accent)] text-[var(--foreground)]"
+                        }`}
+                      >
+                        <span
+                          className={`flex-shrink-0 w-8 tabular-nums font-medium ${
+                            isRead ? "text-green-600 dark:text-green-400" : "text-[var(--muted-foreground)]"
+                          }`}
+                        >
+                          {ch.number}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate">
+                            {shouldShowChapterTitle(ch.title, ch.number) ? ch.title : `Глава ${ch.number}`}
+                          </span>
+                          {(ch.images?.length || ch.views || ch.averageRating != null || ch.date || ch.createdAt) && (
+                            <span className="block text-[11px] text-[var(--muted-foreground)] truncate mt-0.5">
+                              {[
+                                ch.images?.length ? `${ch.images.length} стр.` : null,
+                                ch.views ? `${formatNumber(ch.views)} просм.` : null,
+                                ch.averageRating != null ? `★ ${Number(ch.averageRating).toFixed(1)}` : null,
+                                ch.date || ch.createdAt ? formatNotificationTime(ch.date || ch.createdAt || "") : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </span>
+                          )}
+                        </div>
+                        {isCurrent && (
+                          <span className="flex-shrink-0 text-[10px] font-medium uppercase tracking-wide text-[var(--primary)] bg-[var(--primary)]/20 px-2 py-0.5 rounded-md">
+                            Сейчас
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Report Modal */}
       <ReportModal

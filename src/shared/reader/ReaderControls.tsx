@@ -53,6 +53,8 @@ interface ReaderControlsProps {
   shareChapterUrl?: string;
   shareTitleName?: string;
   shareChapterNumber?: number;
+  /** При клике по номеру главы в мобильной панели — открыть выбор главы (модалка в ReadChapterPage) */
+  onOpenChapterPicker?: () => void;
 }
 
 export default function ReaderControls({
@@ -84,9 +86,10 @@ export default function ReaderControls({
   preloadProgress = 0,
   onJumpToPage,
   chapterImages = [],
-  shareChapterUrl,
-  shareTitleName,
-  shareChapterNumber,
+        shareChapterUrl,
+        shareTitleName,
+        shareChapterNumber,
+        onOpenChapterPicker,
 }: ReaderControlsProps) {
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -883,14 +886,27 @@ export default function ReaderControls({
                 <ChevronLeft className="w-4 h-4 xs:w-5 xs:h-5 max-[360px]:w-3 max-[360px]:h-3 text-[var(--muted-foreground)]" />
               </button>
 
-              <div
-                className="min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] flex flex-col items-center justify-center px-2 xs:px-3 max-[360px]:px-1.5 rounded-lg"
-                title={`Глава ${currentChapter.number}`}
-              >
-                <span className="text-xs xs:text-sm max-[360px]:text-[11px] font-medium text-[var(--foreground)]">
-                  {currentChapter.number}
-                </span>
-              </div>
+              {onOpenChapterPicker ? (
+                <button
+                  type="button"
+                  onClick={onOpenChapterPicker}
+                  className="min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] flex flex-col items-center justify-center px-2 xs:px-3 max-[360px]:px-1.5 rounded-lg hover:bg-[var(--accent)] transition-colors active:scale-95"
+                  title="Выбрать главу"
+                >
+                  <span className="text-xs xs:text-sm max-[360px]:text-[11px] font-medium text-[var(--foreground)]">
+                    {currentChapter.number}
+                  </span>
+                </button>
+              ) : (
+                <div
+                  className="min-h-[42px] xs:min-h-[48px] min-w-[42px] xs:min-w-[48px] max-[360px]:min-h-[36px] max-[360px]:min-w-[36px] flex flex-col items-center justify-center px-2 xs:px-3 max-[360px]:px-1.5 rounded-lg"
+                  title={`Глава ${currentChapter.number}`}
+                >
+                  <span className="text-xs xs:text-sm max-[360px]:text-[11px] font-medium text-[var(--foreground)]">
+                    {currentChapter.number}
+                  </span>
+                </div>
+              )}
 
               <button
                 onClick={onNext}

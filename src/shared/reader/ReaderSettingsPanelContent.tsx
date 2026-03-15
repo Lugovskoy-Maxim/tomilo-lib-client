@@ -134,13 +134,18 @@ function SegmentOption<T extends string>({
   value,
   onChange,
 }: {
-  options: { value: T; label: string; icon?: React.ComponentType<{ className?: string }> }[];
+  options: {
+    value: T;
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    badge?: string;
+  }[];
   value: T;
   onChange: (v: T) => void;
 }) {
   return (
     <div className="flex bg-[var(--secondary)] rounded-xl p-1">
-      {options.map(({ value: v, label, icon: Icon }) => (
+      {options.map(({ value: v, label, icon: Icon, badge }) => (
         <button
           key={v}
           type="button"
@@ -153,6 +158,11 @@ function SegmentOption<T extends string>({
         >
           {Icon && <Icon className="w-4 h-4" />}
           {label}
+          {badge && (
+            <span className="text-[10px] font-normal uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400">
+              {badge}
+            </span>
+          )}
         </button>
       ))}
     </div>
@@ -240,7 +250,7 @@ export function ReaderSettingsPanelContent({
           <SegmentOption
             options={[
               { value: "one" as const, label: "По одной главе", icon: BookOpen },
-              { value: "feed" as const, label: "Лентой", icon: LayoutList },
+              { value: "feed" as const, label: "Лентой", icon: LayoutList, badge: "beta" },
             ]}
             value={infiniteScroll ? "feed" : "one"}
             onChange={v => setInfiniteScroll(v === "feed")}

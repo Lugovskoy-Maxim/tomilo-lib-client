@@ -276,20 +276,34 @@ function EmptyState() {
   );
 }
 
-export default function ContinueReadingSection() {
+const CONTINUE_LIST_LIMIT = 50;
+
+export interface ContinueReadingSectionProps {
+  /** История из useAuth (GET /history?limit=200). Если передана — отдельный GET /history?limit=50 не выполняется. */
+  clientReadingHistory?: ReadingHistoryEntry[];
+}
+
+export default function ContinueReadingSection({ clientReadingHistory }: ContinueReadingSectionProps = {}) {
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
   const { isAuthenticated } = useAuth();
   const hasAuth = isAuthenticated ?? !!getToken();
 
+  // Не запрашивать историю отдельно, если родитель передал данные (один общий запрос с useAuth).
+  const skipHistoryQuery = !hasAuth || clientReadingHistory !== undefined;
   const {
     data: historyResponse,
     isLoading,
     error,
-  } = useGetReadingHistoryQuery({ limit: 50 }, { skip: !hasAuth });
+  } = useGetReadingHistoryQuery({ limit: CONTINUE_LIST_LIMIT }, { skip: skipHistoryQuery });
 
   const items = useMemo(() => {
-    const list = Array.isArray(historyResponse?.data) ? historyResponse.data : [];
+    const list =
+      clientReadingHistory !== undefined
+        ? clientReadingHistory.slice(0, CONTINUE_LIST_LIMIT)
+        : Array.isArray(historyResponse?.data)
+          ? historyResponse.data
+          : [];
     return list
       .map(normalizeEntry)
       .filter((x): x is ContinueItem => x != null)
@@ -297,7 +311,7 @@ export default function ContinueReadingSection() {
         (a, b) =>
           new Date(b.lastChapter.readAt).getTime() - new Date(a.lastChapter.readAt).getTime(),
       );
-  }, [historyResponse?.data]);
+  }, [clientReadingHistory, historyResponse?.data]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -351,7 +365,9 @@ export default function ContinueReadingSection() {
 
   if (!hasAuth) return null;
 
-  if (isLoading) {
+  // При использовании clientReadingHistory запрос не выполняется — показываем скелетон только пока нет данных.
+  const showLoading = isLoading && clientReadingHistory === undefined;
+  if (showLoading) {
     return (
       <section className="w-full min-w-0 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
         <CarouselSkeleton

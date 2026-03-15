@@ -16,6 +16,7 @@ import { RootState } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
 import { ReadingProgressResponse } from "@/types/progress";
+import type { ReadingHistoryEntry, ReadingHistoryChapter } from "@/types/store";
 
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
 import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
@@ -27,6 +28,47 @@ const SHOW_READING_DROP_TOASTS = false;
 /** Время (ms), когда токен был записан — чтобы не делать logout по 401 от устаревшего запроса profile сразу после логина */
 const TOKEN_SET_AT_KEY = "tomilo_lib_token_set_at";
 const IGNORE_401_AFTER_LOGIN_MS = 3000;
+
+/** Объединяет новую главу в локальную историю чтения (оптимистичное обновление без refetch). */
+function mergeChapterIntoHistory(
+  current: ReadingHistoryEntry[] | undefined,
+  titleId: string,
+  chapterId: string,
+): ReadingHistoryEntry[] {
+  const now = new Date().toISOString();
+  const chapter: ReadingHistoryChapter = {
+    chapterId,
+    chapterNumber: 0,
+    chapterTitle: null,
+    readAt: now,
+  };
+  const normalized = (current ?? []).slice();
+  const idx = normalized.findIndex(
+    e => (typeof e.titleId === "string" ? e.titleId : e.titleId?._id) === titleId,
+  );
+  if (idx >= 0) {
+    const entry = normalized[idx];
+    const chapters = entry.chapters ?? [];
+    const chIdx = chapters.findIndex(
+      c =>
+        (typeof c.chapterId === "string"
+          ? c.chapterId
+          : (c.chapterId as { _id: string })?._id) === chapterId,
+    );
+    const newChapters: ReadingHistoryChapter[] =
+      chIdx >= 0
+        ? chapters.map((c, i) =>
+            i === chIdx ? { ...c, readAt: now } : c,
+          )
+        : [...chapters, chapter];
+    const readAt = newChapters.reduce((max, c) => (c.readAt > max ? c.readAt : max), now);
+    const newEntry: ReadingHistoryEntry = { ...entry, chapters: newChapters, readAt };
+    normalized.splice(idx, 1);
+    return [newEntry, ...normalized];
+  }
+  const newEntry: ReadingHistoryEntry = { titleId, chapters: [chapter], readAt: now };
+  return [newEntry, ...normalized];
+}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -70,6 +112,8 @@ export const useAuth = () => {
     { limit: 200, light: false },
     {
       skip: !getToken(),
+      keepUnusedDataFor: 300,
+      refetchOnMountOrArgChange: 300,
     },
   );
 
@@ -449,17 +493,24 @@ export const useAuth = () => {
           return { success: false, error: errorMessage };
         }
 
-        if (token) {
-          try {
-            await refetchProfile();
-          } catch {
-            // Profile query may be skipped on this page (RTK: "has not been started") — add succeeded
-          }
-          try {
-            await refetchReadingHistory();
-          } catch {
-            // Обновляем список истории явно, чтобы UI не оставался устаревшим у части пользователей
-          }
+        // Оптимистичное обновление стора и профиля из ответа — без refetch (снижение нагрузки на сервер).
+        if (token && auth?.user) {
+          const nextHistory = mergeChapterIntoHistory(
+            auth.user.readingHistory,
+            titleId,
+            chapterId,
+          );
+          dispatch(updateUser({ readingHistory: nextHistory }));
+        }
+        if (result.data?.user) {
+          const u = result.data.user;
+          dispatch(
+            updateUser({
+              level: u.level,
+              experience: u.experience,
+              balance: u.balance,
+            }),
+          );
         }
         // Тосты опыта показываются только из WebSocket (ProgressNotificationContext), чтобы не дублировать
         if (SHOW_READING_DROP_TOASTS && result.data?.readingDrops?.length) {
@@ -508,16 +559,7 @@ export const useAuth = () => {
       const isRefetchNotStarted = (msg: string): boolean =>
         /cannot refetch.*has not been started/i.test(msg);
 
-      const doRetry = async () => {
-        if (token) {
-          try {
-            await refetchProfile();
-          } catch {
-            // Запрос профиля может быть не запущен на этой странице (RTK: "has not been started") — всё равно повторяем add
-          }
-        }
-        return tryAdd();
-      };
+      const doRetry = async () => tryAdd();
 
       try {
         const result = await tryAdd();
@@ -582,7 +624,7 @@ export const useAuth = () => {
         return { success: false, error: message };
       }
     },
-    [addToReadingHistory, refetchProfile, refetchReadingHistory, token, toast],
+    [addToReadingHistory, auth?.user, dispatch, token, toast],
   );
 
   const removeFromReadingHistoryFunc = async (
