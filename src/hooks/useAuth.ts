@@ -112,7 +112,6 @@ export const useAuth = () => {
     { limit: 200, light: false },
     {
       skip: !getToken(),
-      keepUnusedDataFor: 300,
       refetchOnMountOrArgChange: 300,
     },
   );

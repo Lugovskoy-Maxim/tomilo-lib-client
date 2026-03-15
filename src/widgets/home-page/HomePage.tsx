@@ -135,7 +135,6 @@ export default function HomePage() {
     {
       refetchOnMountOrArgChange: 600,
       refetchOnFocus: false,
-      keepUnusedDataFor: 600,
     },
   );
   const latestUpdates = {

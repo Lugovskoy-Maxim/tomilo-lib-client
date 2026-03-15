@@ -168,7 +168,6 @@ export const useHomeData = (
   // Опции кэша: не дергать сервер при каждом заходе на главную.
   // refetchOnMountOrArgChange: 600 — обновлять только если данные старше 10 мин.
   const popularCacheOptions = {
-    keepUnusedDataFor: 600,
     refetchOnMountOrArgChange: 600,
   };
 

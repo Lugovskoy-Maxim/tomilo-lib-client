@@ -52,7 +52,6 @@ export default function TitleView({
     { slug, includeChapters: true },
     {
       skip: !slug,
-      keepUnusedDataFor: 300,
       refetchOnMountOrArgChange: 300,
     },
   );
@@ -84,7 +83,6 @@ export default function TitleView({
     },
     {
       skip: !titleId,
-      keepUnusedDataFor: 300,
       refetchOnMountOrArgChange: 300,
     },
   );
