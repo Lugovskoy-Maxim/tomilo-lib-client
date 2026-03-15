@@ -49,6 +49,7 @@ const FOOTER_NAV_GROUPS = [
     items: [
       { href: "/terms-of-use", label: "Пользовательское соглашение", icon: FileText },
       { href: "/privacy-policy", label: "Политика конфиденциальности", icon: Shield },
+      { href: "/public-offer", label: "Публичная оферта", icon: FileText },
       { href: "/dmca", label: "Авторские права (DMCA)", icon: Scale },
     ],
   },
@@ -74,6 +75,7 @@ const MOBILE_MENU_SECTIONS = [
     items: [
       { href: "/terms-of-use", label: "Условия использования", icon: FileText },
       { href: "/privacy-policy", label: "Конфиденциальность", icon: Shield },
+      { href: "/public-offer", label: "Публичная оферта", icon: FileText },
       { href: "/dmca", label: "Авторские права (DMCA)", icon: Scale },
     ],
   },
@@ -338,7 +340,7 @@ export default function Footer() {
           />
 
           <div className="footer-desktop-bottom flex flex-col items-center gap-5 sm:flex-row sm:justify-between sm:items-center text-[var(--muted-foreground)] text-sm">
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 sm:justify-start">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 sm:justify-start items-center">
               <span
                 className="inline-flex items-center gap-1.5"
                 aria-label={`Авторские права 2025–${currentYear} Tomilo-lib.ru`}
@@ -346,6 +348,8 @@ export default function Footer() {
                 <Copyright className="w-4 h-4 flex-shrink-0" aria-hidden />
                 2025–{currentYear} «Tomilo-lib.ru»
               </span>
+              <span className="text-xs text-[var(--muted-foreground)]" aria-hidden>·</span>
+              <span className="text-xs">ИНН 553101511919</span>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[var(--muted-foreground)]">
               <Link

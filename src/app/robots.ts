@@ -28,6 +28,8 @@ const allow = [
   "/terms-of-use/",
   "/privacy-policy",
   "/privacy-policy/",
+  "/public-offer",
+  "/public-offer/",
   "/rss",
   "/rss/",
   "/user",
