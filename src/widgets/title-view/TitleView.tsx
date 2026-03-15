@@ -43,12 +43,18 @@ export default function TitleView({
     titleId?: string;
   } | null>(null);
 
-  // Получаем данные тайтла по slug
+  // Получаем данные тайтла по slug (кеш 5 мин — меньше запросов при возврате на страницу)
   const {
     data: titleData,
     isLoading: titleLoading,
     error: titleError,
-  } = useGetTitleBySlugQuery({ slug, includeChapters: true }, { skip: !slug });
+  } = useGetTitleBySlugQuery(
+    { slug, includeChapters: true },
+    {
+      skip: !slug,
+      refetchOnMountOrArgChange: 300,
+    },
+  );
 
   const titleId = titleData?._id as string;
 
@@ -67,7 +73,7 @@ export default function TitleView({
 
   const [incrementViews] = useIncrementViewsMutation();
 
-  // Единый запрос всех глав (limit: 10000 охватывает практически любой тайтл)
+  // Единый запрос всех глав (limit: 10000 охватывает практически любой тайтл; кеш 5 мин)
   const { data: chaptersData, isLoading: chaptersLoading } = useGetChaptersByTitleQuery(
     {
       titleId,
@@ -77,6 +83,7 @@ export default function TitleView({
     },
     {
       skip: !titleId,
+      refetchOnMountOrArgChange: 300,
     },
   );
 

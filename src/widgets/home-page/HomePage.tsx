@@ -111,8 +111,8 @@ export default function HomePage() {
     setPendingAgeAction(null);
   }, []);
 
-  // useAuth уже вызывает useGetProfileQuery внутри себя — не дублируем запрос
-  const { isAuthenticated, user } = useAuth();
+  // useAuth уже вызывает useGetProfileQuery и getReadingHistory(limit=200) — не дублируем запрос истории в ContinueReadingSection
+  const { isAuthenticated, user, continueReading } = useAuth();
   // Гости видят 18+; авторизованные — по настройке (по умолчанию показываем)
   const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
@@ -132,7 +132,10 @@ export default function HomePage() {
     error: latestUpdatesError,
   } = useGetLatestUpdatesQuery(
     { limit: 24, includeAdult },
-    { refetchOnMountOrArgChange: true, refetchOnFocus: true },
+    {
+      refetchOnMountOrArgChange: 600,
+      refetchOnFocus: false,
+    },
   );
   const latestUpdates = {
     data: latestUpdatesData?.data ?? [],
@@ -273,7 +276,7 @@ export default function HomePage() {
                 />
               }
             >
-              <ContinueReadingSection />
+              <ContinueReadingSection clientReadingHistory={continueReading ?? undefined} />
             </LazySection>
 
             <LazySection

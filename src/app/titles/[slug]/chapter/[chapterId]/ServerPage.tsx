@@ -60,6 +60,15 @@ export default async function ServerChapterPage({
           />
         );
       }
+      if (chapterResponse.status >= 500) {
+        return (
+          <ChapterErrorState
+            title="Ошибка сервера"
+            message="Временная ошибка при загрузке главы. Попробуйте обновить страницу позже."
+            slug={slug}
+          />
+        );
+      }
       throw new Error(`API error: ${chapterResponse.status}`);
     }
 

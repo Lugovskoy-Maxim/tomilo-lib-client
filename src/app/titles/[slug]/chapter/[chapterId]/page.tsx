@@ -32,19 +32,22 @@ async function getTitleDataBySlug(slug: string) {
   }
 }
 
-async function getChapterData(chapterId: string) {
+async function getChapterData(chapterId: string): Promise<Record<string, unknown> | null> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/chapters/${chapterId}`,
     );
     if (!response.ok) {
-      throw new Error(`Failed to fetch chapter: ${response.status}`);
+      if (response.status >= 500) {
+        console.error("Error fetching chapter data: server error", response.status);
+      }
+      return null;
     }
     const data = await response.json();
-    return data.data || data;
+    return (data.data || data) as Record<string, unknown>;
   } catch (error) {
     console.error("Error fetching chapter data:", error);
-    throw error;
+    return null;
   }
 }
 
@@ -64,10 +67,10 @@ export async function generateMetadata({
     const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
     const altNames = titleData?.altNames ?? (titleData as { alternativeTitles?: string[] })?.alternativeTitles ?? [];
 
-    // Получаем данные главы
+    // Получаем данные главы (при 500/сетевой ошибке — минимальные метаданные)
     const chapterData = await getChapterData(chapterId);
-    const chapterNumber = Number(chapterData.chapterNumber) || 0;
-    const chapterTitle = chapterData.title || "";
+    const chapterNumber = chapterData ? Number(chapterData.chapterNumber) || 0 : 0;
+    const chapterTitle = (chapterData?.title as string) || "";
 
     const formattedTitle = `Глава ${chapterNumber}${
       chapterTitle ? ` "${chapterTitle}"` : ""

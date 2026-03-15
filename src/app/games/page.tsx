@@ -28,7 +28,7 @@ export default function GamesPage() {
 
   return (
     <main className="games-hub min-h-screen overflow-x-hidden">
-      <AuthGuard redirectTo="/">
+      <AuthGuard redirectTo="/" requiredRole="admin">
         <Header />
 
         <section className="games-header sticky top-0 z-10">
