@@ -261,7 +261,7 @@ export function ChapterReactions({
       aria-label="Оценка и реакции на главу"
     >
       {/* Заголовок блока */}
-      <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-1">
+      <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-0">
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
             <MessageCircle className="w-5 h-5 text-[var(--primary)]" aria-hidden />
@@ -283,7 +283,7 @@ export function ChapterReactions({
         )}
       </div>
 
-      <div className="px-5 pb-5 pt-4 space-y-5">
+      <div className="px-5 pb-4 pt-4 space-y-4">
         {/* CTA для неавторизованных — рендерим только после mount, чтобы избежать hydration mismatch (isAuthenticated разный на сервере и клиенте) */}
         {!mounted ? (
           <div className="flex items-center gap-3 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/30 px-4 py-3">

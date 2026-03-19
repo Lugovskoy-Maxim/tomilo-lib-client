@@ -1521,9 +1521,9 @@ function ReadChapterPageContent({
 
       <div
         aria-hidden
-        className={`transition-[height] duration-300 ease-out ${
-          isHeaderVisible ? "h-20 sm:h-24" : "h-0"
-        }`}
+        // NavigationHeader фиксированный (fixed). Чтобы не дергался контент,
+        // не меняем высоту спейсера при скрытии/показе шапки — только трансформ/opacity.
+        className="h-20 sm:h-24"
       />
 
       {/* Хедер: totalChapters не меньше текущей главы и не меньше числа глав, чтобы не показывать «510 / 509» */}
@@ -2189,7 +2189,7 @@ function ReadChapterPageContent({
 
                 {/* Реакции на главу */}
                 <div
-                  className="mx-auto px-0 sm:px-4 mt-8"
+                  className="mx-auto px-0 sm:px-4 mt-4"
                   style={{ maxWidth: isMobile ? "100%" : `${imageWidth}px` }}
                 >
                   <ChapterReactions
@@ -2214,7 +2214,7 @@ function ReadChapterPageContent({
                 </div>
 
                 {/* Информация о переводчике */}
-                <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-6">
+                <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-4">
                   <ChapterTranslatorInfo titleId={titleId} />
                 </div>
 
@@ -2474,7 +2474,7 @@ function ReadChapterPageContent({
 
                         {/* Реакции на загруженную главу */}
                         <div
-                          className="mx-auto px-0 sm:px-4 mt-8"
+                          className="mx-auto px-0 sm:px-4 mt-4"
                           style={{ maxWidth: isMobile ? "100%" : `${imageWidth}px` }}
                         >
                           <ChapterReactions

@@ -7,7 +7,6 @@ import { CommentForm } from "@/shared/comments/CommentForm";
 import { CommentItem } from "@/shared/comments/CommentItem";
 import { CommentsList } from "@/shared/comments/CommentsList";
 import {
-  MessageCircle,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
@@ -109,7 +108,7 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
   );
 
   return (
-    <div className={`py-3 sm:py-10 px-2 sm:px-0 ${className}`}>
+    <div className={`py-1 sm:py-6 px-2 sm:px-0 ${className}`}>
       <div className="max-w-2xl mx-auto">
         {/* Comment Form — сверху только когда есть комментарии или загрузка (иначе форма в пустом блоке) */}
         {!showFormInEmptyState && commentFormBlock}
@@ -190,13 +189,10 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
                 ))}
               </div>
             ) : (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--card)]/30 border border-[var(--border)]/30 py-8 px-4 sm:py-10 sm:px-6">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--card)]/30 border border-[var(--border)]/30 py-4 px-4 sm:py-6 sm:px-6">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,var(--primary)_0%,transparent_70%)] opacity-5" />
                 <div className="relative">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
-                      <MessageCircle className="w-8 h-8 text-[var(--primary)]" />
-                    </div>
                     <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
                       Пока нет комментариев
                     </h3>

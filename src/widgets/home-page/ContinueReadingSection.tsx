@@ -149,8 +149,6 @@ function ContinueCard({ item }: { item: ContinueItem }) {
     ? Math.min(100, Math.round((item.chaptersRead / totalChapters) * 100))
     : 0;
 
-  // Если прогресс известен и он 100% — скрываем карточку "продолжить чтение"
-  if (hasKnownTotal && progress >= 100) return null;
   const imageUrls = useMemo(
     () =>
       coverImage
@@ -161,6 +159,10 @@ function ContinueCard({ item }: { item: ContinueItem }) {
         : null,
     [coverImage],
   );
+
+  // Если прогресс известен и он 100% — скрываем карточку "продолжить чтение"
+  // Важно: `useMemo` выше должен вызываться всегда, чтобы не ломать порядок хуков.
+  if (hasKnownTotal && progress >= 100) return null;
 
   const t = item.lastChapter.chapterTitle?.trim();
   const chNum = item.lastChapter.chapterNumber;
