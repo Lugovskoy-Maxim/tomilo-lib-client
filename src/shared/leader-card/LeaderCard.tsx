@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame } from "lucide-react";
+import { Crown, Medal, Award, Clock, Star, TrendingUp, Flame, Heart, Coins } from "lucide-react";
 import { LeaderboardUser, LeaderboardCategory, DecorationRarity } from "@/store/api/leaderboardApi";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
@@ -161,6 +161,11 @@ function formatReadingTime(minutes: number): string {
   }
 }
 
+function pluralAcceptedCharacters(n: number): string {
+  const word = n === 1 ? "принятый персонаж" : n < 5 ? "принятых персонажа" : "принятых персонажей";
+  return `${n} ${word}`;
+}
+
 function getCategoryValue(user: LeaderboardUser, category: LeaderboardCategory): string {
   switch (category) {
     case "level":
@@ -183,6 +188,10 @@ function getCategoryValue(user: LeaderboardUser, category: LeaderboardCategory):
       const streak = user.currentStreak ?? 0;
       const days = streak === 1 ? "день" : streak < 5 ? "дня" : "дней";
       return `${streak} ${days} 🔥`;
+    case "likesReceived":
+      return pluralAcceptedCharacters(user.likesReceivedCount ?? 0);
+    case "balance":
+      return `${(user.balance ?? 0).toLocaleString("ru")} монет`;
     default:
       return "";
   }
@@ -207,6 +216,10 @@ function getCategoryValueShort(user: LeaderboardUser, category: LeaderboardCateg
       return `${user.commentsCount ?? 0} комм.`;
     case "streak":
       return `${user.currentStreak ?? 0} дн.`;
+    case "likesReceived":
+      return `${user.likesReceivedCount ?? 0} перс.`;
+    case "balance":
+      return `${(user.balance ?? 0).toLocaleString("ru")} мон.`;
     default:
       return "";
   }
@@ -224,6 +237,10 @@ function getCategoryIcon(category: LeaderboardCategory) {
       return Star;
     case "streak":
       return Flame;
+    case "likesReceived":
+      return Heart;
+    case "balance":
+      return Coins;
     default:
       return TrendingUp;
   }
@@ -294,6 +311,10 @@ function getSecondaryValue(user: LeaderboardUser, category: LeaderboardCategory)
       return user.titlesReadCount ? `${user.titlesReadCount} тайтлов` : null;
     case "streak":
       return user.longestStreak ? `Рекорд: ${user.longestStreak} дн.` : null;
+    case "likesReceived":
+      return null;
+    case "balance":
+      return user.level != null ? `Ур. ${user.level}` : null;
     default:
       return null;
   }

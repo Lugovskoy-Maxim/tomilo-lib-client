@@ -22,6 +22,8 @@ const CATEGORY_LABELS: Record<LeaderboardCategory, string> = {
   comments: "Комментарии",
   streak: "Страйк",
   chaptersRead: "Главы",
+  likesReceived: "Помощь в развитии",
+  balance: "Монеты",
 };
 
 function findBestPositionWithPeriod(
@@ -58,6 +60,14 @@ export function useTop10Badge(userId: string | undefined) {
     { category: "chaptersRead", limit: 10 },
     { skip: !userId },
   );
+  const likesReceivedQuery = useGetLeaderboardQuery(
+    { category: "likesReceived", period: "all", limit: 10 },
+    { skip: !userId },
+  );
+  const balanceQuery = useGetLeaderboardQuery(
+    { category: "balance", period: "all", limit: 10 },
+    { skip: !userId },
+  );
 
   const allQueries = [
     levelQuery,
@@ -65,6 +75,8 @@ export function useTop10Badge(userId: string | undefined) {
     ratingsAllPeriods,
     commentsAllPeriods,
     chaptersReadAllPeriods,
+    likesReceivedQuery,
+    balanceQuery,
   ];
   const isLoading = allQueries.some(q => q.isLoading);
 
@@ -125,6 +137,32 @@ export function useTop10Badge(userId: string | undefined) {
       }
     }
 
+    // likesReceived, balance
+    const likesUsers = likesReceivedQuery.data?.data?.users;
+    if (likesUsers) {
+      const index = likesUsers.findIndex(u => u._id === userId);
+      if (index !== -1 && index < 10) {
+        badges.push({
+          category: "likesReceived",
+          position: index + 1,
+          label: CATEGORY_LABELS.likesReceived,
+          period: "all",
+        });
+      }
+    }
+    const balanceUsers = balanceQuery.data?.data?.users;
+    if (balanceUsers) {
+      const index = balanceUsers.findIndex(u => u._id === userId);
+      if (index !== -1 && index < 10) {
+        badges.push({
+          category: "balance",
+          position: index + 1,
+          label: CATEGORY_LABELS.balance,
+          period: "all",
+        });
+      }
+    }
+
     return badges.sort((a, b) => a.position - b.position);
   }, [
     userId,
@@ -133,6 +171,8 @@ export function useTop10Badge(userId: string | undefined) {
     ratingsAllPeriods.data,
     commentsAllPeriods.data,
     chaptersReadAllPeriods.data,
+    likesReceivedQuery.data,
+    balanceQuery.data,
   ]);
 
   const bestBadge = allBadges.length > 0 ? allBadges[0] : null;

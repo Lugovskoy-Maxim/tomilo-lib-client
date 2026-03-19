@@ -91,6 +91,19 @@ export const gamesApi = createApi({
       invalidatesTags: ["ProfileDisciples"],
     }),
 
+    /** Обменять дубля кандидата на ресурсы (монеты). Кандидат сбрасывается. */
+    disciplesClaimDuplicateReward: builder.mutation<
+      ApiResponseDto<{ balance: number; coinsGained?: number }>,
+      string
+    >({
+      query: characterId => ({
+        url: "/users/profile/disciples/claim-duplicate-reward",
+        method: "POST",
+        body: { characterId },
+      }),
+      invalidatesTags: ["ProfileDisciples"],
+    }),
+
     disciplesDismiss: builder.mutation<ApiResponseDto<{ ok: boolean }>, string>({
       query: characterId => ({
         url: "/users/profile/disciples/dismiss",
@@ -361,6 +374,7 @@ export const {
   useUpdateProfileCardsShowcaseMutation,
   useDisciplesRerollMutation,
   useDisciplesRecruitMutation,
+  useDisciplesClaimDuplicateRewardMutation,
   useDisciplesDismissMutation,
   useDisciplesTrainMutation,
   useLazyDisciplesBattleMatchQuery,

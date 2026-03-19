@@ -162,6 +162,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+.games-hub .games-card--compact {
+  padding: 0.625rem 0.875rem;
+}
+
 /* Вложенная рамка для медиа (карточка боя, изображение) */
 .games-hub .games-card-frame {
   padding: 0.5rem;
@@ -309,6 +313,11 @@
   object-fit: cover;
   border: 1px solid var(--border);
   background: var(--muted);
+}
+
+.games-hub .games-card-avatar--md {
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
 .games-hub .games-card-avatar--lg {
@@ -512,10 +521,39 @@
   background: color-mix(in oklch, var(--destructive) 6%, var(--card));
 }
 
-/* Колесо SVG — цвета под тему (центр) */
+/* Колесо судьбы — дизайн */
+.games-hub .games-wheel-svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.12));
+}
+
+.games-hub .games-wheel-outer-ring {
+  stroke: color-mix(in oklch, var(--primary) 30%, var(--border));
+}
+
+.games-hub .games-wheel-segment {
+  transition: filter 0.2s ease;
+}
+
+.games-hub .games-wheel-segment:hover {
+  filter: brightness(1.08);
+}
+
+.games-hub .games-wheel-segment-label {
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 1.5px;
+}
+
+.games-hub .games-wheel-center-outer {
+  fill: color-mix(in oklch, var(--primary) 12%, var(--card));
+  stroke: color-mix(in oklch, var(--primary) 35%, var(--border));
+  stroke-width: 2;
+}
+
 .games-hub .games-wheel-center {
   fill: var(--card);
   stroke: var(--border);
+  stroke-width: 2;
 }
 
 .games-hub .games-wheel-reward-row {

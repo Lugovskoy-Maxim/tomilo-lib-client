@@ -23,6 +23,8 @@ const ALL_CATEGORIES = [
   "comments",
   "streak",
   "chaptersRead",
+  "likesReceived",
+  "balance",
 ] as const satisfies readonly LeaderboardCategory[];
 
 type QueryCategory = (typeof ALL_CATEGORIES)[number];
@@ -33,6 +35,8 @@ const CATEGORY_LABELS: Record<QueryCategory, string> = {
   comments: "Комментарии",
   streak: "Страйк",
   chaptersRead: "Главы",
+  likesReceived: "Помощь в развитии",
+  balance: "Монеты",
 };
 
 function findBestPositionWithPeriod(
@@ -90,6 +94,15 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     { skip: shouldSkip },
   );
 
+  const likesReceivedAll = useGetLeaderboardQuery(
+    { category: "likesReceived", period: "all", limit: 10 },
+    { skip: shouldSkip },
+  );
+  const balanceAll = useGetLeaderboardQuery(
+    { category: "balance", period: "all", limit: 10 },
+    { skip: shouldSkip },
+  );
+
   const allQueries = [
     levelAll,
     levelMonth,
@@ -100,6 +113,8 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     ratingsAllPeriods,
     commentsAllPeriods,
     chaptersReadAllPeriods,
+    likesReceivedAll,
+    balanceAll,
   ];
   const isLoading = allQueries.some(q => q.isLoading);
 
@@ -162,6 +177,26 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
       }
     }
 
+    // likesReceived, balance: одна выборка за всё время
+    const likesUsers = likesReceivedAll.data?.data?.users ?? [];
+    const likesIndex = likesUsers.findIndex((u: LeaderboardUser) => u._id === userId);
+    if (likesIndex !== -1 && likesIndex < 10) {
+      positions.push({
+        category: "likesReceived",
+        position: likesIndex + 1,
+        label: CATEGORY_LABELS.likesReceived,
+      });
+    }
+    const balanceUsers = balanceAll.data?.data?.users ?? [];
+    const balanceIndex = balanceUsers.findIndex((u: LeaderboardUser) => u._id === userId);
+    if (balanceIndex !== -1 && balanceIndex < 10) {
+      positions.push({
+        category: "balance",
+        position: balanceIndex + 1,
+        label: CATEGORY_LABELS.balance,
+      });
+    }
+
     return positions.sort((a, b) => a.position - b.position);
   }, [
     userId,
@@ -174,6 +209,8 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     ratingsAllPeriods.data,
     commentsAllPeriods.data,
     chaptersReadAllPeriods.data,
+    likesReceivedAll.data,
+    balanceAll.data,
   ]);
 
   const bestPosition = top10Positions.length > 0 ? top10Positions[0] : null;

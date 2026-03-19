@@ -53,6 +53,7 @@ export const GAME_ITEMS_LORE: GameItemLoreEntry[] = [
   { id: "realm_key_copy", name: "Копия ключа тайного мира", type: "special", rarity: "uncommon", description: "Одноразовый вход в малый тайный мир" },
   { id: "silver_medal", name: "Серебряная медаль", type: "special", rarity: "uncommon", description: "Награда за значительные заслуги" },
   { id: "elders_token", name: "Знак старейшины", type: "special", rarity: "rare", description: "Благословение одного из старейшин" },
+  { id: "mysterious_fragment", name: "Таинственный осколок", type: "special", rarity: "rare", description: "Загадочный фрагмент неизвестного происхождения. Назначение неясно — возможно, пригодится для ритуалов, крафта или обмена у странствующих торговцев." },
   { id: "ancient_map_fragment", name: "Фрагмент древней карты", type: "special", rarity: "rare", description: "Часть карты сокровищницы древних" },
   { id: "gold_medal", name: "Золотая медаль", type: "special", rarity: "rare", description: "Высокая награда секты" },
   { id: "patriarch_seal", name: "Печать патриарха", type: "special", rarity: "epic", description: "Прямое распоряжение главы секты" },

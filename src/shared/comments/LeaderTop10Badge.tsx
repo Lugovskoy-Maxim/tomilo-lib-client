@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, Clock, Star, MessageSquare, Flame, BookOpen, Trophy } from "lucide-react";
+import { Crown, Clock, Star, MessageSquare, Flame, BookOpen, Trophy, Heart, Coins } from "lucide-react";
 import Link from "next/link";
 import type { LeaderboardCategory, LeaderboardPeriod } from "@/store/api/leaderboardApi";
 import { useTop10Badge, Top10BadgeInfo } from "@/hooks/useTop10Badge";
@@ -12,6 +12,8 @@ const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
   comments: MessageSquare,
   streak: Flame,
   chaptersRead: BookOpen,
+  likesReceived: Heart,
+  balance: Coins,
 };
 
 const CATEGORY_SHORT_LABELS: Record<LeaderboardCategory, string> = {
@@ -21,6 +23,8 @@ const CATEGORY_SHORT_LABELS: Record<LeaderboardCategory, string> = {
   comments: "по комментам",
   streak: "по страйку",
   chaptersRead: "по главам",
+  likesReceived: "по помощи в развитии",
+  balance: "по монетам",
 };
 
 const PERIOD_LABELS: Record<LeaderboardPeriod, string> = {

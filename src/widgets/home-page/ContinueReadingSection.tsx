@@ -148,6 +148,9 @@ function ContinueCard({ item }: { item: ContinueItem }) {
   const progress = hasKnownTotal
     ? Math.min(100, Math.round((item.chaptersRead / totalChapters) * 100))
     : 0;
+
+  // Если прогресс известен и он 100% — скрываем карточку "продолжить чтение"
+  if (hasKnownTotal && progress >= 100) return null;
   const imageUrls = useMemo(
     () =>
       coverImage
@@ -307,6 +310,8 @@ export default function ContinueReadingSection({ clientReadingHistory }: Continu
     return list
       .map(normalizeEntry)
       .filter((x): x is ContinueItem => x != null)
+      // Не показываем тайтлы, которые уже прочитаны на 100%
+      .filter(item => !(item.totalChapters > 0 && item.chaptersRead >= item.totalChapters))
       .sort(
         (a, b) =>
           new Date(b.lastChapter.readAt).getTime() - new Date(a.lastChapter.readAt).getTime(),

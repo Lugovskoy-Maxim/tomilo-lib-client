@@ -8,7 +8,9 @@ export type LeaderboardCategory =
   | "ratings"
   | "comments"
   | "streak"
-  | "chaptersRead";
+  | "chaptersRead"
+  | "likesReceived"
+  | "balance";
 export type LeaderboardPeriod = "all" | "month" | "week";
 
 /** Рекомендуемый кеш на бэкенде для /users/leaderboard (в часах). Данные на странице лидеров обновляются с этой периодичностью. */
@@ -50,6 +52,8 @@ export interface LeaderboardUser {
   showStats?: boolean;
   /** Дата окончания премиум-подписки (ISO). Если в будущем — показываем значок премиум. */
   subscriptionExpiresAt?: string | null;
+  /** Баланс монет (для категории balance). */
+  balance?: number;
 }
 
 export interface LeaderboardResponse {

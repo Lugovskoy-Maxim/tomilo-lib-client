@@ -367,7 +367,7 @@ export default function Header() {
                           className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--foreground)] w-full mx-1 rounded-lg transition-[background-color,color] duration-150 hover:bg-[var(--accent)] hover:[&_svg]:text-[var(--foreground)] active:bg-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-inset"
                         >
                           <Icon
-                            className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0"
+                            className={`w-4 h-4 flex-shrink-0 ${href === "/thanks" ? "text-red-500" : "text-[var(--muted-foreground)]"}`}
                             aria-hidden
                           />
                           {label}
@@ -603,7 +603,7 @@ export default function Header() {
                             data-active={pathname === "/thanks" ? "true" : undefined}
                           >
                             <span
-                              className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-[color-mix(in_oklch,var(--chart-1)_10%,transparent)] text-[var(--chart-1)] transition-all duration-300"
+                              className="mobile-menu-item-icon flex items-center justify-center w-8 h-8 shrink-0 rounded-lg bg-red-500/15 text-red-500 transition-all duration-300"
                               aria-hidden
                             >
                               <Heart className="w-4 h-4" />

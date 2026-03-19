@@ -3,7 +3,9 @@
 import { useMemo } from "react";
 import { Package, Users, FlaskConical, CircleDot, ClipboardList, LibraryBig, Compass } from "lucide-react";
 
-export type GamesTabId = "inventory" | "quests" | "disciples" | "cards" | "alchemy" | "wheel" | "raids";
+export type GamesTabId = "inventory" | "quests" | "disciples" | "expedition" | "cards" | "alchemy" | "wheel";
+
+const TAB_IDS: GamesTabId[] = ["inventory", "quests", "disciples", "expedition", "cards", "alchemy", "wheel"];
 
 interface GamesTabsProps {
   activeTab: GamesTabId;
@@ -14,11 +16,15 @@ const TABS: { id: GamesTabId; label: string; icon: React.ComponentType<{ classNa
   { id: "inventory", label: "Инвентарь", icon: Package },
   { id: "quests", label: "Квесты", icon: ClipboardList },
   { id: "disciples", label: "Ученики", icon: Users },
+  { id: "expedition", label: "Экспедиция", icon: Compass },
   { id: "cards", label: "Карточки", icon: LibraryBig },
   { id: "alchemy", label: "Алхимия", icon: FlaskConical },
   { id: "wheel", label: "Колесо", icon: CircleDot },
-  { id: "raids", label: "Рейды", icon: Compass },
 ];
+
+export function isValidGamesTabId(value: string): value is GamesTabId {
+  return TAB_IDS.includes(value as GamesTabId);
+}
 
 export function GamesTabs({ activeTab, onTabChange }: GamesTabsProps) {
   const currentIndex = useMemo(() => TABS.findIndex(tab => tab.id === activeTab), [activeTab]);
@@ -49,7 +55,7 @@ export function GamesTabs({ activeTab, onTabChange }: GamesTabsProps) {
             }
             const delta = event.key === "ArrowRight" ? 1 : -1;
             const nextIndex = (currentIndex + delta + TABS.length) % TABS.length;
-            onTabChange(TABS[nextIndex].id);
+            onTabChange(TABS[nextIndex]!.id);
           }}
           className={`games-tab ${activeTab === id ? "active" : ""}`}
         >

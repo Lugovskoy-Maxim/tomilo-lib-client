@@ -47,8 +47,7 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
 
   const data = response?.success ? response.data : null;
   const allQuests = data?.quests ?? [];
-  const capped = maxVisible != null ? allQuests.slice(0, maxVisible) : allQuests;
-  const quests = capped.slice(0, 6);
+  const quests = maxVisible != null ? allQuests.slice(0, maxVisible) : allQuests;
 
   const handleClaim = async (questId: string) => {
     try {
@@ -101,7 +100,7 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm overflow-hidden shadow-sm">
+    <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm shadow-sm">
       <div className="p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-3">
@@ -122,7 +121,7 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
           {quests.length === 0 ? (
             <div className="col-span-full rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--secondary)]/20 py-8 text-center">
               <Target className="w-8 h-8 mx-auto text-[var(--muted-foreground)]/60 mb-2" />

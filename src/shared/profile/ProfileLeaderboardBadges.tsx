@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trophy, Crown, Clock, Star, MessageSquare, Flame, BookOpen } from "lucide-react";
+import { Trophy, Crown, Clock, Star, MessageSquare, Flame, BookOpen, Heart, Coins } from "lucide-react";
 import {
   useUserLeaderboardPositions,
   UserLeaderboardPosition,
@@ -15,6 +15,8 @@ const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
   comments: MessageSquare,
   streak: Flame,
   chaptersRead: BookOpen,
+  likesReceived: Heart,
+  balance: Coins,
 };
 
 interface ProfileLeaderboardBadgesProps {

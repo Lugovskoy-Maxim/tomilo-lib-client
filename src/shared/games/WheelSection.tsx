@@ -10,17 +10,39 @@ import type { WheelSegment } from "@/types/games";
 import { GameResultReveal } from "./GameResultReveal";
 
 const WHEEL_SIZE = 280;
+
+/** Форматирует время до момента (ISO): "через 2 ч 15 мин", "менее минуты", "завтра в 00:00" */
+function formatTimeUntil(isoString: string): string {
+  const target = new Date(isoString);
+  const now = new Date();
+  const ms = target.getTime() - now.getTime();
+  if (ms <= 0) return "скоро";
+  const totalMinutes = Math.floor(ms / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24);
+    return days === 1 ? "завтра в 00:00" : `через ${days} д.`;
+  }
+  if (hours > 0) {
+    return minutes > 0 ? `через ${hours} ч ${minutes} мин` : `через ${hours} ч`;
+  }
+  return totalMinutes < 1 ? "менее минуты" : `через ${totalMinutes} мин`;
+}
+
+/** Палитра сегментов: контрастные цвета «колеса судьбы» (чередуются тёплые/холодные) */
 const SEGMENT_COLORS = [
-  "#f59e0b", "#d97706", "#b45309", "#92400e",
-  "#fbbf24", "#fcd34d", "#fde68a", "#fef3c7",
+  "#6366f1", "#22c55e", "#f59e0b", "#ef4444",
+  "#8b5cf6", "#14b8a6", "#f97316", "#3b82f6",
+  "#a855f7", "#10b981", "#eab308", "#ec4899",
 ];
 
 function WheelSvg({ segments }: { segments: WheelSegment[] }) {
   const n = Math.max(1, segments.length);
-  const r = 100;
+  const r = 92;
   const cx = 100;
   const cy = 100;
-  const labelRadius = 68;
+  const labelRadius = 62;
   const sliceAngle = 360 / n;
   const slices: { path: string; label: string; color: string; textAngle: number }[] = [];
   for (let i = 0; i < n; i++) {
@@ -43,32 +65,53 @@ function WheelSvg({ segments }: { segments: WheelSegment[] }) {
     });
   }
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full" style={{ maxWidth: WHEEL_SIZE, maxHeight: WHEEL_SIZE }}>
-      <g>
+    <svg viewBox="0 0 200 200" className="w-full h-full games-wheel-svg" style={{ maxWidth: WHEEL_SIZE, maxHeight: WHEEL_SIZE }}>
+      <defs>
+        <filter id="wheel-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.25" />
+        </filter>
+        <filter id="wheel-text-shadow">
+          <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.5)" />
+        </filter>
+      </defs>
+      {/* Внешнее кольцо */}
+      <circle cx={cx} cy={cy} r={98} fill="none" stroke="var(--border)" strokeWidth="2" opacity="0.6" />
+      <circle cx={cx} cy={cy} r={96} fill="none" className="games-wheel-outer-ring" strokeWidth="3" />
+      <g filter="url(#wheel-shadow)">
         {slices.map((s, i) => {
           const textRad = (s.textAngle * Math.PI) / 180;
           const tx = cx + labelRadius * Math.cos(textRad);
           const ty = cy + labelRadius * Math.sin(textRad);
           return (
             <g key={i}>
-              <path d={s.path} fill={s.color} stroke="var(--border)" strokeWidth="1" />
+              <path
+                d={s.path}
+                fill={s.color}
+                stroke="rgba(255,255,255,0.4)"
+                strokeWidth="1.5"
+                className="games-wheel-segment"
+              />
               <text
                 x={tx}
                 y={ty}
-                fill="var(--foreground)"
-                fontSize="9"
-                fontWeight="600"
+                fill="#fff"
+                fontSize="10"
+                fontWeight="700"
                 textAnchor="middle"
                 dominantBaseline="middle"
                 transform={`rotate(${s.textAngle} ${tx} ${ty})`}
+                className="games-wheel-segment-label"
+                filter="url(#wheel-text-shadow)"
               >
-                {s.label.length > 14 ? s.label.slice(0, 13) + "…" : s.label}
+                {s.label.length > 12 ? s.label.slice(0, 11) + "…" : s.label}
               </text>
             </g>
           );
         })}
       </g>
-      <circle cx={cx} cy={cy} r={12} fill="var(--card)" stroke="var(--border)" strokeWidth="2" className="games-wheel-center" />
+      {/* Центр: два круга для объёма */}
+      <circle cx={cx} cy={cy} r={18} className="games-wheel-center-outer" />
+      <circle cx={cx} cy={cy} r={14} className="games-wheel-center" />
     </svg>
   );
 }
@@ -84,18 +127,35 @@ export function WheelSection() {
   const [isAnimating, setIsAnimating] = useState(false);
   const spinDurationMs = 6000;
   const spinEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [, setCountdownTick] = useState(0);
 
   useEffect(() => () => {
     if (spinEndTimeoutRef.current) clearTimeout(spinEndTimeoutRef.current);
   }, []);
 
   const wheel = data?.data;
+  const nextSpinAt = wheel?.nextSpinAt;
+  useEffect(() => {
+    if (!nextSpinAt || new Date(nextSpinAt).getTime() <= Date.now()) return;
+    const id = setInterval(() => setCountdownTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, [nextSpinAt]);
   const segments = wheel?.segments ?? [];
   const canSpin = wheel?.canSpin ?? false;
   const totalWeight = useMemo(
     () => segments.reduce((sum, segment) => sum + Math.max(0, Number(segment.weight ?? 0)), 0),
     [segments],
   );
+
+  /** Сегменты, отсортированные по шансу (по убыванию) — только для отображения в «Пул наград» */
+  const segmentsByChance = useMemo(() => {
+    if (totalWeight <= 0) return [...segments];
+    return [...segments].sort((a, b) => {
+      const wA = Math.max(0, Number(a.weight ?? 0));
+      const wB = Math.max(0, Number(b.weight ?? 0));
+      return wB - wA;
+    });
+  }, [segments, totalWeight]);
 
   const showResultToasts = useCallback(
     (d: { label?: string; twistOfFate?: boolean; compensationCoins?: number; coinsGained?: number; expGained?: number; itemsGained?: { itemId: string; count: number; name?: string; icon?: string }[] }) => {
@@ -179,10 +239,10 @@ export function WheelSection() {
             <span className="games-badge">Стоимость: {wheel.spinCostCoins} монет</span>
             {typeof wheel.balance === "number" ? <span className="games-badge">Баланс: {wheel.balance}</span> : null}
           </div>
-          {wheel.nextSpinAt ? (
+          {nextSpinAt ? (
             <p className="games-muted text-xs mb-2 inline-flex items-center gap-1">
               <Clock3 className="w-3.5 h-3.5" aria-hidden />
-              Следующий доступ после: <strong className="text-[var(--foreground)]">{wheel.nextSpinAt}</strong>
+              Доступно: <strong className="text-[var(--foreground)]">{formatTimeUntil(nextSpinAt)}</strong>
             </p>
           ) : null}
           <div className="relative inline-flex items-center justify-center my-6" style={{ width: WHEEL_SIZE, height: WHEEL_SIZE }}>
@@ -224,7 +284,7 @@ export function WheelSection() {
           <div className="games-panel">
             <h3 className="games-panel-title">Пул наград</h3>
             <div className="grid gap-2">
-              {(wheel.segments ?? []).map((segment, index) => {
+              {segmentsByChance.map((segment, index) => {
                 const chancePercent = totalWeight > 0 ? ((Number(segment.weight ?? 0) / totalWeight) * 100) : 0;
                 const icon =
                   segment.rewardType === "coins" ? <Coins className="w-4 h-4 text-amber-500" aria-hidden /> :
@@ -296,17 +356,6 @@ export function WheelSection() {
         </div>
       )}
 
-      <div className="games-panel">
-        <h3 className="games-panel-title">Возможные награды</h3>
-        <div className="flex flex-wrap gap-2">
-          {(wheel.segments ?? []).map((s: { label: string; icon?: string }, i: number) => (
-            <span key={i} className="games-reward-chip inline-flex items-center gap-1">
-              {s.icon ? <img src={s.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
-              {s.label}
-            </span>
-          ))}
-        </div>
-      </div>
       <GameResultReveal
         open={revealOpen}
         title={lastReward?.label ? `Колесо выбрало: ${lastReward.label}` : "Результат колеса"}
