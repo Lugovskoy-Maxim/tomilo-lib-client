@@ -78,6 +78,36 @@ const PROHIBITED_WORDS = [
   "сетевой маркетинг",
 ];
 
+/**
+ * Паттерны короче порога проверяются как начало «слова» (токена), не как подстрока
+ * всего текста — иначе ложные срабатывания: «ожидаемый» ⊃ «жид», «похачивает» ⊃ «хач».
+ */
+const PREFIX_ONLY_PATTERN_MAX_LEN = 5;
+
+function normalizeWhitespace(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function tokenizeForFilter(text: string): string[] {
+  return text.toLowerCase().match(/[\p{L}\p{Nd}]+/gu) ?? [];
+}
+
+function textMatchesProhibitedPattern(lowerText: string, pattern: string): boolean {
+  const p = pattern.toLowerCase();
+  if (p.includes(" ")) {
+    return normalizeWhitespace(lowerText).includes(p);
+  }
+
+  if (p.length <= PREFIX_ONLY_PATTERN_MAX_LEN) {
+    for (const token of tokenizeForFilter(lowerText)) {
+      if (token === p || token.startsWith(p)) return true;
+    }
+    return false;
+  }
+
+  return lowerText.includes(p);
+}
+
 /** Минимальная длина комментария (символов после trim) */
 export const MIN_COMMENT_LENGTH = 2;
 
@@ -111,7 +141,7 @@ export function validateContent(text: string): ContentValidationResult {
   }
 
   for (const word of PROHIBITED_WORDS) {
-    if (lowerText.includes(word.toLowerCase())) {
+    if (textMatchesProhibitedPattern(lowerText, word)) {
       return {
         isValid: false,
         error: "Комментарий содержит запрещённый контент",
