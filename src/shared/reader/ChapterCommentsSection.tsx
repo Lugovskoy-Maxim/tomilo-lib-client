@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Comment, CommentEntityType } from "@/types/comment";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { CommentForm } from "@/shared/comments/CommentForm";
@@ -32,6 +32,13 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const limit = 20;
+
+  useEffect(() => {
+    setPage(1);
+    setReplyingTo(null);
+    setEditingComment(null);
+    setIsExpanded(false);
+  }, [chapterId]);
 
   const {
     data: commentsData,

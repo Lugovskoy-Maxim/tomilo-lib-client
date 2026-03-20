@@ -1,7 +1,10 @@
 import { useMemo, useEffect, useCallback, useRef } from "react";
+import type { AnyAction } from "redux";
 import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
+import { authApi } from "@/store/api/authApi";
+import { useAppDispatch } from "@/store";
 import { pageTitle } from "@/lib/page-title";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
@@ -96,7 +99,8 @@ function transformReadingHistory(history: ReadingHistoryEntry[] | unknown): Read
 }
 
 export function useProfile() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, isLoading: authLoading, updateUser: patchAuthUser } = useAuth();
   const prevTitleRef = useRef<string | null>(null);
 
   const {
@@ -132,11 +136,17 @@ export function useProfile() {
 
   const handleAvatarUpdate = useCallback(
     (newAvatarUrl: string) => {
-      if (userProfile) {
-        userProfile.avatar = newAvatarUrl;
-      }
+      if (!newAvatarUrl || !isValidAvatarUrl(newAvatarUrl)) return;
+      patchAuthUser({ avatar: newAvatarUrl });
+      dispatch(
+        authApi.util.updateQueryData("getProfile", undefined, draft => {
+          if (draft?.success && draft.data) {
+            (draft.data as User).avatar = newAvatarUrl;
+          }
+        }) as unknown as AnyAction,
+      );
     },
-    [userProfile],
+    [dispatch, patchAuthUser],
   );
 
   useEffect(() => {

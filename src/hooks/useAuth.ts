@@ -1,6 +1,8 @@
 import { useEffect, useCallback, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import type { AnyAction } from "redux";
+import { useSelector } from "react-redux";
 import {
+  authApi,
   useGetProfileQuery,
   useAddBookmarkMutation,
   useUpdateBookmarkCategoryMutation,
@@ -9,10 +11,11 @@ import {
   useGetReadingHistoryByTitleQuery,
   useAddToReadingHistoryMutation,
   useRemoveFromReadingHistoryMutation,
+  useUpdateAvatarMutation,
 } from "@/store/api/authApi";
 import { useIncrementChapterViewsMutation } from "@/store/api/chaptersApi";
 import { login, logout, setLoading, updateUser } from "@/store/slices/authSlice";
-import { RootState } from "@/store";
+import { RootState, useAppDispatch } from "@/store";
 import { AuthResponse, StoredUser, ApiResponseDto } from "@/types/auth";
 import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-verification";
 import { ReadingProgressResponse } from "@/types/progress";
@@ -79,7 +82,7 @@ function isValidAvatarUrl(url: string | null | undefined): boolean {
 }
 
 export const useAuth = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const auth = useSelector((state: RootState) => state.auth);
   const toast = useToast();
 
@@ -99,6 +102,7 @@ export const useAuth = () => {
   const [addBookmarkMutation] = useAddBookmarkMutation();
   const [updateBookmarkCategoryMutation] = useUpdateBookmarkCategoryMutation();
   const [removeBookmarkMutation] = useRemoveBookmarkMutation();
+  const [updateAvatarMutation] = useUpdateAvatarMutation();
   const [incrementChapterViews] = useIncrementChapterViewsMutation();
   const [addToReadingHistory] = useAddToReadingHistoryMutation();
   const [removeFromReadingHistory] = useRemoveFromReadingHistoryMutation();
@@ -239,53 +243,64 @@ export const useAuth = () => {
     updateUserData({ readingHistory: next });
   }, [readingHistoryData, updateUserData, auth.user?.readingHistory]);
 
-  const updateAvatar = async (avatarFile: File): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const formData = new FormData();
-      formData.append("avatar", avatarFile);
+  const updateAvatar = useCallback(
+    async (
+      avatarFile: File,
+    ): Promise<{ success: boolean; error?: string; avatarUrl?: string }> => {
+      try {
+        const formData = new FormData();
+        formData.append("avatar", avatarFile);
 
-      const response = await fetch(`${API_BASE_URL}/users/profile/avatar`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: formData,
-      });
+        const result = await updateAvatarMutation(formData).unwrap();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Ошибка при обновлении аватара");
+        if (!result.success) {
+          const msg =
+            (result as { errors?: string[] }).errors?.[0] ||
+            result.message ||
+            "Ошибка при обновлении аватара";
+          throw new Error(msg);
+        }
+
+        const data = result.data as
+          | { avatar?: string; updatedAt?: string; message?: string }
+          | undefined;
+
+        let avatarUrl: string | undefined;
+        if (data && (data.avatar !== undefined || data.updatedAt !== undefined)) {
+          const patch: Partial<StoredUser> = {
+            ...(data.avatar !== undefined && isValidAvatarUrl(data.avatar) && { avatar: data.avatar }),
+            ...(data.updatedAt !== undefined && { updatedAt: data.updatedAt }),
+          };
+          if (patch.avatar !== undefined) {
+            avatarUrl = patch.avatar;
+          }
+          if (Object.keys(patch).length > 0) {
+            updateUserData(patch);
+            dispatch(
+              authApi.util.updateQueryData("getProfile", undefined, draft => {
+                if (!draft?.success || !draft.data) return;
+                if (patch.avatar !== undefined) {
+                  (draft.data as StoredUser).avatar = patch.avatar;
+                }
+                if (patch.updatedAt !== undefined) {
+                  (draft.data as StoredUser).updatedAt = patch.updatedAt;
+                }
+              }) as unknown as AnyAction,
+            );
+          }
+        }
+        return { success: true, ...(avatarUrl ? { avatarUrl } : {}) };
+      } catch (error: unknown) {
+        console.error("Error updating avatar:", error);
+        const message =
+          (error as { data?: { errors?: string[]; message?: string } })?.data?.errors?.[0] ||
+          (error as { data?: { message?: string } })?.data?.message ||
+          (error instanceof Error ? error.message : "Неизвестная ошибка");
+        return { success: false, error: message };
       }
-
-      const result = await response.json() as ApiResponseDto<{ avatar?: string; updatedAt?: string }>;
-
-      if (!result.success) {
-        throw new Error(result.message || "Ошибка при обновлении аватара");
-      }
-
-      // Обновляем стор только если бэкенд вернул валидный avatar/updatedAt (не затираем текущий ошибочным "/uploads/avatars/undefined")
-      const data = result.data;
-      if (data && (data.avatar !== undefined || data.updatedAt !== undefined)) {
-        updateUserData({
-          ...(data.avatar !== undefined && isValidAvatarUrl(data.avatar) && { avatar: data.avatar }),
-          ...(data.updatedAt !== undefined && { updatedAt: data.updatedAt }),
-        });
-      }
-
-      if (token) {
-        refetchProfile();
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error("Error updating avatar:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Неизвестная ошибка",
-      };
-    }
-  };
+    },
+    [dispatch, updateAvatarMutation, updateUserData],
+  );
 
   const updateProfile = async (profileData: {
     username?: string;

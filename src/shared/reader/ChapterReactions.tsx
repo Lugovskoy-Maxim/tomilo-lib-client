@@ -5,6 +5,7 @@ import { Loader2, Star, MessageCircle, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   CHAPTER_ALLOWED_REACTION_EMOJIS,
+  CHAPTER_RATING_MIN,
   CHAPTER_RATING_MAX,
   type ChapterReactionCount,
 } from "@/types/chapter";
@@ -40,6 +41,13 @@ interface ChapterReactionsProps {
 
 const RATING_VALUES = Array.from({ length: CHAPTER_RATING_MAX }, (_, i) => i + 1) as number[];
 
+function parseStoredChapterRating(raw: string | null): number | null {
+  if (raw === null) return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < CHAPTER_RATING_MIN || n > CHAPTER_RATING_MAX) return null;
+  return n;
+}
+
 export function ChapterReactions({
   chapterId,
   onLoginRequired,
@@ -67,10 +75,9 @@ export function ChapterReactions({
   const [localUserRating, setLocalUserRating] = useState<number | null>(() => {
     if (typeof window === "undefined" || !chapterId) return null;
     try {
-      const raw = sessionStorage.getItem(`${CHAPTER_RATING_STORAGE_KEY}_${chapterId}`);
-      if (raw === null) return null;
-      const n = Number(raw);
-      return n >= 1 && n <= CHAPTER_RATING_MAX ? n : null;
+      return parseStoredChapterRating(
+        sessionStorage.getItem(`${CHAPTER_RATING_STORAGE_KEY}_${chapterId}`),
+      );
     } catch {
       return null;
     }
@@ -81,15 +88,15 @@ export function ChapterReactions({
   useEffect(() => {
     if (!chapterId) return;
     try {
-      const raw = sessionStorage.getItem(`${CHAPTER_RATING_STORAGE_KEY}_${chapterId}`);
-      if (raw !== null) {
-        const n = Number(raw);
-        if (n >= 1 && n <= CHAPTER_RATING_MAX) setLocalUserRating(n);
-      }
+      const storedRating = parseStoredChapterRating(
+        sessionStorage.getItem(`${CHAPTER_RATING_STORAGE_KEY}_${chapterId}`),
+      );
+      setLocalUserRating(storedRating);
       const emoji = sessionStorage.getItem(`${CHAPTER_REACTION_STORAGE_KEY}_${chapterId}`);
       setSelectedEmoji(emoji && ALLOWED_EMOJIS_SET.has(emoji) ? emoji : null);
     } catch {
-      // ignore
+      setLocalUserRating(null);
+      setSelectedEmoji(null);
     }
     // ALLOWED_EMOJIS_SET стабилен (константа из Set), не добавляем в deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,7 +129,15 @@ export function ChapterReactions({
       ? rating.ratingSum! / (rating.ratingCount ?? 1)
       : null);
   const ratingCount = rating?.ratingCount ?? 0;
-  const userRatingFromApi = rating?.userRating != null ? Number(rating.userRating) : null;
+  const userRatingFromApiRaw =
+    rating?.userRating != null ? Number(rating.userRating) : null;
+  const userRatingFromApi =
+    userRatingFromApiRaw != null &&
+    Number.isFinite(userRatingFromApiRaw) &&
+    userRatingFromApiRaw >= CHAPTER_RATING_MIN &&
+    userRatingFromApiRaw <= CHAPTER_RATING_MAX
+      ? userRatingFromApiRaw
+      : null;
   const ratingAvailable = !ratingUnavailable;
   const userRating = userRatingFromApi ?? localUserRating;
   const hasUserRating = userRating != null && userRating >= 1;

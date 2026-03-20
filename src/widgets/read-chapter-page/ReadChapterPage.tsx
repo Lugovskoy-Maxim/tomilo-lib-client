@@ -96,7 +96,6 @@ function ReadChapterPageContent({
     { limit: 200, light: false },
     { skip: !isAuthenticated || !user },
   );
-  const readingHistoryList = readingHistoryResponse?.data ?? user?.readingHistory ?? [];
   const {
     readChaptersInRow,
     readingMode,
@@ -412,12 +411,6 @@ function ReadChapterPageContent({
     },
     [imageFallbacks],
   );
-
-  // Функция для получения корректного URL изображения (legacy)
-  const getImageUrl = useCallback((url: string) => {
-    if (!url) return "";
-    return getImageUrls(url).primary;
-  }, []);
 
   // CSS фильтры для изображений (яркость, контраст, режим защиты глаз)
   const imageFilterStyle = useMemo((): React.CSSProperties => {
@@ -1054,6 +1047,10 @@ function ReadChapterPageContent({
       });
       preloadImagesRef.current = [];
     };
+    // Без `currentPage` и `chapter`: на быстром соединении предзагружаем всю главу одним проходом —
+    // включение `currentPage` в deps срабатывало бы cleanup при каждом скролле и срывало preload.
+    // `chapterToPreload` согласован с навигацией через `loadedChapters` и `activeReadingChapterId`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- намеренно см. выше
   }, [
     preloadAllImages,
     loadedChapters,
@@ -1379,7 +1376,7 @@ function ReadChapterPageContent({
 
   // Прочитанные главы по этому тайтлу: по ID и по номерам (в истории есть и то и другое — подсветка по любому совпадению)
   const { readChapterIdsForTitle, readChapterNumbersForTitle } = useMemo(() => {
-    const list = readingHistoryList;
+    const list = readingHistoryResponse?.data ?? user?.readingHistory ?? [];
     const ids = new Set<string>();
     const numbers = new Set<number>();
     if (!Array.isArray(list) || list.length === 0 || !titleId) {
@@ -1409,7 +1406,7 @@ function ReadChapterPageContent({
       if (num != null && !Number.isNaN(Number(num))) numbers.add(Number(num));
     }
     return { readChapterIdsForTitle: ids, readChapterNumbersForTitle: numbers };
-  }, [readingHistoryList, titleId]);
+  }, [readingHistoryResponse?.data, user?.readingHistory, titleId]);
 
   // Фильтр глав по введённому номеру или названию (для модалки выбора)
   const chaptersFilteredBySearch = useMemo(() => {
