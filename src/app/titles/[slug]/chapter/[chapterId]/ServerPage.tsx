@@ -45,7 +45,9 @@ export default async function ServerChapterPage({
     const titleData: import("@/types/title").Title = titleApiResponse.data;
     const titleId = titleData._id;
 
-    // Получаем данные главы
+    // Получаем данные главы.
+    // Важно: при 500 не заваливаем ридер целиком — используем данные из /chapters/title/... ниже.
+    let chapterData: import("@/types/title").Chapter | null = null;
     const chapterResponse = await fetch(`${apiUrl}/chapters/${chapterId}`, {
       cache: "no-store",
     });
@@ -60,48 +62,45 @@ export default async function ServerChapterPage({
           />
         );
       }
+
       if (chapterResponse.status >= 500) {
+        console.error(
+          `ServerChapterPage: /chapters/${chapterId} returned ${chapterResponse.status}. Falling back to chapters/title data.`,
+        );
+      } else {
+        throw new Error(`API error: ${chapterResponse.status}`);
+      }
+    } else {
+      const chapterApiResponse = await chapterResponse.json();
+
+      if (!chapterApiResponse.success || !chapterApiResponse.data) {
         return (
           <ChapterErrorState
-            title="Ошибка сервера"
-            message="Временная ошибка при загрузке главы. Попробуйте обновить страницу позже."
+            title="Глава не найдена"
+            message="Запрашиваемая глава не существует или была удалена."
             slug={slug}
           />
         );
       }
-      throw new Error(`API error: ${chapterResponse.status}`);
-    }
 
-    const chapterApiResponse = await chapterResponse.json();
+      const loadedChapter: import("@/types/title").Chapter = chapterApiResponse.data;
+      chapterData = loadedChapter;
 
-    if (!chapterApiResponse.success || !chapterApiResponse.data) {
-      return (
-        <ChapterErrorState
-          title="Глава не найдена"
-          message="Запрашиваемая глава не существует или была удалена."
-          slug={slug}
-        />
-      );
-    }
+      // Проверяем, принадлежит ли глава этому тайтлу (только если получили данные главы)
+      const chapterTitleId =
+        typeof loadedChapter.titleId === "object"
+          ? (loadedChapter.titleId as { _id: string })._id
+          : loadedChapter.titleId;
 
-    const chapterData: import("@/types/title").Chapter = chapterApiResponse.data;
-
-    // Проверяем, принадлежит ли глава этому тайтлу
-    const chapterTitleId =
-      typeof chapterData.titleId === "object"
-        ? (chapterData.titleId as { _id: string })._id
-        : chapterData.titleId;
-
-    if (chapterTitleId !== titleId) {
-      // В серверной версии мы не можем делать редирект через router.push
-      // Вместо этого возвращаем сообщение об ошибке
-      return (
-        <ChapterErrorState
-          title="Глава перемещена"
-          message="Эта глава была перемещена в другой тайтл."
-          slug={slug}
-        />
-      );
+      if (chapterTitleId !== titleId) {
+        return (
+          <ChapterErrorState
+            title="Глава перемещена"
+            message="Эта глава была перемещена в другой тайтл."
+            slug={slug}
+          />
+        );
+      }
     }
 
     // Получаем список всех глав тайтла
@@ -174,14 +173,16 @@ export default async function ServerChapterPage({
     const currentChapter: ReadChapter = {
       ...listChapter,
       images:
-        Array.isArray(chapterData.pages) && chapterData.pages.length > 0
+        chapterData &&
+        Array.isArray(chapterData.pages) &&
+        chapterData.pages.length > 0
           ? chapterData.pages.map((p: string) => normalizeAssetUrl(p))
           : listChapter.images,
-      averageRating: chapterData.averageRating,
-      ratingSum: chapterData.ratingSum,
-      ratingCount: chapterData.ratingCount,
-      userRating: chapterData.userRating,
-      reactions: chapterData.reactions,
+      averageRating: chapterData?.averageRating ?? listChapter.averageRating,
+      ratingSum: chapterData?.ratingSum ?? listChapter.ratingSum,
+      ratingCount: chapterData?.ratingCount ?? listChapter.ratingCount,
+      userRating: chapterData?.userRating ?? listChapter.userRating,
+      reactions: chapterData?.reactions ?? listChapter.reactions,
     };
 
     return (

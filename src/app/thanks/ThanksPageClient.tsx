@@ -116,8 +116,8 @@ export default function ThanksPageClient() {
                 </div>
                 <p className="text-sm text-[var(--muted-foreground)] mb-4">
                   Пользователи, чьи предложения персонажей были приняты и
-                  добавлены в каталог. За каждый принятый персонаж начисляется
-                  50 монет и 100 опыта.
+                  добавлены в каталог. За каждого принятого персонажа начисляются
+                  50 монет и 100 единиц опыта.
                 </p>
 
                 <div className="flex items-center gap-2 mb-4">

@@ -200,7 +200,7 @@ export function GamesManagementSection() {
     coins: 0,
     isActive: true,
   });
-  const [disciplesForm, setDisciplesForm] = useState({ rerollCostCoins: 50, trainCostCoins: 15, maxDisciples: 5, maxBattlesPerDay: 5, rerollCandidateTtlMinutes: 10 });
+  const [disciplesForm, setDisciplesForm] = useState({ rerollCostCoins: 50, trainCostCoins: 15, maxDisciples: 5, maxBattlesPerDay: 5, rerollCandidateTtlMinutes: 10, characterPool: "" });
   const [recipeEditingId, setRecipeEditingId] = useState<string | null>(null);
   const [recipeForm, setRecipeForm] = useState<{
     name: string;
@@ -412,6 +412,7 @@ export function GamesManagementSection() {
         maxDisciples: disciplesConfig.maxDisciples ?? 5,
         maxBattlesPerDay: disciplesConfig.maxBattlesPerDay ?? 5,
         rerollCandidateTtlMinutes: disciplesConfig.rerollCandidateTtlMinutes ?? 10,
+        characterPool: disciplesConfig.characterPool ?? "",
       });
     }
   }, [disciplesConfig]);
@@ -1411,6 +1412,17 @@ export function GamesManagementSection() {
                     <label className="block text-xs text-[var(--muted-foreground)] mb-1">Время жизни кандидата (мин)</label>
                     <input type="number" min={1} value={disciplesForm.rerollCandidateTtlMinutes} onChange={(e) => setDisciplesForm(prev => ({ ...prev, rerollCandidateTtlMinutes: Number(e.target.value) || 10 }))} className="admin-input w-full" />
                   </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs text-[var(--muted-foreground)] mb-1">Пул персонажей (ID через запятую)</label>
+                    <textarea
+                      rows={3}
+                      value={disciplesForm.characterPool}
+                      onChange={(e) => setDisciplesForm(prev => ({ ...prev, characterPool: e.target.value }))}
+                      className="admin-input w-full font-mono text-xs"
+                      placeholder="Пусто = все персонажи. Или перечислите ID через запятую."
+                    />
+                    <p className="text-[11px] text-[var(--muted-foreground)] mt-1">Если некоторые персонажи не выпадают — добавьте их ID в пул или очистите поле для «все».</p>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -1711,6 +1723,7 @@ export function GamesManagementSection() {
                             className="p-1.5 rounded text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
                             onClick={() => {
                               setEditingCharacterCardId(card._id);
+                              const emptyStages = createEmptyCardStages();
                               setCardForm({
                                 name: card.name ?? "",
                                 description: card.description ?? "",
@@ -1720,7 +1733,15 @@ export function GamesManagementSection() {
                                 isAvailable: card.isAvailable ?? true,
                                 quantity: card.quantity == null ? "" : String(card.quantity),
                                 characterId,
-                                stages: createEmptyCardStages().map((stage) => card.stages?.find((item) => item.rank === stage.rank) ?? stage),
+                                stages: emptyStages.map((stage) => {
+                                  const fromApi = card.stages?.find((item) => item.rank === stage.rank) as (CharacterCardStageAdmin & { stageImageUrl?: string }) | undefined;
+                                  if (!fromApi) return stage;
+                                  return {
+                                    ...stage,
+                                    ...fromApi,
+                                    imageUrl: fromApi.imageUrl ?? fromApi.stageImageUrl ?? "",
+                                  };
+                                }),
                               });
                             }}
                           >
@@ -1746,10 +1767,11 @@ export function GamesManagementSection() {
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs">
                         {CARD_STAGE_RANKS.map((rank) => {
-                          const stage = card.stages?.find((item) => item.rank === rank);
+                          const stage = card.stages?.find((item) => item.rank === rank) as (CharacterCardStageAdmin & { stageImageUrl?: string }) | undefined;
+                          const hasImage = stage?.imageUrl || stage?.stageImageUrl;
                           return (
-                            <span key={rank} className={`px-2 py-1 rounded ${stage?.imageUrl ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
-                              {rank}: {stage?.imageUrl ? "ok" : "no image"}
+                            <span key={rank} className={`px-2 py-1 rounded ${hasImage ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
+                              {rank}: {hasImage ? "ok" : "no image"}
                             </span>
                           );
                         })}

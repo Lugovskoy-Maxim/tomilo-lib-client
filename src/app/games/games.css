@@ -162,6 +162,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+.games-hub .games-card--compact {
+  padding: 0.625rem 0.875rem;
+}
+
 /* Вложенная рамка для медиа (карточка боя, изображение) */
 .games-hub .games-card-frame {
   padding: 0.5rem;
@@ -309,6 +313,11 @@
   object-fit: cover;
   border: 1px solid var(--border);
   background: var(--muted);
+}
+
+.games-hub .games-card-avatar--md {
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
 .games-hub .games-card-avatar--lg {
@@ -475,7 +484,7 @@
 }
 
 /* Чипы наград (монеты, опыт, предметы) */
-.games-hub .games-reward-chip {
+.games-reward-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -488,14 +497,14 @@
   color: var(--foreground);
 }
 
-.games-hub .games-reward-chip img {
+.games-reward-chip img {
   width: 1rem;
   height: 1rem;
   border-radius: 2px;
   object-fit: cover;
 }
 
-.games-hub .games-reward-chip--warning {
+.games-reward-chip--warning {
   color: var(--primary);
   border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
   background: color-mix(in oklch, var(--primary) 10%, var(--accent));
@@ -512,10 +521,39 @@
   background: color-mix(in oklch, var(--destructive) 6%, var(--card));
 }
 
-/* Колесо SVG — цвета под тему (центр) */
+/* Колесо судьбы — дизайн */
+.games-hub .games-wheel-svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.12));
+}
+
+.games-hub .games-wheel-outer-ring {
+  stroke: color-mix(in oklch, var(--primary) 30%, var(--border));
+}
+
+.games-hub .games-wheel-segment {
+  transition: filter 0.2s ease;
+}
+
+.games-hub .games-wheel-segment:hover {
+  filter: brightness(1.08);
+}
+
+.games-hub .games-wheel-segment-label {
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 1.5px;
+}
+
+.games-hub .games-wheel-center-outer {
+  fill: color-mix(in oklch, var(--primary) 12%, var(--card));
+  stroke: color-mix(in oklch, var(--primary) 35%, var(--border));
+  stroke-width: 2;
+}
+
 .games-hub .games-wheel-center {
   fill: var(--card);
   stroke: var(--border);
+  stroke-width: 2;
 }
 
 .games-hub .games-wheel-reward-row {
@@ -552,7 +590,7 @@
   }
 }
 
-.games-hub .games-reveal-overlay {
+.games-reveal-overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -564,7 +602,7 @@
   backdrop-filter: blur(10px);
 }
 
-.games-hub .games-reveal-card {
+.games-reveal-card {
   position: relative;
   width: min(100%, 34rem);
   border-radius: 1.25rem;
@@ -575,19 +613,19 @@
   animation: games-reveal-pop 0.3s ease-out forwards;
 }
 
-.games-hub .games-reveal-card--success {
+.games-reveal-card--success {
   border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
 }
 
-.games-hub .games-reveal-card--warning {
+.games-reveal-card--warning {
   border-color: rgba(245, 158, 11, 0.5);
 }
 
-.games-hub .games-reveal-card--danger {
+.games-reveal-card--danger {
   border-color: rgba(239, 68, 68, 0.45);
 }
 
-.games-hub .games-reveal-badge {
+.games-reveal-badge {
   width: 3.5rem;
   height: 0.35rem;
   border-radius: 999px;
@@ -595,24 +633,24 @@
   margin-bottom: 1rem;
 }
 
-.games-hub .games-reveal-title {
+.games-reveal-title {
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--foreground);
 }
 
-.games-hub .games-reveal-subtitle {
+.games-reveal-subtitle {
   margin-top: 0.5rem;
   color: var(--muted-foreground);
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
-.games-hub .games-reveal-body {
+.games-reveal-body {
   margin-top: 1rem;
 }
 
-.games-hub .games-reveal-close {
+.games-reveal-close {
   position: absolute;
   top: 0.875rem;
   right: 0.875rem;
@@ -627,7 +665,7 @@
   color: var(--muted-foreground);
 }
 
-.games-hub .games-reveal-close:hover {
+.games-reveal-close:hover {
   color: var(--foreground);
   background: var(--accent);
 }

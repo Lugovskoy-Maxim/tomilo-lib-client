@@ -206,8 +206,14 @@ export function ReaderSettingsPanelContent({
     setShowProgress,
     brightness,
     setBrightness,
+    contrast,
+    setContrast,
     imageQuality,
     setImageQuality,
+    eyeComfortMode,
+    setEyeComfortMode,
+    showHints,
+    setShowHints,
     hapticEnabled,
     setHapticEnabled,
     dataSaver,
@@ -223,7 +229,11 @@ export function ReaderSettingsPanelContent({
           <div className="flex bg-[var(--secondary)] rounded-xl p-1">
             <button
               type="button"
-              onClick={() => setReadingMode("feed")}
+              onClick={() => {
+                setReadingMode("feed");
+                // Верхняя «Лента» = вертикальный скролл; без этого следующая глава не подгружается.
+                setInfiniteScroll(true);
+              }}
               className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 readingMode === "feed"
                   ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
@@ -234,7 +244,11 @@ export function ReaderSettingsPanelContent({
             </button>
             <button
               type="button"
-              onClick={() => setReadingMode("paged")}
+              onClick={() => {
+                setReadingMode("paged");
+                // По страницам несовместимо с подгрузкой следующей главы при скролле
+                setInfiniteScroll(false);
+              }}
               className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 readingMode === "paged"
                   ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
@@ -244,17 +258,28 @@ export function ReaderSettingsPanelContent({
               По страницам
             </button>
           </div>
+          <p className="text-[10px] text-[var(--muted-foreground)] leading-snug">
+            «Лента» включает и непрерывную подгрузку глав вниз (отключается в «Переход по главам»).
+          </p>
         </div>
         <div className="space-y-2">
           <span className="text-[11px] text-[var(--muted-foreground)]">Переход по главам</span>
           <SegmentOption
             options={[
               { value: "one" as const, label: "По одной главе", icon: BookOpen },
-              { value: "feed" as const, label: "Лентой", icon: LayoutList, badge: "beta" },
+              {
+                value: "feed" as const,
+                label: "Непрерывно (скролл)",
+                icon: LayoutList,
+                badge: "beta",
+              },
             ]}
             value={infiniteScroll ? "feed" : "one"}
             onChange={v => setInfiniteScroll(v === "feed")}
           />
+          <p className="text-[10px] text-[var(--muted-foreground)] leading-snug">
+            Доступно в режиме «Лента»: следующая глава подтягивается при прокрутке к концу текущей.
+          </p>
         </div>
       </SettingsSection>
 
@@ -298,6 +323,9 @@ export function ReaderSettingsPanelContent({
         </SettingsRow>
         <SettingsRow label="Время чтения" icon={Timer}>
           <ToggleSwitch on={showTimer} onClick={() => setShowTimer(!showTimer)} />
+        </SettingsRow>
+        <SettingsRow label="Подсказки (зум/свайп)" icon={Eye}>
+          <ToggleSwitch on={showHints} onClick={() => setShowHints(!showHints)} />
         </SettingsRow>
         <SettingsRow label="Вибрация при перелистывании" icon={Smartphone}>
           <ToggleSwitch on={hapticEnabled} onClick={() => setHapticEnabled(!hapticEnabled)} />
@@ -348,6 +376,37 @@ export function ReaderSettingsPanelContent({
             onChange={e => setBrightness(Number(e.target.value))}
             className={rangeInputClass}
             aria-label="Яркость"
+          />
+        </div>
+        <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
+          <div className="flex justify-between text-sm">
+            <span className="text-[var(--foreground)]">Контраст</span>
+            <span className="font-medium text-[var(--primary)]">{contrast}%</span>
+          </div>
+          <input
+            type="range"
+            min={50}
+            max={150}
+            step={5}
+            value={contrast}
+            onChange={e => setContrast(Number(e.target.value))}
+            className={rangeInputClass}
+            aria-label="Контраст"
+          />
+        </div>
+        <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
+          <span className="text-[11px] text-[var(--muted-foreground)] uppercase tracking-wider">
+            Режим защиты глаз
+          </span>
+          <SegmentOption
+            options={[
+              { value: "off" as const, label: "Отключено", icon: Eye },
+              { value: "warm" as const, label: "Тёплая", icon: Eye },
+              { value: "sepia" as const, label: "Сепия", icon: Eye },
+              { value: "dark" as const, label: "Темный", icon: Eye },
+            ]}
+            value={eyeComfortMode}
+            onChange={v => setEyeComfortMode(v)}
           />
         </div>
         <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />

@@ -94,7 +94,8 @@ const DEFAULT_SETTINGS: ReaderSettings = {
   doublePageMode: false,
   fitMode: "width",
   readingDirection: "ltr",
-  infiniteScroll: false,
+  /** По умолчанию совместимо с режимом «Лента»: подгрузка следующей главы при прокрутке вниз. */
+  infiniteScroll: true,
   showTimer: false,
   showHints: false,
   showProgress: false,

@@ -20,6 +20,7 @@ import {
   Flame,
   BookOpen,
   Coins,
+  Heart,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
@@ -43,6 +44,8 @@ const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
   comments: MessageSquare,
   streak: Flame,
   chaptersRead: BookOpen,
+  likesReceived: Heart,
+  balance: Coins,
 };
 
 interface UserDropdownProps {

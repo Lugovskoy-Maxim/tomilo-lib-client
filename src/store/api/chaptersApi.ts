@@ -70,7 +70,12 @@ export const chaptersApi = createApi({
   endpoints: builder => ({
     getChapterById: builder.query<Chapter, string>({
       query: id => `/chapters/${id}`,
-      transformResponse: (response: ApiResponseDto<Chapter>) => response.data!,
+      transformResponse: (response: ApiResponseDto<Chapter>) => {
+        if (!response?.data) {
+          throw new Error("Empty chapter payload");
+        }
+        return response.data;
+      },
       providesTags: (result, error, id) => [{ type: CHAPTERS_TAG, id }],
     }),
 

@@ -98,6 +98,9 @@ export default function ReaderControls({
   const [isPageGridOpen, setIsPageGridOpen] = useState(false);
   const [readingTime, setReadingTime] = useState(0);
 
+  const MAX_JUMP_POPOVER_PAGES = 60;
+  const MAX_PAGE_GRID_PAGES = 60;
+
   const { isAutoScrolling, stopAutoScroll, toggleAutoScroll } = useAutoScroll({
     onAutoScrollStart,
   });
@@ -292,8 +295,26 @@ export default function ReaderControls({
 
   const jumpPageItems = useMemo(() => {
     const total = Math.max(chapterImageLength, 1);
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }, [chapterImageLength]);
+    if (total <= MAX_JUMP_POPOVER_PAGES) return Array.from({ length: total }, (_, i) => i + 1);
+
+    // Для очень длинных глав показываем "разреженный" набор страниц:
+    // начало/конец + каждые N страниц + текущая/соседние.
+    const result = new Set<number>();
+    result.add(1);
+    result.add(total);
+
+    const step = Math.ceil(total / MAX_JUMP_POPOVER_PAGES);
+    for (let p = 1; p <= total; p += step) {
+      result.add(p);
+    }
+
+    [currentPage - 1, currentPage, currentPage + 1].forEach(p => {
+      const v = Number(p);
+      if (!Number.isNaN(v) && v >= 1 && v <= total) result.add(v);
+    });
+
+    return Array.from(result).sort((a, b) => a - b);
+  }, [chapterImageLength, currentPage]);
 
   const handleJumpToPage = useCallback(
     (targetPage: number) => {
@@ -686,8 +707,8 @@ export default function ReaderControls({
             )}
           </button>
 
-          {/* Кнопка сетки страниц */}
-          {chapterImages.length > 0 && onJumpToPage && (
+          {/* Кнопка сетки страниц (не показываем для слишком длинных глав) */}
+          {chapterImages.length > 0 && onJumpToPage && chapterImageLength <= MAX_PAGE_GRID_PAGES && (
             <button
               type="button"
               onClick={() => setIsPageGridOpen(true)}

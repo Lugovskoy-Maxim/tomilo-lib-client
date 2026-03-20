@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ReportModal } from "@/shared/report/ReportModal";
@@ -47,7 +48,7 @@ function apiChapterToReaderChapter(ch: Chapter): ReaderChapter {
   return {
     _id: ch._id,
     number: Number(ch.chapterNumber) || 0,
-    title: ch.title || "",
+    title: ch.title || ch.name || "",
     date: ch.releaseDate || "",
     views: Number(ch.views) || 0,
     images: pages.map((p: string) => getImageUrls(p).primary),
@@ -108,6 +109,7 @@ function ReadChapterPageContent({
     showHints,
     showProgress,
     getQualityValue,
+    dataSaver,
     hapticEnabled,
   } = useReaderSettingsContext();
 
@@ -164,6 +166,7 @@ function ReadChapterPageContent({
 
   // Бесконечное чтение
   const [isLoadingNextChapter, setIsLoadingNextChapter] = useState(false);
+  const [infiniteScrollLoadError, setInfiniteScrollLoadError] = useState<string | null>(null);
   const loadedChapterIdsRef = useRef<Set<string>>(new Set([chapter._id]));
   const [loadedChapterIds, setLoadedChapterIds] = useState<Set<string>>(new Set([chapter._id]));
   void loadedChapterIds;
@@ -173,65 +176,86 @@ function ReadChapterPageContent({
 
   const loadNextChapterInfiniteScroll = useCallback(() => {
     if (loadedChapters.length === 0) return;
+    setInfiniteScrollLoadError(null);
     const lastLoadedChapter = loadedChapters[loadedChapters.length - 1];
     const lastChapterIndex = chapters.findIndex(ch => ch._id === lastLoadedChapter._id);
-    if (lastChapterIndex < 0 || lastChapterIndex >= chapters.length - 1) return;
-    const nextChapter = chapters[lastChapterIndex + 1];
+    const fallbackCurrentIndex = chapters.findIndex(ch => ch._id === chapter._id);
+    const baseChapterIndex =
+      lastChapterIndex >= 0
+        ? lastChapterIndex
+        : loadedChapters.length === 1
+          ? fallbackCurrentIndex
+          : -1;
+    if (baseChapterIndex < 0 || baseChapterIndex >= chapters.length - 1) return;
+    const nextChapter = chapters[baseChapterIndex + 1];
     if (loadedChapterIdsRef.current.has(nextChapter._id)) return;
     loadedChapterIdsRef.current.add(nextChapter._id);
     setIsLoadingNextChapter(true);
     fetchChapterById(nextChapter._id)
       .unwrap()
       .then(chapterData => {
-        if (chapterData && chapterData._id) {
-          const apiData = chapterData as Chapter & {
-            images?: string[];
-            title?: string;
-            teamId?: string;
-            translatorTeamId?: string;
-          };
-          const rawPages = apiData.images || apiData.pages || [];
-          const chapterImages = rawPages.map((p: string) => getImageUrls(p).primary);
-          const chapterNumber = apiData.chapterNumber ?? 0;
-          const mappedChapter: ReaderChapter = {
-            _id: apiData._id,
-            number: typeof chapterNumber === "string" ? parseFloat(chapterNumber) : chapterNumber,
-            title: apiData.title || apiData.name || "",
-            images: chapterImages,
-            views: typeof apiData.views === "string" ? parseInt(apiData.views) : apiData.views || 0,
-            createdAt: apiData.createdAt,
-            updatedAt: apiData.updatedAt,
-            teamId: apiData.teamId || apiData.translatorTeamId,
-          };
-          setLoadedChapters(prev => [...prev, mappedChapter]);
-          setLoadedChapterIds(prev => new Set([...prev, mappedChapter._id]));
-          if (isAuthenticated) {
-            const key = `${titleId}-${mappedChapter._id}`;
-            if (!historyAddedRef.current.has(key) && !historyPendingRef.current.has(key)) {
-              historyPendingRef.current.add(key);
-              addToReadingHistory(titleId, mappedChapter._id)
-                .then(() => {
-                  historyAddedRef.current.add(key);
-                  historyPendingRef.current.delete(key);
-                })
-                .catch(() => historyPendingRef.current.delete(key));
-            }
+        if (!chapterData?._id) {
+          loadedChapterIdsRef.current.delete(nextChapter._id);
+          setInfiniteScrollLoadError("Пустой ответ сервера. Попробуйте ещё раз.");
+          return;
+        }
+        const mappedChapter = apiChapterToReaderChapter(chapterData as Chapter);
+        setLoadedChapters(prev => [...prev, mappedChapter]);
+        setLoadedChapterIds(prev => new Set([...prev, mappedChapter._id]));
+        if (isAuthenticated) {
+          const key = `${titleId}-${mappedChapter._id}`;
+          if (!historyAddedRef.current.has(key) && !historyPendingRef.current.has(key)) {
+            historyPendingRef.current.add(key);
+            addToReadingHistory(titleId, mappedChapter._id)
+              .then(() => {
+                historyAddedRef.current.add(key);
+                historyPendingRef.current.delete(key);
+              })
+              .catch(() => historyPendingRef.current.delete(key));
           }
         }
       })
       .catch(() => {
         loadedChapterIdsRef.current.delete(nextChapter._id);
+        setInfiniteScrollLoadError("Не удалось загрузить главу. Проверьте сеть и попробуйте снова.");
       })
       .finally(() => {
         setIsLoadingNextChapter(false);
       });
-  }, [loadedChapters, chapters, fetchChapterById, isAuthenticated, addToReadingHistory, titleId]);
+  }, [loadedChapters, chapters, chapter._id, fetchChapterById, isAuthenticated, addToReadingHistory, titleId]);
 
   const infiniteScrollTriggerRef = useIntersectionTrigger(loadNextChapterInfiniteScroll, {
     enabled: Boolean(infiniteScroll && !isPagedMode && !isLoadingNextChapter),
     rootMargin: "300px",
     threshold: 0,
   });
+
+  // Фолбэк для случаев, когда observer-сентинель не сработал (редкие мобильные/браузерные кейсы).
+  // Если пользователь подошел к концу страницы, пробуем догрузить следующую главу напрямую.
+  useEffect(() => {
+    if (!infiniteScroll || isPagedMode) return;
+
+    let rafId: number | null = null;
+    const handleScroll = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (isLoadingNextChapter) return;
+        const scrollTop = window.scrollY;
+        const winH = window.innerHeight;
+        const docH = document.documentElement.scrollHeight;
+        if (docH - (scrollTop + winH) < 420) {
+          loadNextChapterInfiniteScroll();
+        }
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, [infiniteScroll, isPagedMode, isLoadingNextChapter, loadNextChapterInfiniteScroll]);
 
   const calculateReadingTime = useCallback((imagesCount: number, contentHeight?: number) => {
     const pixelsPerSecond = 120;
@@ -612,6 +636,11 @@ function ReadChapterPageContent({
             document.exitFullscreen();
           }
           break;
+        // Открыть подсказки управления ридером.
+        // На десктопе удобнее по `?` (часто используется как "help").
+        case "?":
+          setShowKeyboardHints(true);
+          break;
       }
     };
 
@@ -959,11 +988,44 @@ function ReadChapterPageContent({
   // Предзагрузка всех изображений при включенной настройке (с отменой при размонтировании/смене главы)
   const preloadImagesRef = useRef<HTMLImageElement[]>([]);
   useEffect(() => {
-    if (!preloadAllImages || !chapter.images.length || !isPositionRestored) return;
+    const chapterToPreload =
+      loadedChapters.find(c => c._id === activeReadingChapterId) ?? chapter;
 
+    if (!preloadAllImages || !chapterToPreload.images.length || !isPositionRestored) return;
+
+    setPreloadProgress(0);
     let cancelled = false;
     let loadedCount = 0;
-    const totalImages = chapter.images.length;
+    const totalImagesAll = chapterToPreload.images.length;
+
+    // Для слабого/мобильного интернета делаем "умную" предзагрузку: не тащим весь главу сразу.
+    // Это улучшает стабильность интерфейса и снижает риск подвисаний.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- navigator.connection типизирован не везде
+    const effectiveType: string | undefined = (navigator as any)?.connection?.effectiveType;
+    const isSlowConnection =
+      dataSaver ||
+      effectiveType === "slow-2g" ||
+      effectiveType === "2g" ||
+      effectiveType === "3g";
+
+    const currentIndex = Math.max(0, Math.min(totalImagesAll - 1, currentPage - 1));
+    const limitedIndices = new Set<number>();
+
+    // Первые страницы обычно нужны почти всем.
+    [0, 1, 2].forEach(i => {
+      if (i >= 0 && i < totalImagesAll) limitedIndices.add(i);
+    });
+
+    // Небольшой "коридор" вокруг текущей страницы.
+    const start = Math.max(0, currentIndex - 2);
+    const end = Math.min(totalImagesAll - 1, currentIndex + 5);
+    for (let i = start; i <= end; i++) limitedIndices.add(i);
+
+    const indicesToPreload = isSlowConnection
+      ? Array.from(limitedIndices).sort((a, b) => a - b)
+      : Array.from({ length: totalImagesAll }, (_, i) => i);
+
+    const totalImages = indicesToPreload.length;
 
     const updateProgress = () => {
       if (cancelled) return;
@@ -972,23 +1034,19 @@ function ReadChapterPageContent({
     };
 
     const images: HTMLImageElement[] = [];
-    chapter.images.forEach(src => {
+    indicesToPreload.forEach(imageIndex => {
+      const src = chapterToPreload.images[imageIndex];
       const img = new window.Image();
       img.onload = updateProgress;
       img.onerror = updateProgress;
-      img.src = getImageUrl(src);
+      img.src = getImageUrlWithFallback(src, chapterToPreload._id, imageIndex);
       images.push(img);
     });
     preloadImagesRef.current = images;
 
-    const priorities = new Map<number, "low" | "medium" | "high">();
-    chapter.images.forEach((_, index) => {
-      priorities.set(index + 1, "high");
-    });
-    setImageLoadPriority(priorities);
-
     return () => {
       cancelled = true;
+      setPreloadProgress(0);
       images.forEach(img => {
         img.onload = null;
         img.onerror = null;
@@ -996,7 +1054,14 @@ function ReadChapterPageContent({
       });
       preloadImagesRef.current = [];
     };
-  }, [preloadAllImages, chapter.images, isPositionRestored, getImageUrl]);
+  }, [
+    preloadAllImages,
+    loadedChapters,
+    activeReadingChapterId,
+    isPositionRestored,
+    dataSaver,
+    getImageUrlWithFallback,
+  ]);
 
   // Актуальная страница для синхронного сохранения при закрытии/уходе
   const currentPageRef = useRef(currentPage);
@@ -1226,40 +1291,58 @@ function ReadChapterPageContent({
     return () => observer.disconnect();
   }, [infiniteScroll, isPagedMode, loadedChapters.length, visibleChapterId, slug, titleId]);
 
-  // Размонт первой главы, когда она ушла за верх экрана; компенсируем скролл, чтобы экран не прыгал
+  // Размонт первой главы, когда она целиком выше вьюпорта; компенсация по Δ высоты документа (без дёрганья).
+  // Большой «запас в пикселях» нельзя: при короткой следующей главе документ не прокручивается достаточно —
+  // низ первой главы никогда не уходит на -200px и размонт не срабатывает.
   useEffect(() => {
     if (!infiniteScroll || isPagedMode || loadedChapters.length <= 1) return;
     const el = firstChapterContainerRef.current;
     if (!el) return;
+
     const observer = new IntersectionObserver(
       entries => {
         const entry = entries[0];
         if (!entry) return;
         const rect = entry.boundingClientRect;
-        if (rect.bottom >= 0) return;
+        // Низ блока строго выше верха экрана (целиком прочитали и ушли вниз)
+        if (rect.bottom > 0) return;
         const target = entry.target as HTMLElement;
         const chapterId = target.getAttribute("data-infinite-chapter");
         if (!chapterId) return;
-        const height = target.offsetHeight;
-        setLoadedChapters(prev => {
-          if (prev.length <= 1 || prev[0]._id !== chapterId) return prev;
-          return prev.slice(1);
+
+        const docHBefore = document.documentElement.scrollHeight;
+        const heightFallback = target.offsetHeight;
+
+        flushSync(() => {
+          setLoadedChapters(prev => {
+            if (prev.length <= 1 || prev[0]._id !== chapterId) return prev;
+            return prev.slice(1);
+          });
+          setLoadedImagesByChapter(im => {
+            const next = { ...im };
+            delete next[chapterId];
+            return next;
+          });
+          loadedImagesRef.current = new Set(
+            [...loadedImagesRef.current].filter(k => !k.startsWith(`${chapterId}-`)),
+          );
+          setLoadedChapterIds(prev => {
+            const next = new Set(prev);
+            next.delete(chapterId);
+            return next;
+          });
+          loadedChapterIdsRef.current.delete(chapterId);
         });
-        setLoadedImagesByChapter(im => {
-          const next = { ...im };
-          delete next[chapterId];
-          return next;
+
+        requestAnimationFrame(() => {
+          const docHAfter = document.documentElement.scrollHeight;
+          const delta = docHBefore - docHAfter;
+          if (delta > 0) {
+            window.scrollBy(0, -delta);
+          } else if (heightFallback > 0) {
+            window.scrollBy(0, -heightFallback);
+          }
         });
-        loadedImagesRef.current = new Set(
-          [...loadedImagesRef.current].filter(k => !k.startsWith(`${chapterId}-`)),
-        );
-        setLoadedChapterIds(prev => {
-          const next = new Set(prev);
-          next.delete(chapterId);
-          return next;
-        });
-        loadedChapterIdsRef.current.delete(chapterId);
-        requestAnimationFrame(() => window.scrollBy(0, -height));
       },
       { root: null, rootMargin: "0px", threshold: 0 },
     );
@@ -1521,9 +1604,9 @@ function ReadChapterPageContent({
 
       <div
         aria-hidden
-        className={`transition-[height] duration-300 ease-out ${
-          isHeaderVisible ? "h-20 sm:h-24" : "h-0"
-        }`}
+        // NavigationHeader фиксированный (fixed). Чтобы не дергался контент,
+        // не меняем высоту спейсера при скрытии/показе шапки — только трансформ/opacity.
+        className="h-20 sm:h-24"
       />
 
       {/* Хедер: totalChapters не меньше текущей главы и не меньше числа глав, чтобы не показывать «510 / 509» */}
@@ -1820,6 +1903,7 @@ function ReadChapterPageContent({
                         const isImageLoaded =
                           loadedImagesRef.current.has(imageLoadKey) ||
                           loadedInChapter.has(imageIndex);
+                        const shouldEagerLoad = isImageLoaded || imageIndex + 1 === currentPage;
 
                         return (
                           <div
@@ -1877,7 +1961,7 @@ function ReadChapterPageContent({
                                     }
                                     className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
                                     quality={imageQuality}
-                                    loading="eager"
+                                    loading={shouldEagerLoad ? "eager" : "lazy"}
                                     onLoad={() => {
                                       loadedImagesRef.current.add(imageLoadKey);
                                       setLoadedImagesByChapter(prev => ({
@@ -1890,7 +1974,7 @@ function ReadChapterPageContent({
                                     onError={() =>
                                       handleImageError(displayChapter._id, imageIndex, src)
                                     }
-                                    priority
+                                    priority={shouldEagerLoad}
                                   />
                                   {/* Zoom hint on first page */}
                                   {showHints && imageIndex === 0 && isImageLoaded && (
@@ -2189,7 +2273,7 @@ function ReadChapterPageContent({
 
                 {/* Реакции на главу */}
                 <div
-                  className="mx-auto px-0 sm:px-4 mt-8"
+                  className="mx-auto px-0 sm:px-4 mt-4"
                   style={{ maxWidth: isMobile ? "100%" : `${imageWidth}px` }}
                 >
                   <ChapterReactions
@@ -2214,7 +2298,7 @@ function ReadChapterPageContent({
                 </div>
 
                 {/* Информация о переводчике */}
-                <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-6">
+                <div className="max-w-2xl mx-auto px-4 sm:px-0 mt-4">
                   <ChapterTranslatorInfo titleId={titleId} />
                 </div>
 
@@ -2265,13 +2349,15 @@ function ReadChapterPageContent({
                   </div>
                 )}
 
-                {/* Бесконечное чтение: триггер и индикатор после комментариев (только для первой главы, если нет дополнительных) */}
+                {/* Бесконечная лента: для первой (и пока единственной) главы тоже нужен сентинель */}
                 {infiniteScroll && !isPagedMode && loadedChapters.length === 1 && (
                   <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10">
-                    {/* Невидимый триггер для Intersection Observer */}
-                    <div ref={infiniteScrollTriggerRef} className="h-1" />
+                    <div
+                      key={`inf-sentinel-${loadedChapters.length}-${isLoadingNextChapter}`}
+                      ref={infiniteScrollTriggerRef}
+                      className="h-1"
+                    />
 
-                    {/* Индикатор загрузки */}
                     {isLoadingNextChapter && (
                       <div className="flex flex-col items-center justify-center gap-3 py-4">
                         <div className="w-8 h-8 border-3 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
@@ -2281,14 +2367,32 @@ function ReadChapterPageContent({
                       </div>
                     )}
 
-                    {/* Сообщение когда больше нет глав */}
                     {!isLoadingNextChapter &&
                       (() => {
                         const currentId = loadedChapters[0]?._id ?? chapter._id;
                         const lastChapterIndex = chapters.findIndex(ch => ch._id === currentId);
                         const hasMoreChapters = lastChapterIndex < chapters.length - 1;
 
-                        return !hasMoreChapters ? (
+                        return hasMoreChapters ? (
+                          <div className="text-center py-2">
+                            {infiniteScrollLoadError && (
+                              <p className="text-xs text-red-500 mb-3 px-2" role="alert">
+                                {infiniteScrollLoadError}
+                              </p>
+                            )}
+                            <p className="text-xs text-[var(--muted-foreground)] mb-3">
+                              Прокрутите вниз для загрузки следующей главы
+                            </p>
+                            <button
+                              type="button"
+                              onClick={loadNextChapterInfiniteScroll}
+                              disabled={isLoadingNextChapter}
+                              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors text-sm font-medium"
+                            >
+                              Загрузить следующую главу
+                            </button>
+                          </div>
+                        ) : (
                           <div className="text-center py-4">
                             <p className="text-sm font-medium text-[var(--foreground)]">
                               Это последняя глава
@@ -2299,10 +2403,6 @@ function ReadChapterPageContent({
                             >
                               Вернуться к тайтлу
                             </button>
-                          </div>
-                        ) : (
-                          <div className="text-center text-xs text-[var(--muted-foreground)] py-2">
-                            Прокрутите вниз для загрузки следующей главы
                           </div>
                         );
                       })()}
@@ -2474,7 +2574,7 @@ function ReadChapterPageContent({
 
                         {/* Реакции на загруженную главу */}
                         <div
-                          className="mx-auto px-0 sm:px-4 mt-8"
+                          className="mx-auto px-0 sm:px-4 mt-4"
                           style={{ maxWidth: isMobile ? "100%" : `${imageWidth}px` }}
                         >
                           <ChapterReactions
@@ -2503,7 +2603,11 @@ function ReadChapterPageContent({
                         {/* Триггер и индикатор для последней загруженной главы */}
                         {isLastLoadedChapter && (
                           <div className="py-8 sm:py-12 border-t border-[var(--border)] mt-8 sm:mt-10">
-                            <div ref={infiniteScrollTriggerRef} className="h-1" />
+                            <div
+                              key={`inf-sentinel-${loadedChapters.length}-${isLoadingNextChapter}`}
+                              ref={infiniteScrollTriggerRef}
+                              className="h-1"
+                            />
 
                             {isLoadingNextChapter && (
                               <div className="flex flex-col items-center justify-center gap-3 py-4">
@@ -2532,8 +2636,23 @@ function ReadChapterPageContent({
                             )}
 
                             {!isLoadingNextChapter && hasMoreChapters && (
-                              <div className="text-center text-xs text-[var(--muted-foreground)] py-2">
-                                Прокрутите вниз для загрузки следующей главы
+                              <div className="text-center py-2">
+                                {infiniteScrollLoadError && (
+                                  <p className="text-xs text-red-500 mb-3 px-2" role="alert">
+                                    {infiniteScrollLoadError}
+                                  </p>
+                                )}
+                                <p className="text-xs text-[var(--muted-foreground)] mb-3">
+                                  Прокрутите вниз для загрузки следующей главы
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={loadNextChapterInfiniteScroll}
+                                  disabled={isLoadingNextChapter}
+                                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors text-sm font-medium"
+                                >
+                                  Загрузить следующую главу
+                                </button>
                               </div>
                             )}
                           </div>

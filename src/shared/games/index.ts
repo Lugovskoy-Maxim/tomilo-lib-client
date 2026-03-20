@@ -1,5 +1,6 @@
-export { GamesTabs, type GamesTabId } from "./GamesTabs";
+export { GamesTabs, isValidGamesTabId, type GamesTabId } from "./GamesTabs";
 export { GamesHubIntro } from "./GamesHubIntro";
+export { ExpeditionSection } from "./ExpeditionSection";
 export { InventorySection } from "./InventorySection";
 export { CardsCollectionSection } from "./CardsCollectionSection";
 export { DisciplesSection } from "./DisciplesSection";

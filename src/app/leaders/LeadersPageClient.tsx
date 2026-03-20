@@ -18,6 +18,7 @@ import {
   BookOpen,
   Trophy,
   Heart,
+  Coins,
 } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
@@ -31,7 +32,7 @@ import {
   LeaderboardPeriod,
   LeaderboardUser,
 } from "@/store/api/leaderboardApi";
-import { useGetHomepageActiveUsersQuery } from "@/store/api/usersApi";
+import { useGetHomepageActiveUsersQuery, useGetCharacterContributorsQuery } from "@/store/api/usersApi";
 import { useGetProfileByIdQuery } from "@/store/api/authApi";
 import { useGetDecorationsQuery } from "@/store/api/shopApi";
 import { useMounted } from "@/hooks/useMounted";
@@ -62,38 +63,52 @@ type CategoryConfig = {
 const CATEGORIES: CategoryConfig[] = [
   {
     id: "level",
-    label: "По уровню",
+    label: "Уровень и опыт",
     shortLabel: "Уровень",
     icon: TrendingUp,
     description: "Рейтинг по уровню и набранному опыту",
   },
   {
     id: "chaptersRead",
-    label: "По главам",
+    label: "Прочитанные главы",
     shortLabel: "Главы",
     icon: Users,
     description: "Больше всего прочитанных глав",
   },
   {
     id: "ratings",
-    label: "По оценкам",
+    label: "Оценки тайтлов",
     shortLabel: "Оценки",
     icon: Star,
     description: "Больше всего оценённых тайтлов",
   },
   {
     id: "comments",
-    label: "По комментариям",
-    shortLabel: "Комментарии",
+    label: "Комментарии",
+    shortLabel: "Комменты",
     icon: MessageSquare,
     description: "Самые активные комментаторы",
   },
   {
     id: "streak",
-    label: "По активности",
+    label: "Серия дней",
     shortLabel: "Серия",
     icon: Flame,
     description: "Самые длинные серии дней активности",
+  },
+  {
+    id: "likesReceived",
+    label: "По помощи в развитии",
+    shortLabel: "Помощь",
+    icon: Heart,
+    description: "Рейтинг по принятым предложениям персонажей со страницы Благодарностей",
+  },
+  {
+    id: "balance",
+    label: "Накопленные монеты",
+    shortLabel: "Монеты",
+    icon: Coins,
+    description: "Рейтинг по количеству накопленных монет",
   },
 ];
 
@@ -139,6 +154,7 @@ interface TransformableUser {
   likesReceivedCount?: number;
   ratingsCount?: number;
   chaptersRead?: number;
+  balance?: number;
   showStats?: boolean;
   subscriptionExpiresAt?: string | null;
 }
@@ -274,6 +290,7 @@ function transformUsersToLeaderboard(
       titlesReadCount: user.titlesReadCount ?? 0,
       completedTitlesCount: user.completedTitlesCount ?? 0,
       likesReceivedCount: user.likesReceivedCount ?? 0,
+      balance: user.balance ?? 0,
       equippedDecorations: resolveEquippedDecorations(user.equippedDecorations, decorationsMap),
       showStats: user.showStats,
       subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
@@ -297,6 +314,10 @@ function transformUsersToLeaderboard(
           (b.currentStreak ?? 0) - (a.currentStreak ?? 0) ||
           (b.longestStreak ?? 0) - (a.longestStreak ?? 0)
         );
+      case "likesReceived":
+        return (b.likesReceivedCount ?? 0) - (a.likesReceivedCount ?? 0);
+      case "balance":
+        return (b.balance ?? 0) - (a.balance ?? 0);
       default:
         return 0;
     }
@@ -322,6 +343,8 @@ const VALID_CATEGORIES: LeaderboardCategory[] = [
   "ratings",
   "comments",
   "streak",
+  "likesReceived",
+  "balance",
 ];
 
 /** Поля статистики и профиля для слияния из обоих источников (leaderboard + homepage), чтобы карточки были полными во всех топах */
@@ -340,6 +363,7 @@ const MERGE_STAT_KEYS: (keyof TransformableUser)[] = [
   "titlesReadCount",
   "completedTitlesCount",
   "likesReceivedCount",
+  "balance",
   "showStats",
   "readingHistory",
   "bookmarks",
@@ -363,6 +387,7 @@ const NUMERIC_MERGE_KEYS = new Set([
   "titlesReadCount",
   "completedTitlesCount",
   "likesReceivedCount",
+  "balance",
   "activityScore",
   "reputationScore",
 ]);
@@ -380,6 +405,7 @@ const MERGE_KEY_SNAKE: Record<string, string> = {
   longestStreak: "longest_streak",
   lastStreakDate: "last_streak_date",
   likesReceivedCount: "likes_received_count",
+  balance: "balance",
   activityScore: "activity_score",
   reputationScore: "reputation_score",
   equippedDecorations: "equipped_decorations",
@@ -501,15 +527,22 @@ export default function LeadersPageClient() {
   const { data: singleData, isLoading: singleLoading, isFetching: singleFetching, error: singleError } =
     useGetLeaderboardQuery(
       { category: activeCategory, period: "all", limit: 50 },
-      { skip: supportsPeriod, refetchOnMountOrArgChange: true },
+      { skip: supportsPeriod || activeCategory === "likesReceived", refetchOnMountOrArgChange: true },
     );
+
+  const { data: contributorsData, isLoading: contributorsLoading } = useGetCharacterContributorsQuery(
+    { limit: 200 },
+    { skip: activeCategory !== "likesReceived" },
+  );
 
   const leaderboardData = supportsPeriod
     ? allPeriodsData?.data?.[activePeriod]
-    : singleData?.data;
-  const leaderboardLoading = supportsPeriod ? allPeriodsLoading : singleLoading;
-  const leaderboardFetching = supportsPeriod ? allPeriodsFetching : singleFetching;
-  const leaderboardError = supportsPeriod ? allPeriodsError : singleError;
+    : activeCategory === "likesReceived"
+      ? null
+      : singleData?.data;
+  const leaderboardLoading = supportsPeriod ? allPeriodsLoading : activeCategory === "likesReceived" ? false : singleLoading;
+  const leaderboardFetching = supportsPeriod ? allPeriodsFetching : activeCategory === "likesReceived" ? false : singleFetching;
+  const leaderboardError = supportsPeriod ? allPeriodsError : activeCategory === "likesReceived" ? null : singleError;
 
   const { data: homepageUsersData, isLoading: homepageLoading } = useGetHomepageActiveUsersQuery({
     limit: 100,
@@ -541,20 +574,28 @@ export default function LeadersPageClient() {
       return [];
     })();
 
-    const leaderboardUsersData = leaderboardData?.users ?? [];
     const homepageById = new Map<string, Record<string, unknown>>();
     for (const u of homepageUsers) {
       homepageById.set(u._id, u as unknown as Record<string, unknown>);
     }
 
+    let sourceUsers: Record<string, unknown>[];
+    if (activeCategory === "likesReceived" && contributorsData?.users?.length) {
+      sourceUsers = contributorsData.users.map(c => ({
+        _id: c._id,
+        username: c.username,
+        avatar: c.avatar,
+        likesReceivedCount: c.charactersAcceptedCount,
+        showStats: true,
+      }));
+    } else {
+      sourceUsers = (leaderboardData?.users ?? []) as unknown as Record<string, unknown>[];
+    }
+
     const mergedUsers: TransformableUser[] = [];
-    for (const u of leaderboardUsersData) {
-      const home = homepageById.get(u._id);
-      const merged = mergeLeaderboardWithHomepage(
-        u as unknown as Record<string, unknown>,
-        home,
-        activeCategory,
-      );
+    for (const u of sourceUsers) {
+      const home = homepageById.get(u._id as string);
+      const merged = mergeLeaderboardWithHomepage(u, home, activeCategory);
       mergedUsers.push(merged);
     }
 
@@ -563,9 +604,13 @@ export default function LeadersPageClient() {
     }
 
     return [];
-  }, [leaderboardData, homepageUsersData, activeCategory, decorationsMap]);
+  }, [leaderboardData, contributorsData, homepageUsersData, activeCategory, decorationsMap]);
 
-  const isLoading = leaderboardLoading || leaderboardFetching || homepageLoading;
+  const isLoading =
+    leaderboardLoading ||
+    leaderboardFetching ||
+    homepageLoading ||
+    (activeCategory === "likesReceived" && contributorsLoading);
   const hasError = leaderboardError && leaderboardUsers.length === 0;
 
   const activeCategoryConfig = CATEGORIES.find(c => c.id === activeCategory);
@@ -625,16 +670,29 @@ export default function LeadersPageClient() {
             <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
               {activeCategoryConfig?.description ?? "Рейтинг активных читателей"}
             </p>
+            {activeCategory === "likesReceived" && (
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                Данные с{" "}
+                <Link
+                  href="/thanks"
+                  className="text-[var(--primary)] hover:underline underline-offset-2"
+                >
+                  страницы Благодарностей
+                </Link>
+                .
+              </p>
+            )}
             <p className="text-xs text-[var(--muted-foreground)] mt-1 opacity-90">
               Рейтинг и декорации на карточках обновляются раз в 6 часов.
             </p>
           </header>
 
-          <div
-            className="flex flex-wrap gap-1.5 p-1 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)] w-full sm:w-fit"
-            role="tablist"
-            aria-label="Категории рейтинга"
-          >
+          <div className="flex justify-center w-full">
+            <div
+              className="flex flex-wrap gap-1.5 p-1 rounded-lg bg-[var(--secondary)]/50 border border-[var(--border)] w-full sm:w-fit"
+              role="tablist"
+              aria-label="Категории рейтинга"
+            >
             {CATEGORIES.map(category => {
               const Icon = category.icon;
               const isActive = activeCategory === category.id;
@@ -662,6 +720,7 @@ export default function LeadersPageClient() {
                 </button>
               );
             })}
+            </div>
           </div>
 
           {supportsPeriod && (
@@ -1224,8 +1283,16 @@ function PodiumUserModal({
   if (displayUser.likesReceivedCount != null && displayUser.likesReceivedCount > 0)
     stats.push({
       icon: Heart,
-      label: "Лайков получено",
+      label: category === "likesReceived" ? "Принятых персонажей" : "Лайков получено",
       value: displayUser.likesReceivedCount.toLocaleString("ru"),
+      category: "likesReceived",
+    });
+  if (displayUser.balance != null && displayUser.balance > 0)
+    stats.push({
+      icon: Coins,
+      label: "Монет",
+      value: displayUser.balance.toLocaleString("ru"),
+      category: "balance",
     });
 
   return (
@@ -1370,9 +1437,13 @@ function PodiumUserModal({
                             : best?.period === "month"
                               ? "месяц"
                               : null;
+                        const iconClass =
+                          statCategory === "likesReceived"
+                            ? "w-3 h-3 shrink-0 text-red-500 mt-0.5 flex-shrink-0"
+                            : "w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0";
                         return (
                           <div key={label} className="flex items-start gap-1.5 min-w-0">
-                            <Icon className="w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0" />
+                            <Icon className={iconClass} />
                             <div className="min-w-0 flex-1 text-left overflow-hidden">
                               <p
                                 className="text-[10px] text-[var(--muted-foreground)] leading-tight truncate"
@@ -1437,6 +1508,11 @@ function formatReadingTimeDisplay(minutes: number): string {
   return `${Math.floor(minutes / 1440)} д ${Math.floor((minutes % 1440) / 60)} ч`;
 }
 
+function pluralAcceptedCharacters(n: number): string {
+  const word = n === 1 ? "принятый персонаж" : n < 5 ? "принятых персонажа" : "принятых персонажей";
+  return `${n} ${word}`;
+}
+
 function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCategory): string {
   switch (category) {
     case "level":
@@ -1460,6 +1536,10 @@ function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCat
       const streak = user.currentStreak ?? 0;
       const days = streak === 1 ? "день" : streak < 5 ? "дня" : "дней";
       return `${streak} ${days} 🔥`;
+    case "likesReceived":
+      return pluralAcceptedCharacters(user.likesReceivedCount ?? 0);
+    case "balance":
+      return `${(user.balance ?? 0).toLocaleString("ru")} монет`;
     default:
       return "";
   }

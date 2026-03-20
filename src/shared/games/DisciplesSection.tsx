@@ -7,6 +7,7 @@ import {
   useGetProfileInventoryQuery,
   useDisciplesRerollMutation,
   useDisciplesRecruitMutation,
+  useDisciplesClaimDuplicateRewardMutation,
   useDisciplesDismissMutation,
   useDisciplesTrainMutation,
   useLazyDisciplesBattleMatchQuery,
@@ -17,8 +18,6 @@ import {
   useGetDiscipleTechniquesQuery,
   useDisciplesLearnTechniqueMutation,
   useDisciplesEquipTechniquesMutation,
-  useGetDisciplesExpeditionStatusQuery,
-  useDisciplesStartExpeditionMutation,
   useUpgradeProfileCardMutation,
 } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
@@ -27,30 +26,11 @@ import { getCoverUrls } from "@/lib/asset-url";
 import { getDecorationImageUrls } from "@/api/shop";
 import type { Disciple, DiscipleTechniquesEntry, InventoryEntry } from "@/types/games";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
-import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart } from "lucide-react";
-import { Compass } from "lucide-react";
+import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart, UserPlus, Layers } from "lucide-react";
 
-/** Тип ответа экспедиции (inProgress, lastResult, completesAt и т.д.) */
-interface ExpeditionStatusData {
-  inProgress?: boolean;
-  completesAt?: string;
-  nextExpeditionAt?: string;
-  canStart?: boolean;
-  balance?: number;
-  ambushRiskPercent?: number | null;
-  hasDisciples?: boolean;
-  costs?: Record<string, number>;
-  lastResult?: {
-    at?: string;
-    success?: boolean;
-    difficulty?: string;
-    coinsGained?: number;
-    expGained?: number;
-    log?: string[];
-    ambush?: { happened?: boolean; preventedByTalisman?: boolean };
-    itemsGained?: Array<{ itemId: string; count: number; name?: string; icon?: string }>;
-  };
-}
+/** В отряде одновременно могут быть только 3 активных персонажа; остальные — в резерве */
+const ACTIVE_SLOT_COUNT = 3;
+
 /** Элемент лога боя */
 interface BattleLogEntry {
   action?: string;
@@ -80,11 +60,12 @@ function DiscipleAvatar({
   avatarPath: string;
   showImage: boolean;
   onError: () => void;
-  size?: "lg";
+  size?: "md" | "lg";
 }) {
   const url = avatarPath ? getCoverUrls(avatarPath, "").primary : "";
   const show = url && showImage;
-  const sizeClass = size === "lg" ? "games-card-avatar games-card-avatar--lg" : "games-card-avatar";
+  const sizeClass =
+    size === "lg" ? "games-card-avatar games-card-avatar--lg" : size === "md" ? "games-card-avatar games-card-avatar--md" : "games-card-avatar";
   if (show) {
     return (
       <img
@@ -97,7 +78,7 @@ function DiscipleAvatar({
   }
   return (
     <div className={`${sizeClass} flex items-center justify-center`}>
-      <Users className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--muted-foreground)]" aria-hidden />
+      <Users className={size === "md" ? "w-5 h-5 text-[var(--muted-foreground)]" : "w-10 h-10 sm:w-12 sm:h-12 text-[var(--muted-foreground)]"} aria-hidden />
     </div>
   );
 }
@@ -114,6 +95,9 @@ const TECHNIQUE_TYPE_LABELS: Record<string, string> = {
 const BATTLE_ACTION_LABELS: Record<string, string> = {
   damage: "урон",
   heal: "лечение",
+  buff: "бафф (щит)",
+  debuff: "дебафф",
+  movement: "уклонение",
   item_damage: "урон предметом",
   item_heal: "лечение предметом",
   item_revive: "воскрешение",
@@ -126,18 +110,6 @@ const BATTLE_SUPPORT_ITEMS = [
   { id: "heavenly_thunder_talisman", label: "Талисман небесной грозы", description: "Наносит стартовый урон врагу" },
   { id: "resurrection_fragment", label: "Осколок воскрешения", description: "Разово поднимает бойца после поражения" },
 ] as const;
-
-function formatCountdown(untilMs: number): string {
-  const left = Math.max(0, Math.floor((untilMs - Date.now()) / 1000));
-  const h = Math.floor(left / 3600);
-  const m = Math.floor((left % 3600) / 60);
-  const s = left % 60;
-  const parts: string[] = [];
-  if (h > 0) parts.push(`${h} ч`);
-  if (m > 0 || h > 0) parts.push(`${m} мин`);
-  parts.push(`${s} сек`);
-  return parts.join(" ");
-}
 
 /** Отображает число стата без лишних знаков после запятой (CP и др.) */
 function formatStat(value: number | null | undefined): string {
@@ -158,6 +130,7 @@ export function DisciplesSection() {
   const { data: inventoryData } = useGetProfileInventoryQuery();
   const [reroll, { isLoading: isRerolling }] = useDisciplesRerollMutation();
   const [recruit, { isLoading: isRecruiting }] = useDisciplesRecruitMutation();
+  const [claimDuplicateReward, { isLoading: isClaimingDuplicate }] = useDisciplesClaimDuplicateRewardMutation();
   const [dismiss] = useDisciplesDismissMutation();
   const [train, { isLoading: isTraining }] = useDisciplesTrainMutation();
   const [battle, { isLoading: isBattling }] = useDisciplesBattleMutation();
@@ -165,57 +138,7 @@ export function DisciplesSection() {
   const { data: techniquesData } = useGetDiscipleTechniquesQuery();
   const [learnTechnique, { isLoading: isLearning }] = useDisciplesLearnTechniqueMutation();
   const [equipTechniques, { isLoading: isEquipping }] = useDisciplesEquipTechniquesMutation();
-  const { data: expeditionStatusData, isLoading: expeditionLoading, isError: expeditionStatusError, refetch: refetchExpedition } = useGetDisciplesExpeditionStatusQuery();
-  const [startExpedition, { isLoading: isStartingExpedition }] = useDisciplesStartExpeditionMutation();
   const [upgradeProfileCard, { isLoading: isUpgradingCard }] = useUpgradeProfileCardMutation();
-  const lastShownExpeditionResultAt = useRef<string | null>(null);
-  const expeditionData = expeditionStatusData?.data as ExpeditionStatusData | undefined;
-  const inProgress = expeditionData?.inProgress ?? false;
-  const [, setCountdownNow] = useState(() => Date.now());
-  const expeditionTargetMs =
-    expeditionData?.inProgress && expeditionData?.completesAt
-      ? new Date(expeditionData.completesAt).getTime()
-      : !expeditionData?.canStart && expeditionData?.nextExpeditionAt
-        ? new Date(expeditionData.nextExpeditionAt).getTime()
-        : null;
-  useEffect(() => {
-    if (!expeditionTargetMs) return;
-    const id = setInterval(() => setCountdownNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [expeditionTargetMs]);
-  useEffect(() => {
-    if (!inProgress) return;
-    const id = setInterval(() => refetchExpedition(), 5000);
-    return () => clearInterval(id);
-  }, [inProgress, refetchExpedition]);
-
-  // Показать тосты при появлении результата экспедиции (после завершения по таймеру)
-  useEffect(() => {
-    const res = expeditionData;
-    if (!res?.lastResult || res.inProgress) return;
-    const resultAt = res.lastResult.at;
-    if (!resultAt || lastShownExpeditionResultAt.current === resultAt) return;
-    lastShownExpeditionResultAt.current = resultAt;
-    const payload = res.lastResult;
-    const ambush = (payload as { ambush?: { happened?: boolean; preventedByTalisman?: boolean } }).ambush;
-    if (ambush?.happened) {
-      if (ambush.preventedByTalisman) {
-        toast.success("Экспедиция успешна! Засада отражена талисманом. +" + payload.coinsGained + " монет, +" + payload.expGained + " опыта");
-      } else {
-        toast.warning("Засада! Часть добычи потеряна. +" + payload.coinsGained + " монет, +" + payload.expGained + " опыта");
-      }
-    } else {
-      toast.success(
-        (payload.success ? "Экспедиция успешна! " : "Провал... ") +
-          `+${payload.coinsGained ?? 0} монет, +${payload.expGained ?? 0} опыта`,
-      );
-    }
-    (payload.itemsGained ?? []).forEach((item: { itemId: string; count: number; name?: string; icon?: string }) => {
-      const label = item.name || item.itemId;
-      toast.success(`Найдено: ${label} ×${item.count}`, 5000, { icon: item.icon });
-    });
-  }, [expeditionData?.lastResult, expeditionData?.inProgress, toast]);
-
   const [candidate, setCandidate] = useState<{ characterId: string; titleId: string; name: string; avatar?: string; titleName?: string; attack: number; defense: number; speed: number; hp: number } | null>(null);
   /** Истекает через 10 мин после призыва (сервер тоже сбрасывает кандидата через 10 мин) */
   const [candidateExpiresAt, setCandidateExpiresAt] = useState<number | null>(null);
@@ -227,12 +150,33 @@ export function DisciplesSection() {
   const [selectedSupportItems, setSelectedSupportItems] = useState<string[]>([]);
   const [selectedWeeklySupportItems, setSelectedWeeklySupportItems] = useState<string[]>([]);
   const [candidateAvatarError, setCandidateAvatarError] = useState(false);
+  /** После найма/обмена дубля скрываем панель кандидата, пока бэкенд не обновит lastRerollCandidate */
+  const [consumedCandidateId, setConsumedCandidateId] = useState<string | null>(null);
   const [failedCardMediaIds, setFailedCardMediaIds] = useState<Set<string>>(new Set());
   const [failedDiscipleAvatarIds, setFailedDiscipleAvatarIds] = useState<Set<string>>(new Set());
   const [battleCardErrors, setBattleCardErrors] = useState({ user: false, opponent: false });
 
   const res = data?.data;
   const disciples = (res?.disciples ?? []) as Disciple[];
+  const activeRoster = useMemo(() => disciples.slice(0, ACTIVE_SLOT_COUNT), [disciples]);
+  const reserveRoster = useMemo(() => disciples.slice(ACTIVE_SLOT_COUNT), [disciples]);
+  const rosterItems = useMemo(() => {
+    const items: Array<
+      | { type: "active"; d: Disciple }
+      | { type: "empty"; i: number }
+      | { type: "reserve-header" }
+      | { type: "reserve"; d: Disciple }
+    > = [];
+    for (let i = 0; i < ACTIVE_SLOT_COUNT; i++) {
+      if (activeRoster[i]) items.push({ type: "active", d: activeRoster[i]! });
+      else items.push({ type: "empty", i });
+    }
+    if (reserveRoster.length > 0) {
+      items.push({ type: "reserve-header" });
+      reserveRoster.forEach((d) => items.push({ type: "reserve", d }));
+    }
+    return items;
+  }, [activeRoster, reserveRoster]);
   const profileCards = profileCardsData?.data?.cards ?? [];
   const inventory = (inventoryData?.data ?? []) as InventoryEntry[];
   const inventoryById = new Map(inventory.map((entry) => [entry.itemId, entry]));
@@ -254,9 +198,13 @@ export function DisciplesSection() {
   );
   const leaderboard = leaderboardData?.data ?? [];
   const candidateValid = candidate && (candidateExpiresAt == null || Date.now() <= candidateExpiresAt);
-  const lastReroll = candidateValid ? candidate : (res?.lastRerollCandidate ?? null);
+  const lastRerollRaw = candidateValid ? candidate : (res?.lastRerollCandidate ?? null);
+  const lastReroll = lastRerollRaw?.characterId === consumedCandidateId ? null : lastRerollRaw;
   const canReroll = (res?.balance ?? 0) >= (res?.rerollCostCoins ?? 50);
-  const expeditionTalismanCount = inventoryById.get("expedition_talisman")?.count ?? 0;
+
+  useEffect(() => {
+    if (lastRerollRaw?.characterId && lastRerollRaw.characterId !== consumedCandidateId) setConsumedCandidateId(null);
+  }, [lastRerollRaw?.characterId, consumedCandidateId]);
 
   const toggleSupportItem = (itemId: string, mode: "normal" | "weekly") => {
     const setter = mode === "normal" ? setSelectedSupportItems : setSelectedWeeklySupportItems;
@@ -309,6 +257,7 @@ export function DisciplesSection() {
       await recruit(characterId).unwrap();
       setCandidate(null);
       setCandidateExpiresAt(null);
+      setConsumedCandidateId(characterId);
       toast.success("Ученик в команде!");
     } catch (e: unknown) {
       refetchDisciples();
@@ -317,6 +266,21 @@ export function DisciplesSection() {
         typeof msg === "string" &&
         (msg.toLowerCase().includes("устар") || msg.toLowerCase().includes("expired") || msg.toLowerCase().includes("timeout"));
       toast.error(isExpired ? "Кандидат устарел. Призовите нового." : msg);
+    }
+  };
+
+  const handleClaimDuplicateReward = async (characterId: string) => {
+    try {
+      const result = await claimDuplicateReward(characterId).unwrap();
+      const data = result?.data;
+      setCandidate(null);
+      setCandidateExpiresAt(null);
+      setConsumedCandidateId(characterId);
+      refetchDisciples();
+      const coins = data?.coinsGained ?? 0;
+      toast.success(coins > 0 ? `Дубль обменян: +${coins} монет` : "Компенсация получена");
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Не удалось получить компенсацию за дубля"));
     }
   };
 
@@ -484,7 +448,7 @@ export function DisciplesSection() {
                   <li key={i} className="games-muted">
                     {e.action === "support_items"
                       ? `Подготовка: ${(e.items ?? []).map((item) => item.name || getItemLabel(item.itemId, inventoryById)).join(", ")}`
-                      : `Ход ${e.turn}: ${e.actor === "user" ? "Вы" : "Противник"} — ${e.techniqueName || getItemLabel(e.itemId || "", inventoryById)} (${BATTLE_ACTION_LABELS[e.action ?? ""] ?? e.action}) ${typeof e.value === "number" ? (e.value > 0 ? `+${e.value}` : e.value) : ""}${e.absorbed ? ` · блок ${e.absorbed}` : ""}`}
+                      : `Ход ${e.turn}: ${e.actor === "user" ? "Вы" : "Противник"} — ${e.techniqueName || getItemLabel(e.itemId || "", inventoryById)} (${BATTLE_ACTION_LABELS[e.action ?? ""] ?? e.action}) ${typeof e.value === "number" ? (e.value > 0 ? `+${e.value}` : e.value) : ""}${e.absorbed ? ` · блок ${e.absorbed}` : ""}${(e as { absorbedByShield?: number }).absorbedByShield ? ` · щит ${(e as { absorbedByShield?: number }).absorbedByShield}` : ""}${(e as { shieldTotal?: number }).shieldTotal != null ? ` · щит всего ${(e as { shieldTotal?: number }).shieldTotal}` : ""}`}
                   </li>
                 ))}
               </ul>
@@ -493,136 +457,20 @@ export function DisciplesSection() {
         </div>
       )}
       {/* Статы */}
-      <div className="games-panel flex flex-wrap items-center justify-center gap-4 py-3">
+      <div className="games-panel flex flex-wrap items-center justify-center gap-3 py-2 px-3">
         <span className="inline-flex items-center gap-1.5">
           <Coins className="w-4 h-4 text-[var(--primary)]" aria-hidden />
           <strong className="text-[var(--primary)]">{res.balance}</strong>
           <span className="games-muted text-sm">монет</span>
         </span>
         <span className="games-muted text-sm">Рейтинг <strong className="text-[var(--foreground)]">{res.combatRating}</strong></span>
-        <span className="games-muted text-sm">Ученики <strong className="text-[var(--foreground)]">{disciples.length}/{res.maxDisciples}</strong></span>
+        <span className="games-muted text-sm">В отряде <strong className="text-[var(--foreground)]">{Math.min(disciples.length, ACTIVE_SLOT_COUNT)}/{ACTIVE_SLOT_COUNT}</strong></span>
+        <span className="games-muted text-sm">Всего учеников <strong className="text-[var(--foreground)]">{disciples.length}</strong></span>
         <span className="games-muted text-sm">Карточки <strong className="text-[var(--foreground)]">{cardsSummary.total}</strong></span>
         <span className="games-muted text-sm">Готовы <strong className="text-[var(--foreground)]">{cardsSummary.upgradeReady}</strong></span>
         {cardsSummary.missing > 0 ? (
           <span className="games-muted text-sm">Не получено <strong className="text-[var(--foreground)]">{cardsSummary.missing}</strong></span>
         ) : null}
-      </div>
-
-      {/* Экспедиции */}
-      <div className="games-panel">
-        <h3 className="games-panel-title flex items-center gap-2">
-          <Compass className="w-4 h-4 text-[var(--primary)]" aria-hidden /> Экспедиция
-        </h3>
-        {expeditionLoading && !expeditionData ? (
-          <p className="games-muted text-sm">Загрузка статуса...</p>
-        ) : expeditionStatusError || !expeditionData ? (
-          <p className="games-muted text-sm text-[var(--destructive)]">Не удалось загрузить статус экспедиции</p>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="games-muted text-sm">
-                {expeditionData.inProgress ? (
-                  <>
-                    Экспедиция в пути. Завершится через{" "}
-                    <strong className="text-[var(--foreground)]">
-                      {expeditionData.completesAt && expeditionTargetMs
-                        ? formatCountdown(expeditionTargetMs)
-                        : "—"}
-                    </strong>
-                  </>
-                ) : expeditionData.canStart ? (
-                  <>Готово к отправке. Выберите сложность.</>
-                ) : (
-                  <>
-                    Кулдаун:{" "}
-                    <strong className="text-[var(--foreground)]">
-                      {expeditionData.nextExpeditionAt && expeditionTargetMs
-                        ? formatCountdown(expeditionTargetMs)
-                        : "—"}
-                    </strong>
-                  </>
-                )}
-              </p>
-              <p className="games-muted text-sm">
-                Баланс: <strong className="text-[var(--primary)]">{expeditionData.balance}</strong>
-                {expeditionData.ambushRiskPercent != null && (
-                  <> · Риск засады: <strong className="text-[var(--primary)]">{expeditionData.ambushRiskPercent}%</strong></>
-                )}
-              </p>
-            </div>
-            <div className="games-muted text-xs">
-              Защита экспедиции: <strong className="text-[var(--foreground)]">{expeditionTalismanCount}</strong> талисм.
-              {expeditionTalismanCount > 0
-                ? " При засаде один талисман спишется автоматически."
-                : " Если получите `expedition_talisman`, он будет срабатывать автоматически."}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {(["easy", "normal", "hard"] as const).map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  disabled={!expeditionData.canStart || isStartingExpedition || !expeditionData.hasDisciples}
-                  className={d === "hard" ? "games-btn games-btn-primary" : "games-btn games-btn-secondary"}
-                  onClick={async () => {
-                    try {
-                      const res = await startExpedition({ difficulty: d }).unwrap();
-                      const payload = res?.data;
-                      if (!payload) {
-                        toast.error("Нет ответа от сервера. Попробуйте позже.");
-                        return;
-                      }
-                      toast.success("Экспедиция отправлена! Результат будет через 1–2 минуты.");
-                      refetchExpedition();
-                    } catch (e: unknown) {
-                      toast.error(getErrorMessage(e, "Не удалось отправить экспедицию"));
-                    }
-                  }}
-                >
-                  {d === "easy" ? "Лёгкая" : d === "normal" ? "Обычная" : "Тяжёлая"} ({expeditionData.costs?.[d]}🪙)
-                </button>
-              ))}
-            </div>
-
-            {expeditionData.lastResult && (
-              <div className="games-reward-box">
-                <p className="games-muted text-xs mb-2">Монеты и предметы — вам; опыт начисляется только первому ученику в отряде.</p>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <strong className="text-[var(--foreground)]">
-                    {expeditionData.lastResult.success ? "Успех" : "Провал"} · {expeditionData.lastResult.difficulty === "easy" ? "лёгкая" : expeditionData.lastResult.difficulty === "normal" ? "обычная" : "тяжёлая"}
-                  </strong>
-                  <span className="games-muted text-xs">
-                    {expeditionData.lastResult.at
-                      ? new Date(expeditionData.lastResult.at).toLocaleString()
-                      : "—"}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <span className="games-reward-chip">+{expeditionData.lastResult.coinsGained ?? 0} монет</span>
-                  <span className="games-reward-chip">+{expeditionData.lastResult.expGained ?? 0} опыта</span>
-                  {(expeditionData.lastResult.itemsGained ?? []).map((i: { itemId: string; count: number; name?: string; icon?: string }, idx: number) => (
-                    <span key={idx} className="games-reward-chip inline-flex items-center gap-1">
-                      {i.icon ? <img src={i.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
-                      {i.name || i.itemId} ×{i.count}
-                    </span>
-                  ))}
-                  {(expeditionData.lastResult as { ambush?: { happened: boolean; preventedByTalisman: boolean } }).ambush?.happened && (
-                    <span className="games-reward-chip games-reward-chip--warning">
-                      {(expeditionData.lastResult as { ambush?: { preventedByTalisman?: boolean } }).ambush?.preventedByTalisman ? "Засада отражена" : "Засада"}
-                    </span>
-                  )}
-                </div>
-                {expeditionData.lastResult.log?.length ? (
-                  <ul className="mt-2 space-y-1 text-xs games-muted">
-                    {expeditionData.lastResult.log.slice(0, 6).map((l: string, idx: number) => (
-                      <li key={idx}>{l}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Кандидат */}
@@ -637,8 +485,18 @@ export function DisciplesSection() {
               size="lg"
             />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-[var(--foreground)]">{lastReroll.name}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold text-[var(--foreground)]">{lastReroll.name}</p>
+                {disciples.some((d) => d.characterId === lastReroll.characterId) && (
+                  <span className="inline-flex items-center rounded-md bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                    Дубль
+                  </span>
+                )}
+              </div>
               <p className="games-muted text-sm">{lastReroll.titleName}</p>
+              {disciples.some((d) => d.characterId === lastReroll.characterId) && (
+                <p className="text-xs text-[var(--muted-foreground)] mt-1">Уже есть в команде. Обменяйте на компенсацию.</p>
+              )}
               <div className="flex flex-wrap gap-2 mt-1.5">
                 <span className="games-badge" title="Атака">⚔ {lastReroll.attack}</span>
                 <span className="games-badge" title="Защита">🛡 {lastReroll.defense}</span>
@@ -647,17 +505,29 @@ export function DisciplesSection() {
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => handleRecruit(lastReroll.characterId)}
-                disabled={isRecruiting || disciples.length >= res.maxDisciples}
-                className="games-btn games-btn-primary"
-              >
-                Взять в команду
-              </button>
+              {disciples.some((d) => d.characterId === lastReroll.characterId) ? (
+                <button
+                  type="button"
+                  onClick={() => handleClaimDuplicateReward(lastReroll.characterId)}
+                  disabled={isClaimingDuplicate}
+                  className="games-btn games-btn-primary"
+                  title="Получить монеты за дубля"
+                >
+                  {isClaimingDuplicate ? "…" : "Получить компенсацию"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleRecruit(lastReroll.characterId)}
+                  disabled={isRecruiting}
+                  className="games-btn games-btn-primary"
+                >
+                  Взять в команду
+                </button>
+              )}
               <button type="button" onClick={handleReroll} disabled={!canReroll || isRerolling} className="games-btn games-btn-secondary">
                 <RefreshCw className={`w-4 h-4 ${isRerolling ? "animate-spin" : ""}`} aria-hidden />
-                Ещё призыв ({res.rerollCostCoins} 🪙)
+                Ещё призыв ({res.rerollCostCoins} <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden />)
               </button>
             </div>
           </div>
@@ -669,23 +539,50 @@ export function DisciplesSection() {
           <button
             type="button"
             onClick={handleReroll}
-            disabled={!canReroll || isRerolling || disciples.length >= res.maxDisciples}
+            disabled={!canReroll || isRerolling}
             className="games-btn games-btn-primary inline-flex items-center gap-2"
           >
             <RefreshCw className={`w-5 h-5 ${isRerolling ? "animate-spin" : ""}`} />
-            Призвать ученика — {res.rerollCostCoins} монет
+            Призвать ученика — {res.rerollCostCoins} <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden /> монет
           </button>
         </div>
       )}
 
-      {/* Ростер */}
+      {/* Ростер: активный отряд (3) + резерв */}
       <div>
         <h3 className="games-panel-title">Ваши ученики</h3>
+        <p className="games-muted text-sm mb-3">Активный отряд — первые 3 (бой, экспедиции). Остальные в резерве. Без дублей.</p>
         {disciples.length === 0 ? (
           <p className="games-muted text-sm">Нет учеников. Призовите кандидата выше.</p>
         ) : (
-          <ul className="space-y-3">
-            {disciples.map((d) => {
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
+              <Users className="w-4 h-4" aria-hidden /> Активный отряд (до {ACTIVE_SLOT_COUNT})
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {rosterItems.map((item, idx) => {
+              if (item.type === "reserve-header") {
+                return (
+                  <div key="reserve-header" className="col-span-full border-t border-[var(--border)] pt-4 mt-2">
+                    <h4 className="text-sm font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
+                      <Layers className="w-4 h-4" aria-hidden /> Резерв ({reserveRoster.length})
+                    </h4>
+                    <p className="games-muted text-xs">Остальные ученики. В отряде участвуют только первые 3.</p>
+                  </div>
+                );
+              }
+              if (item.type === "empty") {
+                return (
+                  <div
+                    key={`empty-${item.i}`}
+                    className="rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--muted)]/10 flex flex-col items-center justify-center py-4 px-2 min-h-[72px]"
+                  >
+                    <UserPlus className="w-5 h-5 text-[var(--muted-foreground)]/50 mb-0.5" aria-hidden />
+                    <span className="text-[11px] text-[var(--muted-foreground)]">Пустой слот</span>
+                  </div>
+                );
+              }
+              const d = item.d;
               const raw = techniquesData?.data;
               const list = Array.isArray(raw)
                 ? raw
@@ -717,309 +614,173 @@ export function DisciplesSection() {
               const equipped = new Set(tInfo?.techniquesEquipped ?? []);
               const showDiscipleAvatar = !failedDiscipleAvatarIds.has(d.characterId);
               const relatedCard = profileCards.find(card => card.characterId === d.characterId);
+              const CardWrap = item.type === "active" ? "div" : "li";
+              const cardClass = item.type === "reserve" ? "games-card games-card--compact col-span-full" : "games-card games-card--compact";
               return (
-              <li key={d.characterId} className="games-card">
-                <div className="flex flex-wrap items-start gap-4">
+                <CardWrap key={d.characterId} className={cardClass}>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <div className="shrink-0">
                     <DiscipleAvatar
                       avatarPath={d.avatar ?? ""}
                       showImage={showDiscipleAvatar}
                       onError={() => setFailedDiscipleAvatarIds(prev => new Set(prev).add(d.characterId))}
-                      size="lg"
+                      size="md"
                     />
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-2 mb-1">
-                      <p className="font-semibold text-[var(--foreground)] truncate">{d.name ?? "Ученик"}</p>
-                      {(d.level != null || d.rank) && (
-                        <span className="games-muted text-xs shrink-0">
-                          {d.level != null && <>Ур. {d.level}</>}
-                          {d.level != null && d.rank && " · "}
-                          {d.rank && <>{d.rank}</>}
-                        </span>
-                      )}
-                    </div>
-                    {d.titleName && (
-                      <p className="games-muted text-xs truncate mb-2">{d.titleName}</p>
+                  <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <p className="font-semibold text-sm text-[var(--foreground)] truncate">{d.name ?? "Ученик"}</p>
+                    {(d.level != null || d.rank) && (
+                      <span className="games-muted text-[11px] shrink-0 font-semibold">
+                        {d.level != null && <>Ур.{d.level}</>}
+                        {d.level != null && d.rank && " · "}
+                        {d.rank && <>{d.rank}</>}
+                      </span>
                     )}
-                    {d.exp != null && d.expToNext != null && d.expToNext > 0 && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="games-stat-bar w-24 h-1.5 flex-shrink-0" title="Опыт">
-                          <div className="games-stat-fill h-full" style={{ width: `${Math.min(100, (d.exp / d.expToNext) * 100)}%` }} />
-                        </div>
-                        <span className="games-muted text-xs">{d.exp}/{d.expToNext}</span>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="games-badge games-badge--primary" title="Боевая сила">
-                        <Zap className="w-4 h-4 text-[var(--primary)]" data-icon aria-hidden />
-                        <span>{formatStat(d.cp)}</span>
-                      </span>
-                      <span className="games-badge" title="Атака">
-                        <Swords className="w-4 h-4 text-[var(--destructive)]" data-icon aria-hidden />
-                        <span>{formatStat(d.attack)}</span>
-                      </span>
-                      <span className="games-badge" title="Защита">
-                        <Shield className="w-4 h-4 text-[var(--chart-2)]" data-icon aria-hidden />
-                        <span>{formatStat(d.defense)}</span>
-                      </span>
-                      <span className="games-badge" title="Скорость">
-                        <Footprints className="w-4 h-4 text-[var(--chart-4)]" data-icon aria-hidden />
-                        <span>{formatStat(d.speed)}</span>
-                      </span>
-                      <span className="games-badge" title="HP">
-                        <Heart className="w-4 h-4 text-[var(--chart-3)]" data-icon aria-hidden />
-                        <span>{formatStat(d.hp)}</span>
-                      </span>
-                    </div>
-
-                    {d.cardMedia?.mediaUrl && !failedCardMediaIds.has(d.characterId) ? (
-                      <div className="mb-2">
-                        <div className="games-card-frame inline-block max-w-[200px]">
-                          <img
-                            src={d.cardMedia.mediaUrl}
-                            alt=""
-                            className="w-full max-w-[200px]"
-                            onError={() => setFailedCardMediaIds(prev => new Set(prev).add(d.characterId))}
-                          />
-                          {d.cardMedia.label ? (
-                            <div className="games-muted text-xs mt-1">{d.cardMedia.label}</div>
-                          ) : null}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    <div className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--muted)]/20 p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <div className="text-sm font-medium text-[var(--foreground)]">Игровая карточка</div>
-                          {relatedCard ? (
-                            <div className="text-xs text-[var(--muted-foreground)]">
-                              Ранг {relatedCard.currentStage}
-                              {relatedCard.progression.nextStage
-                                ? ` → ${relatedCard.progression.nextStage}`
-                                : " · максимум"}
-                              {typeof relatedCard.progression.nextStageRequiredLevel === "number"
-                                ? ` · нужен ур. ${relatedCard.progression.nextStageRequiredLevel}`
-                                : ""}
-                            </div>
-                          ) : (
-                            <div className="text-xs text-[var(--muted-foreground)]">
-                              Карточка этого персонажа ещё не получена. Ищите дропы при чтении или откройте колоду.
-                            </div>
-                          )}
-                        </div>
-                        {relatedCard?.progression.nextStage ? (
-                          <button
-                            type="button"
-                            disabled={!relatedCard.progression.canUpgrade || isUpgradingCard}
-                            className="games-btn games-btn-secondary games-btn-sm"
-                            onClick={async () => {
-                              try {
-                                const result = await upgradeProfileCard(relatedCard.id).unwrap();
-                                const success = result?.data?.success;
-                                toast[success ? "success" : "warning"](
-                                  success
-                                    ? `Карточка улучшена до ${result.data?.card?.currentStage ?? relatedCard.currentStage}`
-                                    : "Улучшение не удалось, ресурсы потрачены",
-                                );
-                                refetchCards();
-                                refetchDisciples();
-                              } catch (e: unknown) {
-                                toast.error(getErrorMessage(e, "Не удалось улучшить карточку"));
-                              }
-                            }}
-                          >
-                            Улучшить
-                          </button>
-                        ) : null}
-                      </div>
-                      {relatedCard ? (
-                        <div className="mt-2 space-y-2">
-                          <div className="flex flex-wrap items-start gap-3">
-                            <div className="w-16 shrink-0 rounded-lg overflow-hidden bg-[var(--muted)] border border-[var(--border)]">
-                              {relatedCard.stageImageUrl ? (
-                                <img
-                                  src={getDecorationImageUrls(relatedCard.stageImageUrl).primary}
-                                  alt={relatedCard.characterName || relatedCard.name}
-                                  className="w-full aspect-[3/4] object-cover"
-                                />
-                              ) : null}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-xs text-[var(--muted-foreground)] mb-1">
-                                {relatedCard.characterName || relatedCard.name}
-                              </div>
-                              {relatedCard.progression.nextStage ? (
-                                <div className="text-xs text-[var(--muted-foreground)]">
-                                  До этапа {relatedCard.progression.nextStage} осталось{" "}
-                                  <strong className="text-[var(--foreground)]">
-                                    {Math.max(
-                                      0,
-                                      (relatedCard.progression.nextStageRequiredLevel ?? 0) -
-                                        (d.level ?? 0),
-                                    )}
-                                  </strong>{" "}
-                                  ур.
-                                </div>
-                              ) : (
-                                <div className="text-xs text-[var(--muted-foreground)]">
-                                  Карточка достигла максимального этапа.
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          {relatedCard.progression.nextStageRequiredLevel ? (
-                            <div>
-                              <div className="flex items-center justify-between text-[11px] text-[var(--muted-foreground)] mb-1">
-                                <span>Прогресс ученика</span>
-                                <span>
-                                  {Math.min(
-                                    d.level ?? 0,
-                                    relatedCard.progression.nextStageRequiredLevel,
-                                  )}
-                                  /{relatedCard.progression.nextStageRequiredLevel}
-                                </span>
-                              </div>
-                              <div className="h-2 rounded-full bg-[var(--muted)] overflow-hidden">
-                                <div
-                                  className="h-full bg-[var(--primary)] transition-all"
-                                  style={{
-                                    width: `${Math.min(
-                                      100,
-                                      ((d.level ?? 0) /
-                                        Math.max(
-                                          1,
-                                          relatedCard.progression.nextStageRequiredLevel,
-                                        )) *
-                                        100,
-                                    )}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          ) : null}
-                          <div className="flex flex-wrap gap-2 text-xs text-[var(--muted-foreground)]">
-                            <span className="games-badge">Осколки: {relatedCard.shards}</span>
-                            <span className="games-badge">Копии: {relatedCard.copies}</span>
-                            {relatedCard.progression.nextStageUpgradeCoins > 0 ? (
-                              <span className="games-badge">
-                                Цена: {relatedCard.progression.nextStageUpgradeCoins}🪙
-                              </span>
-                            ) : null}
-                            {relatedCard.progression.nextStageUpgradeItemId ? (
-                              <span className="games-badge">
-                                Материал: {getItemLabel(relatedCard.progression.nextStageUpgradeItemId, inventoryById)} ×{relatedCard.progression.nextStageUpgradeItemCount}
-                                {" · "}
-                                есть {inventoryById.get(relatedCard.progression.nextStageUpgradeItemId)?.count ?? 0}
-                              </span>
-                            ) : null}
-                            {relatedCard.progression.nextStage ? (
-                              <span className="games-badge">
-                                Шанс: {Math.round((relatedCard.progression.nextStageSuccessChance ?? 1) * 100)}%
-                              </span>
-                            ) : null}
-                            {!relatedCard.progression.hasNextStageImage ? (
-                              <span className="games-badge games-badge--warning">Нет изображения следующего этапа</span>
-                            ) : null}
-                            {!relatedCard.progression.canUpgradeByLevel && relatedCard.progression.nextStage ? (
-                              <span className="games-badge games-badge--warning">
-                                Ученику нужен более высокий уровень
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-
-                  {available.length > 0 && (
-                    <div className="mt-3">
-                      <div className="games-muted text-xs font-semibold uppercase tracking-wide mb-2">
-                        Техники (экипировка: до 3)
-                      </div>
-                      <div className="grid gap-2">
-                        {available.slice(0, 6).map((t) => {
-                          const isLearned = learned.has(t.id);
-                          const isEq = equipped.has(t.id);
-                          return (
-                            <div key={t.id} className="flex flex-wrap items-center justify-between gap-2">
-                              <div className="min-w-0">
-                                <div className="text-sm font-medium text-[var(--foreground)] truncate">
-                                  {t.name} <span className="games-muted text-xs">({TECHNIQUE_TYPE_LABELS[t.type] ?? t.type})</span>
-                                </div>
-                                {t.description ? (
-                                  <div className="games-muted text-xs truncate">{t.description}</div>
-                                ) : null}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {!isLearned ? (
-                                  <button
-                                    type="button"
-                                    disabled={isLearning}
-                                    onClick={async () => {
-                                      try {
-                                        await learnTechnique({ characterId: d.characterId, techniqueId: t.id }).unwrap();
-                                        toast.success(`Изучено: ${t.name}`);
-                                      } catch (e: unknown) {
-                                        toast.error(getErrorMessage(e, "Не удалось изучить технику"));
-                                      }
-                                    }}
-                                    className="games-btn games-btn-secondary games-btn-sm"
-                                  >
-                                    Учить ({t.learnCostCoins}🪙)
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    disabled={isEquipping}
-                                    onClick={async () => {
-                                      try {
-                                        const next = isEq
-                                          ? (tInfo?.techniquesEquipped ?? []).filter(x => x !== t.id)
-                                          : [...(tInfo?.techniquesEquipped ?? []), t.id].slice(0, 3);
-                                        await equipTechniques({ characterId: d.characterId, techniqueIds: next }).unwrap();
-                                        toast.success(isEq ? "Снято" : "Экипировано");
-                                      } catch (e: unknown) {
-                                        toast.error(getErrorMessage(e, "Не удалось экипировать"));
-                                      }
-                                    }}
-                                    className={`games-btn games-btn-sm ${isEq ? "games-btn-primary" : "games-btn-secondary"}`}
-                                  >
-                                    {isEq ? "Снять" : "Экипировать"}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                  <div className="flex flex-col gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleTrain(d.characterId)}
-                      disabled={!res.canTrain || isTraining}
-                      className="games-btn games-btn-secondary games-btn-sm whitespace-nowrap"
-                      title="Тренировка (1 раз в день)"
-                    >
-                      <Zap className="w-3.5 h-3.5" aria-hidden /> Тренировка
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDismiss(d.characterId)}
-                      className="games-btn games-btn-danger games-btn-sm whitespace-nowrap"
-                    >
-                      <UserMinus className="w-3.5 h-3.5" aria-hidden /> Отпустить
-                    </button>
+                    {d.titleName && <span className="games-muted text-[11px] truncate">· {d.titleName}</span>}
                   </div>
                 </div>
-              </li>
-            );
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                  <span className="games-badge games-badge--primary text-[11px] px-1.5 py-0.5" title="CP"><Zap className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.cp)}</span></span>
+                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="Атака"><Swords className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.attack)}</span></span>
+                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="Защита"><Shield className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.defense)}</span></span>
+                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="Скорость"><Footprints className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.speed)}</span></span>
+                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="HP"><Heart className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.hp)}</span></span>
+                  {d.exp != null && d.expToNext != null && d.expToNext > 0 && (
+                    <span className="inline-flex items-center gap-1.5 ml-0.5 min-w-0">
+                      <span
+                        className="h-1.5 w-12 min-w-[3rem] max-w-20 rounded-full bg-[var(--muted)] overflow-hidden shrink-0"
+                        role="progressbar"
+                        aria-valuenow={d.exp}
+                        aria-valuemin={0}
+                        aria-valuemax={d.expToNext}
+                        title={`${d.exp}/${d.expToNext} XP`}
+                      >
+                        <span
+                          className="block h-full rounded-full bg-[var(--primary)] transition-all"
+                          style={{ width: `${Math.min(100, (d.exp / d.expToNext) * 100)}%` }}
+                        />
+                      </span>
+                      <span className="games-muted text-[11px] shrink-0">{d.exp}/{d.expToNext} XP</span>
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleTrain(d.characterId)}
+                    disabled={!res.canTrain || isTraining}
+                    className="games-btn games-btn-secondary games-btn-sm"
+                    title="Тренировка (1 раз в день)"
+                  >
+                    <Zap className="w-3 h-3" aria-hidden /> Тренировка
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDismiss(d.characterId)}
+                    className="games-btn games-btn-danger games-btn-sm"
+                  >
+                    <UserMinus className="w-3 h-3" aria-hidden /> Отпустить
+                  </button>
+                </div>
+                <div className="mt-1.5 rounded-md border border-[var(--border)] bg-[var(--muted)]/20 p-2 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {relatedCard?.stageImageUrl ? (
+                      <div className="w-10 h-[52px] shrink-0 rounded overflow-hidden bg-[var(--muted)] border border-[var(--border)]">
+                        <img src={getDecorationImageUrls(relatedCard.stageImageUrl).primary} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ) : null}
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-[var(--foreground)]">
+                        {relatedCard ? `Ранг ${relatedCard.currentStage}${relatedCard.progression.nextStage ? ` → ${relatedCard.progression.nextStage}` : " · макс."}` : "Карточка не получена"}
+                      </div>
+                      {relatedCard?.progression.nextStage && (
+                        <div className="text-[11px] games-muted">
+                          Ур.{d.level ?? 0}/{relatedCard.progression.nextStageRequiredLevel} · {relatedCard.progression.nextStageUpgradeCoins}🪙
+                          {relatedCard.progression.nextStageUpgradeItemId ? ` · ${getItemLabel(relatedCard.progression.nextStageUpgradeItemId, inventoryById)}` : ""}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {relatedCard?.progression.nextStage ? (
+                    <button
+                      type="button"
+                      disabled={!relatedCard.progression.canUpgrade || isUpgradingCard}
+                      className="games-btn games-btn-secondary games-btn-sm shrink-0"
+                      onClick={async () => {
+                        try {
+                          const result = await upgradeProfileCard(relatedCard.id).unwrap();
+                          const success = result?.data?.success;
+                          toast[success ? "success" : "warning"](success ? `Улучшено до ${result.data?.card?.currentStage ?? relatedCard.currentStage}` : "Не удалось");
+                          refetchCards();
+                          refetchDisciples();
+                        } catch (e: unknown) {
+                          toast.error(getErrorMessage(e, "Не удалось улучшить"));
+                        }
+                      }}
+                    >
+                      Улучшить
+                    </button>
+                  ) : null}
+                </div>
+                {available.length > 0 ? (
+                  <div className="mt-1.5">
+                    <div className="games-muted text-[10px] font-semibold uppercase tracking-wide mb-1">Техники (до 3)</div>
+                    <div className="flex flex-wrap gap-1">
+                      {available.slice(0, 6).map((t) => {
+                        const isLearned = learned.has(t.id);
+                        const isEq = equipped.has(t.id);
+                        return (
+                          <div key={t.id} className="inline-flex items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/10 px-1.5 py-0.5">
+                            <span className="text-[11px] truncate max-w-[100px]">{t.name}</span>
+                            {!isLearned ? (
+                              <button
+                                type="button"
+                                disabled={isLearning}
+                                onClick={async () => {
+                                  try {
+                                    await learnTechnique({ characterId: d.characterId, techniqueId: t.id }).unwrap();
+                                    toast.success(`Изучено: ${t.name}`);
+                                  } catch (e: unknown) {
+                                    toast.error(getErrorMessage(e, "Не удалось изучить"));
+                                  }
+                                }}
+                                className="games-btn games-btn-secondary text-[10px] py-0.5 px-1"
+                              >
+                                {t.learnCostCoins}🪙
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={isEquipping}
+                                onClick={async () => {
+                                  try {
+                                    const next = isEq
+                                      ? (tInfo?.techniquesEquipped ?? []).filter(x => x !== t.id)
+                                      : [...(tInfo?.techniquesEquipped ?? []), t.id].slice(0, 3);
+                                    await equipTechniques({ characterId: d.characterId, techniqueIds: next }).unwrap();
+                                    toast.success(isEq ? "Снято" : "Экипировано");
+                                  } catch (e: unknown) {
+                                    toast.error(getErrorMessage(e, "Не удалось экипировать"));
+                                  }
+                                }}
+                                className={`games-btn text-[10px] py-0.5 px-1 ${isEq ? "games-btn-primary" : "games-btn-secondary"}`}
+                              >
+                                {isEq ? "Снять" : "Надеть"}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="games-muted text-[11px] mt-1.5">Техник нет. Изучайте за монеты (лимит в день).</p>
+                )}
+                </CardWrap>
+              );
             })}
-          </ul>
+            </div>
+          </div>
         )}
       </div>
 
