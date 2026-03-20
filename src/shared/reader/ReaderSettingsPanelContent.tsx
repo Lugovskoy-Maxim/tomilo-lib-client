@@ -229,7 +229,11 @@ export function ReaderSettingsPanelContent({
           <div className="flex bg-[var(--secondary)] rounded-xl p-1">
             <button
               type="button"
-              onClick={() => setReadingMode("feed")}
+              onClick={() => {
+                setReadingMode("feed");
+                // Верхняя «Лента» = вертикальный скролл; без этого следующая глава не подгружается.
+                setInfiniteScroll(true);
+              }}
               className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 readingMode === "feed"
                   ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
@@ -240,7 +244,11 @@ export function ReaderSettingsPanelContent({
             </button>
             <button
               type="button"
-              onClick={() => setReadingMode("paged")}
+              onClick={() => {
+                setReadingMode("paged");
+                // По страницам несовместимо с подгрузкой следующей главы при скролле
+                setInfiniteScroll(false);
+              }}
               className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                 readingMode === "paged"
                   ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
@@ -250,17 +258,28 @@ export function ReaderSettingsPanelContent({
               По страницам
             </button>
           </div>
+          <p className="text-[10px] text-[var(--muted-foreground)] leading-snug">
+            «Лента» включает и непрерывную подгрузку глав вниз (отключается в «Переход по главам»).
+          </p>
         </div>
         <div className="space-y-2">
           <span className="text-[11px] text-[var(--muted-foreground)]">Переход по главам</span>
           <SegmentOption
             options={[
               { value: "one" as const, label: "По одной главе", icon: BookOpen },
-              { value: "feed" as const, label: "Лентой", icon: LayoutList, badge: "beta" },
+              {
+                value: "feed" as const,
+                label: "Непрерывно (скролл)",
+                icon: LayoutList,
+                badge: "beta",
+              },
             ]}
             value={infiniteScroll ? "feed" : "one"}
             onChange={v => setInfiniteScroll(v === "feed")}
           />
+          <p className="text-[10px] text-[var(--muted-foreground)] leading-snug">
+            Доступно в режиме «Лента»: следующая глава подтягивается при прокрутке к концу текущей.
+          </p>
         </div>
       </SettingsSection>
 

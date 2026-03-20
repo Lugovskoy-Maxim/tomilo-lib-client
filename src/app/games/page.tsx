@@ -39,8 +39,8 @@ export default function GamesPage() {
   );
 
   useEffect(() => {
-    const t = searchParams.get("tab");
-    if (isValidGamesTabId(t ?? "")) setActiveTabState(t);
+    const tabParam = searchParams.get("tab") ?? "";
+    if (isValidGamesTabId(tabParam)) setActiveTabState(tabParam);
   }, [searchParams]);
 
   useSEO({

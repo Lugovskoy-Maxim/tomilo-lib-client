@@ -83,13 +83,14 @@ export default async function ServerChapterPage({
         );
       }
 
-      chapterData = chapterApiResponse.data;
+      const loadedChapter: import("@/types/title").Chapter = chapterApiResponse.data;
+      chapterData = loadedChapter;
 
       // Проверяем, принадлежит ли глава этому тайтлу (только если получили данные главы)
       const chapterTitleId =
-        typeof chapterData.titleId === "object"
-          ? (chapterData.titleId as { _id: string })._id
-          : chapterData.titleId;
+        typeof loadedChapter.titleId === "object"
+          ? (loadedChapter.titleId as { _id: string })._id
+          : loadedChapter.titleId;
 
       if (chapterTitleId !== titleId) {
         return (
