@@ -45,9 +45,10 @@ function EditAvatarButton({ onAvatarUpdate }: EditAvatarButtonProps) {
       const result = await updateAvatar(file);
 
       if (result.success) {
-        // Перезапрашиваем профиль для получения актуальных данных
         await refetchProfile();
-
+        if (result.avatarUrl) {
+          onAvatarUpdate?.(result.avatarUrl);
+        }
         toast.success("Аватар успешно обновлен!");
       } else {
         throw new Error(result.error || "Ошибка при обновлении аватара");
