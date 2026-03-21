@@ -28,6 +28,8 @@ import type { Disciple, DiscipleTechniquesEntry, InventoryEntry } from "@/types/
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
 import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart, UserPlus, Layers } from "lucide-react";
 
+import { GAME_ART, battleBuffArtForLog, weeklyBattleBiomeArt } from "./gameArt";
+
 /** В отряде одновременно могут быть только 3 активных персонажа; остальные — в резерве */
 const ACTIVE_SLOT_COUNT = 3;
 
@@ -391,6 +393,13 @@ export function DisciplesSection() {
     <div className="space-y-4">
       {battleResult && (
         <div className={`games-panel games-result-screen ${battleResult.outcome === "win" ? "games-result-win" : "games-result-lose"}`}>
+          <div className="mb-3 rounded-xl overflow-hidden border border-[var(--border)]">
+            <img
+              src={battleResult.outcome === "win" ? GAME_ART.battle.victory : GAME_ART.battle.defeat}
+              alt=""
+              className="w-full h-32 sm:h-40 object-cover"
+            />
+          </div>
           <div className="flex items-center justify-between gap-3">
             <h3 className="games-panel-title mb-0">
               {battleResult.outcome === "win" ? "🏆 Победа" : "💀 Поражение"}
@@ -444,13 +453,23 @@ export function DisciplesSection() {
                 Лог боя
               </div>
               <ul className="space-y-1 text-sm">
-                {battleResult.battleLog.slice(0, 10).map((e: BattleLogEntry, i: number) => (
-                  <li key={i} className="games-muted">
-                    {e.action === "support_items"
+                {battleResult.battleLog.slice(0, 10).map((e: BattleLogEntry, i: number) => {
+                  const buffArt = battleBuffArtForLog(e.action, e.techniqueName);
+                  const line =
+                    e.action === "support_items"
                       ? `Подготовка: ${(e.items ?? []).map((item) => item.name || getItemLabel(item.itemId, inventoryById)).join(", ")}`
-                      : `Ход ${e.turn}: ${e.actor === "user" ? "Вы" : "Противник"} — ${e.techniqueName || getItemLabel(e.itemId || "", inventoryById)} (${BATTLE_ACTION_LABELS[e.action ?? ""] ?? e.action}) ${typeof e.value === "number" ? (e.value > 0 ? `+${e.value}` : e.value) : ""}${e.absorbed ? ` · блок ${e.absorbed}` : ""}${(e as { absorbedByShield?: number }).absorbedByShield ? ` · щит ${(e as { absorbedByShield?: number }).absorbedByShield}` : ""}${(e as { shieldTotal?: number }).shieldTotal != null ? ` · щит всего ${(e as { shieldTotal?: number }).shieldTotal}` : ""}`}
-                  </li>
-                ))}
+                      : `Ход ${e.turn}: ${e.actor === "user" ? "Вы" : "Противник"} — ${e.techniqueName || getItemLabel(e.itemId || "", inventoryById)} (${BATTLE_ACTION_LABELS[e.action ?? ""] ?? e.action}) ${typeof e.value === "number" ? (e.value > 0 ? `+${e.value}` : e.value) : ""}${e.absorbed ? ` · блок ${e.absorbed}` : ""}${(e as { absorbedByShield?: number }).absorbedByShield ? ` · щит ${(e as { absorbedByShield?: number }).absorbedByShield}` : ""}${(e as { shieldTotal?: number }).shieldTotal != null ? ` · щит всего ${(e as { shieldTotal?: number }).shieldTotal}` : ""}`;
+                  return (
+                    <li key={i} className="games-muted flex items-start gap-2">
+                      {buffArt ? (
+                        <img src={buffArt} alt="" className="w-4 h-4 rounded-sm shrink-0 mt-0.5 object-cover border border-[var(--border)]" />
+                      ) : (
+                        <span className="w-4 shrink-0" aria-hidden />
+                      )}
+                      <span className="min-w-0">{line}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -695,7 +714,11 @@ export function DisciplesSection() {
                       </div>
                       {relatedCard?.progression.nextStage && (
                         <div className="text-[11px] games-muted">
-                          Ур.{d.level ?? 0}/{relatedCard.progression.nextStageRequiredLevel} · {relatedCard.progression.nextStageUpgradeCoins}🪙
+                          Ур.{d.level ?? 0}/{relatedCard.progression.nextStageRequiredLevel} ·{" "}
+                          <span className="inline-flex items-center gap-0.5">
+                            {relatedCard.progression.nextStageUpgradeCoins}
+                            <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                          </span>
                           {relatedCard.progression.nextStageUpgradeItemId ? ` · ${getItemLabel(relatedCard.progression.nextStageUpgradeItemId, inventoryById)}` : ""}
                         </div>
                       )}
@@ -744,9 +767,10 @@ export function DisciplesSection() {
                                     toast.error(getErrorMessage(e, "Не удалось изучить"));
                                   }
                                 }}
-                                className="games-btn games-btn-secondary text-[10px] py-0.5 px-1"
+                                className="games-btn games-btn-secondary text-[10px] py-0.5 px-1 inline-flex items-center gap-0.5"
                               >
-                                {t.learnCostCoins}🪙
+                                {t.learnCostCoins}
+                                <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
                               </button>
                             ) : (
                               <button
@@ -785,7 +809,10 @@ export function DisciplesSection() {
       </div>
 
       {/* Арена (как сейчас) */}
-      <div className="games-panel">
+      <div className="games-panel overflow-hidden">
+        <div className="mb-4 rounded-xl overflow-hidden border border-[var(--border)]">
+          <img src={GAME_ART.battle.arena} alt="" className="w-full h-28 sm:h-32 object-cover" />
+        </div>
         <h3 className="games-panel-title flex items-center gap-2">
           <Swords className="w-4 h-4 text-[var(--primary)]" aria-hidden /> Арена
         </h3>
@@ -840,12 +867,19 @@ export function DisciplesSection() {
       </div>
 
       {/* Недельные схватки */}
-      <div className="games-panel">
+      <div className="games-panel overflow-hidden">
         <h3 className="games-panel-title flex items-center gap-2">
           <CalendarDays className="w-4 h-4 text-[var(--primary)]" aria-hidden /> Недельная схватка
         </h3>
         {weekly ? (
           <div className="space-y-3">
+            <div className="rounded-xl overflow-hidden border border-[var(--border)] mt-2">
+              <img
+                src={weeklyBattleBiomeArt(typeof weekly.weeklyRating === "number" ? weekly.weeklyRating : 0)}
+                alt=""
+                className="w-full h-24 object-cover"
+              />
+            </div>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="games-muted text-sm">
                 {weekly.weeklyDivision ? (

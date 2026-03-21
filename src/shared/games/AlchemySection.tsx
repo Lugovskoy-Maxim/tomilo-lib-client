@@ -7,6 +7,7 @@ import { getErrorMessage } from "@/lib/utils";
 import { FlaskConical, Sparkles, Coins } from "lucide-react";
 
 import { GameResultReveal } from "./GameResultReveal";
+import { GAME_ART } from "./gameArt";
 
 export function AlchemySection() {
   const toast = useToast();
@@ -18,6 +19,7 @@ export function AlchemySection() {
     open: boolean;
     title: string;
     subtitle?: string;
+    heroImage?: string;
     items?: { itemId: string; count: number; name?: string; icon?: string }[];
     rewards?: { exp?: number; coins?: number };
     tone: "success" | "warning";
@@ -60,6 +62,7 @@ export function AlchemySection() {
           open: true,
           title: "Котёл сорвался",
           subtitle: "Попытка потрачена, но вы всё равно получили утешительные награды и опыт алхимика.",
+          heroImage: GAME_ART.alchemy.mishap,
           rewards: result?.data?.rewards,
           items: result?.data?.itemsGained,
           tone: "warning",
@@ -90,6 +93,7 @@ export function AlchemySection() {
               ? "Улучшенная варка"
               : "Варка завершена",
         subtitle: saved ? "Стабилизатор удержал рецепт и сохранил результат." : "Награды уже начислены в инвентарь и баланс.",
+        heroImage: saved ? GAME_ART.alchemy.amulet : GAME_ART.alchemy.recipe,
         rewards: result?.data?.rewards,
         items: result?.data?.itemsGained,
         tone: "success",
@@ -128,51 +132,65 @@ export function AlchemySection() {
     <div className="space-y-4">
       {status && (
         <div className="games-panel">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="games-muted text-sm">
-              Алхимик: <strong className="text-[var(--foreground)]">ур. {status.alchemyLevel}</strong>{" "}
-              <span className="games-muted text-xs">({status.alchemyExp}/{status.alchemyExpToNext})</span>
-              {status.element ? (
-                <span className="games-muted text-xs"> · стихия: <strong className="text-[var(--foreground)]">{status.element}</strong></span>
-              ) : null}
+          <div className="flex flex-wrap items-start gap-4 mb-3">
+            <div className="shrink-0 w-24 sm:w-28 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20">
+              <img
+                src={GAME_ART.alchemy.cauldronTier(status.cauldronTier)}
+                alt=""
+                className="w-full h-24 sm:h-28 object-cover"
+              />
             </div>
-            <div className="games-muted text-sm">
-              Попытки: <strong className="text-[var(--foreground)]">{status.attemptsLeft}</strong> / {status.craftsPerDay}
-            </div>
-          </div>
-          <div className="games-stat-bar w-full h-2 mt-3">
-            <div
-              className="games-stat-fill h-full"
-              style={{ width: `${Math.min(100, (status.alchemyExp / (status.alchemyExpToNext || 1)) * 100)}%` }}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
-            <div className="games-muted text-sm">
-              Котёл: <strong className="text-[var(--foreground)]">T{status.cauldronTier}</strong>
-              {" · "}Стабилизатор: <strong className="text-[var(--foreground)]">{status.stabilizers?.count ?? 0}</strong>
-            </div>
-            {status.resetAt ? (
-              <div className="games-muted text-xs">
-                Сброс попыток: <strong className="text-[var(--foreground)]">{status.resetAt}</strong>
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="games-muted text-sm">
+                  Алхимик: <strong className="text-[var(--foreground)]">ур. {status.alchemyLevel}</strong>{" "}
+                  <span className="games-muted text-xs">({status.alchemyExp}/{status.alchemyExpToNext})</span>
+                  {status.element ? (
+                    <span className="games-muted text-xs"> · стихия: <strong className="text-[var(--foreground)]">{status.element}</strong></span>
+                  ) : null}
+                </div>
+                <div className="games-muted text-sm">
+                  Попытки: <strong className="text-[var(--foreground)]">{status.attemptsLeft}</strong> / {status.craftsPerDay}
+                </div>
               </div>
-            ) : null}
-            <button
-              type="button"
-              disabled={!status.cauldronUpgrade?.canUpgrade || isUpgrading}
-              className="games-btn games-btn-secondary games-btn-sm"
-              onClick={async () => {
-                try {
-                  const res = await upgradeCauldron().unwrap();
-                  toast.success(`Котёл улучшен до T${res.data.tier}`);
-                } catch (e: unknown) {
-                  toast.error(getErrorMessage(e, "Не удалось улучшить котёл"));
-                }
-              }}
-              title={status.cauldronUpgrade ? `${status.cauldronUpgrade.fragmentItemId}: ${status.cauldronUpgrade.have}/${status.cauldronUpgrade.need}` : undefined}
-            >
-              Улучшить котёл ({status.cauldronUpgrade?.have ?? 0}/{status.cauldronUpgrade?.need ?? 0})
-            </button>
+              <div className="games-stat-bar w-full h-2 mt-3">
+                <div
+                  className="games-stat-fill h-full"
+                  style={{ width: `${Math.min(100, (status.alchemyExp / (status.alchemyExpToNext || 1)) * 100)}%` }}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+                <div className="games-muted text-sm inline-flex flex-wrap items-center gap-2">
+                  Котёл: <strong className="text-[var(--foreground)]">T{status.cauldronTier}</strong>
+                  {" · "}Стабилизатор: <strong className="text-[var(--foreground)]">{status.stabilizers?.count ?? 0}</strong>
+                  {(status.stabilizers?.count ?? 0) > 0 ? (
+                    <img src={GAME_ART.alchemy.amulet} alt="" className="w-5 h-5 rounded object-cover border border-[var(--border)]" />
+                  ) : null}
+                </div>
+                {status.resetAt ? (
+                  <div className="games-muted text-xs">
+                    Сброс попыток: <strong className="text-[var(--foreground)]">{status.resetAt}</strong>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={!status.cauldronUpgrade?.canUpgrade || isUpgrading}
+                  className="games-btn games-btn-secondary games-btn-sm"
+                  onClick={async () => {
+                    try {
+                      const res = await upgradeCauldron().unwrap();
+                      toast.success(`Котёл улучшен до T${res.data.tier}`);
+                    } catch (e: unknown) {
+                      toast.error(getErrorMessage(e, "Не удалось улучшить котёл"));
+                    }
+                  }}
+                  title={status.cauldronUpgrade ? `${status.cauldronUpgrade.fragmentItemId}: ${status.cauldronUpgrade.have}/${status.cauldronUpgrade.need}` : undefined}
+                >
+                  Улучшить котёл ({status.cauldronUpgrade?.have ?? 0}/{status.cauldronUpgrade?.need ?? 0})
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -186,37 +204,44 @@ export function AlchemySection() {
         {recipes.map((r) => (
           <div key={r._id} className="games-recipe flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="games-recipe-name">{r.name}</h3>
-              {r.description && <p className="games-muted mt-0.5 text-sm">{r.description}</p>}
-              <div className="flex flex-wrap gap-2 mt-2">
-                {typeof r.effectiveMishapChancePercent === "number" && (
-                  <span className="games-reward-chip">Риск котла: {r.effectiveMishapChancePercent}%</span>
-                )}
-                {r.element && <span className="games-reward-chip">Стихия: {r.element}</span>}
-              </div>
-              <p className="games-muted mt-2 text-xs">
-                Ингредиенты: {r.ingredients.map((i) => `${i.name || i.itemId} ×${i.count} (есть ${i.have})`).join(", ")}
-              </p>
-              {r.coinCost > 0 && <p className="games-muted text-xs mt-0.5">Монет: {r.coinCost}</p>}
-              {r.resultPreview ? (
-                <div className="flex flex-wrap gap-2 mt-2 text-xs">
-                  {r.resultPreview.common?.itemId ? (
-                    <span className="games-badge">
-                      Обычн.: {r.resultPreview.common.name || r.resultPreview.common.itemId}
-                    </span>
-                  ) : null}
-                  {r.resultPreview.quality?.itemId ? (
-                    <span className="games-badge">
-                      Улучш.: {r.resultPreview.quality.name || r.resultPreview.quality.itemId}
-                    </span>
-                  ) : null}
-                  {r.resultPreview.legendary?.itemId ? (
-                    <span className="games-badge">
-                      Легенд.: {r.resultPreview.legendary.name || r.resultPreview.legendary.itemId}
-                    </span>
+              <div className="flex items-start gap-2">
+                <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20 hidden sm:block">
+                  <img src={GAME_ART.alchemy.recipe} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="games-recipe-name">{r.name}</h3>
+                  {r.description && <p className="games-muted mt-0.5 text-sm">{r.description}</p>}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {typeof r.effectiveMishapChancePercent === "number" && (
+                      <span className="games-reward-chip">Риск котла: {r.effectiveMishapChancePercent}%</span>
+                    )}
+                    {r.element && <span className="games-reward-chip">Стихия: {r.element}</span>}
+                  </div>
+                  <p className="games-muted mt-2 text-xs">
+                    Ингредиенты: {r.ingredients.map((i) => `${i.name || i.itemId} ×${i.count} (есть ${i.have})`).join(", ")}
+                  </p>
+                  {r.coinCost > 0 && <p className="games-muted text-xs mt-0.5">Монет: {r.coinCost}</p>}
+                  {r.resultPreview ? (
+                    <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                      {r.resultPreview.common?.itemId ? (
+                        <span className="games-badge">
+                          Обычн.: {r.resultPreview.common.name || r.resultPreview.common.itemId}
+                        </span>
+                      ) : null}
+                      {r.resultPreview.quality?.itemId ? (
+                        <span className="games-badge">
+                          Улучш.: {r.resultPreview.quality.name || r.resultPreview.quality.itemId}
+                        </span>
+                      ) : null}
+                      {r.resultPreview.legendary?.itemId ? (
+                        <span className="games-badge">
+                          Легенд.: {r.resultPreview.legendary.name || r.resultPreview.legendary.itemId}
+                        </span>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
-              ) : null}
+              </div>
             </div>
             <button
               type="button"
@@ -234,6 +259,7 @@ export function AlchemySection() {
         title={reveal.title}
         subtitle={reveal.subtitle}
         tone={reveal.tone}
+        heroImage={reveal.heroImage}
         onClose={() => setReveal(prev => ({ ...prev, open: false }))}
       >
         <div className="flex flex-wrap gap-2">
