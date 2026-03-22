@@ -80,29 +80,12 @@ jobs:
               exit 1
             fi
 
-            # Создаем простой конфиг для игнорирования ошибок
-            echo "🔧 Creating Next.js config to ignore build errors..."
-            cat > next.config.js << 'EOF'
-            /** @type {import('next').NextConfig} */
-            const nextConfig = {
-              typescript: {
-                ignoreBuildErrors: true,
-              },
-              eslint: {
-                ignoreDuringBuilds: true,
-              },
-            }
+            # Не пишем next.config через heredoc: SSH/Drone вставляет строки между командами — файл получался с SyntaxError.
+            # Конфиг только из репозитория (next.config.ts). Удаляем артефакт старых деплоев.
+            rm -f next.config.js
 
-            module.exports = nextConfig
-            EOF
-
-            echo "Next.js config created:"
-            cat next.config.js
-
-            # Проверяем что мы в правильной папке
-            echo "Project contents:"
-            ls -la
-            echo "Package.json exists: $(test -f package.json && echo 'YES' || echo 'NO')"
+            echo "Project root (кратко):"
+            ls -la package.json next.config.ts 2>/dev/null || true
 
             # Устанавливаем Node.js через nvm
             echo "🔧 Setting up Node.js 20..."
@@ -189,26 +172,8 @@ jobs:
             # Запускаем приложение через pm2
             echo "🔄 Starting Next.js application with PM2..."
 
-            # Создаем ecosystem файл для PM2
-            cat > ecosystem.config.js << 'EOF'
-            module.exports = {
-              apps: [{
-                name: 'tomilo-lib-client',
-                script: 'node_modules/next/dist/bin/next',
-                args: 'start',
-                instances: 1,
-                exec_mode: 'fork',
-                env: {
-                  NODE_ENV: 'production',
-                  PORT: 3000
-                },
-                error_file: './logs/err.log',
-                out_file: './logs/out.log',
-                log_file: './logs/combined.log',
-                time: true
-              }]
-            }
-            EOF
+            # Одна строка — мультистрочный heredoc на этом SSH ломается (в файл попадают служебные строки раннера).
+            echo "module.exports={apps:[{name:'tomilo-lib-client',script:'node_modules/next/dist/bin/next',args:'start',instances:1,exec_mode:'fork',env:{NODE_ENV:'production',PORT:3000},error_file:'./logs/err.log',out_file:'./logs/out.log',log_file:'./logs/combined.log',time:true}]};" > ecosystem.config.js
 
             # Останавливаем старый процесс и запускаем новый
             pm2 stop tomilo-lib-client 2>/dev/null || true
