@@ -64,6 +64,20 @@
   margin-bottom: 1rem;
 }
 
+.games-reveal-root :global(.games-reveal-hero) {
+  margin-bottom: 1rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.games-reveal-root :global(.games-reveal-hero img) {
+  display: block;
+  width: 100%;
+  max-height: 11rem;
+  object-fit: cover;
+}
+
 .games-reveal-root :global(.games-reveal-title) {
   font-size: 1.125rem;
   font-weight: 700;

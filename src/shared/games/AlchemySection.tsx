@@ -1,23 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useGetAlchemyRecipesQuery, useGetAlchemyStatusQuery, useAlchemyCraftMutation, useAlchemyUpgradeCauldronMutation } from "@/store/api/gamesApi";
+import {
+  useGetAlchemyRecipesQuery,
+  useGetAlchemyStatusQuery,
+  useAlchemyCraftMutation,
+  useAlchemyUpgradeCauldronMutation,
+  useGetDisciplesGameShopQuery,
+  useDisciplesGameShopBuyMutation,
+  useGetProfileDisciplesQuery,
+} from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
-import { FlaskConical, Sparkles, Coins } from "lucide-react";
+import { FlaskConical, Sparkles, Coins, ShoppingBag } from "lucide-react";
 
 import { GameResultReveal } from "./GameResultReveal";
+import { GAME_ART } from "./gameArt";
+import { GameItemExchangePanel } from "./GameItemExchangePanel";
 
 export function AlchemySection() {
   const toast = useToast();
   const { data: recipesData, isLoading: recipesLoading, isError: recipesError } = useGetAlchemyRecipesQuery();
   const { data: statusData } = useGetAlchemyStatusQuery();
+  const { data: shopData } = useGetDisciplesGameShopQuery();
+  const { data: disciplesProfile } = useGetProfileDisciplesQuery();
+  const [buyShopOffer, { isLoading: isBuyingShop }] = useDisciplesGameShopBuyMutation();
   const [craft, { isLoading: isCrafting }] = useAlchemyCraftMutation();
   const [upgradeCauldron, { isLoading: isUpgrading }] = useAlchemyUpgradeCauldronMutation();
   const [reveal, setReveal] = useState<{
     open: boolean;
     title: string;
     subtitle?: string;
+    heroImage?: string;
     items?: { itemId: string; count: number; name?: string; icon?: string }[];
     rewards?: { exp?: number; coins?: number };
     tone: "success" | "warning";
@@ -43,6 +57,22 @@ export function AlchemySection() {
   }>;
   const status = statusData?.data;
   const canCraft = status?.canCraft ?? false;
+  const shopOffers = shopData?.data?.offers ?? [];
+  const coinBalance = disciplesProfile?.data?.balance ?? 0;
+
+  const handleBuyShop = async (offerId: string) => {
+    try {
+      const result = await buyShopOffer({ offerId }).unwrap();
+      const lib = result?.data?.library;
+      toast.success(
+        lib
+          ? `Куплено. Библиотека: ур.${lib.level}, опыт ${lib.exp}`
+          : "Покупка выполнена",
+      );
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Не удалось купить"));
+    }
+  };
 
   const handleCraft = async (recipeId: string) => {
     try {
@@ -60,6 +90,7 @@ export function AlchemySection() {
           open: true,
           title: "Котёл сорвался",
           subtitle: "Попытка потрачена, но вы всё равно получили утешительные награды и опыт алхимика.",
+          heroImage: GAME_ART.alchemy.mishap,
           rewards: result?.data?.rewards,
           items: result?.data?.itemsGained,
           tone: "warning",
@@ -90,6 +121,7 @@ export function AlchemySection() {
               ? "Улучшенная варка"
               : "Варка завершена",
         subtitle: saved ? "Стабилизатор удержал рецепт и сохранил результат." : "Награды уже начислены в инвентарь и баланс.",
+        heroImage: saved ? GAME_ART.alchemy.amulet : GAME_ART.alchemy.recipe,
         rewards: result?.data?.rewards,
         items: result?.data?.itemsGained,
         tone: "success",
@@ -103,10 +135,6 @@ export function AlchemySection() {
     }
   };
 
-  if (recipesLoading && !recipesData) {
-    return <div className="games-empty games-muted">Загрузка рецептов...</div>;
-  }
-
   if (recipesError) {
     return (
       <div className="games-panel text-[var(--destructive)]">
@@ -115,108 +143,170 @@ export function AlchemySection() {
     );
   }
 
-  if (recipes.length === 0) {
-    return (
-      <div className="games-panel games-empty">
-        <FlaskConical className="games-empty-icon mx-auto block" />
-        <p className="games-muted">Пока нет доступных рецептов.</p>
-      </div>
-    );
-  }
+  const recipesSkeleton = recipesLoading && !recipesData;
+  const hasRecipes = recipes.length > 0;
 
   return (
     <div className="space-y-4">
-      {status && (
-        <div className="games-panel">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="games-muted text-sm">
-              Алхимик: <strong className="text-[var(--foreground)]">ур. {status.alchemyLevel}</strong>{" "}
-              <span className="games-muted text-xs">({status.alchemyExp}/{status.alchemyExpToNext})</span>
-              {status.element ? (
-                <span className="games-muted text-xs"> · стихия: <strong className="text-[var(--foreground)]">{status.element}</strong></span>
-              ) : null}
-            </div>
-            <div className="games-muted text-sm">
-              Попытки: <strong className="text-[var(--foreground)]">{status.attemptsLeft}</strong> / {status.craftsPerDay}
-            </div>
-          </div>
-          <div className="games-stat-bar w-full h-2 mt-3">
-            <div
-              className="games-stat-fill h-full"
-              style={{ width: `${Math.min(100, (status.alchemyExp / (status.alchemyExpToNext || 1)) * 100)}%` }}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
-            <div className="games-muted text-sm">
-              Котёл: <strong className="text-[var(--foreground)]">T{status.cauldronTier}</strong>
-              {" · "}Стабилизатор: <strong className="text-[var(--foreground)]">{status.stabilizers?.count ?? 0}</strong>
-            </div>
-            {status.resetAt ? (
-              <div className="games-muted text-xs">
-                Сброс попыток: <strong className="text-[var(--foreground)]">{status.resetAt}</strong>
-              </div>
-            ) : null}
-            <button
-              type="button"
-              disabled={!status.cauldronUpgrade?.canUpgrade || isUpgrading}
-              className="games-btn games-btn-secondary games-btn-sm"
-              onClick={async () => {
-                try {
-                  const res = await upgradeCauldron().unwrap();
-                  toast.success(`Котёл улучшен до T${res.data.tier}`);
-                } catch (e: unknown) {
-                  toast.error(getErrorMessage(e, "Не удалось улучшить котёл"));
-                }
-              }}
-              title={status.cauldronUpgrade ? `${status.cauldronUpgrade.fragmentItemId}: ${status.cauldronUpgrade.have}/${status.cauldronUpgrade.need}` : undefined}
-            >
-              Улучшить котёл ({status.cauldronUpgrade?.have ?? 0}/{status.cauldronUpgrade?.need ?? 0})
-            </button>
+      {shopOffers.length > 0 ? (
+        <div className="games-panel py-3 px-4">
+          <h3 className="games-panel-title flex items-center gap-2 text-base mb-2">
+            <ShoppingBag className="w-4 h-4 text-[var(--primary)]" aria-hidden />
+            Лавка
+          </h3>
+          <p className="games-muted text-xs mb-3">
+            Те же товары, что у учеников: стабилизаторы, талисманы, свиток знаний для библиотеки.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {shopOffers.map((offer: { offerId: string; label: string; priceCoins: number }) => (
+              <button
+                key={offer.offerId}
+                type="button"
+                disabled={isBuyingShop || coinBalance < offer.priceCoins}
+                onClick={() => handleBuyShop(offer.offerId)}
+                className="games-btn games-btn-secondary games-btn-sm text-left inline-flex flex-col items-start gap-0.5 max-w-[220px]"
+              >
+                <span className="text-xs font-medium text-[var(--foreground)]">{offer.label}</span>
+                <span className="text-[11px] games-muted inline-flex items-center gap-1">
+                  {offer.priceCoins}
+                  <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                </span>
+              </button>
+            ))}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {!canCraft && (
+      <GameItemExchangePanel
+        title="Обмен предметов"
+        subtitle="Соберите расходники по схеме — удобно перед варками и вылазками."
+        defaultExpanded
+      />
+
+      {recipesSkeleton ? (
+        <div className="games-panel games-muted text-sm py-4 text-center">Загрузка рецептов алхимии…</div>
+      ) : null}
+
+      {!recipesSkeleton && !hasRecipes ? (
+        <div className="games-panel games-empty">
+          <FlaskConical className="games-empty-icon mx-auto block" />
+          <p className="games-muted">Пока нет доступных рецептов пилюль.</p>
+        </div>
+      ) : null}
+
+      {!recipesSkeleton && status ? (
+        <div className="games-panel">
+          <div className="flex flex-wrap items-start gap-4 mb-3">
+            <div className="shrink-0 w-24 sm:w-28 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20">
+              <img
+                src={GAME_ART.alchemy.cauldronTier(status.cauldronTier)}
+                alt=""
+                className="w-full h-24 sm:h-28 object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="games-muted text-sm">
+                  Алхимик: <strong className="text-[var(--foreground)]">ур. {status.alchemyLevel}</strong>{" "}
+                  <span className="games-muted text-xs">({status.alchemyExp}/{status.alchemyExpToNext})</span>
+                  {status.element ? (
+                    <span className="games-muted text-xs"> · стихия: <strong className="text-[var(--foreground)]">{status.element}</strong></span>
+                  ) : null}
+                </div>
+                <div className="games-muted text-sm">
+                  Попытки: <strong className="text-[var(--foreground)]">{status.attemptsLeft}</strong> / {status.craftsPerDay}
+                </div>
+              </div>
+              <div className="games-stat-bar w-full h-2 mt-3">
+                <div
+                  className="games-stat-fill h-full"
+                  style={{ width: `${Math.min(100, (status.alchemyExp / (status.alchemyExpToNext || 1)) * 100)}%` }}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+                <div className="games-muted text-sm inline-flex flex-wrap items-center gap-2">
+                  Котёл: <strong className="text-[var(--foreground)]">T{status.cauldronTier}</strong>
+                  {" · "}Стабилизатор: <strong className="text-[var(--foreground)]">{status.stabilizers?.count ?? 0}</strong>
+                  {(status.stabilizers?.count ?? 0) > 0 ? (
+                    <img src={GAME_ART.alchemy.amulet} alt="" className="w-5 h-5 rounded object-cover border border-[var(--border)]" />
+                  ) : null}
+                </div>
+                {status.resetAt ? (
+                  <div className="games-muted text-xs">
+                    Сброс попыток: <strong className="text-[var(--foreground)]">{status.resetAt}</strong>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={!status.cauldronUpgrade?.canUpgrade || isUpgrading}
+                  className="games-btn games-btn-secondary games-btn-sm"
+                  onClick={async () => {
+                    try {
+                      const res = await upgradeCauldron().unwrap();
+                      toast.success(`Котёл улучшен до T${res.data.tier}`);
+                    } catch (e: unknown) {
+                      toast.error(getErrorMessage(e, "Не удалось улучшить котёл"));
+                    }
+                  }}
+                  title={status.cauldronUpgrade ? `${status.cauldronUpgrade.fragmentItemId}: ${status.cauldronUpgrade.have}/${status.cauldronUpgrade.need}` : undefined}
+                >
+                  Улучшить котёл ({status.cauldronUpgrade?.have ?? 0}/{status.cauldronUpgrade?.need ?? 0})
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {!recipesSkeleton && hasRecipes && !canCraft ? (
         <div className="games-panel border-[var(--border)] bg-[var(--accent)]">
           <p className="games-muted text-sm">🧪 Сегодня лимит варок исчерпан. Завтра можно снова.</p>
         </div>
-      )}
+      ) : null}
+      {!recipesSkeleton && hasRecipes ? (
       <div className="grid gap-4 sm:grid-cols-2">
         {recipes.map((r) => (
           <div key={r._id} className="games-recipe flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="games-recipe-name">{r.name}</h3>
-              {r.description && <p className="games-muted mt-0.5 text-sm">{r.description}</p>}
-              <div className="flex flex-wrap gap-2 mt-2">
-                {typeof r.effectiveMishapChancePercent === "number" && (
-                  <span className="games-reward-chip">Риск котла: {r.effectiveMishapChancePercent}%</span>
-                )}
-                {r.element && <span className="games-reward-chip">Стихия: {r.element}</span>}
-              </div>
-              <p className="games-muted mt-2 text-xs">
-                Ингредиенты: {r.ingredients.map((i) => `${i.name || i.itemId} ×${i.count} (есть ${i.have})`).join(", ")}
-              </p>
-              {r.coinCost > 0 && <p className="games-muted text-xs mt-0.5">Монет: {r.coinCost}</p>}
-              {r.resultPreview ? (
-                <div className="flex flex-wrap gap-2 mt-2 text-xs">
-                  {r.resultPreview.common?.itemId ? (
-                    <span className="games-badge">
-                      Обычн.: {r.resultPreview.common.name || r.resultPreview.common.itemId}
-                    </span>
-                  ) : null}
-                  {r.resultPreview.quality?.itemId ? (
-                    <span className="games-badge">
-                      Улучш.: {r.resultPreview.quality.name || r.resultPreview.quality.itemId}
-                    </span>
-                  ) : null}
-                  {r.resultPreview.legendary?.itemId ? (
-                    <span className="games-badge">
-                      Легенд.: {r.resultPreview.legendary.name || r.resultPreview.legendary.itemId}
-                    </span>
+              <div className="flex items-start gap-2">
+                <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20 hidden sm:block">
+                  <img src={GAME_ART.alchemy.recipe} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="games-recipe-name">{r.name}</h3>
+                  {r.description && <p className="games-muted mt-0.5 text-sm">{r.description}</p>}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {typeof r.effectiveMishapChancePercent === "number" && (
+                      <span className="games-reward-chip">Риск котла: {r.effectiveMishapChancePercent}%</span>
+                    )}
+                    {r.element && <span className="games-reward-chip">Стихия: {r.element}</span>}
+                  </div>
+                  <p className="games-muted mt-2 text-xs">
+                    Ингредиенты: {r.ingredients.map((i) => `${i.name || i.itemId} ×${i.count} (есть ${i.have})`).join(", ")}
+                  </p>
+                  {r.coinCost > 0 && <p className="games-muted text-xs mt-0.5">Монет: {r.coinCost}</p>}
+                  {r.resultPreview ? (
+                    <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                      {r.resultPreview.common?.itemId ? (
+                        <span className="games-badge">
+                          Обычн.: {r.resultPreview.common.name || r.resultPreview.common.itemId}
+                        </span>
+                      ) : null}
+                      {r.resultPreview.quality?.itemId ? (
+                        <span className="games-badge">
+                          Улучш.: {r.resultPreview.quality.name || r.resultPreview.quality.itemId}
+                        </span>
+                      ) : null}
+                      {r.resultPreview.legendary?.itemId ? (
+                        <span className="games-badge">
+                          Легенд.: {r.resultPreview.legendary.name || r.resultPreview.legendary.itemId}
+                        </span>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
-              ) : null}
+              </div>
             </div>
             <button
               type="button"
@@ -229,11 +319,13 @@ export function AlchemySection() {
           </div>
         ))}
       </div>
+      ) : null}
       <GameResultReveal
         open={reveal.open}
         title={reveal.title}
         subtitle={reveal.subtitle}
         tone={reveal.tone}
+        heroImage={reveal.heroImage}
         onClose={() => setReveal(prev => ({ ...prev, open: false }))}
       >
         <div className="flex flex-wrap gap-2">

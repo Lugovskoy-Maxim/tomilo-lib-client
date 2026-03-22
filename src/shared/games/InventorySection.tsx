@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Package } from "lucide-react";
 import { useGetProfileInventoryQuery } from "@/store/api/gamesApi";
+import { normalizeGameInventoryList } from "@/lib/gameInventory";
+import { GameItemExchangePanel } from "./GameItemExchangePanel";
 import { getDecorationImageUrls } from "@/api/shop";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
 import type { InventoryEntry, GameItemType, GameItemRarity } from "@/types/games";
@@ -49,7 +51,7 @@ export function InventorySection() {
     );
   }
 
-  const rawInventory = (data?.data ?? []) as InventoryEntry[];
+  const rawInventory = normalizeGameInventoryList(data);
 
   const inventory = rawInventory.map(entry => {
     const lore = LORE_BY_ID.get(entry.itemId);
@@ -78,22 +80,32 @@ export function InventorySection() {
 
   if (inventory.length === 0) {
     return (
-      <div className="games-panel games-empty">
-        <Package className="games-empty-icon mx-auto block" />
-        <p className="games-muted mb-2">
-          Сумка пуста. Собирайте предметы за чтение глав, квесты и колесо судьбы.
-        </p>
-        <ul className="games-muted text-sm text-left max-w-sm mx-auto space-y-1">
-          <li>📖 Чтение глав — шанс дропа</li>
-          <li>✅ Ежедневные квесты — награды</li>
-          <li>🎡 Колесо судьбы — спин раз в день</li>
-        </ul>
+      <div className="space-y-4">
+        <GameItemExchangePanel
+          title="Обмен предметов"
+          subtitle="Соедините расходники по схеме — результат сразу попадёт в инвентарь."
+        />
+        <div className="games-panel games-empty">
+          <Package className="games-empty-icon mx-auto block" />
+          <p className="games-muted mb-2">
+            Сумка пуста. Собирайте предметы за чтение глав, квесты и колесо судьбы.
+          </p>
+          <ul className="games-muted text-sm text-left max-w-sm mx-auto space-y-1">
+            <li>📖 Чтение глав — шанс дропа</li>
+            <li>✅ Ежедневные квесты — награды</li>
+            <li>🎡 Колесо судьбы — спин раз в день</li>
+          </ul>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      <GameItemExchangePanel
+        title="Обмен предметов"
+        subtitle="Соедините расходники по схеме — результат сразу попадёт в инвентарь."
+      />
       <p className="games-muted text-sm">
         Всего: <strong className="text-[var(--primary)]">{totalItems}</strong> · Уникальных:{" "}
         <strong className="text-[var(--primary)]">{inventory.length}</strong>

@@ -11,15 +11,17 @@ import {
 } from "@/store/api/gamesApi";
 
 import { GameResultReveal } from "./GameResultReveal";
+import { GAME_ART } from "./gameArt";
 
 const RAID_OPTIONS: Array<{
   difficulty: "easy" | "normal" | "hard";
   title: string;
   summary: string;
+  art: string;
 }> = [
-  { difficulty: "easy", title: "Разведка", summary: "Низкий риск, быстрый цикл, стартовая добыча." },
-  { difficulty: "normal", title: "Вылазка", summary: "Сбалансированный режим для ежедневного фарма." },
-  { difficulty: "hard", title: "Рейд", summary: "Высокий риск засады, лучший шанс на редкую добычу." },
+  { difficulty: "easy", title: "Разведка", summary: "Низкий риск, быстрый цикл, стартовая добыча.", art: GAME_ART.raids.difficultyEasy },
+  { difficulty: "normal", title: "Вылазка", summary: "Сбалансированный режим для ежедневного фарма.", art: GAME_ART.raids.difficultyNormal },
+  { difficulty: "hard", title: "Рейд", summary: "Высокий риск засады, лучший шанс на редкую добычу.", art: GAME_ART.raids.difficultyHard },
 ];
 
 export function RaidsSection() {
@@ -93,7 +95,11 @@ export function RaidsSection() {
             {RAID_OPTIONS.map(option => {
               const cost = status.costs?.[option.difficulty] ?? 0;
               return (
-                <div key={option.difficulty} className="games-panel border border-[var(--border)]/70 bg-[var(--muted)]/10">
+                <div key={option.difficulty} className="games-panel border border-[var(--border)]/70 bg-[var(--muted)]/10 overflow-hidden p-0">
+                  <div className="aspect-[16/10] w-full bg-[var(--muted)]/30">
+                    <img src={option.art} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-4">
                   <div className="text-sm font-semibold text-[var(--foreground)]">{option.title}</div>
                   <p className="games-muted text-xs mt-1">{option.summary}</p>
                   <div className="flex flex-wrap gap-2 mt-3 text-xs">
@@ -118,6 +124,7 @@ export function RaidsSection() {
                   >
                     {isStarting ? "Отправка..." : `Начать ${option.title.toLowerCase()}`}
                   </button>
+                  </div>
                 </div>
               );
             })}
@@ -179,6 +186,13 @@ export function RaidsSection() {
             : "Даже неудачная вылазка показывает журнал событий, чтобы было понятно, что произошло."
         }
         tone={resultTone}
+        heroImage={
+          status.lastResult?.success
+            ? GAME_ART.raids.lootExplosion
+            : status.lastResult?.ambush?.happened
+              ? GAME_ART.raids.ambushEyes
+              : GAME_ART.battle.defeat
+        }
       >
         <div className="space-y-2">
           {lastResultLog.map((entry, index) => (

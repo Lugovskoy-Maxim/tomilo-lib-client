@@ -14,7 +14,7 @@ import type { ApiResponseDto } from "@/types/api";
 export const gamesApi = createApi({
   reducerPath: "gamesApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["ProfileDisciples", "Alchemy", "Wheel", "ProfileInventory", "ProfileCards"],
+  tagTypes: ["ProfileDisciples", "Alchemy", "Wheel", "ProfileInventory", "ProfileCards", "DisciplesGameShop"],
   endpoints: builder => ({
     getProfileInventory: builder.query<
       ApiResponseDto<InventoryEntry[]>,
@@ -125,6 +125,72 @@ export const gamesApi = createApi({
       invalidatesTags: ["ProfileDisciples"],
     }),
 
+    disciplesSetPrimary: builder.mutation<
+      ApiResponseDto<{ primaryDiscipleCharacterId: string }>,
+      { characterId: string }
+    >({
+      query: body => ({
+        url: "/users/profile/disciples/primary",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["ProfileDisciples"],
+    }),
+
+    disciplesSetWarehouse: builder.mutation<
+      ApiResponseDto<{ ok: boolean }>,
+      { characterId: string; inWarehouse: boolean }
+    >({
+      query: body => ({
+        url: "/users/profile/disciples/warehouse",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["ProfileDisciples"],
+    }),
+
+    getDisciplesGameShop: builder.query<
+      ApiResponseDto<{
+        offers: Array<
+          | {
+              offerId: string;
+              label: string;
+              priceCoins: number;
+              kind: "item";
+              itemId: string;
+              count: number;
+            }
+          | {
+              offerId: string;
+              label: string;
+              priceCoins: number;
+              kind: "library_exp";
+              libraryExp: number;
+            }
+        >;
+      }>,
+      void
+    >({
+      query: () => ({ url: "/users/profile/disciples/game-shop" }),
+      providesTags: ["DisciplesGameShop"],
+    }),
+
+    disciplesGameShopBuy: builder.mutation<
+      ApiResponseDto<{
+        balance: number;
+        purchased: string;
+        library?: { level: number; exp: number; expToNext?: number };
+      }>,
+      { offerId: string }
+    >({
+      query: body => ({
+        url: "/users/profile/disciples/game-shop/buy",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["ProfileDisciples", "DisciplesGameShop", "ProfileInventory", "Alchemy"],
+    }),
+
     disciplesBattleMatch: builder.query<
       ApiResponseDto<{
         opponent: { userId: string; username: string; avatar?: string; combatRating: number; disciples: unknown[] };
@@ -142,6 +208,10 @@ export const gamesApi = createApi({
         expGained?: number;
         resultScreen?: unknown;
         consumedItems?: InventoryEntry[];
+        /** Если бэкенд отдаёт — показываем и форсим refetch профиля */
+        combatRating?: number;
+        combatRatingDelta?: number;
+        ratingDelta?: number;
       }>,
       { opponentUserId: string; supportItemIds?: string[] }
     >({
@@ -194,7 +264,14 @@ export const gamesApi = createApi({
       providesTags: ["ProfileDisciples"],
     }),
 
-    getDiscipleTechniques: builder.query<ApiResponseDto<DiscipleTechniquesEntry[]>, void>({
+    getDiscipleTechniques: builder.query<
+      ApiResponseDto<{
+        disciples: DiscipleTechniquesEntry[];
+        library?: { level: number; exp: number; expToNext: number };
+        balance?: number;
+      }>,
+      void
+    >({
       query: () => ({ url: "/users/profile/disciples/techniques" }),
       providesTags: ["ProfileDisciples"],
     }),
@@ -221,6 +298,46 @@ export const gamesApi = createApi({
         body,
       }),
       invalidatesTags: ["ProfileDisciples"],
+    }),
+
+    getDisciplesItemExchangeRecipes: builder.query<
+      ApiResponseDto<{
+        recipes: Array<{
+          recipeId: string;
+          label: string;
+          description?: string;
+          canAfford: boolean;
+          inputs: Array<{
+            itemId: string;
+            count: number;
+            have: number;
+            name?: string;
+            icon?: string;
+          }>;
+          outputs: Array<{
+            itemId: string;
+            count: number;
+            name?: string;
+            icon?: string;
+          }>;
+        }>;
+      }>,
+      void
+    >({
+      query: () => ({ url: "/users/profile/disciples/item-exchange/recipes" }),
+      providesTags: ["ProfileInventory"],
+    }),
+
+    disciplesItemExchange: builder.mutation<
+      ApiResponseDto<{ ok: boolean; recipeId: string }>,
+      { recipeId: string }
+    >({
+      query: body => ({
+        url: "/users/profile/disciples/item-exchange",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["ProfileInventory", "ProfileDisciples", "Alchemy"],
     }),
 
     getDisciplesExpeditionStatus: builder.query<
@@ -377,6 +494,10 @@ export const {
   useDisciplesClaimDuplicateRewardMutation,
   useDisciplesDismissMutation,
   useDisciplesTrainMutation,
+  useDisciplesSetPrimaryMutation,
+  useDisciplesSetWarehouseMutation,
+  useGetDisciplesGameShopQuery,
+  useDisciplesGameShopBuyMutation,
   useLazyDisciplesBattleMatchQuery,
   useDisciplesBattleMutation,
   useLazyDisciplesWeeklyBattleMatchQuery,
@@ -385,6 +506,8 @@ export const {
   useGetDiscipleTechniquesQuery,
   useDisciplesLearnTechniqueMutation,
   useDisciplesEquipTechniquesMutation,
+  useGetDisciplesItemExchangeRecipesQuery,
+  useDisciplesItemExchangeMutation,
   useGetDisciplesExpeditionStatusQuery,
   useDisciplesStartExpeditionMutation,
   useGetAlchemyRecipesQuery,

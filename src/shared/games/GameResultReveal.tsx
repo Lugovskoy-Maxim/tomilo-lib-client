@@ -9,6 +9,9 @@ interface GameResultRevealProps {
   title: string;
   subtitle?: string;
   tone?: "default" | "success" | "warning" | "danger";
+  /** Иллюстрация над заголовком (например `/games/...`) */
+  heroImage?: string;
+  heroAlt?: string;
   onClose: () => void;
   children?: ReactNode;
 }
@@ -18,6 +21,8 @@ export function GameResultReveal({
   title,
   subtitle,
   tone = "default",
+  heroImage,
+  heroAlt = "",
   onClose,
   children,
 }: GameResultRevealProps) {
@@ -36,6 +41,11 @@ export function GameResultReveal({
             <X className="w-4 h-4" aria-hidden />
           </button>
           <div className="games-reveal-badge" aria-hidden />
+          {heroImage ? (
+            <div className="games-reveal-hero">
+              <img src={heroImage} alt={heroAlt} />
+            </div>
+          ) : null}
           <h3 className="games-reveal-title">{title}</h3>
           {subtitle ? <p className="games-reveal-subtitle">{subtitle}</p> : null}
           {children ? <div className="games-reveal-body">{children}</div> : null}
