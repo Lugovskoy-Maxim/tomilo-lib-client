@@ -1,18 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { useGetAlchemyRecipesQuery, useGetAlchemyStatusQuery, useAlchemyCraftMutation, useAlchemyUpgradeCauldronMutation } from "@/store/api/gamesApi";
+import {
+  useGetAlchemyRecipesQuery,
+  useGetAlchemyStatusQuery,
+  useAlchemyCraftMutation,
+  useAlchemyUpgradeCauldronMutation,
+  useGetDisciplesGameShopQuery,
+  useDisciplesGameShopBuyMutation,
+  useGetProfileDisciplesQuery,
+} from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
-import { FlaskConical, Sparkles, Coins } from "lucide-react";
+import { FlaskConical, Sparkles, Coins, ShoppingBag } from "lucide-react";
 
 import { GameResultReveal } from "./GameResultReveal";
 import { GAME_ART } from "./gameArt";
+import { GameItemExchangePanel } from "./GameItemExchangePanel";
 
 export function AlchemySection() {
   const toast = useToast();
   const { data: recipesData, isLoading: recipesLoading, isError: recipesError } = useGetAlchemyRecipesQuery();
   const { data: statusData } = useGetAlchemyStatusQuery();
+  const { data: shopData } = useGetDisciplesGameShopQuery();
+  const { data: disciplesProfile } = useGetProfileDisciplesQuery();
+  const [buyShopOffer, { isLoading: isBuyingShop }] = useDisciplesGameShopBuyMutation();
   const [craft, { isLoading: isCrafting }] = useAlchemyCraftMutation();
   const [upgradeCauldron, { isLoading: isUpgrading }] = useAlchemyUpgradeCauldronMutation();
   const [reveal, setReveal] = useState<{
@@ -45,6 +57,22 @@ export function AlchemySection() {
   }>;
   const status = statusData?.data;
   const canCraft = status?.canCraft ?? false;
+  const shopOffers = shopData?.data?.offers ?? [];
+  const coinBalance = disciplesProfile?.data?.balance ?? 0;
+
+  const handleBuyShop = async (offerId: string) => {
+    try {
+      const result = await buyShopOffer({ offerId }).unwrap();
+      const lib = result?.data?.library;
+      toast.success(
+        lib
+          ? `Куплено. Библиотека: ур.${lib.level}, опыт ${lib.exp}`
+          : "Покупка выполнена",
+      );
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Не удалось купить"));
+    }
+  };
 
   const handleCraft = async (recipeId: string) => {
     try {
@@ -107,10 +135,6 @@ export function AlchemySection() {
     }
   };
 
-  if (recipesLoading && !recipesData) {
-    return <div className="games-empty games-muted">Загрузка рецептов...</div>;
-  }
-
   if (recipesError) {
     return (
       <div className="games-panel text-[var(--destructive)]">
@@ -119,18 +143,58 @@ export function AlchemySection() {
     );
   }
 
-  if (recipes.length === 0) {
-    return (
-      <div className="games-panel games-empty">
-        <FlaskConical className="games-empty-icon mx-auto block" />
-        <p className="games-muted">Пока нет доступных рецептов.</p>
-      </div>
-    );
-  }
+  const recipesSkeleton = recipesLoading && !recipesData;
+  const hasRecipes = recipes.length > 0;
 
   return (
     <div className="space-y-4">
-      {status && (
+      {shopOffers.length > 0 ? (
+        <div className="games-panel py-3 px-4">
+          <h3 className="games-panel-title flex items-center gap-2 text-base mb-2">
+            <ShoppingBag className="w-4 h-4 text-[var(--primary)]" aria-hidden />
+            Лавка
+          </h3>
+          <p className="games-muted text-xs mb-3">
+            Те же товары, что у учеников: стабилизаторы, талисманы, свиток знаний для библиотеки.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {shopOffers.map((offer: { offerId: string; label: string; priceCoins: number }) => (
+              <button
+                key={offer.offerId}
+                type="button"
+                disabled={isBuyingShop || coinBalance < offer.priceCoins}
+                onClick={() => handleBuyShop(offer.offerId)}
+                className="games-btn games-btn-secondary games-btn-sm text-left inline-flex flex-col items-start gap-0.5 max-w-[220px]"
+              >
+                <span className="text-xs font-medium text-[var(--foreground)]">{offer.label}</span>
+                <span className="text-[11px] games-muted inline-flex items-center gap-1">
+                  {offer.priceCoins}
+                  <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <GameItemExchangePanel
+        title="Обмен предметов"
+        subtitle="Соберите расходники по схеме — удобно перед варками и вылазками."
+        defaultExpanded
+      />
+
+      {recipesSkeleton ? (
+        <div className="games-panel games-muted text-sm py-4 text-center">Загрузка рецептов алхимии…</div>
+      ) : null}
+
+      {!recipesSkeleton && !hasRecipes ? (
+        <div className="games-panel games-empty">
+          <FlaskConical className="games-empty-icon mx-auto block" />
+          <p className="games-muted">Пока нет доступных рецептов пилюль.</p>
+        </div>
+      ) : null}
+
+      {!recipesSkeleton && status ? (
         <div className="games-panel">
           <div className="flex flex-wrap items-start gap-4 mb-3">
             <div className="shrink-0 w-24 sm:w-28 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20">
@@ -193,13 +257,14 @@ export function AlchemySection() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {!canCraft && (
+      {!recipesSkeleton && hasRecipes && !canCraft ? (
         <div className="games-panel border-[var(--border)] bg-[var(--accent)]">
           <p className="games-muted text-sm">🧪 Сегодня лимит варок исчерпан. Завтра можно снова.</p>
         </div>
-      )}
+      ) : null}
+      {!recipesSkeleton && hasRecipes ? (
       <div className="grid gap-4 sm:grid-cols-2">
         {recipes.map((r) => (
           <div key={r._id} className="games-recipe flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
@@ -254,6 +319,7 @@ export function AlchemySection() {
           </div>
         ))}
       </div>
+      ) : null}
       <GameResultReveal
         open={reveal.open}
         title={reveal.title}

@@ -349,7 +349,7 @@ export function ExpeditionSection() {
                   className="w-full h-28 object-cover"
                 />
               </div>
-              <p className="games-muted text-xs mb-2">Монеты и предметы — вам; опыт начисляется только первому ученику в отряде.</p>
+              <p className="games-muted text-xs mb-2">Монеты и предметы — вам; опыт учеников делится между активным отрядом: основной получает больше, остальные — меньше. Начисляется опыт библиотеки.</p>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <strong className="text-[var(--foreground)]">
                   {expeditionData.lastResult.success ? "Успех" : "Провал"} · {expeditionData.lastResult.difficulty === "easy" ? "лёгкая" : expeditionData.lastResult.difficulty === "normal" ? "обычная" : "тяжёлая"}

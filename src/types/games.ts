@@ -129,6 +129,8 @@ export interface Disciple {
   speed: number;
   hp: number;
   cp?: number;
+  /** На складе — не участвует в боях и вылазках, не получает оттуда опыт */
+  inWarehouse?: boolean;
 }
 
 export type TechniqueType = "attack" | "movement" | "heal" | "buff" | "debuff" | "ultimate";
@@ -144,6 +146,8 @@ export interface TechniqueEntry {
   requiredRank: string;
   learnCostCoins: number;
   iconUrl?: string;
+  /** Требуемый уровень библиотеки для изучения */
+  requiredLibraryLevel?: number;
 }
 
 export interface DiscipleTechniquesEntry {
@@ -168,10 +172,20 @@ export interface WeeklyBattleStatus {
   seasonEndsAt?: string | null;
 }
 
+/** Прогресс библиотеки (разблокировка техник) */
+export interface DisciplesLibraryState {
+  level: number;
+  exp: number;
+  expToNext: number;
+}
+
 /** Ответ профиля учеников */
 export interface ProfileDisciplesResponse {
   disciples: Disciple[];
   maxDisciples: number;
+  /** Основной ученик (больше доли общего опыта в играх) */
+  primaryDiscipleCharacterId?: string | null;
+  library?: DisciplesLibraryState;
   combatRating: number;
   canTrain: boolean;
   canBattle: boolean;
