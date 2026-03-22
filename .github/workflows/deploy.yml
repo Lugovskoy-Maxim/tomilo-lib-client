@@ -15,13 +15,19 @@ jobs:
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: ${{ secrets.VM_SSH_PORT || 22 }}
+          script_stop: true
           script: |
+            set -e
             echo "🚀 Deploying Next.js client to server..."
 
-            # Создаем папку проекта если не существует
-            PROJECT_DIR="/mnt/sdb1/tomilo-lib-client"
-            mkdir -p "$PROJECT_DIR"
-            cd "$PROJECT_DIR"
+            # Каталог деплоя: задайте секрет VM_DEPLOY_PATH (абсолютный путь), иначе /mnt/sdb1/tomilo-lib-client
+            DEPLOY_DIR="${{ secrets.VM_DEPLOY_PATH }}"
+            if [ -z "$DEPLOY_DIR" ]; then
+              DEPLOY_DIR="/mnt/sdb1/tomilo-lib-client"
+            fi
+
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR" || { echo "❌ Не удалось перейти в $DEPLOY_DIR"; exit 1; }
             echo "Current directory: $(pwd)"
 
             # Клонируем или обновляем репозиторий через HTTPS (не требует SSH ключа)
@@ -32,6 +38,13 @@ jobs:
               echo "Updating existing repository..."
               git fetch origin
               git reset --hard origin/main
+            fi
+
+            cd "$DEPLOY_DIR" || exit 1
+            if [ ! -f package.json ]; then
+              echo "❌ В $(pwd) нет package.json — неверный DEPLOY_DIR, пустой клон или не тот репозиторий."
+              ls -la
+              exit 1
             fi
 
             # Создаем простой конфиг для игнорирования ошибок
@@ -78,6 +91,13 @@ jobs:
             echo "Node.js version: $(node --version)"
             echo "npm version: $(npm --version)"
 
+            # nvm может сменить cwd — возвращаемся в проект перед npm
+            cd "$DEPLOY_DIR" || exit 1
+            if [ ! -f package.json ]; then
+              echo "❌ После настройки Node нет package.json в $(pwd)"
+              exit 1
+            fi
+
             # Копируем .env из примера, если нет
             if [ -f .env.example ] && [ ! -f .env ]; then
               cp .env.example .env
@@ -93,8 +113,14 @@ jobs:
 
             # Устанавливаем зависимости
             echo "Installing dependencies..."
+            cd "$DEPLOY_DIR" || exit 1
             rm -rf node_modules .next
-            npm install
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              echo "⚠️ Нет package-lock.json — используем npm install"
+              npm install
+            fi
 
             # Собираем проект БЕЗ Turbopack
             echo "🔨 Building Next.js application (without Turbopack)..."
