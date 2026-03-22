@@ -28,21 +28,54 @@ jobs:
 
             mkdir -p "$DEPLOY_DIR"
             cd "$DEPLOY_DIR" || { echo "❌ Не удалось перейти в $DEPLOY_DIR"; exit 1; }
-            echo "Current directory: $(pwd)"
+            echo "Deploy base directory: $(pwd)"
 
-            # Клонируем или обновляем репозиторий через HTTPS (не требует SSH ключа)
-            if [ ! -d .git ]; then
-              echo "Cloning repository for the first time..."
-              git clone https://github.com/${{ github.repository }}.git .
-            else
+            # Репозиторий: корень DEPLOY_DIR или подпапка app/ (git clone в непустой каталог без .git всегда падает)
+            git_sync_origin() {
+              git fetch origin || { echo "❌ git fetch не удался"; exit 1; }
+              if git rev-parse --verify origin/main >/dev/null 2>&1; then
+                git reset --hard origin/main
+              elif git rev-parse --verify origin/master >/dev/null 2>&1; then
+                git reset --hard origin/master
+              else
+                git remote set-head origin -a 2>/dev/null || true
+                BR=$(git symbolic-ref -q refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
+                if [ -n "$BR" ] && git rev-parse --verify "origin/$BR" >/dev/null 2>&1; then
+                  git reset --hard "origin/$BR"
+                else
+                  echo "❌ Нет origin/main и origin/master; не удалось определить ветку по origin/HEAD."
+                  git branch -r || true
+                  exit 1
+                fi
+              fi
+            }
+
+            REPO_ROOT=""
+            if [ -d .git ]; then
               echo "Updating existing repository..."
-              git fetch origin
-              git reset --hard origin/main
+              git_sync_origin
+              REPO_ROOT="$(pwd)"
+            elif [ -d "$DEPLOY_DIR/app/.git" ]; then
+              echo "Updating repository in app/..."
+              cd "$DEPLOY_DIR/app" || exit 1
+              git_sync_origin
+              REPO_ROOT="$(pwd)"
+            elif [ -z "$(ls -A 2>/dev/null)" ]; then
+              echo "Cloning repository for the first time..."
+              git clone "https://github.com/${{ github.repository }}.git" . || { echo "❌ git clone не удался"; exit 1; }
+              REPO_ROOT="$(pwd)"
+            else
+              echo "Каталог не пуст и не git-репозиторий — клонируем в $DEPLOY_DIR/app"
+              SUB="$DEPLOY_DIR/app"
+              rm -rf "$SUB"
+              git clone "https://github.com/${{ github.repository }}.git" "$SUB" || { echo "❌ git clone в app/ не удался"; exit 1; }
+              REPO_ROOT="$SUB"
             fi
 
-            cd "$DEPLOY_DIR" || exit 1
+            cd "$REPO_ROOT" || { echo "❌ Не удалось перейти в $REPO_ROOT"; exit 1; }
+            echo "Repository root: $(pwd)"
             if [ ! -f package.json ]; then
-              echo "❌ В $(pwd) нет package.json — неверный DEPLOY_DIR, пустой клон или не тот репозиторий."
+              echo "❌ Нет package.json — ошибка клона, приватный репозиторий без доступа или неверный URL."
               ls -la
               exit 1
             fi
@@ -92,7 +125,7 @@ jobs:
             echo "npm version: $(npm --version)"
 
             # nvm может сменить cwd — возвращаемся в проект перед npm
-            cd "$DEPLOY_DIR" || exit 1
+            cd "$REPO_ROOT" || exit 1
             if [ ! -f package.json ]; then
               echo "❌ После настройки Node нет package.json в $(pwd)"
               exit 1
@@ -113,7 +146,7 @@ jobs:
 
             # Устанавливаем зависимости
             echo "Installing dependencies..."
-            cd "$DEPLOY_DIR" || exit 1
+            cd "$REPO_ROOT" || exit 1
             rm -rf node_modules .next
             if [ -f package-lock.json ]; then
               npm ci
