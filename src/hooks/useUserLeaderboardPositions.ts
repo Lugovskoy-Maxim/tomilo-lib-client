@@ -8,6 +8,7 @@ import {
   type LeaderboardUser,
 } from "@/store/api/leaderboardApi";
 import { useAuth } from "./useAuth";
+import { useGetCharacterContributorsQuery } from "@/store/api/usersApi";
 
 export interface UserLeaderboardPosition {
   category: LeaderboardCategory;
@@ -24,6 +25,7 @@ const ALL_CATEGORIES = [
   "streak",
   "chaptersRead",
   "likesReceived",
+  "developmentHelp",
   "balance",
 ] as const satisfies readonly LeaderboardCategory[];
 
@@ -35,7 +37,8 @@ const CATEGORY_LABELS: Record<QueryCategory, string> = {
   comments: "Комментарии",
   streak: "Страйк",
   chaptersRead: "Главы",
-  likesReceived: "Помощь в развитии",
+  likesReceived: "Лайки",
+  developmentHelp: "Помощь в развитии",
   balance: "Монеты",
 };
 
@@ -102,6 +105,10 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     { category: "balance", period: "all", limit: 10 },
     { skip: shouldSkip },
   );
+  const developmentContributors = useGetCharacterContributorsQuery(
+    { limit: 50 },
+    { skip: shouldSkip },
+  );
 
   const allQueries = [
     levelAll,
@@ -115,6 +122,7 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     chaptersReadAllPeriods,
     likesReceivedAll,
     balanceAll,
+    developmentContributors,
   ];
   const isLoading = allQueries.some(q => q.isLoading);
 
@@ -197,6 +205,16 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
       });
     }
 
+    const contribUsers = developmentContributors.data?.users ?? [];
+    const devIndex = contribUsers.findIndex(u => u._id === userId);
+    if (devIndex !== -1 && devIndex < 10) {
+      positions.push({
+        category: "developmentHelp",
+        position: devIndex + 1,
+        label: CATEGORY_LABELS.developmentHelp,
+      });
+    }
+
     return positions.sort((a, b) => a.position - b.position);
   }, [
     userId,
@@ -211,6 +229,7 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     chaptersReadAllPeriods.data,
     likesReceivedAll.data,
     balanceAll.data,
+    developmentContributors.data,
   ]);
 
   const bestPosition = top10Positions.length > 0 ? top10Positions[0] : null;

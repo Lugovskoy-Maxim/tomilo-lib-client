@@ -14,6 +14,7 @@ import TelegramJoinNotification from "@/shared/telegram-join-notification/Telegr
 import ToastContainer from "@/shared/ui/Toast";
 import ProgressNotificationContainer from "@/shared/ui/ProgressNotificationContainer";
 import NotificationSocketToasts from "@/shared/ui/NotificationSocketToasts";
+import DailyQuestCompletionToasts from "@/shared/ui/DailyQuestCompletionToasts";
 import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
 import ServiceWorkerRegistration from "@/shared/pwa/ServiceWorkerRegistration";
@@ -405,6 +406,7 @@ export default function RootLayout({
                 </FontProvider>
               </ThemeProvider>
               <NotificationSocketToasts />
+              <DailyQuestCompletionToasts />
             </Providers>
             <ToastContainer />
             <ProgressNotificationContainer />
