@@ -37,6 +37,34 @@ export function formatNumber(num: number): string {
   return num.toString();
 }
 
+/** Число с правильным склонением «лайк» (лайки на комментариях). */
+export function formatLikesReceivedRu(count: number): string {
+  const n = Math.floor(Math.abs(count));
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  const word =
+    mod10 === 1 && mod100 !== 11
+      ? "лайк"
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)
+        ? "лайка"
+        : "лайков";
+  return `${count} ${word}`;
+}
+
+/** Счётчик принятых персонажей со страницы Благодарностей. */
+export function formatCharactersAcceptedRu(count: number): string {
+  const n = Math.floor(Math.abs(count));
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  const word =
+    mod10 === 1 && mod100 !== 11
+      ? "принятый персонаж"
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)
+        ? "принятых персонажа"
+        : "принятых персонажей";
+  return `${count} ${word}`;
+}
+
 /**
  * Форматирует дату в локализованный формат
  */

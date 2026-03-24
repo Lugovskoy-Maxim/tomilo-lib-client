@@ -10,6 +10,8 @@ export type LeaderboardCategory =
   | "streak"
   | "chaptersRead"
   | "likesReceived"
+  /** Принятые предложения персонажей (страница Благодарностей); данные с /users/character-contributors, не с /users/leaderboard */
+  | "developmentHelp"
   | "balance";
 export type LeaderboardPeriod = "all" | "month" | "week";
 
@@ -41,6 +43,8 @@ export interface LeaderboardUser {
   ratingsCount?: number;
   commentsCount?: number;
   likesReceivedCount?: number;
+  /** Принятых персонажей (только категория developmentHelp на клиенте) */
+  charactersAcceptedCount?: number;
   currentStreak?: number;
   longestStreak?: number;
   lastStreakDate?: string;

@@ -19,6 +19,7 @@ import {
   Trophy,
   Heart,
   Coins,
+  Sparkles,
 } from "lucide-react";
 
 import { Footer, Header } from "@/widgets";
@@ -47,6 +48,7 @@ import {
 } from "@/api/shop";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getRankDisplay } from "@/lib/rank-utils";
+import { formatLikesReceivedRu, formatCharactersAcceptedRu } from "@/lib/utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 import RankStarsOverlay from "@/shared/profile/RankStarsOverlay";
@@ -98,9 +100,16 @@ const CATEGORIES: CategoryConfig[] = [
   },
   {
     id: "likesReceived",
-    label: "По помощи в развитии",
-    shortLabel: "Помощь",
+    label: "Лайки на комментариях",
+    shortLabel: "Лайки",
     icon: Heart,
+    description: "Кто получил больше всего лайков на своих комментариях",
+  },
+  {
+    id: "developmentHelp",
+    label: "Помощь в развитии",
+    shortLabel: "Помощь",
+    icon: Sparkles,
     description: "Рейтинг по принятым предложениям персонажей со страницы Благодарностей",
   },
   {
@@ -152,6 +161,7 @@ interface TransformableUser {
   completedTitlesCount?: number;
   commentsCount?: number;
   likesReceivedCount?: number;
+  charactersAcceptedCount?: number;
   ratingsCount?: number;
   chaptersRead?: number;
   balance?: number;
@@ -290,6 +300,7 @@ function transformUsersToLeaderboard(
       titlesReadCount: user.titlesReadCount ?? 0,
       completedTitlesCount: user.completedTitlesCount ?? 0,
       likesReceivedCount: user.likesReceivedCount ?? 0,
+      charactersAcceptedCount: user.charactersAcceptedCount ?? 0,
       balance: user.balance ?? 0,
       equippedDecorations: resolveEquippedDecorations(user.equippedDecorations, decorationsMap),
       showStats: user.showStats,
@@ -316,6 +327,8 @@ function transformUsersToLeaderboard(
         );
       case "likesReceived":
         return (b.likesReceivedCount ?? 0) - (a.likesReceivedCount ?? 0);
+      case "developmentHelp":
+        return (b.charactersAcceptedCount ?? 0) - (a.charactersAcceptedCount ?? 0);
       case "balance":
         return (b.balance ?? 0) - (a.balance ?? 0);
       default:
@@ -344,6 +357,7 @@ const VALID_CATEGORIES: LeaderboardCategory[] = [
   "comments",
   "streak",
   "likesReceived",
+  "developmentHelp",
   "balance",
 ];
 
@@ -363,6 +377,7 @@ const MERGE_STAT_KEYS: (keyof TransformableUser)[] = [
   "titlesReadCount",
   "completedTitlesCount",
   "likesReceivedCount",
+  "charactersAcceptedCount",
   "balance",
   "showStats",
   "readingHistory",
@@ -387,6 +402,7 @@ const NUMERIC_MERGE_KEYS = new Set([
   "titlesReadCount",
   "completedTitlesCount",
   "likesReceivedCount",
+  "charactersAcceptedCount",
   "balance",
   "activityScore",
   "reputationScore",
@@ -405,6 +421,7 @@ const MERGE_KEY_SNAKE: Record<string, string> = {
   longestStreak: "longest_streak",
   lastStreakDate: "last_streak_date",
   likesReceivedCount: "likes_received_count",
+  charactersAcceptedCount: "characters_accepted_count",
   balance: "balance",
   activityScore: "activity_score",
   reputationScore: "reputation_score",
@@ -425,6 +442,8 @@ const PERIOD_DEPENDENT_KEYS: Partial<Record<LeaderboardCategory, (keyof Transfor
   ratings: ["ratingsCount"],
   comments: ["commentsCount"],
   chaptersRead: ["chaptersRead", "readingTimeMinutes"],
+  /** Счётчик персонажей только из character-contributors, не смешивать с homepage */
+  developmentHelp: ["charactersAcceptedCount"],
 };
 
 function mergeLeaderboardWithHomepage(
@@ -527,22 +546,34 @@ export default function LeadersPageClient() {
   const { data: singleData, isLoading: singleLoading, isFetching: singleFetching, error: singleError } =
     useGetLeaderboardQuery(
       { category: activeCategory, period: "all", limit: 50 },
-      { skip: supportsPeriod || activeCategory === "likesReceived", refetchOnMountOrArgChange: true },
+      { skip: supportsPeriod || activeCategory === "developmentHelp", refetchOnMountOrArgChange: true },
     );
 
   const { data: contributorsData, isLoading: contributorsLoading } = useGetCharacterContributorsQuery(
     { limit: 200 },
-    { skip: activeCategory !== "likesReceived" },
+    { skip: activeCategory !== "developmentHelp" },
   );
 
   const leaderboardData = supportsPeriod
     ? allPeriodsData?.data?.[activePeriod]
-    : activeCategory === "likesReceived"
+    : activeCategory === "developmentHelp"
       ? null
       : singleData?.data;
-  const leaderboardLoading = supportsPeriod ? allPeriodsLoading : activeCategory === "likesReceived" ? false : singleLoading;
-  const leaderboardFetching = supportsPeriod ? allPeriodsFetching : activeCategory === "likesReceived" ? false : singleFetching;
-  const leaderboardError = supportsPeriod ? allPeriodsError : activeCategory === "likesReceived" ? null : singleError;
+  const leaderboardLoading = supportsPeriod
+    ? allPeriodsLoading
+    : activeCategory === "developmentHelp"
+      ? false
+      : singleLoading;
+  const leaderboardFetching = supportsPeriod
+    ? allPeriodsFetching
+    : activeCategory === "developmentHelp"
+      ? false
+      : singleFetching;
+  const leaderboardError = supportsPeriod
+    ? allPeriodsError
+    : activeCategory === "developmentHelp"
+      ? null
+      : singleError;
 
   const { data: homepageUsersData, isLoading: homepageLoading } = useGetHomepageActiveUsersQuery({
     limit: 100,
@@ -580,12 +611,12 @@ export default function LeadersPageClient() {
     }
 
     let sourceUsers: Record<string, unknown>[];
-    if (activeCategory === "likesReceived" && contributorsData?.users?.length) {
+    if (activeCategory === "developmentHelp" && contributorsData?.users?.length) {
       sourceUsers = contributorsData.users.map(c => ({
         _id: c._id,
         username: c.username,
         avatar: c.avatar,
-        likesReceivedCount: c.charactersAcceptedCount,
+        charactersAcceptedCount: c.charactersAcceptedCount,
         showStats: true,
       }));
     } else {
@@ -610,7 +641,7 @@ export default function LeadersPageClient() {
     leaderboardLoading ||
     leaderboardFetching ||
     homepageLoading ||
-    (activeCategory === "likesReceived" && contributorsLoading);
+    (activeCategory === "developmentHelp" && contributorsLoading);
   const hasError = leaderboardError && leaderboardUsers.length === 0;
 
   const activeCategoryConfig = CATEGORIES.find(c => c.id === activeCategory);
@@ -670,7 +701,7 @@ export default function LeadersPageClient() {
             <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
               {activeCategoryConfig?.description ?? "Рейтинг активных читателей"}
             </p>
-            {activeCategory === "likesReceived" && (
+            {activeCategory === "developmentHelp" && (
               <p className="text-xs text-[var(--muted-foreground)] mt-1">
                 Данные с{" "}
                 <Link
@@ -1021,6 +1052,7 @@ const MODAL_STAT_KEYS: (keyof LeaderboardUser)[] = [
   "currentStreak",
   "longestStreak",
   "likesReceivedCount",
+  "charactersAcceptedCount",
   "avatar",
   "equippedDecorations",
   "subscriptionExpiresAt",
@@ -1038,6 +1070,7 @@ const MODAL_STAT_KEY_SNAKE: Record<string, string> = {
   currentStreak: "current_streak",
   longestStreak: "longest_streak",
   likesReceivedCount: "likes_received_count",
+  charactersAcceptedCount: "characters_accepted_count",
   subscriptionExpiresAt: "subscription_expires_at",
 };
 
@@ -1111,6 +1144,7 @@ const NUMERIC_MODAL_STAT_KEYS = new Set([
   "currentStreak",
   "longestStreak",
   "likesReceivedCount",
+  "charactersAcceptedCount",
 ]);
 
 function mergeLeaderForModal(
@@ -1280,10 +1314,17 @@ function PodiumUserModal({
       value: `${displayUser.longestStreak} дн.`,
       category: "streak",
     });
+  if (displayUser.charactersAcceptedCount != null && displayUser.charactersAcceptedCount > 0)
+    stats.push({
+      icon: Sparkles,
+      label: "Принятых персонажей",
+      value: displayUser.charactersAcceptedCount.toLocaleString("ru"),
+      category: "developmentHelp",
+    });
   if (displayUser.likesReceivedCount != null && displayUser.likesReceivedCount > 0)
     stats.push({
       icon: Heart,
-      label: category === "likesReceived" ? "Принятых персонажей" : "Лайков получено",
+      label: "Лайков получено",
       value: displayUser.likesReceivedCount.toLocaleString("ru"),
       category: "likesReceived",
     });
@@ -1440,7 +1481,9 @@ function PodiumUserModal({
                         const iconClass =
                           statCategory === "likesReceived"
                             ? "w-3 h-3 shrink-0 text-red-500 mt-0.5 flex-shrink-0"
-                            : "w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0";
+                            : statCategory === "developmentHelp"
+                              ? "w-3 h-3 shrink-0 text-violet-500 mt-0.5 flex-shrink-0"
+                              : "w-3 h-3 shrink-0 text-[var(--muted-foreground)] mt-0.5 flex-shrink-0";
                         return (
                           <div key={label} className="flex items-start gap-1.5 min-w-0">
                             <Icon className={iconClass} />
@@ -1508,11 +1551,6 @@ function formatReadingTimeDisplay(minutes: number): string {
   return `${Math.floor(minutes / 1440)} д ${Math.floor((minutes % 1440) / 60)} ч`;
 }
 
-function pluralAcceptedCharacters(n: number): string {
-  const word = n === 1 ? "принятый персонаж" : n < 5 ? "принятых персонажа" : "принятых персонажей";
-  return `${n} ${word}`;
-}
-
 function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCategory): string {
   switch (category) {
     case "level":
@@ -1537,7 +1575,9 @@ function getCategoryDisplayValue(user: LeaderboardUser, category: LeaderboardCat
       const days = streak === 1 ? "день" : streak < 5 ? "дня" : "дней";
       return `${streak} ${days} 🔥`;
     case "likesReceived":
-      return pluralAcceptedCharacters(user.likesReceivedCount ?? 0);
+      return formatLikesReceivedRu(user.likesReceivedCount ?? 0);
+    case "developmentHelp":
+      return formatCharactersAcceptedRu(user.charactersAcceptedCount ?? 0);
     case "balance":
       return `${(user.balance ?? 0).toLocaleString("ru")} монет`;
     default:

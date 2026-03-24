@@ -485,8 +485,8 @@ export const authApi = createApi({
       },
       invalidatesTags: (result, error, arg) =>
         arg?.titleId
-          ? [{ type: "ReadingHistory", id: arg.titleId }, "ReadingHistory", "Auth"]
-          : ["ReadingHistory", "Auth"],
+          ? [{ type: "ReadingHistory", id: arg.titleId }, "ReadingHistory", "Auth", "DailyQuests"]
+          : ["ReadingHistory", "Auth", "DailyQuests"],
     }),
 
     removeFromReadingHistory: builder.mutation<

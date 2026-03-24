@@ -7,6 +7,7 @@ import {
   LeaderboardCategory,
   LeaderboardPeriod,
 } from "@/store/api/leaderboardApi";
+import { useGetCharacterContributorsQuery } from "@/store/api/usersApi";
 
 export interface Top10BadgeInfo {
   category: LeaderboardCategory;
@@ -22,7 +23,8 @@ const CATEGORY_LABELS: Record<LeaderboardCategory, string> = {
   comments: "Комментарии",
   streak: "Страйк",
   chaptersRead: "Главы",
-  likesReceived: "Помощь в развитии",
+  likesReceived: "Лайки",
+  developmentHelp: "Помощь в развитии",
   balance: "Монеты",
 };
 
@@ -68,6 +70,10 @@ export function useTop10Badge(userId: string | undefined) {
     { category: "balance", period: "all", limit: 10 },
     { skip: !userId },
   );
+  const developmentContributorsQuery = useGetCharacterContributorsQuery(
+    { limit: 50 },
+    { skip: !userId },
+  );
 
   const allQueries = [
     levelQuery,
@@ -77,6 +83,7 @@ export function useTop10Badge(userId: string | undefined) {
     chaptersReadAllPeriods,
     likesReceivedQuery,
     balanceQuery,
+    developmentContributorsQuery,
   ];
   const isLoading = allQueries.some(q => q.isLoading);
 
@@ -163,6 +170,19 @@ export function useTop10Badge(userId: string | undefined) {
       }
     }
 
+    const contribUsers = developmentContributorsQuery.data?.users;
+    if (contribUsers) {
+      const index = contribUsers.findIndex(u => u._id === userId);
+      if (index !== -1 && index < 10) {
+        badges.push({
+          category: "developmentHelp",
+          position: index + 1,
+          label: CATEGORY_LABELS.developmentHelp,
+          period: "all",
+        });
+      }
+    }
+
     return badges.sort((a, b) => a.position - b.position);
   }, [
     userId,
@@ -173,6 +193,7 @@ export function useTop10Badge(userId: string | undefined) {
     chaptersReadAllPeriods.data,
     likesReceivedQuery.data,
     balanceQuery.data,
+    developmentContributorsQuery.data,
   ]);
 
   const bestBadge = allBadges.length > 0 ? allBadges[0] : null;

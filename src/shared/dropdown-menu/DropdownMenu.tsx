@@ -21,6 +21,7 @@ import {
   BookOpen,
   Coins,
   Heart,
+  Sparkles,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
@@ -45,6 +46,7 @@ const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
   streak: Flame,
   chaptersRead: BookOpen,
   likesReceived: Heart,
+  developmentHelp: Sparkles,
   balance: Coins,
 };
 
