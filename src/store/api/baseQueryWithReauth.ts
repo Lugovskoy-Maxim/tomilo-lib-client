@@ -2,6 +2,7 @@ import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 import type { BaseQueryApi } from "@reduxjs/toolkit/query/react";
 import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
+import { canQueueBody, enqueueOfflineMutation } from "@/lib/offlineMutationQueue";
 
 export const AUTH_TOKEN_KEY = "tomilo_lib_token";
 export const REFRESH_TOKEN_KEY = "tomilo_lib_refresh_token";
@@ -49,6 +50,35 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
   });
 
   let result = await baseQuery(args, api, extraOptions);
+
+  const getRequestMeta = (): { url: string; method: string; body?: unknown } => {
+    if (typeof args === "string") return { url: args, method: "GET" };
+    const req = args as { url: string; method?: string; body?: unknown };
+    return { url: req.url, method: (req.method || "GET").toUpperCase(), body: req.body };
+  };
+
+  const requestMeta = getRequestMeta();
+  const isMutationMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(requestMeta.method);
+  const isAuthEndpoint = /\/auth\//.test(requestMeta.url);
+  const isOfflineNetworkFailure =
+    result.error?.status === "FETCH_ERROR" &&
+    typeof result.error?.error === "string" &&
+    /failed to fetch|networkerror|network request failed|load failed/i.test(result.error.error);
+
+  if (isOfflineNetworkFailure && isMutationMethod && !isAuthEndpoint && canQueueBody(requestMeta.body)) {
+    enqueueOfflineMutation({
+      url: requestMeta.url,
+      method: requestMeta.method as "POST" | "PUT" | "PATCH" | "DELETE",
+      body: requestMeta.body,
+    });
+    return {
+      data: {
+        success: true,
+        queuedOffline: true,
+        message: "Действие сохранено и будет отправлено при восстановлении сети.",
+      },
+    };
+  }
 
   // При 429 (Too Many Requests) — одна повторная попытка с задержкой (защита от DDoS)
   if (result.error?.status === 429) {

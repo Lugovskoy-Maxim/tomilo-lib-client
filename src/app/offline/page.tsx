@@ -57,6 +57,57 @@ export default function OfflinePage() {
     setManifests(readOfflineManifests());
   }, []);
 
+  useEffect(() => {
+    // Миграция для ранее скачанных глав: докешируем HTML-страницы маршрутов,
+    // чтобы офлайн-открытие работало даже после холодного старта приложения.
+    if (typeof window === "undefined") return;
+    if (!("caches" in window)) return;
+    if (navigator.onLine === false) return;
+    if (manifests.length === 0) return;
+
+    let cancelled = false;
+    const origin = window.location.origin;
+
+    const ensureNavigationCache = async () => {
+      try {
+        const pagesCache = await caches.open(CACHE_PAGES);
+        for (const manifest of manifests) {
+          for (const ch of manifest.downloadedChapters ?? []) {
+            if (!ch.chapterPath) continue;
+            if (cancelled) return;
+            const baseUrl = `${origin}${ch.chapterPath}`;
+            const offlineUrl = `${baseUrl}?offlineRead=1`;
+            const existingBase = await pagesCache.match(baseUrl);
+            const existingOffline = await pagesCache.match(offlineUrl);
+            if (!existingBase) {
+              try {
+                const response = await fetch(baseUrl, { credentials: "include" });
+                if (response.ok) await pagesCache.put(baseUrl, response.clone());
+              } catch {
+                // Ignore: we'll retry later on next visit.
+              }
+            }
+            if (!existingOffline) {
+              try {
+                const response = await fetch(offlineUrl, { credentials: "include" });
+                if (response.ok) await pagesCache.put(offlineUrl, response.clone());
+              } catch {
+                // Ignore: we'll retry later on next visit.
+              }
+            }
+          }
+        }
+      } catch {
+        // Ignore cache migration issues to keep page usable.
+      }
+    };
+
+    void ensureNavigationCache();
+    return () => {
+      cancelled = true;
+    };
+  }, [manifests]);
+
   const handleRemoveChapter = useCallback(async (titleId: string, chapterId: string) => {
     if (typeof window === "undefined" || !chapterId || !titleId) return;
 
@@ -173,7 +224,7 @@ export default function OfflinePage() {
                             key={`${manifest.titleId}-${ch.chapterId}`}
                             className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--background)]/70 transition-colors"
                           >
-                            <Link
+                            <a
                               href={`${ch.chapterPath}?offlineRead=1`}
                               className="min-w-0 flex-1 flex items-center gap-2"
                             >
@@ -182,7 +233,7 @@ export default function OfflinePage() {
                                 Глава {ch.chapterNumber ?? "?"}
                                 {ch.chapterTitle ? ` - ${ch.chapterTitle}` : ""}
                               </span>
-                            </Link>
+                            </a>
                             <button
                               type="button"
                               onClick={() => void handleRemoveChapter(manifest.titleId, ch.chapterId)}

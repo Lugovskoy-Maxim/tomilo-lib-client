@@ -20,6 +20,7 @@ import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
 import ServiceWorkerRegistration from "@/shared/pwa/ServiceWorkerRegistration";
 import { OfflineBanner } from "@/shared/pwa/OfflineBanner";
 import { AddToHomeScreenBanner } from "@/shared/pwa/AddToHomeScreenBanner";
+import OfflineMutationSync from "@/shared/pwa/OfflineMutationSync";
 
 /** Viewport без ограничения зума — жесты (пинч) работают; авто-зум при фокусе на инпутах убираем через font-size в CSS */
 export const viewport: Viewport = {
@@ -279,6 +280,7 @@ export default function RootLayout({
                     <div className="contents">
                       <Suspense fallback={null}>
                         <ServiceWorkerRegistration />
+                        <OfflineMutationSync />
                         <OfflineBanner />
                         <AddToHomeScreenBanner />
                       </Suspense>
