@@ -74,6 +74,59 @@ function toAbsoluteApiUrl(baseUrl: string, url: string): string {
   return `${normalizedBase}${normalizedPath}`;
 }
 
+function normalizeUrlPath(url: string): string {
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return url;
+    }
+  }
+  return url.startsWith("/") ? url : `/${url}`;
+}
+
+function getMergeKey(item: Omit<OfflineMutationQueueItem, "id" | "createdAt">): string | null {
+  const path = normalizeUrlPath(item.url);
+  const method = item.method;
+
+  if (method === "POST" && /^\/users\/profile\/history\/[^/]+\/[^/]+$/.test(path)) {
+    return `history:${path}`;
+  }
+
+  if (["POST", "PUT", "DELETE"].includes(method) && /^\/users\/profile\/bookmarks\/[^/?]+$/.test(path)) {
+    const titleId = path.split("/").pop() ?? "";
+    return `bookmark:${titleId}`;
+  }
+
+  if (method === "POST" && /^\/comments\/[^/]+\/reactions$/.test(path)) {
+    const commentId = path.split("/")[2] ?? "";
+    return `comment-reaction:${commentId}`;
+  }
+
+  if (method === "POST" && /^\/chapters\/[^/]+\/reactions$/.test(path)) {
+    const chapterId = path.split("/")[2] ?? "";
+    return `chapter-reaction:${chapterId}`;
+  }
+
+  if (method === "POST" && /^\/chapters\/[^/]+\/rating$/.test(path)) {
+    const chapterId = path.split("/")[2] ?? "";
+    return `chapter-rating:${chapterId}`;
+  }
+
+  return null;
+}
+
+function getSyncPriority(item: OfflineMutationQueueItem): number {
+  const path = normalizeUrlPath(item.url);
+  if (/^\/users\/profile\/history\/[^/]+\/[^/]+$/.test(path)) return 10;
+  if (/^\/users\/profile\/bookmarks\/[^/?]+$/.test(path)) return 20;
+  if (/^\/chapters\/[^/]+\/rating$/.test(path)) return 30;
+  if (/^\/chapters\/[^/]+\/reactions$/.test(path)) return 40;
+  if (/^\/comments\/[^/]+\/reactions$/.test(path)) return 50;
+  if (path === "/comments" && item.method === "POST") return 60;
+  return 100;
+}
+
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
   const token = window.localStorage.getItem(AUTH_TOKEN_KEY);
@@ -100,7 +153,21 @@ export function enqueueOfflineMutation(item: Omit<OfflineMutationQueueItem, "id"
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     createdAt: new Date().toISOString(),
   };
-  writeQueue([...readQueue(), nextItem]);
+  const mergeKey = getMergeKey(item);
+  const queue = readQueue();
+  if (!mergeKey) {
+    writeQueue([...queue, nextItem]);
+    return;
+  }
+  const filtered = queue.filter(existing => {
+    const existingMergeKey = getMergeKey({
+      url: existing.url,
+      method: existing.method,
+      body: existing.body,
+    });
+    return existingMergeKey !== mergeKey;
+  });
+  writeQueue([...filtered, nextItem]);
 }
 
 export function getOfflineQueueSnapshot(): OfflineQueueSnapshot {
@@ -146,7 +213,11 @@ export async function flushOfflineMutationQueue(apiBaseUrl: string): Promise<{
   lastError = null;
   emitSyncState();
 
-  const queue = readQueue();
+  const queue = [...readQueue()].sort((a, b) => {
+    const byPriority = getSyncPriority(a) - getSyncPriority(b);
+    if (byPriority !== 0) return byPriority;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
   if (queue.length === 0) {
     isSyncing = false;
     lastSyncAt = new Date().toISOString();

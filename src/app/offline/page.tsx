@@ -32,6 +32,26 @@ interface OfflineManifest {
 const CACHE_PAGES = "tomilo-pages-v1";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
+function getQueueItemTypeLabel(item: OfflineMutationQueueItem): string {
+  const path = item.url.startsWith("http")
+    ? (() => {
+        try {
+          return new URL(item.url).pathname;
+        } catch {
+          return item.url;
+        }
+      })()
+    : item.url;
+
+  if (/\/users\/profile\/history\/[^/]+\/[^/]+$/.test(path)) return "Прогресс чтения";
+  if (/\/users\/profile\/bookmarks\/[^/?]+$/.test(path)) return "Закладки";
+  if (/\/chapters\/[^/]+\/rating$/.test(path)) return "Оценки глав";
+  if (/\/chapters\/[^/]+\/reactions$/.test(path)) return "Реакции на главы";
+  if (/\/comments\/[^/]+\/reactions$/.test(path)) return "Реакции на комментарии";
+  if (path === "/comments" && item.method === "POST") return "Комментарии";
+  return "Прочее";
+}
+
 function getManifestStorageKey(titleId: string): string {
   return `offline-title-manifest-${titleId}`;
 }
@@ -200,6 +220,15 @@ export default function OfflinePage() {
     setQueueItems([]);
   }, []);
 
+  const queueSummary = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const item of queueItems) {
+      const key = getQueueItemTypeLabel(item);
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [queueItems]);
+
   return (
     <main className="min-h-screen bg-[var(--background)]">
       <Header />
@@ -336,6 +365,20 @@ export default function OfflinePage() {
 
               {queueSnapshot.lastError && (
                 <p className="mt-2 text-xs text-red-500">{queueSnapshot.lastError}</p>
+              )}
+
+              {queueSummary.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {queueSummary.map(([label, count]) => (
+                    <span
+                      key={label}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] border border-[var(--border)] bg-[var(--background)]/70 text-[var(--muted-foreground)]"
+                    >
+                      <span>{label}</span>
+                      <span className="font-semibold text-[var(--foreground)]">{count}</span>
+                    </span>
+                  ))}
+                </div>
               )}
 
               {queueItems.length > 0 ? (
