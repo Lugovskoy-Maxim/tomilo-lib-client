@@ -485,8 +485,14 @@ export const authApi = createApi({
       },
       invalidatesTags: (result, error, arg) =>
         arg?.titleId
-          ? [{ type: "ReadingHistory", id: arg.titleId }, "ReadingHistory", "Auth", "DailyQuests"]
-          : ["ReadingHistory", "Auth", "DailyQuests"],
+          ? [
+              { type: "ReadingHistory", id: arg.titleId },
+              "ReadingHistory",
+              "Auth",
+              "DailyQuests",
+              "ProfileAchievements",
+            ]
+          : ["ReadingHistory", "Auth", "DailyQuests", "ProfileAchievements"],
     }),
 
     removeFromReadingHistory: builder.mutation<
@@ -514,7 +520,7 @@ export const authApi = createApi({
         }
         return response;
       },
-      invalidatesTags: ["ReadingHistory", "Auth"],
+      invalidatesTags: ["ReadingHistory", "Auth", "ProfileAchievements"],
     }),
 
     clearReadingHistory: builder.mutation<ApiResponseDto<User>, void>({
@@ -533,7 +539,7 @@ export const authApi = createApi({
         }
         return response;
       },
-      invalidatesTags: ["ReadingHistory", "Auth"],
+      invalidatesTags: ["ReadingHistory", "Auth", "ProfileAchievements"],
     }),
 
     changePassword: builder.mutation<

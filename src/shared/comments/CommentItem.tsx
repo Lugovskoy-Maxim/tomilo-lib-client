@@ -232,9 +232,9 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
       }`}
     >
       <div className={isReply ? "py-1.5 sm:py-2 px-0 sm:px-1" : "p-1.5 sm:p-3"}>
-        <div className="flex items-start sm:items-center gap-4 sm:gap-5">
+        <div className="flex items-center gap-4 sm:gap-5">
           {/* Avatar (декоративный аватар и рамка из equippedDecorations). overflow-visible — чтобы рамка не обрезалась. */}
-          <div className={`flex-shrink-0 overflow-visible ${isReply ? "h-8 w-8 sm:h-9 sm:w-9" : "h-9 w-9 sm:h-10 sm:w-10"}`}>
+          <div className={`flex-shrink-0 overflow-visible ${isReply ? "h-9 w-9" : "h-10 w-10"}`}>
             {(() => {
               const avatarUrl = userData?.avatar
                 ? getCoverUrls(userData.avatar).primary
