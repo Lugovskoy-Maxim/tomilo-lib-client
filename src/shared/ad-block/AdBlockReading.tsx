@@ -42,8 +42,8 @@ const AdBlockReading = () => {
             maxWidth: "100%",
             height: "300px",
           }}
-          data-ad-client="ad-1977376"
-          data-ad-slot="1977376"
+          data-ad-client="ad-1977378"
+          data-ad-slot="1977378"
         />
       </div>
       <Script id="mrg-tag-init-reading" strategy="afterInteractive">

@@ -8,6 +8,7 @@ import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { getOgImageUrl } from "@/lib/seo-og-image";
 import { sanitizeMetaString } from "@/lib/seo-meta-sanitize";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
+import AdBlock from "@/shared/ad-block/AdBlock";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -293,6 +294,7 @@ export default async function TitlePageRoute({ params, searchParams }: PageProps
         <Suspense fallback={<TitlePageLoadingFallback />}>
           <TitleView slug={slug} initialTab={initialTab} />
         </Suspense>
+        <AdBlock adClient="ad-1977380" adSlot="1977380" scriptId="mrg-tag-init-title-page" />
       </>
     );
   } catch (error) {
