@@ -28,6 +28,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
+import { formatUsernameDisplay } from "@/lib/username-display";
 import { ReportEntityInfo } from "./ReportEntityInfo";
 import { AdminModal, ConfirmModal } from "./ui/AdminModal";
 import Image from "next/image";
@@ -333,7 +334,7 @@ export function ReportsSection() {
       r._id,
       reportTypeLabels[r.reportType] || r.reportType,
       `"${(r.content || "").replace(/"/g, '""')}"`,
-      r.userId?.username || "Аноним",
+      r.userId?.username ? formatUsernameDisplay(r.userId.username) : "Аноним",
       r.isResolved ? "Решена" : "Открыта",
       new Date(r.createdAt).toLocaleDateString("ru-RU"),
       `"${(getReportResponse(r) || "").replace(/"/g, '""')}"`,
@@ -645,7 +646,9 @@ export function ReportsSection() {
                     unoptimized
                     className="w-4 h-4 rounded-full object-cover bg-[var(--secondary)]"
                   />
-                  {report.userId?.username || "Аноним"}
+                  {report.userId?.username
+                    ? formatUsernameDisplay(report.userId.username)
+                    : "Аноним"}
                   {report.userId && <ExternalLink className="w-2.5 h-2.5 opacity-50" />}
                 </button>
                 <span className="inline-flex items-center gap-1">
@@ -801,7 +804,9 @@ export function ReportsSection() {
                         className="w-6 h-6 rounded-full object-cover bg-[var(--secondary)]"
                       />
                       <span className="font-medium text-sm">
-                        {report.userId?.username || "Аноним"}
+                        {report.userId?.username
+                          ? formatUsernameDisplay(report.userId.username)
+                          : "Аноним"}
                       </span>
                     </div>
                   </td>
@@ -1041,7 +1046,9 @@ export function ReportsSection() {
               />
               <div className="flex-1 min-w-0">
                 <span className="font-medium text-[var(--foreground)]">
-                  {detailReport.userId?.username || "Аноним"}
+                  {detailReport.userId?.username
+                    ? formatUsernameDisplay(detailReport.userId.username)
+                    : "Аноним"}
                 </span>
                 {detailReport.userId?.email && (
                   <p className="text-xs text-[var(--muted-foreground)]">

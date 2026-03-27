@@ -31,6 +31,7 @@ import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
 import { levelToRank, getLevelProgress, getRankColor } from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface LeaderboardPosition {
   category: LeaderboardCategory;
@@ -148,7 +149,10 @@ export default function UserDropdown({
   const isAdmin = user?.role === "admin";
   const isAdult = adultEnabled;
 
-  const displayName = user?.name || user?.username || "Пользователь";
+  const displayName =
+    user?.name || user?.username
+      ? formatUsernameDisplay((user.name || user.username) as string)
+      : "Пользователь";
   const level = user?.level ?? 0;
   const experience = user?.experience ?? 0;
   const balance = user?.balance ?? 0;

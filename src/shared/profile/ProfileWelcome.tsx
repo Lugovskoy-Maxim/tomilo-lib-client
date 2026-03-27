@@ -4,6 +4,7 @@ import { UserProfile } from "@/types/user";
 import { Sun, Moon, CloudSun } from "lucide-react";
 import { useMemo } from "react";
 import { getRankColor, levelToRank } from "@/lib/rank-utils";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface ProfileWelcomeProps {
   userProfile: UserProfile;
@@ -80,7 +81,9 @@ export default function ProfileWelcome({ userProfile }: ProfileWelcomeProps) {
     };
   }, [userProfile.level, userProfile.currentStreak]);
 
-  const displayName = userProfile.username || "Культиватор";
+  const displayName = userProfile.username
+    ? formatUsernameDisplay(userProfile.username)
+    : "Культиватор";
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">

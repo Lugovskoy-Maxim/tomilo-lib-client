@@ -9,6 +9,7 @@ import {
   useGetUsersQuery,
 } from "@/store/api/usersApi";
 import { getCoverUrls } from "@/lib/asset-url";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 type FeaturedUser = {
   id: string;
@@ -203,7 +204,7 @@ function getFeaturedUsers(users: FeaturedUser[], limit = 4): FeaturedUser[] {
 }
 
 function getInitial(username: string): string {
-  return username.charAt(0).toUpperCase();
+  return formatUsernameDisplay(username).charAt(0).toUpperCase();
 }
 
 function normalizeAvatarUrl(avatarUrl: string): string {
@@ -291,7 +292,7 @@ export default function FeaturedUsersSection() {
               {user.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.username}
+                  alt={formatUsernameDisplay(user.username)}
                   className="w-12 h-12 rounded-full object-cover border border-[var(--border)]"
                 />
               ) : (
@@ -304,7 +305,9 @@ export default function FeaturedUsersSection() {
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-[var(--foreground)] truncate">{user.username}</p>
+                  <p className="font-semibold text-[var(--foreground)] truncate">
+                    {formatUsernameDisplay(user.username)}
+                  </p>
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                 </div>
                 <p className="text-xs text-[var(--muted-foreground)]">

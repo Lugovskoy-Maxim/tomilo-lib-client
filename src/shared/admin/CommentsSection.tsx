@@ -41,6 +41,11 @@ import { Comment, CommentEntityType, CommentReactionCount } from "@/types/commen
 import { ConfirmModal, AdminModal } from "./ui";
 import Image from "next/image";
 import { getCoverUrls } from "@/lib/asset-url";
+import { formatUsernameDisplay } from "@/lib/username-display";
+
+function displayCommentAuthor(username: string | undefined): string {
+  return username ? formatUsernameDisplay(username) : "Пользователь";
+}
 
 type CommentsViewMode = "cards" | "list";
 type SortMode = "newest" | "oldest" | "popular" | "controversial";
@@ -379,7 +384,7 @@ export function CommentsSection() {
     const headers = ["ID", "Автор", "Комментарий", "Тип", "Лайки", "Дизлайки", "Скрыт", "Дата"];
     const rows = processedComments.map(c => [
       c._id,
-      typeof c.userId !== "string" ? (c.userId?.username ?? "Пользователь") : "Пользователь",
+      typeof c.userId !== "string" ? displayCommentAuthor(c.userId?.username) : "Пользователь",
       c.content.substring(0, 100),
       c.entityType,
       c.likes || 0,
@@ -683,7 +688,7 @@ export function CommentsSection() {
                         disabled={typeof comment.userId === "string"}
                       >
                         {typeof comment.userId !== "string"
-                          ? (comment.userId?.username ?? "Пользователь")
+                          ? displayCommentAuthor(comment.userId?.username)
                           : "Пользователь"}
                         <ExternalLink className="w-3 h-3 opacity-50" />
                       </button>
@@ -793,7 +798,7 @@ export function CommentsSection() {
                         <p className="text-sm font-medium text-[var(--foreground)] flex items-center gap-1.5">
                           <User className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
                           {typeof reply.userId !== "string"
-                            ? (reply.userId?.username ?? "Пользователь")
+                            ? displayCommentAuthor(reply.userId?.username)
                             : "Пользователь"}
                         </p>
                         <Button
@@ -877,7 +882,7 @@ export function CommentsSection() {
                   <td className="px-3 py-2">
                     <span className="flex items-center gap-1.5">
                       {typeof comment.userId !== "string"
-                        ? (comment.userId?.username ?? "Пользователь")
+                        ? displayCommentAuthor(comment.userId?.username)
                         : "Пользователь"}
                       {!comment.isVisible && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600">
@@ -1009,7 +1014,7 @@ export function CommentsSection() {
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-[var(--foreground)]">
                     {typeof detailComment.userId !== "string"
-                      ? (detailComment.userId?.username ?? "Пользователь")
+                      ? displayCommentAuthor(detailComment.userId?.username)
                       : "Пользователь"}
                   </span>
                   {typeof detailComment.userId !== "string" && detailComment.userId?.role && (

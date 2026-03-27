@@ -51,6 +51,7 @@ import { getRankDisplay } from "@/lib/rank-utils";
 import { formatLikesReceivedRu, formatCharactersAcceptedRu } from "@/lib/utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
+import { formatUsernameDisplay } from "@/lib/username-display";
 import RankStarsOverlay from "@/shared/profile/RankStarsOverlay";
 import type { EquippedDecorations, UserProfile } from "@/types/user";
 
@@ -885,7 +886,7 @@ export default function LeadersPageClient() {
                               >
                                 <img
                                   src={getLeaderAvatarUrl(u)}
-                                  alt={u.username}
+                                  alt={formatUsernameDisplay(u.username)}
                                   className="w-full h-full object-cover aspect-square min-w-full min-h-full"
                                   onError={e => {
                                     (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
@@ -907,9 +908,9 @@ export default function LeadersPageClient() {
                             <div className="flex items-center justify-center gap-1">
                               <p
                                 className={`text-xs sm:text-sm xl:text-base 2xl:text-lg font-semibold truncate text-center ${isPremiumActive(u.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
-                                title={u.username}
+                                title={formatUsernameDisplay(u.username)}
                               >
-                                {u.username}
+                                {formatUsernameDisplay(u.username)}
                               </p>
                               {isPremiumActive(u.subscriptionExpiresAt) && (
                                 <PremiumBadge
@@ -1420,9 +1421,9 @@ function PodiumUserModal({
               >
                 <span
                   className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)]/90 backdrop-blur-sm shadow-sm max-w-full min-w-0 ${isPremiumActive(displayUser.subscriptionExpiresAt) ? "text-amber-500" : "text-[var(--foreground)]"}`}
-                  title={displayUser.username}
+                  title={formatUsernameDisplay(displayUser.username)}
                 >
-                  <span className="truncate">{displayUser.username}</span>
+                  <span className="truncate">{formatUsernameDisplay(displayUser.username)}</span>
                   {isPremiumActive(displayUser.subscriptionExpiresAt) && (
                     <PremiumBadge size="xs" className="shrink-0" ariaLabel="Премиум-подписчик" />
                   )}

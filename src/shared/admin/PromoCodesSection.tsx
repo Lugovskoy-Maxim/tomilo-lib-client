@@ -38,6 +38,7 @@ import { AdminCard } from "./ui";
 import { AdminModal, ConfirmModal } from "./ui";
 import { ErrorState as SharedErrorState } from "@/shared/error-state";
 import { useToast } from "@/hooks/useToast";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 const STATUS_OPTIONS: { value: PromoCodeStatus; label: string; color: string }[] = [
   {
@@ -948,7 +949,7 @@ export function PromoCodesSection() {
                 {usageData.data.map(u => (
                   <tr key={u.id} className="border-b border-[var(--border)]">
                     <td className="py-2 px-2 font-medium text-[var(--foreground)]">
-                      {u.username ?? u.userId}
+                      {u.username ? formatUsernameDisplay(u.username) : u.userId}
                     </td>
                     <td className="py-2 px-2 text-xs">{formatRewards(u.rewardsGranted)}</td>
                     <td className="py-2 px-2 text-right text-xs text-[var(--muted-foreground)]">

@@ -8,6 +8,7 @@ import {
   getDecorationImageUrls,
 } from "@/api/shop";
 import { getImageUrls, isValidAvatarUrl } from "@/lib/asset-url";
+import { formatUsernameDisplay } from "@/lib/username-display";
 import { useAuth } from "@/hooks/useAuth";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 
@@ -89,7 +90,8 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
 
   const mainImageUrl = decorationUrls.primary ?? baseAvatarPrimary ?? DEFAULT_AVATAR;
   const fallbackImageUrl = decorationUrls.fallback ?? baseAvatarFallback ?? DEFAULT_AVATAR;
-  const initial = userProfile.username?.[0]?.toUpperCase() || "?";
+  const displayUsername = userProfile.username ? formatUsernameDisplay(userProfile.username) : "";
+  const initial = displayUsername?.[0]?.toUpperCase() || "?";
 
   const avatarInner = (
     <OptimizedImage
@@ -107,7 +109,7 @@ export default function ProfileAvatar({ userProfile, size = "md" }: UserAvatarPr
           {initial}
         </div>
       }
-      alt={userProfile.username || "User avatar"}
+      alt={displayUsername || "User avatar"}
       className="w-full h-full object-cover rounded-full"
       height={pixelSize}
       width={pixelSize}

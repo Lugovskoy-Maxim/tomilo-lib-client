@@ -52,6 +52,7 @@ import { Pagination } from "@/shared/ui/pagination";
 import { UserCard } from "./UserCard";
 import Image from "next/image";
 import { getCoverUrls } from "@/lib/asset-url";
+import { formatUsernameDisplay } from "@/lib/username-display";
 import { ConfirmModal } from "./ui";
 
 type ViewMode = "list" | "cards";
@@ -826,7 +827,7 @@ export function UsersSection() {
                           !user.avatar.includes("null") ? (
                             <Image
                               src={normalizeUrl(user.avatar || "")}
-                              alt={user.username}
+                              alt={formatUsernameDisplay(user.username)}
                               width={40}
                               height={40}
                               unoptimized
@@ -835,7 +836,7 @@ export function UsersSection() {
                           ) : (
                             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--secondary)] rounded-full flex items-center justify-center">
                               <span className="text-xs font-medium text-[var(--muted-foreground)]">
-                                {user.username.charAt(0).toUpperCase()}
+                                {formatUsernameDisplay(user.username).charAt(0).toUpperCase()}
                               </span>
                             </div>
                           )}
@@ -851,7 +852,7 @@ export function UsersSection() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-[var(--foreground)] text-sm sm:text-base">
-                              {user.username}
+                              {formatUsernameDisplay(user.username)}
                             </p>
                             {(user as UserProfile & { isBanned?: boolean }).isBanned && (
                               <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-500">
@@ -1079,7 +1080,7 @@ export function UsersSection() {
                 !selectedUser.avatar.includes("null") ? (
                   <Image
                     src={normalizeUrl(selectedUser.avatar)}
-                    alt={selectedUser.username}
+                    alt={formatUsernameDisplay(selectedUser.username)}
                     width={48}
                     height={48}
                     unoptimized
@@ -1088,13 +1089,17 @@ export function UsersSection() {
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                     <span className="text-lg font-bold text-[var(--primary)]">
-                      {selectedUser?.username?.charAt(0).toUpperCase() || "?"}
+                      {selectedUser?.username
+                        ? formatUsernameDisplay(selectedUser.username).charAt(0).toUpperCase()
+                        : "?"}
                     </span>
                   </div>
                 )}
                 <div>
                   <h2 className="font-semibold text-[var(--foreground)]">
-                    {selectedUser?.username || "Загрузка..."}
+                    {selectedUser?.username
+                      ? formatUsernameDisplay(selectedUser.username)
+                      : "Загрузка..."}
                   </h2>
                   <p className="text-sm text-[var(--muted-foreground)]">{selectedUser?.email}</p>
                 </div>
