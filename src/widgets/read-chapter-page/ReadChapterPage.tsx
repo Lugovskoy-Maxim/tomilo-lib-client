@@ -302,53 +302,53 @@ function ReadChapterPageContent({
         }
       }
 
-    setInfiniteScrollLoadError(null);
-    const lastLoadedChapter = loadedChapters[loadedChapters.length - 1];
-    const lastChapterIndex = chapters.findIndex(ch => ch._id === lastLoadedChapter._id);
-    const fallbackCurrentIndex = chapters.findIndex(ch => ch._id === chapter._id);
-    const baseChapterIndex =
-      lastChapterIndex >= 0
-        ? lastChapterIndex
-        : loadedChapters.length === 1
-          ? fallbackCurrentIndex
-          : -1;
-    if (baseChapterIndex < 0 || baseChapterIndex >= chapters.length - 1) return;
-    const nextChapter = chapters[baseChapterIndex + 1];
-    if (loadedChapterIdsRef.current.has(nextChapter._id)) return;
-    loadedChapterIdsRef.current.add(nextChapter._id);
-    nextChapterLoadStartedAtRef.current = Date.now();
-    setIsLoadingNextChapter(true);
-    fetchChapterById(nextChapter._id)
-      .unwrap()
-      .then(chapterData => {
-        if (!chapterData?._id) {
-          loadedChapterIdsRef.current.delete(nextChapter._id);
-          setInfiniteScrollLoadError("Пустой ответ сервера. Попробуйте ещё раз.");
-          return;
-        }
-        const mappedChapter = apiChapterToReaderChapter(chapterData as Chapter);
-        setLoadedChapters(prev => [...prev, mappedChapter]);
-        setLoadedChapterIds(prev => new Set([...prev, mappedChapter._id]));
-        if (isAuthenticated) {
-          const key = `${titleId}-${mappedChapter._id}`;
-          if (!historyAddedRef.current.has(key) && !historyPendingRef.current.has(key)) {
-            historyPendingRef.current.add(key);
-            addToReadingHistory(titleId, mappedChapter._id)
-              .then(() => {
-                historyAddedRef.current.add(key);
-                historyPendingRef.current.delete(key);
-              })
-              .catch(() => historyPendingRef.current.delete(key));
+      setInfiniteScrollLoadError(null);
+      const lastLoadedChapter = loadedChapters[loadedChapters.length - 1];
+      const lastChapterIndex = chapters.findIndex(ch => ch._id === lastLoadedChapter._id);
+      const fallbackCurrentIndex = chapters.findIndex(ch => ch._id === chapter._id);
+      const baseChapterIndex =
+        lastChapterIndex >= 0
+          ? lastChapterIndex
+          : loadedChapters.length === 1
+            ? fallbackCurrentIndex
+            : -1;
+      if (baseChapterIndex < 0 || baseChapterIndex >= chapters.length - 1) return;
+      const nextChapter = chapters[baseChapterIndex + 1];
+      if (loadedChapterIdsRef.current.has(nextChapter._id)) return;
+      loadedChapterIdsRef.current.add(nextChapter._id);
+      nextChapterLoadStartedAtRef.current = Date.now();
+      setIsLoadingNextChapter(true);
+      fetchChapterById(nextChapter._id)
+        .unwrap()
+        .then(chapterData => {
+          if (!chapterData?._id) {
+            loadedChapterIdsRef.current.delete(nextChapter._id);
+            setInfiniteScrollLoadError("Пустой ответ сервера. Попробуйте ещё раз.");
+            return;
           }
-        }
-      })
-      .catch(() => {
-        loadedChapterIdsRef.current.delete(nextChapter._id);
-        setInfiniteScrollLoadError("Не удалось загрузить главу. Проверьте сеть и попробуйте снова.");
-      })
-      .finally(() => {
-        completeNextChapterLoading();
-      });
+          const mappedChapter = apiChapterToReaderChapter(chapterData as Chapter);
+          setLoadedChapters(prev => [...prev, mappedChapter]);
+          setLoadedChapterIds(prev => new Set([...prev, mappedChapter._id]));
+          if (isAuthenticated) {
+            const key = `${titleId}-${mappedChapter._id}`;
+            if (!historyAddedRef.current.has(key) && !historyPendingRef.current.has(key)) {
+              historyPendingRef.current.add(key);
+              addToReadingHistory(titleId, mappedChapter._id)
+                .then(() => {
+                  historyAddedRef.current.add(key);
+                  historyPendingRef.current.delete(key);
+                })
+                .catch(() => historyPendingRef.current.delete(key));
+            }
+          }
+        })
+        .catch(() => {
+          loadedChapterIdsRef.current.delete(nextChapter._id);
+          setInfiniteScrollLoadError("Не удалось загрузить главу. Проверьте сеть и попробуйте снова.");
+        })
+        .finally(() => {
+          completeNextChapterLoading();
+        });
     },
     [
       loadedChapters,
