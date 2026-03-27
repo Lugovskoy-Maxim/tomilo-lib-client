@@ -52,6 +52,10 @@ function readQueue(): OfflineMutationQueueItem[] {
   }
 }
 
+export function getOfflineQueueItems(): OfflineMutationQueueItem[] {
+  return readQueue();
+}
+
 function writeQueue(items: OfflineMutationQueueItem[]): void {
   if (typeof window === "undefined") return;
   try {
@@ -106,6 +110,12 @@ export function getOfflineQueueSnapshot(): OfflineQueueSnapshot {
     lastSyncAt,
     lastError,
   };
+}
+
+export function clearOfflineMutationQueue(): void {
+  writeQueue([]);
+  lastError = null;
+  emitSyncState();
 }
 
 export function subscribeOfflineQueue(

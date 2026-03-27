@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpen, Download, ExternalLink, Loader2, Trash2 } from "lucide-react";
+import { BookOpen, Download, ExternalLink, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { Footer, Header } from "@/widgets";
+import {
+  clearOfflineMutationQueue,
+  flushOfflineMutationQueue,
+  getOfflineQueueItems,
+  subscribeOfflineQueue,
+  type OfflineMutationQueueItem,
+  type OfflineQueueSnapshot,
+} from "@/lib/offlineMutationQueue";
 
 interface OfflineManifest {
   titleId: string;
@@ -22,6 +30,7 @@ interface OfflineManifest {
 }
 
 const CACHE_PAGES = "tomilo-pages-v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 function getManifestStorageKey(titleId: string): string {
   return `offline-title-manifest-${titleId}`;
@@ -52,9 +61,24 @@ function readOfflineManifests(): OfflineManifest[] {
 export default function OfflinePage() {
   const [manifests, setManifests] = useState<OfflineManifest[]>([]);
   const [removingChapterKey, setRemovingChapterKey] = useState<string | null>(null);
+  const [queueSnapshot, setQueueSnapshot] = useState<OfflineQueueSnapshot>({
+    pendingCount: 0,
+    isSyncing: false,
+    lastSyncAt: null,
+    lastError: null,
+  });
+  const [queueItems, setQueueItems] = useState<OfflineMutationQueueItem[]>([]);
+  const [isManualSyncing, setIsManualSyncing] = useState(false);
 
   useEffect(() => {
     setManifests(readOfflineManifests());
+  }, []);
+
+  useEffect(() => {
+    return subscribeOfflineQueue(snapshot => {
+      setQueueSnapshot(snapshot);
+      setQueueItems(getOfflineQueueItems());
+    });
   }, []);
 
   useEffect(() => {
@@ -160,6 +184,22 @@ export default function OfflinePage() {
     [manifests],
   );
 
+  const handleManualSyncQueue = useCallback(async () => {
+    if (isManualSyncing) return;
+    setIsManualSyncing(true);
+    try {
+      await flushOfflineMutationQueue(API_BASE);
+      setQueueItems(getOfflineQueueItems());
+    } finally {
+      setIsManualSyncing(false);
+    }
+  }, [isManualSyncing]);
+
+  const handleClearQueue = useCallback(() => {
+    clearOfflineMutationQueue();
+    setQueueItems([]);
+  }, []);
+
   return (
     <main className="min-h-screen bg-[var(--background)]">
       <Header />
@@ -256,6 +296,73 @@ export default function OfflinePage() {
                 ))}
               </div>
             )}
+
+            <section className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--secondary)]/40 p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 className="text-base font-semibold text-[var(--foreground)]">
+                    Очередь оффлайн-действий
+                  </h2>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                    В очереди: {queueSnapshot.pendingCount}
+                    {queueSnapshot.isSyncing ? " · синхронизация..." : ""}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleManualSyncQueue()}
+                    disabled={isManualSyncing || queueSnapshot.isSyncing || queueSnapshot.pendingCount === 0}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-[var(--border)] bg-[var(--background)]/70 hover:bg-[var(--background)] disabled:opacity-60"
+                  >
+                    {isManualSyncing || queueSnapshot.isSyncing ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    Синхронизировать
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearQueue}
+                    disabled={queueSnapshot.pendingCount === 0}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-red-500/30 text-red-500 hover:bg-red-500/10 disabled:opacity-60"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Очистить
+                  </button>
+                </div>
+              </div>
+
+              {queueSnapshot.lastError && (
+                <p className="mt-2 text-xs text-red-500">{queueSnapshot.lastError}</p>
+              )}
+
+              {queueItems.length > 0 ? (
+                <div className="mt-3 max-h-52 overflow-y-auto rounded-lg border border-[var(--border)]/60 bg-[var(--background)]/40 p-2 space-y-1">
+                  {queueItems.map(item => (
+                    <div
+                      key={item.id}
+                      className="text-xs px-2 py-1.5 rounded-md bg-[var(--background)]/60 text-[var(--foreground)] flex items-center justify-between gap-2"
+                    >
+                      <span className="truncate">
+                        {item.method} {item.url}
+                      </span>
+                      <span className="text-[var(--muted-foreground)] shrink-0">
+                        {new Date(item.createdAt).toLocaleTimeString("ru-RU", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-[var(--muted-foreground)]">
+                  Очередь пуста. Действия будут появляться здесь при работе без сети.
+                </p>
+              )}
+            </section>
           </div>
         </div>
       </div>
