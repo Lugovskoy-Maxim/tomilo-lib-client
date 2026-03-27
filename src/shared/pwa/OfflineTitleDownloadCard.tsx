@@ -203,6 +203,8 @@ export default function OfflineTitleDownloadCard({
       const pagesCache = await caches.open(CACHE_PAGES);
       const imagesCache = await caches.open(CACHE_IMAGES);
       const imageUrlsSet = new Set<string>();
+      const origin =
+        typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
 
       for (let i = 0; i < selectedChapters.length; i += 1) {
         const chapterId = selectedChapters[i]?._id;
@@ -223,12 +225,42 @@ export default function OfflineTitleDownloadCard({
         await pagesCache.put(chapterApiUrl, chapterResponse.clone());
         manifest.chapterIds.push(chapterId);
         manifest.chapterApiUrls.push(chapterApiUrl);
+        const chapterPath = getChapterPath({ _id: titleId, slug: titleSlug }, chapterId);
         manifest.downloadedChapters.push({
           chapterId,
           chapterNumber: selectedChapters[i]?.chapterNumber,
           chapterTitle: selectedChapters[i]?.title || selectedChapters[i]?.name,
-          chapterPath: getChapterPath({ _id: titleId, slug: titleSlug }, chapterId),
+          chapterPath,
         });
+
+        // Сохраняем навигационные HTML страницы главы (с и без offlineRead),
+        // чтобы открытие ридера работало в офлайне даже после холодного старта.
+        if (origin && chapterPath) {
+          const chapterPageUrl = `${origin}${chapterPath}`;
+          const chapterPageOfflineUrl = `${chapterPageUrl}?offlineRead=1`;
+          try {
+            const chapterPageResponse = await fetch(chapterPageUrl, {
+              method: "GET",
+              credentials: "include",
+            });
+            if (chapterPageResponse.ok) {
+              await pagesCache.put(chapterPageUrl, chapterPageResponse.clone());
+            }
+          } catch {
+            // Игнорируем: офлайн-кэш API и изображений всё равно сохранится.
+          }
+          try {
+            const chapterPageOfflineResponse = await fetch(chapterPageOfflineUrl, {
+              method: "GET",
+              credentials: "include",
+            });
+            if (chapterPageOfflineResponse.ok) {
+              await pagesCache.put(chapterPageOfflineUrl, chapterPageOfflineResponse.clone());
+            }
+          } catch {
+            // Игнорируем: офлайн-кэш API и изображений всё равно сохранится.
+          }
+        }
 
         const chapterPayload = (await chapterResponse.json()) as {
           data?: unknown;

@@ -73,19 +73,16 @@ self.addEventListener("fetch", event => {
           return res;
         })
         .catch(() =>
-          caches
-            .match(request)
-            .then(
-              cached =>
-                cached ||
-                caches
-                  .match(offlineUrl)
-                  .then(
-                    offline =>
-                      offline ||
-                      new Response("Нет соединения", { status: 503, statusText: "Offline" }),
-                  ),
-            ),
+          caches.match(request).then(cached => {
+            if (cached) return cached;
+            return caches.match(request, { ignoreSearch: true }).then(ignoreSearchCached => {
+              if (ignoreSearchCached) return ignoreSearchCached;
+              return caches.match(offlineUrl).then(
+                offline =>
+                  offline || new Response("Нет соединения", { status: 503, statusText: "Offline" }),
+              );
+            });
+          }),
         ),
     );
     return;
