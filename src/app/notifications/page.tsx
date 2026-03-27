@@ -18,7 +18,6 @@ import {
   EyeOff,
 } from "lucide-react";
 import { Header, Footer } from "@/widgets";
-import { pageTitle } from "@/lib/page-title";
 import { useSEO } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import NotificationCard from "@/shared/notification-card/NotificationCard";
@@ -80,7 +79,6 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     setMounted(true);
-    pageTitle.setTitlePage("Уведомления - Tomilo-lib.ru");
   }, []);
 
   const handleMarkAllAsRead = async () => {

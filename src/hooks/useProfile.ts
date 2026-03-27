@@ -1,11 +1,10 @@
-import { useMemo, useEffect, useCallback, useRef } from "react";
+import { useMemo, useCallback } from "react";
 import type { AnyAction } from "redux";
 import { useAuth } from "@/hooks/useAuth";
 import { UserProfile } from "@/types/user";
 import { User } from "@/types/auth";
 import { authApi } from "@/store/api/authApi";
 import { useAppDispatch } from "@/store";
-import { pageTitle } from "@/lib/page-title";
 import { normalizeBookmarks } from "@/lib/bookmarks";
 import { getLinkedProvidersFromUser } from "@/lib/linkedProviders";
 import { useGetProfileQuery, useGetReadingHistoryQuery } from "@/store/api/authApi";
@@ -101,7 +100,6 @@ function transformReadingHistory(history: ReadingHistoryEntry[] | unknown): Read
 export function useProfile() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, isLoading: authLoading, updateUser: patchAuthUser } = useAuth();
-  const prevTitleRef = useRef<string | null>(null);
 
   const {
     data: profileData,
@@ -148,17 +146,6 @@ export function useProfile() {
     },
     [dispatch, patchAuthUser],
   );
-
-  useEffect(() => {
-    const newTitle = userProfile ? `Профиль ${userProfile.username}` : "Профиль пользователя";
-
-    if (prevTitleRef.current !== newTitle) {
-      prevTitleRef.current = newTitle;
-      pageTitle.setTitlePage(newTitle);
-    }
-    // userProfile целиком не нужен в deps — используем только username для заголовка
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile?.username]);
 
   const isLoading = profileLoading || readingHistoryLoading || authLoading;
 

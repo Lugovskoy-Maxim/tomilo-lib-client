@@ -1,5 +1,5 @@
 class PageTitleHelper {
-  private defaultTitle = "Tomilo-lib.ru - Современная платформа для чтения манги, манхвы и маньхуя";
+  private defaultTitle = "Tomilo-lib.ru - Современная платформа для чтения манги, манхвы и маньхуа";
   private separator = " | ";
 
   setTitle(title: string) {

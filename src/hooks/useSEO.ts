@@ -202,7 +202,7 @@ export const seoConfigs = {
       : `Читать ${titleName} онлайн. ${titleData.genres?.join(", ")}`;
 
     return {
-      title: `Читать ${titleName} - ${titleData.type ? ` ${translateTitleType(titleData.type)}` : ""} - Tomilo-lib.ru`,
+      title: `Читать ${titleName}${titleData.type ? ` - ${translateTitleType(titleData.type)}` : ""} - Tomilo-lib.ru`,
       description: shortDescription,
       keywords: `${titleName}, ${titleData.genres?.join(", ")}, ${titleData.author}, ${titleData.artist}, манга, маньхуа, комиксы, онлайн чтение`,
       image: titleData.coverImage || titleData.image,
@@ -225,10 +225,10 @@ export const seoConfigs = {
     chapterTitle?: string,
   ) => {
     const titleName = titleData.name || titleData.title || "Без названия";
-    const chapterText = chapterTitle ? ` - ${chapterTitle}` : "";
+    const chapterSuffix = chapterTitle ? ` "${chapterTitle}"` : "";
 
     return {
-      title: `${titleName} - Глава ${chapterNumber}${chapterText} - Tomilo-lib.ru`,
+      title: `Глава ${chapterNumber}${chapterSuffix} - ${titleName} - Tomilo-lib.ru`,
       description: `Читать ${titleName} главу ${chapterNumber}${chapterTitle ? ` "${chapterTitle}"` : ""} онлайн. Манга, манхва, маньхуа, комиксы.`,
       keywords: `${titleName}, глава ${chapterNumber}, ${chapterTitle}, онлайн чтение, манга, манхва, маньхуа`,
       type: "article" as const,
