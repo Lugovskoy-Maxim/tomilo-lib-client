@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { HomePage } from "@/widgets";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
+import AdBlock from "@/shared/ad-block/AdBlock";
 
 const siteBaseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
@@ -34,6 +35,7 @@ export default function Home() {
   return (
     <>
       <HomePage />
+      <AdBlock />
       <script
         type="application/ld+json"
         suppressHydrationWarning

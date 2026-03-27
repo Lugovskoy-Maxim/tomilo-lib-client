@@ -11,7 +11,17 @@ declare global {
 
 const AD_LOAD_CHECK_DELAY_MS = 3500;
 
-const AdBlock = () => {
+interface AdBlockProps {
+  adClient?: string;
+  adSlot?: string;
+  scriptId?: string;
+}
+
+const AdBlock = ({
+  adClient = "ad-1977376",
+  adSlot = "1977376",
+  scriptId = "mrg-tag-init",
+}: AdBlockProps) => {
   const insRef = useRef<HTMLModElement>(null);
   const [visible, setVisible] = useState(true);
 
@@ -43,11 +53,11 @@ const AdBlock = () => {
             maxWidth: "100%",
             height: "300px",
           }}
-          data-ad-client="ad-1977376"
-          data-ad-slot="1977376"
+          data-ad-client={adClient}
+          data-ad-slot={adSlot}
         />
       </div>
-      <Script id="mrg-tag-init" strategy="afterInteractive">
+      <Script id={scriptId} strategy="afterInteractive">
         {`(MRGtag = window.MRGtag || []).push({});`}
       </Script>
     </div>

@@ -41,6 +41,7 @@ import ReadingPositionRestoreModal from "@/shared/reader/ReadingPositionRestoreM
 import { ChapterCommentsSection } from "@/shared/reader/ChapterCommentsSection";
 import { ChapterTranslatorInfo } from "@/shared/reader/ChapterTranslatorInfo";
 import { ChapterReactions } from "@/shared/reader/ChapterReactions";
+import AdBlockReading from "@/shared/ad-block/AdBlockReading";
 
 function apiChapterToReaderChapter(ch: Chapter): ReaderChapter {
   const pages = ch.pages || ch.images || [];
@@ -2588,9 +2589,7 @@ function ReadChapterPageContent({
                   })
                 )}
 
-                {/* Рекламный блок — временно отключено
-            <AdBlockReading />
-            */}
+                <AdBlockReading />
 
                 {/* Реакции на главу */}
                 <div
