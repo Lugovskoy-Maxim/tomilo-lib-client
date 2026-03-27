@@ -155,7 +155,7 @@ export default function ProfileShell({
   ) : !userProfile ? (
     renderEmptyState()
   ) : (
-    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-24 sm:pt-44 bg-[var(--background)]/[0.03]">
+    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-24 sm:pt-44 bg-transparent">
       <div className="relative z-10 w-full mx-auto px-3 min-[360px]:px-4 sm:px-6 max-w-6xl min-w-0 overflow-x-hidden flex flex-1 flex-col">
         {/* Верхняя панель: назад + контекстная ссылка */}
         <div className="flex items-center justify-between gap-3 py-3">
@@ -261,7 +261,7 @@ export default function ProfileShell({
             </div>
           )}
           {variant === "admin" && adminControls && <div className="shrink-0">{adminControls}</div>}
-          <div className="flex-1 min-h-0 min-w-0 rounded-2xl border border-[color-mix(in_oklch,var(--border)_70%,transparent)] overflow-hidden flex flex-col bg-[color-mix(in_oklch,var(--card)_88%,transparent)] dark:bg-[color-mix(in_oklch,var(--card)_58%,transparent)] backdrop-blur-[14px] shadow-[0_4px_24px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="flex-1 min-h-0 min-w-0 rounded-2xl border border-[color-mix(in_oklch,var(--border)_70%,transparent)] overflow-hidden flex flex-col bg-[color-mix(in_oklch,var(--card)_8%,transparent)] dark:bg-[color-mix(in_oklch,var(--card)_6%,transparent)] backdrop-blur-[32px] shadow-[0_4px_24px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]">
             <ProfileTabs
               userProfile={userProfile}
               breadcrumbPrefix={breadcrumbPrefix ?? undefined}
@@ -299,7 +299,7 @@ export default function ProfileShell({
           />
         )}
       </div>
-      <div className="relative z-10 flex flex-col flex-1 min-h-0 bg-[var(--background)]/10">
+      <div className="relative z-10 flex flex-col flex-1 min-h-0 bg-transparent">
         <Header />
         {wrapWithProvider ? (
           <ProfileProvider value={profileContextValue}>{content}</ProfileProvider>
