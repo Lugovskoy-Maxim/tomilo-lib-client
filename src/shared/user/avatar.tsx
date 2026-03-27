@@ -65,6 +65,7 @@ export default function UserAvatar({
         width={size}
         height={size}
         className={`rounded-full object-cover w-full h-full max-w-full max-h-full ${className}`}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
         onError={() => setImageError(true)}
         priority={size > 60}
         hidePlaceholder={true}

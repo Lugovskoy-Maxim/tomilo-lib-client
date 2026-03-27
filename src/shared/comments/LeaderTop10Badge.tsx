@@ -44,9 +44,9 @@ interface LeaderTop10BadgeContentProps {
 }
 
 export function LeaderTop10BadgeContent({ badge }: LeaderTop10BadgeContentProps) {
-  const Icon = CATEGORY_ICONS[badge.category];
-  const shortLabel = CATEGORY_SHORT_LABELS[badge.category];
-  const periodLabel = PERIOD_LABELS[badge.period];
+  const Icon = CATEGORY_ICONS[badge.category] ?? Trophy;
+  const shortLabel = CATEGORY_SHORT_LABELS[badge.category] ?? badge.label;
+  const periodLabel = PERIOD_LABELS[badge.period] ?? "всё время";
   const showPeriod = badge.category === "ratings" || badge.category === "comments";
 
   return (

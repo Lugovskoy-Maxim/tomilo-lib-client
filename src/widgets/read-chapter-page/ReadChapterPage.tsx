@@ -748,6 +748,27 @@ function ReadChapterPageContent({
     [imageFallbacks],
   );
 
+  const handleImageRetry = useCallback((errorKey: string) => {
+    const retryToken = Date.now();
+    setImageRetryTokens(prev => {
+      const next = new Map(prev);
+      next.set(errorKey, retryToken);
+      return next;
+    });
+    setImageLoadErrors(prev => {
+      if (!prev.has(errorKey)) return prev;
+      const next = new Set(prev);
+      next.delete(errorKey);
+      return next;
+    });
+    setImageFallbacks(prev => {
+      if (!prev.has(errorKey)) return prev;
+      const next = new Set(prev);
+      next.delete(errorKey);
+      return next;
+    });
+  }, []);
+
   // Функция для получения корректного пути
   const getChapterPath = useCallback(
     (chapterId: string) => {
@@ -2116,18 +2137,7 @@ function ReadChapterPageContent({
                                   Страница {imageIndex + 1} не загрузилась
                                 </p>
                                 <button
-                                  onClick={() => {
-                                    setImageLoadErrors(prev => {
-                                      const newSet = new Set(prev);
-                                      newSet.delete(errorKey);
-                                      return newSet;
-                                    });
-                                    setImageFallbacks(prev => {
-                                      const newSet = new Set(prev);
-                                      newSet.delete(errorKey);
-                                      return newSet;
-                                    });
-                                  }}
+                                  onClick={() => handleImageRetry(errorKey)}
                                   className="inline-flex items-center gap-1.5 px-3 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-xs sm:text-sm font-medium min-h-[40px] touch-manipulation active:scale-95"
                                 >
                                   <svg
@@ -2344,16 +2354,7 @@ function ReadChapterPageContent({
                                     <button
                                       onClick={e => {
                                         e.stopPropagation();
-                                        setImageLoadErrors(prev => {
-                                          const newSet = new Set(prev);
-                                          newSet.delete(errorKey);
-                                          return newSet;
-                                        });
-                                        setImageFallbacks(prev => {
-                                          const newSet = new Set(prev);
-                                          newSet.delete(errorKey);
-                                          return newSet;
-                                        });
+                                        handleImageRetry(errorKey);
                                       }}
                                       className="inline-flex items-center gap-2 px-5 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
                                     >
@@ -2560,18 +2561,7 @@ function ReadChapterPageContent({
                                   Страница {imageIndex + 1} не загрузилась
                                 </p>
                                 <button
-                                  onClick={() => {
-                                    setImageLoadErrors(prev => {
-                                      const newSet = new Set(prev);
-                                      newSet.delete(errorKey);
-                                      return newSet;
-                                    });
-                                    setImageFallbacks(prev => {
-                                      const newSet = new Set(prev);
-                                      newSet.delete(errorKey);
-                                      return newSet;
-                                    });
-                                  }}
+                                  onClick={() => handleImageRetry(errorKey)}
                                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-lg transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95"
                                 >
                                   <svg
@@ -2884,13 +2874,7 @@ function ReadChapterPageContent({
                                           Не удалось загрузить изображение
                                         </p>
                                         <button
-                                          onClick={() => {
-                                            setImageLoadErrors(prev => {
-                                              const newSet = new Set(prev);
-                                              newSet.delete(errorKey);
-                                              return newSet;
-                                            });
-                                          }}
+                                          onClick={() => handleImageRetry(errorKey)}
                                           className="mt-2 px-3 py-1.5 bg-[var(--primary)] text-white text-xs rounded-lg"
                                         >
                                           Повторить
