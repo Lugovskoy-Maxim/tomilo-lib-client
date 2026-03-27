@@ -192,6 +192,7 @@ function ReadChapterPageContent({
   const [totalContentHeight, setTotalContentHeight] = useState(0);
   const [imageRetryTokens, setImageRetryTokens] = useState<Map<string, number>>(new Map());
   const restorePositionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCurrentPageMeasureAtRef = useRef(0);
   const isPagedMode = readingMode === "paged";
   const isChaptersInRowMode = readChaptersInRow && !isPagedMode;
 
@@ -1476,9 +1477,17 @@ function ReadChapterPageContent({
       }
 
       if (!isPositionRestoredRef.current) return;
+      const now = Date.now();
+      // Ограничиваем частоту тяжелых вычислений текущей страницы, чтобы автоскролл шел плавнее.
+      if (now - lastCurrentPageMeasureAtRef.current < 120) return;
+      lastCurrentPageMeasureAtRef.current = now;
+
       const chapterRoot = getChapterRootElement(activeReadingChapterId);
       const currentPageNum = getCurrentPageEnhanced(chapterRoot ?? undefined);
-      setCurrentPage(currentPageNum);
+      if (currentPageRef.current !== currentPageNum) {
+        currentPageRef.current = currentPageNum;
+        setCurrentPage(currentPageNum);
+      }
 
       if (currentPageNum > 1) {
         debouncedSavePosition(currentPageNum);
