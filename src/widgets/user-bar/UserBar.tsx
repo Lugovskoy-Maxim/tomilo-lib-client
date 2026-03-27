@@ -3,13 +3,11 @@ import NotificationButton from "@/shared/notification-button/NotificationButton"
 import UserDropdown from "@/shared/dropdown-menu/DropdownMenu";
 import ThemeToggle from "@/shared/theme-toggle/ThemeToggle";
 import UserAvatar from "@/shared/user/avatar";
-import Link from "next/link";
 import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 import { useUserLeaderboardPositions } from "@/hooks/useUserLeaderboardPositions";
 import { useState, useRef, useEffect } from "react";
-import { HardDrive, LogInIcon } from "lucide-react";
+import { LogInIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { isPremiumActive } from "@/lib/premium";
 
 interface UserDropdownUser {
   id?: string;
@@ -42,8 +40,6 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
   const { frameUrl, avatarDecorationUrl } = useResolvedEquippedDecorations();
   const { bestPosition, positions, hasTop10 } = useUserLeaderboardPositions();
-  const canOpenOfflineLibrary =
-    user?.role === "admin" || isPremiumActive(user?.subscriptionExpiresAt ?? null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -105,22 +101,6 @@ export default function UserBar({ onOpenLogin }: UserBarProps) {
     <>
       <div className="flex items-center gap-2 sm:gap-3">
         <ThemeToggle />
-
-        {isAuthenticated && canOpenOfflineLibrary && (
-          <Link
-            href="/offline"
-            className="group relative inline-flex items-center justify-center min-w-11 min-h-11 px-2.5 sm:px-3 rounded-xl !overflow-visible bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] transition-all duration-250 hover:border-[var(--primary)] hover:text-[var(--foreground)] hover:shadow-[0_0_20px_-5px_var(--primary)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] max-[480px]:min-w-[34px] max-[480px]:min-h-[34px] max-[480px]:px-2 max-[480px]:rounded-lg"
-            title="Офлайн главы"
-            aria-label="Открыть офлайн главы"
-          >
-            <span
-              className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--chart-1)] opacity-0 transition-opacity duration-250 group-hover:opacity-[0.12] -z-0 rounded-xl"
-              aria-hidden
-            />
-            <HardDrive className="w-4 h-4 sm:w-4.5 sm:h-4.5 relative z-[1] group-hover:scale-110 group-hover:-rotate-5 group-hover:text-[var(--primary)] transition-transform duration-300" />
-            <span className="hidden sm:inline text-xs font-medium ml-1 relative z-[1]">Офлайн</span>
-          </Link>
-        )}
 
         {isAuthenticated && (
           <div className="hidden lg:block">
