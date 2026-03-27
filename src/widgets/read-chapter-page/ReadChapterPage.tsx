@@ -29,7 +29,6 @@ import {
   saveReadingPosition,
   getReadingPosition,
   createDebouncedSave,
-  createScrollDebounce,
   getCurrentPageEnhanced,
   clearOtherChaptersPositions,
 } from "@/lib/reading-position";
@@ -99,9 +98,9 @@ function ReopenRestorePromptButton({
     <button
       type="button"
       onClick={onClick}
-      className="fixed left-1/2 -translate-x-1/2 top-24 z-[120] px-3 py-2 rounded-xl bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] shadow-lg text-xs sm:text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+      className="fixed left-1/2 -translate-x-1/2 top-[calc(4.25rem+env(safe-area-inset-top,0px))] z-40 px-3 py-1.5 rounded-xl bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] shadow-lg text-xs text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
     >
-      Вернуть окно продолжения ({secondsLeft}с)
+      Продолжить чтение ({secondsLeft}с)
     </button>
   );
 }
@@ -165,7 +164,7 @@ function ReadChapterPageContent({
   const [imageFallbacks, setImageFallbacks] = useState<Set<string>>(new Set());
   const [, setIsFullscreen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const [showScrollTopButton, setShowScrollTopButton] = useState(false);
   // По умолчанию мобильное нижнее меню показывается (false = не скрывать)
   const [hideBottomMenuSetting, setHideBottomMenuSetting] = useState(false);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
@@ -180,6 +179,7 @@ function ReadChapterPageContent({
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [canReopenRestorePrompt, setCanReopenRestorePrompt] = useState(false);
   const [showReopenRestorePromptButton, setShowReopenRestorePromptButton] = useState(false);
+  const restoreChoiceHandledRef = useRef(false);
   const [imageLoadPriority, setImageLoadPriority] = useState<
     Map<number, "low" | "medium" | "high">
   >(new Map());
@@ -191,18 +191,88 @@ function ReadChapterPageContent({
   const [lastTapTime, setLastTapTime] = useState(0);
   const [totalContentHeight, setTotalContentHeight] = useState(0);
   const [imageRetryTokens, setImageRetryTokens] = useState<Map<string, number>>(new Map());
+  const restorePositionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPagedMode = readingMode === "paged";
   const isChaptersInRowMode = readChaptersInRow && !isPagedMode;
 
   // Бесконечное чтение
   const [isLoadingNextChapter, setIsLoadingNextChapter] = useState(false);
   const [infiniteScrollLoadError, setInfiniteScrollLoadError] = useState<string | null>(null);
+  const nextChapterLoadStartedAtRef = useRef(0);
+  const nextChapterLoadingHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedChapterIdsRef = useRef<Set<string>>(new Set([chapter._id]));
   const [loadedChapterIds, setLoadedChapterIds] = useState<Set<string>>(new Set([chapter._id]));
   void loadedChapterIds;
 
   // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
+  const rowPrevLoadStartedAtRef = useRef(0);
+  const rowPrevLoadingHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowNextLoadStartedAtRef = useRef(0);
+  const rowNextLoadingHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const completeNextChapterLoading = useCallback(() => {
+    const MIN_LOADING_MS = 350;
+    const elapsed = Date.now() - nextChapterLoadStartedAtRef.current;
+    const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+
+    if (nextChapterLoadingHideTimerRef.current) {
+      clearTimeout(nextChapterLoadingHideTimerRef.current);
+      nextChapterLoadingHideTimerRef.current = null;
+    }
+
+    if (remaining === 0) {
+      setIsLoadingNextChapter(false);
+      return;
+    }
+
+    nextChapterLoadingHideTimerRef.current = setTimeout(() => {
+      setIsLoadingNextChapter(false);
+      nextChapterLoadingHideTimerRef.current = null;
+    }, remaining);
+  }, []);
+
+  const completeRowPrevLoading = useCallback(() => {
+    const MIN_LOADING_MS = 300;
+    const elapsed = Date.now() - rowPrevLoadStartedAtRef.current;
+    const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+
+    if (rowPrevLoadingHideTimerRef.current) {
+      clearTimeout(rowPrevLoadingHideTimerRef.current);
+      rowPrevLoadingHideTimerRef.current = null;
+    }
+
+    if (remaining === 0) {
+      setLoadingPrev(false);
+      return;
+    }
+
+    rowPrevLoadingHideTimerRef.current = setTimeout(() => {
+      setLoadingPrev(false);
+      rowPrevLoadingHideTimerRef.current = null;
+    }, remaining);
+  }, []);
+
+  const completeRowNextLoading = useCallback(() => {
+    const MIN_LOADING_MS = 300;
+    const elapsed = Date.now() - rowNextLoadStartedAtRef.current;
+    const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+
+    if (rowNextLoadingHideTimerRef.current) {
+      clearTimeout(rowNextLoadingHideTimerRef.current);
+      rowNextLoadingHideTimerRef.current = null;
+    }
+
+    if (remaining === 0) {
+      setLoadingNext(false);
+      return;
+    }
+
+    rowNextLoadingHideTimerRef.current = setTimeout(() => {
+      setLoadingNext(false);
+      rowNextLoadingHideTimerRef.current = null;
+    }, remaining);
+  }, []);
 
   const loadNextChapterInfiniteScroll = useCallback(() => {
     if (loadedChapters.length === 0) return;
@@ -220,6 +290,7 @@ function ReadChapterPageContent({
     const nextChapter = chapters[baseChapterIndex + 1];
     if (loadedChapterIdsRef.current.has(nextChapter._id)) return;
     loadedChapterIdsRef.current.add(nextChapter._id);
+    nextChapterLoadStartedAtRef.current = Date.now();
     setIsLoadingNextChapter(true);
     fetchChapterById(nextChapter._id)
       .unwrap()
@@ -250,42 +321,41 @@ function ReadChapterPageContent({
         setInfiniteScrollLoadError("Не удалось загрузить главу. Проверьте сеть и попробуйте снова.");
       })
       .finally(() => {
-        setIsLoadingNextChapter(false);
+        completeNextChapterLoading();
       });
-  }, [loadedChapters, chapters, chapter._id, fetchChapterById, isAuthenticated, addToReadingHistory, titleId]);
+  }, [
+    loadedChapters,
+    chapters,
+    chapter._id,
+    fetchChapterById,
+    isAuthenticated,
+    addToReadingHistory,
+    titleId,
+    completeNextChapterLoading,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (nextChapterLoadingHideTimerRef.current) {
+        clearTimeout(nextChapterLoadingHideTimerRef.current);
+      }
+      if (rowPrevLoadingHideTimerRef.current) {
+        clearTimeout(rowPrevLoadingHideTimerRef.current);
+      }
+      if (rowNextLoadingHideTimerRef.current) {
+        clearTimeout(rowNextLoadingHideTimerRef.current);
+      }
+      if (restorePositionTimerRef.current) {
+        clearTimeout(restorePositionTimerRef.current);
+      }
+    };
+  }, []);
 
   const infiniteScrollTriggerRef = useIntersectionTrigger(loadNextChapterInfiniteScroll, {
     enabled: Boolean(infiniteScroll && !isPagedMode && !isLoadingNextChapter),
     rootMargin: "300px",
     threshold: 0,
   });
-
-  // Фолбэк для случаев, когда observer-сентинель не сработал (редкие мобильные/браузерные кейсы).
-  // Если пользователь подошел к концу страницы, пробуем догрузить следующую главу напрямую.
-  useEffect(() => {
-    if (!infiniteScroll || isPagedMode) return;
-
-    let rafId: number | null = null;
-    const handleScroll = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        if (isLoadingNextChapter) return;
-        const scrollTop = window.scrollY;
-        const winH = window.innerHeight;
-        const docH = document.documentElement.scrollHeight;
-        if (docH - (scrollTop + winH) < 420) {
-          loadNextChapterInfiniteScroll();
-        }
-      });
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-    };
-  }, [infiniteScroll, isPagedMode, isLoadingNextChapter, loadNextChapterInfiniteScroll]);
 
   const calculateReadingTime = useCallback((imagesCount: number, contentHeight?: number) => {
     const pixelsPerSecond = 120;
@@ -823,6 +893,8 @@ function ReadChapterPageContent({
 
   // Unified scroll handler: логика появления/скрытия хедера (мобильный и десктоп)
   const lastScrollYRef = useRef(0);
+  const isHeaderVisibleRef = useRef(true);
+  const showScrollTopButtonRef = useRef(false);
   const headerVisibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SCROLL_TOP_ZONE = 120; // в начале страницы хедер всегда виден
   const SCROLL_DOWN_THRESHOLD = 70; // скрыть хедер после прокрутки вниз
@@ -834,8 +906,12 @@ function ReadChapterPageContent({
     if (typeof window === "undefined") return;
     const y = window.scrollY;
     lastScrollYRef.current = y;
-    setLastScrollY(y);
-    setIsHeaderVisible(y <= SCROLL_TOP_ZONE);
+    const headerVisible = y <= SCROLL_TOP_ZONE;
+    isHeaderVisibleRef.current = headerVisible;
+    setIsHeaderVisible(headerVisible);
+    const shouldShowScrollTop = y > 600;
+    showScrollTopButtonRef.current = shouldShowScrollTop;
+    setShowScrollTopButton(shouldShowScrollTop);
   }, []);
 
   useEffect(() => {
@@ -843,6 +919,8 @@ function ReadChapterPageContent({
     let rafId: number | null = null;
 
     const applyHeaderVisibility = (visible: boolean) => {
+      if (isHeaderVisibleRef.current === visible) return;
+      isHeaderVisibleRef.current = visible;
       setIsHeaderVisible(visible);
       if (visible) {
         if (hideBottomMenuSetting) showMenuAndResetTimeout();
@@ -892,8 +970,13 @@ function ReadChapterPageContent({
           if (hideBottomMenuSetting) setIsMenuCollapsed(true);
         }
 
+        const shouldShowScrollTop = currentScrollY > 600;
+        if (showScrollTopButtonRef.current !== shouldShowScrollTop) {
+          showScrollTopButtonRef.current = shouldShowScrollTop;
+          setShowScrollTopButton(shouldShowScrollTop);
+        }
+
         lastScrollYRef.current = currentScrollY;
-        setLastScrollY(currentScrollY);
         ticking = false;
       });
     };
@@ -990,28 +1073,33 @@ function ReadChapterPageContent({
   // Функция восстановления позиции
   const restorePosition = useCallback(
     (page: number) => {
-      setSavedReadingPage(page);
+      const safePage = Math.max(1, Math.min(chapter.images.length || 1, page));
+      setSavedReadingPage(safePage);
       setCanReopenRestorePrompt(false);
       setShowReopenRestorePromptButton(false);
 
-      const timeoutId = setTimeout(async () => {
+      if (restorePositionTimerRef.current) {
+        clearTimeout(restorePositionTimerRef.current);
+      }
+
+      restorePositionTimerRef.current = window.setTimeout(() => {
         try {
-          const pageElement = findPageElementInChapter(chapterId, page);
+          const pageElement = findPageElementInChapter(chapterId, safePage);
           if (pageElement) {
             pageElement.scrollIntoView({
               behavior: "auto",
               block: "center",
             });
           }
-          setCurrentPage(page);
+          setCurrentPage(safePage);
 
           // Устанавливаем приоритеты загрузки изображений
           const priorities = new Map<number, "low" | "medium" | "high">();
           chapter.images.forEach((_, index) => {
             const pageNum = index + 1;
-            if (pageNum === page) {
+            if (pageNum === safePage) {
               priorities.set(pageNum, "high");
-            } else if (Math.abs(pageNum - page) <= 2) {
+            } else if (Math.abs(pageNum - safePage) <= 2) {
               priorities.set(pageNum, "medium");
             } else {
               priorities.set(pageNum, "low");
@@ -1024,12 +1112,12 @@ function ReadChapterPageContent({
           console.warn("Failed to restore reading position:", error);
           setCurrentPage(1);
           setIsPositionRestored(true);
+        } finally {
+          restorePositionTimerRef.current = null;
         }
       }, 100);
-
-      return () => clearTimeout(timeoutId);
     },
-    [chapter.images, chapterId, findPageElementInChapter],
+    [chapter.images, chapterId, findPageElementInChapter, restorePositionTimerRef],
   );
 
   // Функция сброса позиции (начать сначала)
@@ -1072,6 +1160,11 @@ function ReadChapterPageContent({
   }, [titleId, chapterId]);
 
   const handleCloseRestoreModal = useCallback(() => {
+    if (restoreChoiceHandledRef.current) {
+      restoreChoiceHandledRef.current = false;
+      setIsRestoreModalOpen(false);
+      return;
+    }
     // Не теряем возможность восстановления: разрешаем открыть окно снова вручную.
     setIsRestoreModalOpen(false);
     setIsPositionRestored(true);
@@ -1279,18 +1372,10 @@ function ReadChapterPageContent({
       updateCurrentPage();
     }
 
-    // Создаем debounced scroll handler
-    const debouncedScrollHandler = createScrollDebounce(updateCurrentPage, 150);
-
-    window.addEventListener("scroll", debouncedScrollHandler, {
-      passive: true,
-    });
-
     // Также обновляем при изменении размера окна
     window.addEventListener("resize", updateCurrentPage, { passive: true });
 
     return () => {
-      window.removeEventListener("scroll", debouncedScrollHandler);
       window.removeEventListener("resize", updateCurrentPage);
     };
   }, [
@@ -1317,6 +1402,7 @@ function ReadChapterPageContent({
     const prevId = chapters[firstLoadedIndex - 1]?._id;
     if (!prevId || loadingChapterIdsRef.current.has(prevId)) return;
     loadingChapterIdsRef.current.add(prevId);
+    rowPrevLoadStartedAtRef.current = Date.now();
     setLoadingPrev(true);
     try {
       const result = await fetchChapterById(prevId).unwrap();
@@ -1329,16 +1415,24 @@ function ReadChapterPageContent({
         if (el) window.scrollBy(0, el.getBoundingClientRect().height + 24);
       });
     } finally {
-      setLoadingPrev(false);
+      completeRowPrevLoading();
       loadingChapterIdsRef.current.delete(prevId);
     }
-  }, [isChaptersInRowMode, firstLoadedIndex, loadingPrev, chapters, fetchChapterById]);
+  }, [
+    isChaptersInRowMode,
+    firstLoadedIndex,
+    loadingPrev,
+    chapters,
+    fetchChapterById,
+    completeRowPrevLoading,
+  ]);
 
   const loadNextChapter = useCallback(async () => {
     if (!isChaptersInRowMode || lastLoadedIndex >= chapters.length - 1 || loadingNext) return;
     const nextId = chapters[lastLoadedIndex + 1]?._id;
     if (!nextId || loadingChapterIdsRef.current.has(nextId)) return;
     loadingChapterIdsRef.current.add(nextId);
+    rowNextLoadStartedAtRef.current = Date.now();
     setLoadingNext(true);
     try {
       const result = await fetchChapterById(nextId).unwrap();
@@ -1346,33 +1440,94 @@ function ReadChapterPageContent({
       setLoadedChapters(prev => [...prev, readerCh]);
       setLastLoadedIndex(i => i + 1);
     } finally {
-      setLoadingNext(false);
+      completeRowNextLoading();
       loadingChapterIdsRef.current.delete(nextId);
     }
-  }, [isChaptersInRowMode, lastLoadedIndex, chapters, loadingNext, fetchChapterById]);
+  }, [
+    isChaptersInRowMode,
+    lastLoadedIndex,
+    chapters,
+    loadingNext,
+    fetchChapterById,
+    completeRowNextLoading,
+  ]);
 
+  // Единый скролл-обработчик для подгрузки контента и обновления текущей страницы.
   useEffect(() => {
-    if (!isChaptersInRowMode) return;
+    if (isPagedMode) return;
 
-    let ticking = false;
+    let rafId: number | null = null;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+
+    const runScrollWork = () => {
+      rafId = null;
+
+      const scrollTop = window.scrollY;
+      const winH = window.innerHeight;
+      const docH = document.documentElement.scrollHeight;
+      const distanceToBottom = docH - (scrollTop + winH);
+
+      if (isChaptersInRowMode) {
+        if (scrollTop < 300) loadPrevChapter();
+        if (distanceToBottom < 400) loadNextChapter();
+      } else if (infiniteScroll && !isLoadingNextChapter && distanceToBottom < 420) {
+        // Фолбэк: observer может не сработать на некоторых мобильных браузерах.
+        loadNextChapterInfiniteScroll();
+      }
+
+      if (!isPositionRestoredRef.current) return;
+      const chapterRoot = getChapterRootElement(activeReadingChapterId);
+      const currentPageNum = getCurrentPageEnhanced(chapterRoot ?? undefined);
+      setCurrentPage(currentPageNum);
+
+      if (currentPageNum > 1) {
+        debouncedSavePosition(currentPageNum);
+      }
+
+      if (savedReadingPage && currentPageNum !== savedReadingPage) {
+        const priorities = new Map<number, "low" | "medium" | "high">();
+        chapter.images.forEach((_, index) => {
+          const pageNum = index + 1;
+          if (pageNum === currentPageNum) {
+            priorities.set(pageNum, "high");
+          } else if (pageNum === savedReadingPage || Math.abs(pageNum - currentPageNum) <= 2) {
+            priorities.set(pageNum, "medium");
+          } else {
+            priorities.set(pageNum, "low");
+          }
+        });
+        setImageLoadPriority(priorities);
+      }
+    };
 
     const handleScroll = () => {
-      if (ticking) return;
-      ticking = true;
-
-      requestAnimationFrame(() => {
-        const scrollTop = window.scrollY;
-        const winH = window.innerHeight;
-        const docH = document.documentElement.scrollHeight;
-        if (scrollTop < 300) loadPrevChapter();
-        if (docH - scrollTop - winH < 400) loadNextChapter();
-        ticking = false;
-      });
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(runScrollWork);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isChaptersInRowMode, loadPrevChapter, loadNextChapter]);
+    // Первый прогон после маунта/смены режима
+    timerId = setTimeout(runScrollWork, 0);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [
+    isPagedMode,
+    isChaptersInRowMode,
+    infiniteScroll,
+    isLoadingNextChapter,
+    loadPrevChapter,
+    loadNextChapter,
+    loadNextChapterInfiniteScroll,
+    debouncedSavePosition,
+    savedReadingPage,
+    chapter.images,
+    getChapterRootElement,
+    activeReadingChapterId,
+  ]);
 
   // Обновление URL при смене видимой главы (чтение подряд)
   useEffect(() => {
@@ -1638,9 +1793,16 @@ function ReadChapterPageContent({
       <ReadingPositionRestoreModal
         isOpen={isRestoreModalOpen}
         onClose={handleCloseRestoreModal}
-        onRestore={() => restorePosition(savedReadingPage || 1)}
-        onReset={resetPosition}
+        onRestore={() => {
+          restoreChoiceHandledRef.current = true;
+          restorePosition(savedReadingPage || 1);
+        }}
+        onReset={() => {
+          restoreChoiceHandledRef.current = true;
+          resetPosition();
+        }}
         onJumpToPage={page => {
+          restoreChoiceHandledRef.current = true;
           restorePosition(page);
         }}
         page={savedReadingPage || 1}
@@ -1896,7 +2058,7 @@ function ReadChapterPageContent({
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                               quality={imageQuality}
                               loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
                               onLoad={() => {
@@ -2110,7 +2272,7 @@ function ReadChapterPageContent({
                                     height={
                                       isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)
                                     }
-                                    className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
+                                    className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                                     quality={imageQuality}
                                     loading={shouldEagerLoad ? "eager" : "lazy"}
                                     onLoad={() => {
@@ -2316,7 +2478,7 @@ function ReadChapterPageContent({
                               alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
-                              className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
+                              className={`${imageFitClass} shadow-lg sm:shadow-2xl transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                               quality={
                                 imageLoadPriority.size > 0
                                   ? (() => {
@@ -2682,7 +2844,7 @@ function ReadChapterPageContent({
                                       height={
                                         isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)
                                       }
-                                      className={`${imageFitClass} shadow-lg sm:shadow-2xl ${isImageLoaded ? "opacity-100" : "opacity-0 transition-opacity duration-300"}`}
+                                      className={`${imageFitClass} shadow-lg sm:shadow-2xl transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                                       quality={imageQuality}
                                       loading="lazy"
                                       onLoad={() => {
@@ -3015,7 +3177,7 @@ function ReadChapterPageContent({
       )}
 
       {/* Scroll to Top Button — показывается только после прокрутки вниз */}
-      {isHeaderVisible && lastScrollY > 600 && (
+      {isHeaderVisible && showScrollTopButton && (
         <button
           onClick={scrollToTop}
           className="fixed left-4 z-[50] p-3 bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] rounded-full shadow-lg transition-all duration-300 hover:bg-[var(--accent)] hover:scale-110 active:scale-95 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 animate-in fade-in slide-in-from-bottom-4 duration-300"

@@ -290,33 +290,33 @@ export function ChapterReactions({
 
   return (
     <section
-      className="rounded-2xl border border-[var(--border)]/40 bg-[var(--card)]/80 shadow-sm overflow-hidden"
+      className="rounded-xl sm:rounded-2xl border border-[var(--border)]/40 bg-[var(--card)]/80 shadow-sm overflow-hidden"
       aria-label="Оценка и реакции на главу"
     >
       {/* Заголовок блока */}
-      <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
-            <MessageCircle className="w-5 h-5 text-[var(--primary)]" aria-hidden />
+      <div className="flex items-start justify-between gap-3 px-3 sm:px-5 pt-3 sm:pt-4 pb-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--primary)]" aria-hidden />
           </div>
           <div className="min-w-0">
-            <h3 className="text-base font-semibold text-[var(--foreground)] tracking-tight">
+            <h3 className="text-sm sm:text-base font-semibold text-[var(--foreground)] tracking-tight">
               Оцените главу
             </h3>
-            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+            <p className="text-[11px] sm:text-xs text-[var(--muted-foreground)] mt-0.5 leading-tight">
               Ваше мнение помогает другим читателям
             </p>
           </div>
         </div>
         {totalFeedback > 0 && (
-          <span className="flex-shrink-0 text-xs font-medium text-[var(--muted-foreground)] bg-[var(--secondary)]/80 px-2.5 py-1 rounded-full tabular-nums">
+          <span className="flex-shrink-0 text-[11px] sm:text-xs font-medium text-[var(--muted-foreground)] bg-[var(--secondary)]/80 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full tabular-nums">
             {totalFeedback}{" "}
             {totalFeedback === 1 ? "отзыв" : totalFeedback < 5 ? "отзыва" : "отзывов"}
           </span>
         )}
       </div>
 
-      <div className="px-5 pb-4 pt-4 space-y-4">
+      <div className="px-3 sm:px-5 pb-3 sm:pb-4 pt-3 sm:pt-4 space-y-3 sm:space-y-4">
         {/* CTA для неавторизованных — рендерим только после mount, чтобы избежать hydration mismatch (isAuthenticated разный на сервере и клиенте) */}
         {!mounted ? (
           <div className="flex items-center gap-3 rounded-xl bg-[var(--secondary)]/50 border border-[var(--border)]/30 px-4 py-3">
@@ -360,7 +360,7 @@ export function ChapterReactions({
                     type="button"
                     disabled={!mounted || !isAuthenticated || isRatingLoading}
                     onClick={() => handleRating(value)}
-                    className={`flex-shrink-0 flex items-center justify-center min-w-[28px] w-7 h-7 sm:min-w-[32px] sm:w-8 sm:h-8 md:min-w-0 md:w-auto md:min-h-[44px] md:p-2 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--secondary)]/60 ${
+                    className={`flex-shrink-0 flex items-center justify-center min-w-[30px] w-[30px] h-[30px] sm:min-w-[32px] sm:w-8 sm:h-8 md:min-w-0 md:w-auto md:min-h-[44px] md:p-2 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--secondary)]/60 ${
                       isSelected
                         ? "text-[var(--primary)]"
                         : "text-[var(--muted-foreground)]/50 hover:text-[var(--muted-foreground)]"
@@ -398,7 +398,7 @@ export function ChapterReactions({
             <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
               Реакции
             </span>
-            <div className="w-full max-w-[500px] min-w-0 sm:min-w-[355px] mx-auto flex flex-wrap gap-2 sm:gap-2">
+            <div className="w-full max-w-[500px] min-w-0 sm:min-w-[355px] mx-auto flex flex-wrap gap-1.5 sm:gap-2">
               {sortedReactionEmojis.map(emoji => {
                 const isSelected = displaySelectedEmoji === emoji;
                 const count = countByEmoji[emoji] ?? 0;
@@ -411,7 +411,7 @@ export function ChapterReactions({
                     onClick={() => handleReaction(emoji)}
                     disabled={isLoading}
                     title={EMOJI_LABELS[emoji] ?? emoji}
-                    className={`flex items-center gap-1 sm:gap-2 min-h-[44px] h-11 pl-3 pr-2.5 sm:h-10 sm:min-h-0 sm:pl-3 sm:pr-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] disabled:opacity-50 ${
+                    className={`flex items-center gap-1 sm:gap-2 min-h-[38px] sm:min-h-[40px] h-auto px-2.5 sm:pl-3 sm:pr-2.5 rounded-lg sm:rounded-xl border transition-all duration-150 active:scale-[0.98] disabled:opacity-50 ${
                       isSelected
                         ? "bg-[var(--primary)]/15 border-[var(--primary)]/30 text-[var(--foreground)] shadow-sm"
                         : "border-[var(--border)]/50 bg-[var(--background)]/50 text-[var(--muted-foreground)] hover:border-[var(--border)] hover:bg-[var(--secondary)]/60 hover:text-[var(--foreground)]"
@@ -420,11 +420,11 @@ export function ChapterReactions({
                     {isLoading && animatingEmoji === emoji ? (
                       <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 animate-spin" />
                     ) : (
-                      <span className="text-base sm:text-lg leading-none select-none">{emoji}</span>
+                      <span className="text-[17px] sm:text-lg leading-none select-none">{emoji}</span>
                     )}
                     {count > 0 && (
                       <span
-                        className={`text-[10px] sm:text-xs font-medium tabular-nums min-w-[1rem] sm:min-w-[1.25rem] text-center ${
+                        className={`text-[10px] sm:text-xs font-semibold tabular-nums min-w-[1rem] sm:min-w-[1.25rem] text-center ${
                           isSelected ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
                         }`}
                       >
