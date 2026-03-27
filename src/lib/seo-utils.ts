@@ -102,21 +102,8 @@ export function generateDynamicSEOMetadata(filters: Filters) {
     keywords = `${filters.releaseYears.join(", ")}, ${keywords}`;
   }
 
-  // Генерация URL с параметрами
-  const url = new URL(`${baseUrl}/titles`);
-
-  if (filters.search) url.searchParams.set("search", filters.search);
-  if (filters.genres.length > 0) url.searchParams.set("genres", filters.genres.join(","));
-  if (filters.types.length > 0) url.searchParams.set("types", filters.types.join(","));
-  if (filters.status.length > 0) url.searchParams.set("status", filters.status.join(","));
-  if (filters.ageLimits.length > 0) url.searchParams.set("ageLimits", filters.ageLimits.join(","));
-  if (filters.releaseYears.length > 0)
-    url.searchParams.set("releaseYears", filters.releaseYears.join(","));
-  if (filters.tags.length > 0) url.searchParams.set("tags", filters.tags.join(","));
-  if (filters.sortBy !== "averageRating") url.searchParams.set("sortBy", filters.sortBy);
-  if (filters.sortOrder !== "desc") url.searchParams.set("sortOrder", filters.sortOrder);
-
-  const canonicalUrl = url.toString();
+  // Канонический URL всегда без query-параметров.
+  const canonicalUrl = `${baseUrl}/titles`;
   const ogImageUrl = getDefaultOgImageUrl(baseUrl);
 
   return buildServerSEOMetadata({

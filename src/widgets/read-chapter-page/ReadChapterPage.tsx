@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { flushSync } from "react-dom";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { ReportModal } from "@/shared/report/ReportModal";
 
@@ -117,6 +117,8 @@ function ReadChapterPageContent({
   slug?: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isOfflineReadMode = searchParams.get("offlineRead") === "1";
 
   const { user, updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
   const { data: readingHistoryResponse } = useGetReadingHistoryQuery(
@@ -1849,6 +1851,12 @@ function ReadChapterPageContent({
           <span className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">
             Загрузка {preloadProgress}%
           </span>
+        </div>
+      )}
+
+      {isOfflineReadMode && (
+        <div className="fixed top-20 right-3 sm:right-5 z-[150] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-md">
+          Офлайн режим
         </div>
       )}
 

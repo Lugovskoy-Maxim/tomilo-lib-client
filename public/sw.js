@@ -12,6 +12,17 @@ function isSameOrigin(url) {
   }
 }
 
+function isForcedOfflineRequest(request, url) {
+  try {
+    const offlineHeader = request.headers.get("x-offline-read") === "1";
+    const offlineByQuery = url.searchParams.get("offlineRead") === "1";
+    const offlineByReferrer = typeof request.referrer === "string" && request.referrer.includes("offlineRead=1");
+    return offlineHeader || offlineByQuery || offlineByReferrer;
+  } catch {
+    return false;
+  }
+}
+
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
@@ -48,6 +59,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const { request } = event;
   const url = new URL(request.url);
+  const forceOffline = isForcedOfflineRequest(request, url);
 
   if (!isSameOrigin(request.url) || request.method !== "GET") return;
 
@@ -102,6 +114,23 @@ self.addEventListener("fetch", event => {
     url.pathname.includes("/api/") &&
     (url.pathname.includes("chapter") || url.pathname.includes("titles"))
   ) {
+    if (forceOffline) {
+      event.respondWith(
+        caches.match(request).then(cached => {
+          if (cached) return cached;
+          return caches.match(request, { ignoreSearch: true }).then(ignoreSearchCached => {
+            if (ignoreSearchCached) return ignoreSearchCached;
+            return new Response(JSON.stringify({ message: "Нет офлайн-копии главы" }), {
+              status: 503,
+              statusText: "Offline Cache Miss",
+              headers: { "Content-Type": "application/json" },
+            });
+          });
+        }),
+      );
+      return;
+    }
+
     event.respondWith(
       fetch(request)
         .then(res => {
@@ -120,6 +149,21 @@ self.addEventListener("fetch", event => {
     url.pathname.includes("tomilolib")
   ) {
     const normalizedImageUrl = `${url.origin}${url.pathname}`;
+    if (forceOffline) {
+      event.respondWith(
+        caches.match(request).then(cached => {
+          if (cached) return cached;
+          return caches
+            .match(normalizedImageUrl)
+            .then(normalizedCached =>
+              normalizedCached || caches.match(request, { ignoreSearch: true }),
+            )
+            .then(fallbackCached => fallbackCached || new Response("Нет офлайн-изображения", { status: 503 }));
+        }),
+      );
+      return;
+    }
+
     event.respondWith(
       caches.match(request).then(cached => {
         if (cached) return cached;

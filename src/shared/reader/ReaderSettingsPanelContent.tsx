@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { List, Percent, Timer, Eye, Download, Smartphone, Wifi } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { List, Percent, Timer, Eye, Download, Smartphone, Wifi, ChevronDown, ChevronUp } from "lucide-react";
 import { BookOpen, LayoutList } from "lucide-react";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useReaderSettingsContext } from "./hooks";
@@ -172,6 +172,26 @@ function SegmentOption<T extends string>({
 const rangeInputClass =
   "w-full h-2 bg-[var(--muted)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--primary)] [&::-webkit-slider-thumb]:shadow-md";
 
+function SliderItem({
+  label,
+  value,
+  children,
+}: {
+  label: string;
+  value: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between text-sm">
+        <span className="text-[var(--foreground)]">{label}</span>
+        <span className="font-medium text-[var(--primary)]">{value}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export interface ReaderSettingsPanelContentProps {
   imageWidth?: number;
   onImageWidthChange?: (width: number) => void;
@@ -220,70 +240,39 @@ export function ReaderSettingsPanelContent({
     setDataSaver,
   } = useReaderSettingsContext();
   const { autoScrollSpeed, setAutoScrollSpeed } = useAutoScroll();
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   return (
-    <div className="flex-1 overflow-y-auto px-5 py-4 pb-12 space-y-8">
-      <SettingsSection title="Чтение">
-        <div className="space-y-3">
-          <span className="text-[11px] text-[var(--muted-foreground)]">Режим отображения</span>
-          <div className="flex bg-[var(--secondary)] rounded-xl p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setReadingMode("feed");
-                // Верхняя «Лента» = вертикальный скролл; без этого следующая глава не подгружается.
-                setInfiniteScroll(true);
-              }}
-              className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                readingMode === "feed"
-                  ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-                  : "text-[var(--muted-foreground)]"
-              }`}
-            >
-              Лента
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setReadingMode("paged");
-                // По страницам несовместимо с подгрузкой следующей главы при скролле
-                setInfiniteScroll(false);
-              }}
-              className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                readingMode === "paged"
-                  ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-                  : "text-[var(--muted-foreground)]"
-              }`}
-            >
-              По страницам
-            </button>
-          </div>
-          <p className="text-[10px] text-[var(--muted-foreground)] leading-snug">
-            «Лента» включает и непрерывную подгрузку глав вниз (отключается в «Переход по главам»).
-          </p>
+    <div className="flex-1 overflow-y-auto px-4 py-3 pb-10 space-y-5">
+      <SettingsSection title="Основное">
+        <div className="space-y-2">
+          <span className="text-[11px] text-[var(--muted-foreground)]">Режим чтения</span>
+          <SegmentOption
+            options={[
+              { value: "feed" as const, label: "Лента" },
+              { value: "paged" as const, label: "По страницам" },
+            ]}
+            value={readingMode}
+            onChange={v => {
+              setReadingMode(v);
+              if (v === "feed") setInfiniteScroll(true);
+              if (v === "paged") setInfiniteScroll(false);
+            }}
+          />
         </div>
+
         <div className="space-y-2">
           <span className="text-[11px] text-[var(--muted-foreground)]">Переход по главам</span>
           <SegmentOption
             options={[
-              { value: "one" as const, label: "По одной главе", icon: BookOpen },
-              {
-                value: "feed" as const,
-                label: "Непрерывно (скролл)",
-                icon: LayoutList,
-                badge: "beta",
-              },
+              { value: "one" as const, label: "По одной", icon: BookOpen },
+              { value: "feed" as const, label: "Непрерывно", icon: LayoutList, badge: "beta" },
             ]}
             value={infiniteScroll ? "feed" : "one"}
             onChange={v => setInfiniteScroll(v === "feed")}
           />
-          <p className="text-[10px] text-[var(--muted-foreground)] leading-snug">
-            Доступно в режиме «Лента»: следующая глава подтягивается при прокрутке к концу текущей.
-          </p>
         </div>
-      </SettingsSection>
 
-      <SettingsSection title="Экран">
         <div className="space-y-2">
           <span className="text-[11px] text-[var(--muted-foreground)]">Тема</span>
           <ThemeToggleGroup />
@@ -314,148 +303,178 @@ export function ReaderSettingsPanelContent({
         )}
       </SettingsSection>
 
-      <SettingsSection title="Отображение">
-        <SettingsRow label="Нумерация страниц" icon={List}>
-          <ToggleSwitch on={showPageCounter} onClick={() => setShowPageCounter(!showPageCounter)} />
-        </SettingsRow>
-        <SettingsRow label="Прогресс главы" icon={Percent}>
-          <ToggleSwitch on={showProgress} onClick={() => setShowProgress(!showProgress)} />
-        </SettingsRow>
-        <SettingsRow label="Время чтения" icon={Timer}>
-          <ToggleSwitch on={showTimer} onClick={() => setShowTimer(!showTimer)} />
-        </SettingsRow>
-        <SettingsRow label="Подсказки (зум/свайп)" icon={Eye}>
-          <ToggleSwitch on={showHints} onClick={() => setShowHints(!showHints)} />
-        </SettingsRow>
-        <SettingsRow label="Вибрация при перелистывании" icon={Smartphone}>
-          <ToggleSwitch on={hapticEnabled} onClick={() => setHapticEnabled(!hapticEnabled)} />
-        </SettingsRow>
-        <SettingsRow label="Экономия трафика" icon={Wifi}>
-          <ToggleSwitch on={dataSaver} onClick={() => setDataSaver(!dataSaver)} />
-        </SettingsRow>
-        {onHideBottomMenuChange && (
-          <SettingsRow label="Скрывать нижнее меню" icon={Eye}>
-            <ToggleSwitch
-              on={hideBottomMenuSetting}
-              onClick={() => onHideBottomMenuChange(!hideBottomMenuSetting)}
-            />
-          </SettingsRow>
-        )}
-      </SettingsSection>
-
-      <SettingsSection title="Изображения">
-        {onImageWidthChange && (
-          <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--foreground)]">Ширина контейнера</span>
-              <span className="font-medium text-[var(--primary)]">{imageWidth} px</span>
-            </div>
+      <SettingsSection title="Слайдеры">
+        <div className="space-y-3 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+            Изображение
+          </p>
+          {onImageWidthChange && (
+            <SliderItem label="Ширина контейнера" value={`${imageWidth} px`}>
+              <input
+                type="range"
+                min={320}
+                max={1440}
+                step={20}
+                value={imageWidth}
+                onChange={e => onImageWidthChange(Number(e.target.value))}
+                className={rangeInputClass}
+                aria-label="Ширина контейнера изображений"
+              />
+            </SliderItem>
+          )}
+          <SliderItem label="Яркость" value={`${brightness}%`}>
             <input
               type="range"
-              min={320}
-              max={1440}
-              step={20}
-              value={imageWidth}
-              onChange={e => onImageWidthChange(Number(e.target.value))}
+              min={50}
+              max={150}
+              step={5}
+              value={brightness}
+              onChange={e => setBrightness(Number(e.target.value))}
               className={rangeInputClass}
-              aria-label="Ширина контейнера изображений"
+              aria-label="Яркость"
             />
-          </div>
-        )}
-        <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-          <div className="flex justify-between text-sm">
-            <span className="text-[var(--foreground)]">Яркость</span>
-            <span className="font-medium text-[var(--primary)]">{brightness}%</span>
-          </div>
-          <input
-            type="range"
-            min={50}
-            max={150}
-            step={5}
-            value={brightness}
-            onChange={e => setBrightness(Number(e.target.value))}
-            className={rangeInputClass}
-            aria-label="Яркость"
-          />
+          </SliderItem>
+          <SliderItem label="Контраст" value={`${contrast}%`}>
+            <input
+              type="range"
+              min={50}
+              max={150}
+              step={5}
+              value={contrast}
+              onChange={e => setContrast(Number(e.target.value))}
+              className={rangeInputClass}
+              aria-label="Контраст"
+            />
+          </SliderItem>
         </div>
-        <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-          <div className="flex justify-between text-sm">
-            <span className="text-[var(--foreground)]">Контраст</span>
-            <span className="font-medium text-[var(--primary)]">{contrast}%</span>
-          </div>
-          <input
-            type="range"
-            min={50}
-            max={150}
-            step={5}
-            value={contrast}
-            onChange={e => setContrast(Number(e.target.value))}
-            className={rangeInputClass}
-            aria-label="Контраст"
-          />
-        </div>
-        <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-          <span className="text-[11px] text-[var(--muted-foreground)] uppercase tracking-wider">
-            Режим защиты глаз
-          </span>
-          <SegmentOption
-            options={[
-              { value: "off" as const, label: "Отключено", icon: Eye },
-              { value: "warm" as const, label: "Тёплая", icon: Eye },
-              { value: "sepia" as const, label: "Сепия", icon: Eye },
-              { value: "dark" as const, label: "Темный", icon: Eye },
-            ]}
-            value={eyeComfortMode}
-            onChange={v => setEyeComfortMode(v)}
-          />
-        </div>
-        <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
-      </SettingsSection>
 
-      <SettingsSection title="Автопрокрутка">
-        <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
-          <div className="flex justify-between text-sm">
-            <span className="text-[var(--foreground)]">Скорость</span>
-            <span className="font-medium text-[var(--primary)]">
-              {autoScrollSpeed === "slow"
+        <div className="space-y-3 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+            Чтение
+          </p>
+          <SliderItem
+            label="Скорость автопрокрутки"
+            value={
+              autoScrollSpeed === "slow"
                 ? "Медленно"
                 : autoScrollSpeed === "medium"
                   ? "Средне"
-                  : "Быстро"}
-            </span>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={2}
-            step={1}
-            value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
-            onChange={e => {
-              const val = Number(e.target.value);
-              setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
-            }}
-            className={rangeInputClass}
-            aria-label="Скорость автопрокрутки"
-          />
+                  : "Быстро"
+            }
+          >
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={1}
+              value={autoScrollSpeed === "slow" ? 0 : autoScrollSpeed === "medium" ? 1 : 2}
+              onChange={e => {
+                const val = Number(e.target.value);
+                setAutoScrollSpeed(val === 0 ? "slow" : val === 1 ? "medium" : "fast");
+              }}
+              className={rangeInputClass}
+              aria-label="Скорость автопрокрутки"
+            />
+          </SliderItem>
         </div>
       </SettingsSection>
 
-      {onPreloadChange && (
-        <SettingsSection title="Дополнительно">
-          <SettingsRow
-            label={
-              preloadAllImages && preloadProgress > 0 && preloadProgress < 100
-                ? `Предзагрузка главы (${preloadProgress}%)`
-                : "Предзагрузка главы"
-            }
-            icon={Download}
-          >
-            <ToggleSwitch
-              on={preloadAllImages}
-              onClick={() => onPreloadChange(!preloadAllImages)}
-            />
-          </SettingsRow>
-        </SettingsSection>
+      <section className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setIsAdvancedOpen(v => !v)}
+          className="w-full flex items-center justify-between gap-3 py-2.5 px-3 rounded-xl bg-[var(--secondary)]/60 hover:bg-[var(--secondary)]/80 transition-colors"
+          aria-expanded={isAdvancedOpen}
+          aria-controls="reader-advanced-settings"
+        >
+          <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+            Дополнительные настройки
+          </span>
+          {isAdvancedOpen ? (
+            <ChevronUp className="w-4 h-4 text-[var(--muted-foreground)]" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-[var(--muted-foreground)]" />
+          )}
+        </button>
+
+        {isAdvancedOpen && (
+          <div id="reader-advanced-settings" className="space-y-4">
+            <SettingsSection title="Индикаторы и поведение">
+              <SettingsRow label="Нумерация страниц" icon={List}>
+                <ToggleSwitch
+                  on={showPageCounter}
+                  onClick={() => setShowPageCounter(!showPageCounter)}
+                />
+              </SettingsRow>
+              <SettingsRow label="Прогресс главы" icon={Percent}>
+                <ToggleSwitch on={showProgress} onClick={() => setShowProgress(!showProgress)} />
+              </SettingsRow>
+              <SettingsRow label="Время чтения" icon={Timer}>
+                <ToggleSwitch on={showTimer} onClick={() => setShowTimer(!showTimer)} />
+              </SettingsRow>
+              <SettingsRow label="Подсказки (зум/свайп)" icon={Eye}>
+                <ToggleSwitch on={showHints} onClick={() => setShowHints(!showHints)} />
+              </SettingsRow>
+              <SettingsRow label="Вибрация при перелистывании" icon={Smartphone}>
+                <ToggleSwitch on={hapticEnabled} onClick={() => setHapticEnabled(!hapticEnabled)} />
+              </SettingsRow>
+              <SettingsRow label="Экономия трафика" icon={Wifi}>
+                <ToggleSwitch on={dataSaver} onClick={() => setDataSaver(!dataSaver)} />
+              </SettingsRow>
+              {onHideBottomMenuChange && (
+                <SettingsRow label="Скрывать нижнее меню" icon={Eye}>
+                  <ToggleSwitch
+                    on={hideBottomMenuSetting}
+                    onClick={() => onHideBottomMenuChange(!hideBottomMenuSetting)}
+                  />
+                </SettingsRow>
+              )}
+            </SettingsSection>
+
+            <SettingsSection title="Качество и комфорт">
+              <div className="space-y-2 py-2 px-3 rounded-xl bg-[var(--secondary)]/50">
+                <span className="text-[11px] text-[var(--muted-foreground)] uppercase tracking-wider">
+                  Режим защиты глаз
+                </span>
+                <SegmentOption
+                  options={[
+                    { value: "off" as const, label: "Откл.", icon: Eye },
+                    { value: "warm" as const, label: "Тёплая", icon: Eye },
+                    { value: "sepia" as const, label: "Сепия", icon: Eye },
+                    { value: "dark" as const, label: "Тёмный", icon: Eye },
+                  ]}
+                  value={eyeComfortMode}
+                  onChange={v => setEyeComfortMode(v)}
+                />
+              </div>
+              <ImageQualitySelector imageQuality={imageQuality} setImageQuality={setImageQuality} />
+            </SettingsSection>
+
+            {onPreloadChange && (
+              <SettingsSection title="Загрузка">
+                <SettingsRow
+                  label={
+                    preloadAllImages && preloadProgress > 0 && preloadProgress < 100
+                      ? `Предзагрузка главы (${preloadProgress}%)`
+                      : "Предзагрузка главы"
+                  }
+                  icon={Download}
+                >
+                  <ToggleSwitch
+                    on={preloadAllImages}
+                    onClick={() => onPreloadChange(!preloadAllImages)}
+                  />
+                </SettingsRow>
+              </SettingsSection>
+            )}
+          </div>
+        )}
+      </section>
+
+      {!isAdvancedOpen && (
+        <p className="text-[10px] text-[var(--muted-foreground)] px-1">
+          Открывай «Дополнительные настройки» для индикаторов, качества и предзагрузки.
+        </p>
       )}
     </div>
   );
