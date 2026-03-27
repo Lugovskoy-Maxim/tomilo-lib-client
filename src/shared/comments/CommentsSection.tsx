@@ -144,16 +144,19 @@ export function CommentsSection({
             </span>
           )}
         </div>
-        <label className="ml-auto flex items-center gap-1.5 cursor-pointer select-none shrink-0">
+        <label
+          className="ml-auto flex items-center gap-1.5 cursor-pointer select-none max-w-[min(100%,11rem)] sm:max-w-none"
+          title="Пока включено, текст комментариев не подгружается, пока вы сами не откроете блок — чтобы не увидеть спойлеры к сюжету."
+        >
           <input
             type="checkbox"
-            className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40"
+            className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40 shrink-0"
             checked={protectionOn}
             onChange={e => setProtectionEnabled(e.target.checked)}
           />
-          <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] inline-flex items-center gap-1">
-            <EyeOff className="w-3 h-3 shrink-0" />
-            Спойлеры
+          <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] inline-flex items-center gap-1 leading-tight">
+            <EyeOff className="w-3 h-3 shrink-0" aria-hidden />
+            Защита от спойлеров
           </span>
         </label>
       </div>

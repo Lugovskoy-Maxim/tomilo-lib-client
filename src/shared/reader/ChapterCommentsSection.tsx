@@ -134,16 +134,19 @@ export function ChapterCommentsSection({
     <div className={`py-1 sm:py-6 px-2 sm:px-0 ${className}`}>
       <div className="max-w-2xl mx-auto">
         <div className="flex flex-wrap items-center justify-end gap-2 mb-2 sm:mb-3">
-          <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+          <label
+            className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] sm:text-xs text-[var(--muted-foreground)] max-w-[min(100%,11rem)] sm:max-w-none"
+            title="Пока включено, текст комментариев не подгружается, пока вы сами не откроете блок — чтобы не увидеть спойлеры к сюжету."
+          >
             <input
               type="checkbox"
-              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40"
+              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40 shrink-0"
               checked={protectionOn}
               onChange={e => setProtectionEnabled(e.target.checked)}
             />
-            <span className="inline-flex items-center gap-1">
-              <EyeOff className="w-3 h-3 shrink-0" />
-              Спойлеры
+            <span className="inline-flex items-center gap-1 leading-tight">
+              <EyeOff className="w-3 h-3 shrink-0" aria-hidden />
+              Защита от спойлеров
             </span>
           </label>
         </div>

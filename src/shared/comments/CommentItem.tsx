@@ -73,16 +73,23 @@ export function CommentItem({
   const [setReaction] = useSetCommentReactionMutation();
 
   const userData = typeof comment.userId === "object" ? comment.userId : null;
+  const authorId =
+    typeof comment.userId === "object" && comment.userId
+      ? comment.userId._id
+      : typeof comment.userId === "string" && comment.userId
+        ? comment.userId
+        : null;
   const isAdmin = userData?.role === "admin";
-  const isOwner = user && userData && user._id === userData._id;
-  const canReport = Boolean(user && userData && !isOwner);
-  const profileHref = userData?._id
+  const isOwner = Boolean(user && authorId && user._id === authorId);
+  /** Жалоба: достаточно знать id автора (populate необязателен). */
+  const canReport = Boolean(user && authorId && !isOwner);
+  const profileHref = authorId
     ? isOwner
       ? "/profile"
-      : `/user/${encodeURIComponent(userData._id)}`
+      : `/user/${encodeURIComponent(authorId)}`
     : null;
 
-  const { badges: top10Badges } = useTop10Badge(userData?._id);
+  const { badges: top10Badges } = useTop10Badge(authorId ?? undefined);
   const isInTop10 = top10Badges.length > 0;
 
   const displayReactions = useMemo((): CommentReactionCount[] => {
@@ -357,7 +364,7 @@ export function CommentItem({
                   </span>
                 )}
                 <div className="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-wrap justify-end">
-                  <LeaderTop10Badge userId={userData?._id} />
+                  <LeaderTop10Badge userId={authorId ?? undefined} />
                   {isOwner && (
                     <div className="relative">
                       <button
@@ -463,29 +470,31 @@ export function CommentItem({
                 </button>
               )}
               {canReport && (
-                <button
-                  type="button"
-                  onClick={() => setReportOpen(true)}
-                  className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs text-[var(--muted-foreground)] hover:text-amber-600 hover:bg-[var(--secondary)]/80 transition-colors"
-                  aria-label="Пожаловаться на комментарий"
-                >
-                  <Flag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  Жалоба
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setReportOpen(true)}
+                    className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs text-[var(--muted-foreground)] hover:text-amber-600 hover:bg-[var(--secondary)]/80 transition-colors shrink-0"
+                    aria-haspopup="dialog"
+                    aria-label="Пожаловаться на комментарий"
+                  >
+                    <Flag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    Жалоба
+                  </button>
+                  <CommentReportModal
+                    isOpen={reportOpen}
+                    onClose={() => setReportOpen(false)}
+                    commentId={comment._id}
+                    titleId={
+                      reportContextTitleId ??
+                      (comment.entityType === CommentEntityType.TITLE ? comment.entityId : undefined)
+                    }
+                  />
+                </>
               )}
             </div>
           </div>
         </div>
-
-        <CommentReportModal
-          isOpen={reportOpen}
-          onClose={() => setReportOpen(false)}
-          commentId={comment._id}
-          titleId={
-            reportContextTitleId ??
-            (comment.entityType === CommentEntityType.TITLE ? comment.entityId : undefined)
-          }
-        />
 
         {/* Ответы — вне flex с аватаром, чтобы аватар родителя центрировался только по своему комментарию */}
         {comment.replies && comment.replies.length > 0 && (

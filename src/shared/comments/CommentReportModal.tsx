@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { ReportType } from "@/types/report";
 import { useCreateReportMutation } from "@/store/api/reportsApi";
 import { X, Flag } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/hooks/useAuth";
+import { useOverlay } from "@/contexts/OverlayContext";
 
 interface CommentReportModalProps {
   isOpen: boolean;
@@ -18,17 +19,26 @@ interface CommentReportModalProps {
 
 const MIN_LEN = 10;
 
-export function CommentReportModal({
-  isOpen,
+function CommentReportModalInner({
   onClose,
   commentId,
   titleId,
-}: CommentReportModalProps) {
+}: Omit<CommentReportModalProps, "isOpen">) {
   const [description, setDescription] = useState("");
   const [createReport, { isLoading }] = useCreateReportMutation();
   const toast = useToast();
   const { user } = useAuth();
   const pathname = usePathname() || "";
+
+  const fieldId = `comment-report-text-${commentId}`;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,11 +85,21 @@ export function CommentReportModal({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] w-full max-w-md p-6 relative shadow-xl">
+    <div
+      className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/45 backdrop-blur-[2px] p-4"
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`comment-report-title-${commentId}`}
+        className="relative w-full max-w-md max-h-[min(90vh,calc(100vh-2rem))] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 sm:p-6 shadow-xl"
+        onClick={e => e.stopPropagation()}
+      >
         <button
           type="button"
           onClick={onClose}
@@ -89,10 +109,15 @@ export function CommentReportModal({
           <X className="w-5 h-5" />
         </button>
 
-        <div className="mb-5 pr-8">
+        <div className="mb-5 pr-10">
           <div className="flex items-center gap-2 mb-2">
-            <Flag className="w-5 h-5 text-[var(--primary)]" />
-            <h2 className="text-lg font-bold text-[var(--foreground)]">Жалоба на комментарий</h2>
+            <Flag className="w-5 h-5 text-[var(--primary)] shrink-0" />
+            <h2
+              id={`comment-report-title-${commentId}`}
+              className="text-lg font-bold text-[var(--foreground)]"
+            >
+              Жалоба на комментарий
+            </h2>
           </div>
           <p className="text-[var(--muted-foreground)] text-sm">
             Опишите нарушение: оскорбления, спойлеры без пометки, спам и т.д.
@@ -101,11 +126,11 @@ export function CommentReportModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="comment-report-text" className="block text-sm font-medium mb-1.5">
+            <label htmlFor={fieldId} className="block text-sm font-medium mb-1.5">
               Текст жалобы
             </label>
             <textarea
-              id="comment-report-text"
+              id={fieldId}
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={4}
@@ -139,5 +164,44 @@ export function CommentReportModal({
         </form>
       </div>
     </div>
+  );
+}
+
+export function CommentReportModal({
+  isOpen,
+  onClose,
+  commentId,
+  titleId,
+}: CommentReportModalProps) {
+  const overlay = useOverlay();
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!overlay) return;
+    if (!isOpen) {
+      overlay.setOverlayContent(null);
+      return;
+    }
+    overlay.setOverlayContent(
+      <CommentReportModalInner
+        commentId={commentId}
+        titleId={titleId}
+        onClose={() => onCloseRef.current()}
+      />,
+    );
+    return () => overlay.setOverlayContent(null);
+  }, [isOpen, overlay, commentId, titleId]);
+
+  if (overlay) return null;
+
+  if (!isOpen) return null;
+
+  return (
+    <CommentReportModalInner
+      commentId={commentId}
+      titleId={titleId}
+      onClose={() => onCloseRef.current()}
+    />
   );
 }
