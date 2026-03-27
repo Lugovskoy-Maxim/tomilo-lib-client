@@ -393,7 +393,7 @@ export default function NotificationCard({
               >
                 <TypeIcon className="w-3 h-3 flex-shrink-0 opacity-90" />
               </span>
-              <span className="text-[10px] text-[var(--muted-foreground)] shrink-0">
+              <span className="text-[11px] text-[var(--muted-foreground)] shrink-0">
                 {formatNotificationTime(notification.createdAt)}
               </span>
             </div>

@@ -274,7 +274,7 @@ export default function NotificationChapterGroupCard({
               >
                 <BookOpen className="w-3 h-3 flex-shrink-0 opacity-90" />
               </span>
-              <span className="text-[10px] tabular-nums text-[var(--muted-foreground)] shrink-0">
+              <span className="text-[11px] tabular-nums text-[var(--muted-foreground)] shrink-0">
                 {latestTime ? formatNotificationTime(latestTime) : ""}
               </span>
               <span className="rounded-full bg-[var(--primary)]/12 px-2 py-0.5 text-[10px] font-semibold text-[var(--primary)] shrink-0">
