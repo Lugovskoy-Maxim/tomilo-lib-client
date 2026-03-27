@@ -1,12 +1,27 @@
 "use client";
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { Comment, ALLOWED_REACTION_EMOJIS, type CommentReactionCount } from "@/types/comment";
+import {
+  Comment,
+  CommentEntityType,
+  ALLOWED_REACTION_EMOJIS,
+  type CommentReactionCount,
+} from "@/types/comment";
 import { useOverlay } from "@/contexts/OverlayContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { useDeleteCommentMutation, useSetCommentReactionMutation } from "@/store/api/commentsApi";
-import { Reply, Edit, Trash2, MoreVertical, BadgeCheck, SmilePlus } from "lucide-react";
+import {
+  Reply,
+  Edit,
+  Trash2,
+  MoreVertical,
+  BadgeCheck,
+  SmilePlus,
+  Flag,
+  EyeOff,
+} from "lucide-react";
+import { CommentReportModal } from "./CommentReportModal";
 import Link from "next/link";
 import UserAvatar from "@/shared/user/avatar";
 import { getEquippedFrameUrl, getEquippedAvatarDecorationUrl } from "@/api/shop";
@@ -23,6 +38,7 @@ interface CommentItemProps {
   onReply?: (commentId: string) => void;
   onEdit?: (comment: Comment) => void;
   level?: number;
+  reportContextTitleId?: string;
 }
 
 function getErrorMessage(err: unknown, fallback: string): string {
@@ -34,11 +50,24 @@ function getErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
-export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItemProps) {
+export function CommentItem({
+  comment,
+  onReply,
+  onEdit,
+  level = 0,
+  reportContextTitleId,
+}: CommentItemProps) {
   const { user } = useAuth();
   const toast = useToast();
   const [showReplies, setShowReplies] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+  const hasSpoilerMark = Boolean(comment.isSpoiler);
+
+  useEffect(() => {
+    setSpoilerRevealed(false);
+  }, [comment._id]);
 
   const [deleteComment] = useDeleteCommentMutation();
   const [setReaction] = useSetCommentReactionMutation();
@@ -46,6 +75,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
   const userData = typeof comment.userId === "object" ? comment.userId : null;
   const isAdmin = userData?.role === "admin";
   const isOwner = user && userData && user._id === userData._id;
+  const canReport = Boolean(user && userData && !isOwner);
   const profileHref = userData?._id
     ? isOwner
       ? "/profile"
@@ -320,6 +350,12 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                     изм.
                   </span>
                 )}
+                {hasSpoilerMark && (
+                  <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] text-amber-600/90 font-medium shrink-0 hidden sm:inline">
+                    <EyeOff className="w-3 h-3" aria-hidden />
+                    спойлер
+                  </span>
+                )}
                 <div className="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-wrap justify-end">
                   <LeaderTop10Badge userId={userData?._id} />
                   {isOwner && (
@@ -365,12 +401,33 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
               <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-[var(--muted-foreground)] flex-wrap sm:hidden">
                 <span>{formatDate(comment.createdAt)}</span>
                 {comment.isEdited && <span className="italic">изм.</span>}
+                {hasSpoilerMark && (
+                  <span className="inline-flex items-center gap-0.5 text-amber-600/90 font-medium">
+                    <EyeOff className="w-3 h-3" aria-hidden />
+                    спойлер
+                  </span>
+                )}
               </div>
             </div>
 
-            <p className="text-[var(--foreground)] text-[12px] sm:text-[14px] leading-snug whitespace-pre-wrap break-words mb-1 sm:mb-2">
-              {comment.content}
-            </p>
+            {hasSpoilerMark && !spoilerRevealed ? (
+              <div className="mb-1 sm:mb-2 rounded-lg border border-[var(--border)]/70 bg-[var(--secondary)]/35 px-3 py-3 sm:py-3.5 text-center space-y-2">
+                <p className="text-[11px] sm:text-xs text-[var(--muted-foreground)] leading-snug">
+                  Автор пометил комментарий как спойлер к сюжету.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSpoilerRevealed(true)}
+                  className="text-[11px] sm:text-xs font-semibold text-[var(--primary)] hover:underline"
+                >
+                  Показать текст
+                </button>
+              </div>
+            ) : (
+              <p className="text-[var(--foreground)] text-[12px] sm:text-[14px] leading-snug whitespace-pre-wrap break-words mb-1 sm:mb-2">
+                {comment.content}
+              </p>
+            )}
 
             {/* Actions: только реакции (пузырьки + пикер) и ответ */}
             <div className="flex items-center gap-0.5 flex-wrap">
@@ -405,9 +462,30 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                   Ответить
                 </button>
               )}
+              {canReport && (
+                <button
+                  type="button"
+                  onClick={() => setReportOpen(true)}
+                  className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs text-[var(--muted-foreground)] hover:text-amber-600 hover:bg-[var(--secondary)]/80 transition-colors"
+                  aria-label="Пожаловаться на комментарий"
+                >
+                  <Flag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  Жалоба
+                </button>
+              )}
             </div>
           </div>
         </div>
+
+        <CommentReportModal
+          isOpen={reportOpen}
+          onClose={() => setReportOpen(false)}
+          commentId={comment._id}
+          titleId={
+            reportContextTitleId ??
+            (comment.entityType === CommentEntityType.TITLE ? comment.entityId : undefined)
+          }
+        />
 
         {/* Ответы — вне flex с аватаром, чтобы аватар родителя центрировался только по своему комментарию */}
         {comment.replies && comment.replies.length > 0 && (
@@ -427,6 +505,7 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                     onReply={onReply}
                     onEdit={onEdit}
                     level={level + 1}
+                    reportContextTitleId={reportContextTitleId}
                   />
                 ))}
               </div>

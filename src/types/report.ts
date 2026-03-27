@@ -7,6 +7,8 @@ export enum ReportType {
   WRONG_ORDER = "wrong_order",
   DUPLICATE = "duplicate",
   OTHER = "other",
+  /** Жалоба на комментарий пользователя */
+  COMMENT_REPORT = "comment_report",
 }
 
 export interface ReportUser {
@@ -25,12 +27,12 @@ export interface Report {
   reply?: string | null;
   adminResponse?: string | null;
   resolutionMessage?: string | null;
-  entityId: string;
-  entityType: "title" | "chapter";
+  entityId: string | null;
+  entityType: "title" | "chapter" | "comment" | string | null;
   url: string | null;
   userId: ReportUser;
   creatorId: string | null;
-  titleId: string;
+  titleId: string | null;
   isResolved: boolean;
   resolvedBy: string | null;
   resolvedAt: string | null;
@@ -40,12 +42,13 @@ export interface Report {
 }
 
 export interface CreateReportDto {
-  entityType: "title" | "chapter";
+  entityType: "title" | "chapter" | "comment";
   entityId: string;
   reportType: ReportType;
   content: string;
   creatorId?: string;
   titleId?: string;
+  url?: string | null;
 }
 
 export interface UpdateReportStatusDto {

@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { List, Percent, Timer, Eye, Download, Smartphone, Wifi, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  List,
+  Percent,
+  Timer,
+  Eye,
+  EyeOff,
+  Download,
+  Smartphone,
+  Wifi,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { BookOpen, LayoutList } from "lucide-react";
 import ThemeToggleGroup from "@/shared/theme-toggle/ThemeToggleGroup";
 import { useAutoScroll, useReaderSettingsContext } from "./hooks";
@@ -238,6 +249,8 @@ export function ReaderSettingsPanelContent({
     setHapticEnabled,
     dataSaver,
     setDataSaver,
+    commentsSpoilerProtection,
+    setCommentsSpoilerProtection,
   } = useReaderSettingsContext();
   const { autoScrollSpeed, setAutoScrollSpeed } = useAutoScroll();
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
@@ -414,6 +427,12 @@ export function ReaderSettingsPanelContent({
               </SettingsRow>
               <SettingsRow label="Подсказки (зум/свайп)" icon={Eye}>
                 <ToggleSwitch on={showHints} onClick={() => setShowHints(!showHints)} />
+              </SettingsRow>
+              <SettingsRow label="Защита от спойлеров в комментариях" icon={EyeOff}>
+                <ToggleSwitch
+                  on={commentsSpoilerProtection}
+                  onClick={() => setCommentsSpoilerProtection(!commentsSpoilerProtection)}
+                />
               </SettingsRow>
               <SettingsRow label="Вибрация при перелистывании" icon={Smartphone}>
                 <ToggleSwitch on={hapticEnabled} onClick={() => setHapticEnabled(!hapticEnabled)} />

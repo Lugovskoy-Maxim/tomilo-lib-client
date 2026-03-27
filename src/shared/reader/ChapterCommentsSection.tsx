@@ -12,10 +12,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  EyeOff,
 } from "lucide-react";
+import { useCommentsSpoilerGate } from "@/hooks/useCommentsSpoilerGate";
+import { CommentsSpoilerGate } from "@/shared/comments/CommentsSpoilerGate";
 
 interface ChapterCommentsSectionProps {
   chapterId: string;
+  /** Id тайтла — для жалоб и ссылок из админки */
+  titleId: string;
   className?: string;
 }
 
@@ -26,12 +31,20 @@ function getTotalReactions(comment: Comment): number {
   return (comment.likes || 0) + (comment.dislikes || 0);
 }
 
-export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCommentsSectionProps) {
+export function ChapterCommentsSection({
+  chapterId,
+  titleId,
+  className = "",
+}: ChapterCommentsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [page, setPage] = useState(1);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const limit = 20;
+
+  const entityKey = `chapter:${chapterId}`;
+  const { protectionOn, shouldLoadComments, reveal, setProtectionEnabled } =
+    useCommentsSpoilerGate(entityKey);
 
   useEffect(() => {
     setPage(1);
@@ -44,13 +57,16 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
     data: commentsData,
     isLoading,
     refetch,
-  } = useGetCommentsQuery({
-    entityType: CommentEntityType.CHAPTER,
-    entityId: chapterId,
-    page,
-    limit,
-    includeReplies: true,
-  });
+  } = useGetCommentsQuery(
+    {
+      entityType: CommentEntityType.CHAPTER,
+      entityId: chapterId,
+      page,
+      limit,
+      includeReplies: true,
+    },
+    { skip: !shouldLoadComments },
+  );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- comments из запроса
   const comments = commentsData?.data?.comments || [];
@@ -117,6 +133,21 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
   return (
     <div className={`py-1 sm:py-6 px-2 sm:px-0 ${className}`}>
       <div className="max-w-2xl mx-auto">
+        <div className="flex flex-wrap items-center justify-end gap-2 mb-2 sm:mb-3">
+          <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] sm:text-xs text-[var(--muted-foreground)]">
+            <input
+              type="checkbox"
+              className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40"
+              checked={protectionOn}
+              onChange={e => setProtectionEnabled(e.target.checked)}
+            />
+            <span className="inline-flex items-center gap-1">
+              <EyeOff className="w-3 h-3 shrink-0" />
+              Спойлеры
+            </span>
+          </label>
+        </div>
+
         {/* Comment Form — сверху только когда есть комментарии или загрузка (иначе форма в пустом блоке) */}
         {!showFormInEmptyState && commentFormBlock}
 
@@ -154,6 +185,10 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
           </div>
         )}
 
+        {!shouldLoadComments ? (
+          <CommentsSpoilerGate onReveal={reveal} />
+        ) : (
+          <>
         {/* Top 3 Comments Preview */}
         {!isExpanded && (
           <>
@@ -191,7 +226,12 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
                         TOP
                       </div>
                     )}
-                    <CommentItem comment={comment} onReply={handleReply} onEdit={handleEdit} />
+                    <CommentItem
+                      comment={comment}
+                      onReply={handleReply}
+                      onEdit={handleEdit}
+                      reportContextTitleId={titleId}
+                    />
                   </div>
                 ))}
               </div>
@@ -240,6 +280,7 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
               onReply={handleReply}
               onEdit={handleEdit}
               isLoading={isLoading}
+              reportContextTitleId={titleId}
             />
 
             {/* Pagination */}
@@ -281,6 +322,8 @@ export function ChapterCommentsSection({ chapterId, className = "" }: ChapterCom
               </button>
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

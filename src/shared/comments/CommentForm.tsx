@@ -5,7 +5,7 @@ import { Comment, CreateCommentDto, CommentEntityType } from "@/types/comment";
 import { useCreateCommentMutation, useUpdateCommentMutation } from "@/store/api/commentsApi";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/shared/ui/button";
-import { Send, X, AlertCircle } from "lucide-react";
+import { Send, X, AlertCircle, EyeOff } from "lucide-react";
 import { validateContent, MIN_COMMENT_LENGTH } from "@/lib/content-filter";
 
 interface CommentFormProps {
@@ -29,6 +29,7 @@ export function CommentForm({
 }: CommentFormProps) {
   const { user } = useAuth();
   const [content, setContent] = useState("");
+  const [isSpoiler, setIsSpoiler] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [createComment, { isLoading: isCreating }] = useCreateCommentMutation();
@@ -41,8 +42,10 @@ export function CommentForm({
   useEffect(() => {
     if (editComment) {
       setContent(editComment.content);
+      setIsSpoiler(Boolean(editComment.isSpoiler));
     } else {
       setContent("");
+      setIsSpoiler(false);
     }
   }, [editComment]);
 
@@ -98,7 +101,7 @@ export function CommentForm({
       if (editComment) {
         await updateComment({
           id: editComment._id,
-          data: { content: content.trim() },
+          data: { content: content.trim(), isSpoiler },
         }).unwrap();
       } else {
         const commentData: CreateCommentDto = {
@@ -106,10 +109,12 @@ export function CommentForm({
           entityId,
           content: content.trim(),
           ...(parentId && { parentId }),
+          ...(isSpoiler && { isSpoiler: true }),
         };
         await createComment(commentData).unwrap();
       }
       setContent("");
+      setIsSpoiler(false);
       onSubmit?.();
     } catch (error: unknown) {
       // Handle error silently in production
@@ -165,6 +170,18 @@ export function CommentForm({
             <span>{validationError}</span>
           </div>
         )}
+        <label
+          className={`flex items-center gap-2 cursor-pointer select-none text-[var(--muted-foreground)] hover:text-[var(--foreground)] ${compact ? "text-[10px]" : "text-[11px]"}`}
+        >
+          <input
+            type="checkbox"
+            checked={isSpoiler}
+            onChange={e => setIsSpoiler(e.target.checked)}
+            className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40 shrink-0"
+          />
+          <EyeOff className="w-3.5 h-3.5 shrink-0 opacity-80" aria-hidden />
+          <span>Пометить как спойлер</span>
+        </label>
         <div className={`flex items-center justify-between gap-2 ${compact ? "gap-1.5" : ""}`}>
           <span
             className={`${compact ? "text-[9px]" : "text-[10px]"} ${isOverWordLimit ? "text-red-500" : "text-[var(--muted-foreground)]"}`}

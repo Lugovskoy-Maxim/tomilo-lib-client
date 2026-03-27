@@ -2622,7 +2622,7 @@ function ReadChapterPageContent({
                   <ChapterTranslatorInfo titleId={titleId} />
                 </div>
 
-                <ChapterCommentsSection chapterId={displayChapter._id} />
+                <ChapterCommentsSection chapterId={displayChapter._id} titleId={titleId} />
 
                 {/* Футер главы с кнопками навигации */}
                 {!infiniteScroll && (
@@ -2913,7 +2913,7 @@ function ReadChapterPageContent({
                           />
                         </div>
 
-                        <ChapterCommentsSection chapterId={loadedChapter._id} />
+                        <ChapterCommentsSection chapterId={loadedChapter._id} titleId={titleId} />
 
                         {/* Триггер и индикатор для последней загруженной главы */}
                         {isLastLoadedChapter && (

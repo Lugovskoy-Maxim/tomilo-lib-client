@@ -2,23 +2,114 @@
 
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { useGetChapterByIdQuery } from "@/store/api/chaptersApi";
+import { useGetCommentQuery } from "@/store/api/commentsApi";
 import Skeleton from "@/shared/skeleton/skeleton";
-import { BookOpen, ExternalLink } from "lucide-react";
+import { BookOpen, ExternalLink, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { getTitlePath, getChapterPath } from "@/lib/title-paths";
+import { CommentEntityType } from "@/types/comment";
 
 interface ReportEntityInfoProps {
-  entityType: "title" | "chapter";
-  entityId: string;
-  titleId?: string;
+  entityType: string | null | undefined;
+  entityId: string | null | undefined;
+  titleId?: string | null;
 }
 
 export function ReportEntityInfo({ entityType, entityId, titleId }: ReportEntityInfoProps) {
-  if (entityType === "title") {
+  if (entityType === "comment" && entityId) {
+    return <CommentReportEntityInfo commentId={entityId} reportTitleId={titleId} />;
+  }
+  if (entityType === "title" && entityId) {
     return <TitleInfo titleId={entityId} />;
   }
+  if (entityId) {
+    return <ChapterInfo chapterId={entityId} titleId={titleId ?? undefined} />;
+  }
+  return (
+    <div className="flex items-center text-[var(--muted-foreground)] text-sm">
+      Контекст не указан
+    </div>
+  );
+}
 
-  return <ChapterInfo chapterId={entityId} titleId={titleId} />;
+function CommentReportEntityInfo({
+  commentId,
+  reportTitleId,
+}: {
+  commentId: string;
+  reportTitleId?: string | null;
+}) {
+  const { data: commentResp, isLoading, error } = useGetCommentQuery(commentId);
+  const comment = commentResp?.data;
+
+  const titleQueryId =
+    comment?.entityType === CommentEntityType.TITLE
+      ? String(comment.entityId)
+      : reportTitleId || "";
+
+  const { data: titleRow, isLoading: titleLoading } = useGetTitleByIdQuery(
+    { id: titleQueryId },
+    { skip: !titleQueryId },
+  );
+
+  if (isLoading || (Boolean(titleQueryId) && titleLoading)) {
+    return (
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-4 w-full max-w-md" />
+      </div>
+    );
+  }
+
+  if (error || !comment) {
+    return (
+      <div className="flex items-center text-[var(--muted-foreground)] text-sm">
+        <MessageCircle className="w-4 h-4 mr-1 shrink-0" />
+        Комментарий не найден или скрыт
+      </div>
+    );
+  }
+
+  const tid = titleRow?._id || titleQueryId;
+  const titleSlug = titleRow?.slug;
+  const hash = `#comment-${commentId}`;
+  const href =
+    comment.entityType === CommentEntityType.CHAPTER && tid
+      ? `${getChapterPath({ _id: tid, slug: titleSlug }, String(comment.entityId))}${hash}`
+      : tid
+        ? `${getTitlePath({ _id: tid, slug: titleSlug })}${hash}`
+        : null;
+
+  const contextLabel =
+    comment.entityType === CommentEntityType.CHAPTER
+      ? "Комментарий к главе"
+      : "Комментарий к тайтлу";
+
+  return (
+    <div className="flex flex-col gap-1.5 text-sm">
+      <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
+        <MessageCircle className="w-4 h-4 shrink-0 text-[var(--primary)]" />
+        <span>{contextLabel}</span>
+      </div>
+      <p className="text-xs text-[var(--foreground)] line-clamp-3 pl-5 border-l-2 border-[var(--border)]">
+        {comment.content}
+      </p>
+      {href ? (
+        <Link
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 pl-5 text-[var(--primary)] hover:underline w-fit"
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Открыть в контексте</span>
+          <ExternalLink className="w-3 h-3 opacity-60" />
+        </Link>
+      ) : (
+        <span className="text-xs text-[var(--muted-foreground)] pl-5">Не удалось построить ссылку</span>
+      )}
+    </div>
+  );
 }
 
 function TitleInfo({ titleId }: { titleId: string }) {

@@ -10,9 +10,17 @@ interface CommentsListProps {
   onReply?: (commentId: string) => void;
   onEdit?: (comment: Comment) => void;
   isLoading?: boolean;
+  /** Id тайтла для жалобы на комментарий (страница тайтла или глава). */
+  reportContextTitleId?: string;
 }
 
-export function CommentsList({ comments, onReply, onEdit, isLoading }: CommentsListProps) {
+export function CommentsList({
+  comments,
+  onReply,
+  onEdit,
+  isLoading,
+  reportContextTitleId,
+}: CommentsListProps) {
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -49,7 +57,13 @@ export function CommentsList({ comments, onReply, onEdit, isLoading }: CommentsL
   return (
     <div className="space-y-1 sm:space-y-2">
       {comments.map(comment => (
-        <CommentItem key={comment._id} comment={comment} onReply={onReply} onEdit={onEdit} />
+        <CommentItem
+          key={comment._id}
+          comment={comment}
+          onReply={onReply}
+          onEdit={onEdit}
+          reportContextTitleId={reportContextTitleId}
+        />
       ))}
     </div>
   );

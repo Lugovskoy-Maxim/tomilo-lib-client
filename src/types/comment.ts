@@ -68,6 +68,8 @@ export interface Comment {
   dislikedBy: string[];
   isVisible: boolean;
   isEdited: boolean;
+  /** Пометка «спойлер» от автора */
+  isSpoiler?: boolean;
   createdAt: string;
   updatedAt: string;
   replies?: Comment[];
@@ -92,11 +94,13 @@ export interface CreateCommentDto {
   entityId: string;
   content: string;
   parentId?: string;
+  isSpoiler?: boolean;
 }
 
 export interface UpdateCommentDto {
   content?: string;
   isVisible?: boolean;
+  isSpoiler?: boolean;
 }
 
 /** Тело запроса POST /comments/:id/reactions */
