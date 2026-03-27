@@ -22,7 +22,7 @@ export function CardsCollectionSection() {
     tone: "default" | "success" | "warning";
   }>({ open: false, title: "", tone: "default" });
 
-  const cards = data?.data?.cards ?? [];
+  const cards = useMemo(() => data?.data?.cards ?? [], [data?.data?.cards]);
   const stats = data?.data?.stats;
 
   const featuredCards = useMemo(

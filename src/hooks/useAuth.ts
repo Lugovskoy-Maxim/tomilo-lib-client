@@ -111,7 +111,6 @@ export const useAuth = () => {
     data: readingHistoryData,
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
-    refetch: refetchReadingHistory,
   } = useGetReadingHistoryQuery(
     { limit: 200, light: false },
     {

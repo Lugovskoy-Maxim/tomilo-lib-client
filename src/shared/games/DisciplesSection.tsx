@@ -555,12 +555,11 @@ export function DisciplesSection() {
   const [candidateAvatarError, setCandidateAvatarError] = useState(false);
   /** После найма/обмена дубля скрываем панель кандидата, пока бэкенд не обновит lastRerollCandidate */
   const [consumedCandidateId, setConsumedCandidateId] = useState<string | null>(null);
-  const [failedCardMediaIds, setFailedCardMediaIds] = useState<Set<string>>(new Set());
   const [failedDiscipleAvatarIds, setFailedDiscipleAvatarIds] = useState<Set<string>>(new Set());
   const [barracksExpanded, setBarracksExpanded] = useState(false);
 
   const res = data?.data;
-  const disciples = (res?.disciples ?? []) as Disciple[];
+  const disciples = useMemo(() => (res?.disciples ?? []) as Disciple[], [res?.disciples]);
   const maxActive =
     res?.maxDisciples != null && res.maxDisciples > 0 ? res.maxDisciples : 3;
   const primaryId = res?.primaryDiscipleCharacterId ?? null;
@@ -599,7 +598,10 @@ export function DisciplesSection() {
     }
     return items;
   }, [activeRoster, warehouseRoster, maxActive, barracksExpanded]);
-  const profileCards = profileCardsData?.data?.cards ?? [];
+  const profileCards = useMemo(
+    () => profileCardsData?.data?.cards ?? [],
+    [profileCardsData?.data?.cards],
+  );
   const inventory = useMemo(() => normalizeGameInventoryList(inventoryData), [inventoryData]);
   const inventoryById = useMemo(() => {
     const m = new Map<string, InventoryEntry>();

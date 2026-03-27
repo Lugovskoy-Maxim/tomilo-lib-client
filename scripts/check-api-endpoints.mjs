@@ -82,7 +82,6 @@ async function main() {
 
   console.log("Результаты:\n");
   for (const r of results) {
-    const status = r.status ?? r.error ?? "—";
     const icon = r.ok ? "✓" : r.status === 404 ? "✗ 404" : "○";
     console.log(`  ${icon} ${String(r.status).padEnd(4)} ${r.name}`);
     console.log(`      ${r.path}`);

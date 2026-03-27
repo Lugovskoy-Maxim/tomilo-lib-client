@@ -186,7 +186,6 @@ function DecorationPreviewModal({
   onEquip,
   onUnequip,
   displayType,
-  anchorRect,
   fallbackSrc,
   authorDisplay,
   cultivatorLevel,
@@ -248,34 +247,6 @@ function DecorationPreviewModal({
             aria-hidden
           />
         )}
-      </div>
-    );
-  };
-
-  const renderAuthorSummary = (size: "compact" | "regular" = "regular") => {
-    const name = displayAuthorName ?? decoration.authorUsername ?? null;
-    const textClass =
-      size === "compact"
-        ? "text-[10px] sm:text-xs text-[var(--muted-foreground)]"
-        : "text-sm text-[var(--muted-foreground)]";
-
-    if (authorDisplay === "cultivator") {
-      return (
-        <div className="space-y-0.5">
-          {name ? <p className={textClass}>Автор: {name}</p> : null}
-          {(displayAuthorLevel ?? cultivatorLevel) ? (
-            <p className={textClass}>Уровень: {displayAuthorLevel ?? cultivatorLevel}</p>
-          ) : null}
-        </div>
-      );
-    }
-
-    if (!name && displayAuthorLevel == null) return null;
-
-    return (
-      <div className="space-y-0.5">
-        {name ? <p className={textClass}>Автор: {name}</p> : null}
-        {displayAuthorLevel != null ? <p className={textClass}>Уровень {displayAuthorLevel}</p> : null}
       </div>
     );
   };
@@ -550,7 +521,14 @@ function DecorationPreviewModal({
                   </p>
                 )}
                 {authorDisplay === "cultivator" && (
-                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Культиватор</p>
+                  <>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Культиватор</p>
+                    {(displayAuthorLevel ?? cultivatorLevel) != null && (
+                      <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                        Уровень: {displayAuthorLevel ?? cultivatorLevel}
+                      </p>
+                    )}
+                  </>
                 )}
                 {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
                   <>

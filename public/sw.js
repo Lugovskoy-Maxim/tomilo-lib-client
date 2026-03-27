@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 const CACHE_SHELL = "tomilo-shell-v1";
 const CACHE_PAGES = "tomilo-pages-v1";
 const CACHE_IMAGES = "tomilo-images-v1";

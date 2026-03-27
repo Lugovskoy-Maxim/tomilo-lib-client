@@ -7,7 +7,7 @@ import { normalizeGameInventoryList } from "@/lib/gameInventory";
 import { GameItemExchangePanel } from "./GameItemExchangePanel";
 import { getDecorationImageUrls } from "@/api/shop";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
-import type { InventoryEntry, GameItemType, GameItemRarity } from "@/types/games";
+import type { GameItemType, GameItemRarity } from "@/types/games";
 
 const RARITY_LABEL: Record<GameItemRarity, string> = {
   common: "Обычный",

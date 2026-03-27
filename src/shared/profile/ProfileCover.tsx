@@ -1,7 +1,6 @@
 "use client";
 
 import { UserProfile } from "@/types/user";
-import { getEquippedBackgroundUrl } from "@/api/shop";
 
 interface ProfileCoverProps {
   userProfile: UserProfile;
@@ -10,7 +9,7 @@ interface ProfileCoverProps {
 }
 
 /** Полноширинная обложка профиля — только баннер, без аватара (аватар в сайдбаре) */
-export default function ProfileCover({ userProfile, backgroundFromParent }: ProfileCoverProps) {
+export default function ProfileCover({ backgroundFromParent }: ProfileCoverProps) {
   const baseBannerUrl = "/user/banner.jpg";
 
   return (

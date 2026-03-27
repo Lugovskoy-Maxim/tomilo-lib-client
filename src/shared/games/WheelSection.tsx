@@ -140,7 +140,7 @@ export function WheelSection() {
     const id = setInterval(() => setCountdownTick((t) => t + 1), 60_000);
     return () => clearInterval(id);
   }, [nextSpinAt]);
-  const segments = wheel?.segments ?? [];
+  const segments = useMemo(() => wheel?.segments ?? [], [wheel?.segments]);
   const canSpin = wheel?.canSpin ?? false;
   const totalWeight = useMemo(
     () => segments.reduce((sum, segment) => sum + Math.max(0, Number(segment.weight ?? 0)), 0),

@@ -133,7 +133,6 @@ export default function TitleView({
   useEffect(() => {
     const t = searchParams.get("tab");
     if (isValidTab(t)) setActiveTab(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {

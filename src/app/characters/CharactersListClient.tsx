@@ -126,7 +126,7 @@ export default function CharactersListClient() {
     [characterTitleSearchData?.data?.data],
   );
 
-  const allCharacters = data?.characters ?? [];
+  const allCharacters = useMemo(() => data?.characters ?? [], [data?.characters]);
   const filteredCharacters = useMemo(() => {
     const normalizedNameFilter = nameFilter.trim().toLowerCase();
 
