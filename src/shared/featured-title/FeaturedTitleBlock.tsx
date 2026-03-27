@@ -75,6 +75,7 @@ export default function FeaturedTitleBlock({
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isSlideVisible, setIsSlideVisible] = useState(true);
   const [progress, setProgress] = useState(0);
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTickRef = useRef<number>(Date.now());
@@ -133,6 +134,14 @@ export default function FeaturedTitleBlock({
   }, [currentIndex]);
 
   useEffect(() => {
+    setIsSlideVisible(false);
+    const frameId = requestAnimationFrame(() => {
+      setIsSlideVisible(true);
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [currentIndex]);
+
+  useEffect(() => {
     if (!categoryOpen) return;
     const close = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -165,7 +174,7 @@ export default function FeaturedTitleBlock({
       setCurrentIndex(index);
       setProgress(0);
       lastTickRef.current = Date.now();
-      setTimeout(() => setIsTransitioning(false), 500);
+      setTimeout(() => setIsTransitioning(false), 700);
     },
     [isTransitioning],
   );
@@ -385,7 +394,11 @@ export default function FeaturedTitleBlock({
           </div>
         )}
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-3 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5 md:px-8 md:pt-10 md:pb-8 gap-4 sm:gap-5 md:gap-8">
+        <div
+          className={`relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-3 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5 md:px-8 md:pt-10 md:pb-8 gap-4 sm:gap-5 md:gap-8 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            isSlideVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2"
+          }`}
+        >
           {/* Мобильная версия: горизонтальная компоновка обложки и основной информации */}
           <div className="flex md:hidden gap-4 w-full min-w-0">
             <Link
@@ -682,7 +695,7 @@ export default function FeaturedTitleBlock({
                   >
                     {index === currentIndex && (
                       <div
-                        className="absolute inset-y-0 left-0 bg-[var(--primary)] rounded-full transition-[width] duration-75 ease-linear"
+                        className="absolute inset-y-0 left-0 bg-[var(--primary)] rounded-full transition-[width] duration-120 ease-linear"
                         style={{ width: `${progress}%` }}
                       />
                     )}

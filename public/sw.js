@@ -119,16 +119,31 @@ self.addEventListener("fetch", event => {
     url.hostname.includes("s3.") ||
     url.pathname.includes("tomilolib")
   ) {
+    const normalizedImageUrl = `${url.origin}${url.pathname}`;
     event.respondWith(
-      caches.match(request).then(
-        cached =>
-          cached ||
-          fetch(request).then(res => {
-            const clone = res.clone();
-            caches.open(CACHE_IMAGES).then(c => c.put(request, clone));
-            return res;
-          }),
-      ),
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+
+        return caches.match(normalizedImageUrl).then(normalizedCached => {
+          if (normalizedCached) return normalizedCached;
+
+          return fetch(request)
+            .then(res => {
+              const byRequest = res.clone();
+              const byPath = res.clone();
+              caches.open(CACHE_IMAGES).then(c => {
+                c.put(request, byRequest);
+                c.put(normalizedImageUrl, byPath);
+              });
+              return res;
+            })
+            .catch(() =>
+              caches
+                .match(request, { ignoreSearch: true })
+                .then(fallbackCached => fallbackCached || caches.match(normalizedImageUrl)),
+            );
+        });
+      }),
     );
   }
 });

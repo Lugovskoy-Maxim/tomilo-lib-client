@@ -78,6 +78,34 @@ export default function ReadChapterPage({
   );
 }
 
+function ReopenRestorePromptButton({
+  seconds,
+  onClick,
+}: {
+  seconds: number;
+  onClick: () => void;
+}) {
+  const [secondsLeft, setSecondsLeft] = useState(seconds);
+
+  useEffect(() => {
+    setSecondsLeft(seconds);
+    const intervalId = window.setInterval(() => {
+      setSecondsLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [seconds]);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="fixed left-1/2 -translate-x-1/2 top-24 z-[120] px-3 py-2 rounded-xl bg-[var(--card)]/95 backdrop-blur-sm border border-[var(--border)] shadow-lg text-xs sm:text-sm text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+    >
+      Вернуть окно продолжения ({secondsLeft}с)
+    </button>
+  );
+}
+
 function ReadChapterPageContent({
   title,
   chapter,
@@ -150,6 +178,8 @@ function ReadChapterPageContent({
   const [savedReadingPage, setSavedReadingPage] = useState<number | null>(null);
   const [savedPositionTimestamp, setSavedPositionTimestamp] = useState<number>(0);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [canReopenRestorePrompt, setCanReopenRestorePrompt] = useState(false);
+  const [showReopenRestorePromptButton, setShowReopenRestorePromptButton] = useState(false);
   const [imageLoadPriority, setImageLoadPriority] = useState<
     Map<number, "low" | "medium" | "high">
   >(new Map());
@@ -160,6 +190,7 @@ function ReadChapterPageContent({
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt: string } | null>(null);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [totalContentHeight, setTotalContentHeight] = useState(0);
+  const [imageRetryTokens, setImageRetryTokens] = useState<Map<string, number>>(new Map());
   const isPagedMode = readingMode === "paged";
   const isChaptersInRowMode = readChaptersInRow && !isPagedMode;
 
@@ -467,6 +498,94 @@ function ReadChapterPageContent({
     },
     [],
   );
+
+  const getImageRenderKey = useCallback(
+    (errorKey: string, useFallback: boolean) => {
+      const retryToken = imageRetryTokens.get(errorKey);
+      return `${errorKey}${useFallback ? "-fb" : ""}${retryToken ? `-r${retryToken}` : ""}`;
+    },
+    [imageRetryTokens],
+  );
+
+  // На некоторых устройствах после блокировки экрана браузер "теряет" часть загруженных изображений.
+  // При возврате в активное состояние бережно перезапрашиваем только проблемные/видимые страницы.
+  useEffect(() => {
+    let hiddenAt = 0;
+    const RELOAD_AFTER_MS = 15000;
+
+    const getVisibleImageKeys = () => {
+      const keys = new Set<string>();
+      const viewportHeight = window.innerHeight;
+      const nodes = document.querySelectorAll<HTMLElement>("[data-reader-image-key]");
+      nodes.forEach(node => {
+        const key = node.dataset.readerImageKey;
+        if (!key) return;
+        const rect = node.getBoundingClientRect();
+        if (rect.bottom >= -80 && rect.top <= viewportHeight + 80) {
+          keys.add(key);
+        }
+      });
+      return keys;
+    };
+
+    const retryImagesAfterResume = () => {
+      const hiddenFor = hiddenAt > 0 ? Date.now() - hiddenAt : 0;
+      if (hiddenFor < RELOAD_AFTER_MS) return;
+
+      const targetKeys = new Set<string>();
+      imageLoadErrors.forEach(key => targetKeys.add(key));
+      imageFallbacks.forEach(key => targetKeys.add(key));
+      getVisibleImageKeys().forEach(key => targetKeys.add(key));
+      if (targetKeys.size === 0) return;
+
+      const retryToken = Date.now();
+      setImageRetryTokens(prev => {
+        const next = new Map(prev);
+        targetKeys.forEach(key => next.set(key, retryToken));
+        return next;
+      });
+      setImageLoadErrors(prev => {
+        if (prev.size === 0) return prev;
+        const next = new Set(prev);
+        targetKeys.forEach(key => next.delete(key));
+        return next;
+      });
+      setImageFallbacks(prev => {
+        if (prev.size === 0) return prev;
+        const next = new Set(prev);
+        targetKeys.forEach(key => next.delete(key));
+        return next;
+      });
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAt = Date.now();
+        return;
+      }
+      retryImagesAfterResume();
+    };
+
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        retryImagesAfterResume();
+      }
+    };
+
+    const onWindowFocus = () => {
+      retryImagesAfterResume();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("focus", onWindowFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("focus", onWindowFocus);
+    };
+  }, [imageLoadErrors, imageFallbacks]);
 
   // Проверяет, нужно ли показывать название главы (не дублирует номер)
   const shouldShowChapterTitle = useCallback(
@@ -872,6 +991,8 @@ function ReadChapterPageContent({
   const restorePosition = useCallback(
     (page: number) => {
       setSavedReadingPage(page);
+      setCanReopenRestorePrompt(false);
+      setShowReopenRestorePromptButton(false);
 
       const timeoutId = setTimeout(async () => {
         try {
@@ -914,6 +1035,8 @@ function ReadChapterPageContent({
   // Функция сброса позиции (начать сначала)
   const resetPosition = useCallback(() => {
     setSavedReadingPage(1);
+    setCanReopenRestorePrompt(false);
+    setShowReopenRestorePromptButton(false);
     setCurrentPage(1);
     setIsPositionRestored(true);
 
@@ -938,11 +1061,30 @@ function ReadChapterPageContent({
     if (savedPosition && savedPosition.page > 1) {
       setSavedReadingPage(savedPosition.page);
       setSavedPositionTimestamp(savedPosition.timestamp);
+      setCanReopenRestorePrompt(true);
+      setShowReopenRestorePromptButton(false);
       setIsRestoreModalOpen(true);
     } else {
+      setCanReopenRestorePrompt(false);
+      setShowReopenRestorePromptButton(false);
       setIsPositionRestored(true);
     }
   }, [titleId, chapterId]);
+
+  const handleCloseRestoreModal = useCallback(() => {
+    // Не теряем возможность восстановления: разрешаем открыть окно снова вручную.
+    setIsRestoreModalOpen(false);
+    setIsPositionRestored(true);
+    setShowReopenRestorePromptButton(true);
+  }, []);
+
+  useEffect(() => {
+    if (!showReopenRestorePromptButton) return;
+    const timeoutId = window.setTimeout(() => {
+      setShowReopenRestorePromptButton(false);
+    }, 10000);
+    return () => window.clearTimeout(timeoutId);
+  }, [showReopenRestorePromptButton]);
 
   // Синхронизируем ref с isPositionRestored, чтобы обработчик скролла всегда видел актуальное значение
   useEffect(() => {
@@ -1495,10 +1637,7 @@ function ReadChapterPageContent({
       {/* Модальное окно восстановления позиции */}
       <ReadingPositionRestoreModal
         isOpen={isRestoreModalOpen}
-        onClose={() => {
-          setIsRestoreModalOpen(false);
-          setIsPositionRestored(true);
-        }}
+        onClose={handleCloseRestoreModal}
         onRestore={() => restorePosition(savedReadingPage || 1)}
         onReset={resetPosition}
         onJumpToPage={page => {
@@ -1513,6 +1652,19 @@ function ReadChapterPageContent({
             : `Глава ${chapter.number}`
         }
       />
+      {!isRestoreModalOpen &&
+        canReopenRestorePrompt &&
+        showReopenRestorePromptButton &&
+        savedReadingPage &&
+        savedReadingPage > 1 && (
+        <ReopenRestorePromptButton
+          seconds={10}
+          onClick={() => {
+            setIsRestoreModalOpen(true);
+            setShowReopenRestorePromptButton(false);
+          }}
+        />
+      )}
 
       {/* Индикатор предзагрузки */}
       {preloadAllImages && preloadProgress < 100 && (
@@ -1708,6 +1860,7 @@ function ReadChapterPageContent({
                         <div
                           className="relative w-full flex justify-center px-0 sm:px-4"
                           data-page={imageIndex + 1}
+                          data-reader-image-key={errorKey}
                           style={{
                             maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                             transition: "filter 200ms ease-out",
@@ -1737,7 +1890,7 @@ function ReadChapterPageContent({
 
                           {!isError ? (
                             <Image
-                              key={`${ch._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
+                              key={getImageRenderKey(errorKey, useFallback)}
                               loader={imageLoader}
                               src={imageUrl}
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
@@ -1912,6 +2065,7 @@ function ReadChapterPageContent({
                             <div
                               className="relative w-full flex justify-center px-0 sm:px-4"
                               data-page={imageIndex + 1}
+                              data-reader-image-key={errorKey}
                               style={{
                                 maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                                 transition: "filter 200ms ease-out",
@@ -1948,7 +2102,7 @@ function ReadChapterPageContent({
                               {!isError ? (
                                 <>
                                   <Image
-                                    key={`${displayChapter._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
+                                    key={getImageRenderKey(errorKey, useFallback)}
                                     loader={imageLoader}
                                     src={imageUrl}
                                     alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
@@ -2126,6 +2280,7 @@ function ReadChapterPageContent({
                         <div
                           className="relative w-full flex justify-center px-0 sm:px-4"
                           data-page={imageIndex + 1}
+                          data-reader-image-key={errorKey}
                           style={{
                             maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                             transition: "filter 200ms ease-out",
@@ -2155,7 +2310,7 @@ function ReadChapterPageContent({
 
                           {!isError ? (
                             <Image
-                              key={`${displayChapter._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
+                              key={getImageRenderKey(errorKey, useFallback)}
                               loader={imageLoader}
                               src={imageUrl}
                               alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
@@ -2486,6 +2641,7 @@ function ReadChapterPageContent({
                                   className="relative w-full flex justify-center px-0 sm:px-4"
                                   data-chapter={loadedChapter._id}
                                   data-page={imageIndex + 1}
+                                  data-reader-image-key={errorKey}
                                   style={{
                                     maxWidth: isMobile ? "100%" : `${imageWidth}px`,
                                     opacity: visible ? 1 : 0,
@@ -2518,7 +2674,7 @@ function ReadChapterPageContent({
 
                                   {!isError ? (
                                     <Image
-                                      key={`${loadedChapter._id}-${imageIndex}${useFallback ? "-fb" : ""}`}
+                                      key={getImageRenderKey(errorKey, useFallback)}
                                       loader={imageLoader}
                                       src={imageUrl}
                                       alt={`Глава ${loadedChapter.number}, Страница ${imageIndex + 1}`}

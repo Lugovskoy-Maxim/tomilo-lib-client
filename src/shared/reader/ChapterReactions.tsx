@@ -189,6 +189,24 @@ export function ChapterReactions({
     [countByEmoji],
   );
 
+  const sortedReactionEmojis = useMemo(() => {
+    return [...CHAPTER_ALLOWED_REACTION_EMOJIS].sort((a, b) => {
+      const countA = countByEmoji[a] ?? 0;
+      const countB = countByEmoji[b] ?? 0;
+      const hasCountA = countA > 0;
+      const hasCountB = countB > 0;
+
+      // Сначала показываем реакции с количеством, затем без количества.
+      if (hasCountA !== hasCountB) return hasCountA ? -1 : 1;
+
+      // Среди реакций с количеством — по убыванию популярности.
+      if (hasCountA && countA !== countB) return countB - countA;
+
+      // При равенстве оставляем стабильный базовый порядок.
+      return CHAPTER_ALLOWED_REACTION_EMOJIS.indexOf(a) - CHAPTER_ALLOWED_REACTION_EMOJIS.indexOf(b);
+    });
+  }, [countByEmoji]);
+
   const handleReaction = async (emoji: string) => {
     if (!isAuthenticated) {
       onLoginRequired?.();
@@ -381,7 +399,7 @@ export function ChapterReactions({
               Реакции
             </span>
             <div className="w-full max-w-[500px] min-w-0 sm:min-w-[355px] mx-auto flex flex-wrap gap-2 sm:gap-2">
-              {CHAPTER_ALLOWED_REACTION_EMOJIS.map(emoji => {
+              {sortedReactionEmojis.map(emoji => {
                 const isSelected = displaySelectedEmoji === emoji;
                 const count = countByEmoji[emoji] ?? 0;
                 const isAnimating = animatingEmoji === emoji;
