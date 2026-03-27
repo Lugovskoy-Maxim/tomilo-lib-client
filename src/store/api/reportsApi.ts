@@ -28,6 +28,8 @@ export const reportsApi = createApi({
         limit?: number;
         reportType?: string;
         isResolved?: string;
+        /** title | chapter | comment — фильтр на сервере */
+        entityType?: string;
       }
     >({
       query: params => ({

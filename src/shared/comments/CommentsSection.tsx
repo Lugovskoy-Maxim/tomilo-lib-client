@@ -5,8 +5,10 @@ import { Comment, CommentEntityType } from "@/types/comment";
 import { useGetCommentsQuery } from "@/store/api/commentsApi";
 import { CommentForm } from "./CommentForm";
 import { CommentsList } from "./CommentsList";
+import { CommentsSpoilerGate } from "./CommentsSpoilerGate";
 import { Button } from "@/shared/ui/button";
-import { MessageCircle, Loader2 } from "lucide-react";
+import { MessageCircle, Loader2, EyeOff } from "lucide-react";
+import { useCommentsSpoilerGate } from "@/hooks/useCommentsSpoilerGate";
 
 const LIMIT = 20;
 const SORT_OPTIONS = [
@@ -18,28 +20,45 @@ const SORT_OPTIONS = [
 interface CommentsSectionProps {
   entityType: CommentEntityType;
   entityId: string;
+  /** Для жалоб на комментарии под главой — id тайтла. Для страницы тайтла можно не указывать. */
+  titleId?: string;
   className?: string;
 }
 
-export function CommentsSection({ entityType, entityId, className = "" }: CommentsSectionProps) {
+export function CommentsSection({
+  entityType,
+  entityId,
+  titleId: titleIdProp,
+  className = "",
+}: CommentsSectionProps) {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "popular">("newest");
   const [page, setPage] = useState(1);
   const [accumulatedComments, setAccumulatedComments] = useState<Comment[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
 
+  const entityKey = `${entityType}:${entityId}`;
+  const { protectionOn, shouldLoadComments, reveal, setProtectionEnabled } =
+    useCommentsSpoilerGate(entityKey);
+
+  const reportContextTitleId =
+    entityType === CommentEntityType.TITLE ? entityId : titleIdProp;
+
   const {
     data: commentsData,
     isLoading,
     refetch,
-  } = useGetCommentsQuery({
-    entityType,
-    entityId,
-    page,
-    limit: LIMIT,
-    includeReplies: true,
-    sortOrder,
-  });
+  } = useGetCommentsQuery(
+    {
+      entityType,
+      entityId,
+      page,
+      limit: LIMIT,
+      includeReplies: true,
+      sortOrder,
+    },
+    { skip: !shouldLoadComments },
+  );
 
   const total = commentsData?.data?.total ?? 0;
   const totalPages = commentsData?.data?.totalPages ?? 0;
@@ -52,6 +71,13 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
     setPage(1);
     setAccumulatedComments([]);
   }, [sortOrder, entityType, entityId]);
+
+  useEffect(() => {
+    if (!shouldLoadComments) {
+      setPage(1);
+      setAccumulatedComments([]);
+    }
+  }, [shouldLoadComments]);
 
   useEffect(() => {
     if (!commentsData?.data?.comments) return;
@@ -108,14 +134,31 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
 
   return (
     <div className={`space-y-2 sm:space-y-4 ${className}`}>
-      <div className="flex items-center gap-2">
-        <MessageCircle className="w-4 h-4 text-[var(--primary)] shrink-0" />
-        <h2 className="text-sm sm:text-base font-semibold text-[var(--foreground)]">Комментарии</h2>
-        {total > 0 && (
-          <span className="text-xs text-[var(--muted-foreground)] bg-[var(--secondary)] px-1.5 py-0.5 rounded">
-            {total}
+      <div className="flex flex-wrap items-center gap-2 gap-y-1.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <MessageCircle className="w-4 h-4 text-[var(--primary)] shrink-0" />
+          <h2 className="text-sm sm:text-base font-semibold text-[var(--foreground)]">Комментарии</h2>
+          {shouldLoadComments && total > 0 && (
+            <span className="text-xs text-[var(--muted-foreground)] bg-[var(--secondary)] px-1.5 py-0.5 rounded">
+              {total}
+            </span>
+          )}
+        </div>
+        <label
+          className="ml-auto flex items-center gap-1.5 cursor-pointer select-none max-w-[min(100%,11rem)] sm:max-w-none"
+          title="Пока включено, текст комментариев не подгружается, пока вы сами не откроете блок — чтобы не увидеть спойлеры к сюжету."
+        >
+          <input
+            type="checkbox"
+            className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40 shrink-0"
+            checked={protectionOn}
+            onChange={e => setProtectionEnabled(e.target.checked)}
+          />
+          <span className="text-[10px] sm:text-xs text-[var(--muted-foreground)] inline-flex items-center gap-1 leading-tight">
+            <EyeOff className="w-3 h-3 shrink-0" aria-hidden />
+            Защита от спойлеров
           </span>
-        )}
+        </label>
       </div>
 
       {/* Блок отправки комментария — над сортировкой */}
@@ -161,34 +204,40 @@ export function CommentsSection({ entityType, entityId, className = "" }: Commen
         </select>
       </div>
 
-      {/* Comments List */}
-      <CommentsList
-        comments={sortedComments}
-        onReply={handleReply}
-        onEdit={handleEdit}
-        isLoading={isLoading && page === 1}
-      />
+      {!shouldLoadComments ? (
+        <CommentsSpoilerGate onReveal={reveal} />
+      ) : (
+        <>
+          <CommentsList
+            comments={sortedComments}
+            onReply={handleReply}
+            onEdit={handleEdit}
+            isLoading={isLoading && page === 1}
+            reportContextTitleId={reportContextTitleId}
+          />
 
-      {/* Загрузить ещё */}
-      {hasMore && !isLoading && (
-        <div className="flex justify-center pt-1">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs"
-            onClick={loadMore}
-            disabled={isLoadingMore}
-          >
-            {isLoadingMore ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                Загрузка…
-              </>
-            ) : (
-              `Загрузить ещё (${sortedComments.length} из ${total})`
-            )}
-          </Button>
-        </div>
+          {/* Загрузить ещё */}
+          {hasMore && !isLoading && (
+            <div className="flex justify-center pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={loadMore}
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    Загрузка…
+                  </>
+                ) : (
+                  `Загрузить ещё (${sortedComments.length} из ${total})`
+                )}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

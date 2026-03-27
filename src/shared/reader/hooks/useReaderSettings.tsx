@@ -9,6 +9,11 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import {
+  COMMENTS_SPOILER_STORAGE_KEY,
+  setCommentsSpoilerProtection as persistCommentsSpoilerProtection,
+  clearCommentsSpoilerProtectionStorage,
+} from "@/lib/comments-spoiler-protection";
 
 const STORAGE_KEYS = {
   showPageCounter: "reader-show-page-counter",
@@ -28,6 +33,7 @@ const STORAGE_KEYS = {
   imageQuality: "reader-image-quality",
   hapticEnabled: "reader-haptic-enabled",
   dataSaver: "reader-data-saver",
+  commentsSpoilerProtection: COMMENTS_SPOILER_STORAGE_KEY,
 } as const;
 
 export type ReadingMode = "feed" | "paged";
@@ -54,6 +60,8 @@ interface ReaderSettings {
   imageQuality: ImageQualityMode;
   hapticEnabled: boolean;
   dataSaver: boolean;
+  /** true = комментарии скрыты до явного показа (защита от спойлеров). По умолчанию включено. */
+  commentsSpoilerProtection: boolean;
 }
 
 export interface UseReaderSettingsReturn extends ReaderSettings {
@@ -78,6 +86,8 @@ export interface UseReaderSettingsReturn extends ReaderSettings {
   setHapticEnabled: (value: boolean) => void;
   dataSaver: boolean;
   setDataSaver: (value: boolean) => void;
+  commentsSpoilerProtection: boolean;
+  setCommentsSpoilerProtection: (value: boolean) => void;
   resetToDefaults: () => void;
 }
 
@@ -102,6 +112,7 @@ const DEFAULT_SETTINGS: ReaderSettings = {
   imageQuality: "auto",
   hapticEnabled: true,
   dataSaver: false,
+  commentsSpoilerProtection: true,
 };
 
 function qualityModeToValue(mode: ImageQualityMode): number {
@@ -249,6 +260,10 @@ function getInitialSettings(): ReaderSettings {
       safeLocalStorageGet(STORAGE_KEYS.dataSaver),
       DEFAULT_SETTINGS.dataSaver,
     ),
+    commentsSpoilerProtection: parseBoolean(
+      safeLocalStorageGet(STORAGE_KEYS.commentsSpoilerProtection),
+      DEFAULT_SETTINGS.commentsSpoilerProtection,
+    ),
   };
 }
 
@@ -376,6 +391,11 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
     safeLocalStorageSet(STORAGE_KEYS.dataSaver, String(value));
   }, []);
 
+  const setCommentsSpoilerProtection = useCallback((value: boolean) => {
+    setSettings(prev => ({ ...prev, commentsSpoilerProtection: value }));
+    persistCommentsSpoilerProtection(value);
+  }, []);
+
   const getQualityValue = useCallback(() => {
     if (settings.dataSaver) return 60;
     return qualityModeToValue(settings.imageQuality);
@@ -384,6 +404,8 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
   const resetToDefaults = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
     Object.values(STORAGE_KEYS).forEach(key => safeLocalStorageRemove(key));
+    clearCommentsSpoilerProtectionStorage();
+    persistCommentsSpoilerProtection(DEFAULT_SETTINGS.commentsSpoilerProtection);
   }, []);
 
   const effectiveReadChaptersInRow = READ_CHAPTERS_IN_ROW_ENABLED && settings.readChaptersInRow;
@@ -411,6 +433,7 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
       setShowProgress,
       setImageQuality,
       getQualityValue,
+      setCommentsSpoilerProtection,
       resetToDefaults,
     }),
     [
@@ -435,6 +458,7 @@ function useReaderSettingsImpl(): UseReaderSettingsReturn {
       setShowProgress,
       setImageQuality,
       getQualityValue,
+      setCommentsSpoilerProtection,
       resetToDefaults,
     ],
   );

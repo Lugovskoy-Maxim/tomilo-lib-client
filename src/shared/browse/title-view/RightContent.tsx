@@ -45,8 +45,6 @@ import { CharactersSection } from "./CharactersSection";
 import { TranslatorsSection } from "./TranslatorsSection";
 import { RelatedTitlesSection } from "./RelatedTitlesSection";
 import { SimilarTitles } from "./SimilarTitles";
-import OfflineTitleDownloadCard from "@/shared/pwa/OfflineTitleDownloadCard";
-import { isPremiumActive } from "@/lib/premium";
 
 const ChapterRatingsChartLazy = dynamic(
   () => import("./ChapterRatingsChart").then(m => ({ default: m.ChapterRatingsChart })),
@@ -762,20 +760,9 @@ export function RightContent({
           serverProgress?.progressPercent ??
           (totalChaptersCount > 0 ? Math.round((readChaptersCount / totalChaptersCount) * 100) : 0);
         const hasReadingProgress = user && readChaptersCount > 0;
-        const canUseOfflineDownload =
-          user?.role === "admin" || isPremiumActive(user?.subscriptionExpiresAt ?? null);
 
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {canUseOfflineDownload && (
-              <OfflineTitleDownloadCard
-                titleId={titleId}
-                titleName={titleData?.name || "Тайтл"}
-                titleSlug={slug}
-                chapters={chapters}
-              />
-            )}
-
             {/* Индикатор прогресса чтения */}
             {hasReadingProgress && (
               <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">

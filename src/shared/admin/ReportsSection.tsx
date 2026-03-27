@@ -67,11 +67,15 @@ const RESPONSE_TEMPLATES = [
     text: "К сожалению, нам не удалось воспроизвести описанную проблему. Если она повторится, пожалуйста, сообщите нам.",
   },
   { label: "Отклонено", text: "После рассмотрения мы решили отклонить данное обращение." },
+  {
+    label: "Комментарий убран",
+    text: "Жалоба на комментарий рассмотрена. Комментарий удалён или скрыт модерацией.",
+  },
 ];
 
 type ReportsViewMode = "list" | "cards";
 type ReportsSortMode = "newest" | "oldest" | "open-first";
-type EntityTypeFilter = "all" | "title" | "chapter";
+type EntityTypeFilter = "all" | "title" | "chapter" | "comment";
 
 function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString);
@@ -100,6 +104,7 @@ const reportTypeLabels = {
   [ReportType.WRONG_ORDER]: "Неверный порядок",
   [ReportType.DUPLICATE]: "Дубликат",
   [ReportType.OTHER]: "Другое",
+  [ReportType.COMMENT_REPORT]: "Комментарий",
 };
 
 const reportTypeColors = {
@@ -111,6 +116,7 @@ const reportTypeColors = {
   [ReportType.WRONG_ORDER]: "bg-[var(--chart-2)]",
   [ReportType.DUPLICATE]: "bg-[var(--chart-3)]",
   [ReportType.OTHER]: "bg-[var(--muted)]",
+  [ReportType.COMMENT_REPORT]: "bg-violet-500/80",
 };
 
 function getReportResponse(report: Report | null): string {
@@ -147,6 +153,7 @@ export function ReportsSection() {
     limit,
     reportType: reportTypeFilter || undefined,
     isResolved: isResolvedFilter || undefined,
+    entityType: entityTypeFilter !== "all" ? entityTypeFilter : undefined,
   });
 
   const [updateReportStatus, { isLoading: isStatusUpdating }] = useUpdateReportStatusMutation();
@@ -155,18 +162,13 @@ export function ReportsSection() {
 
   useEffect(() => {
     setPage(1);
-  }, [reportTypeFilter, isResolvedFilter, limit]);
+  }, [reportTypeFilter, isResolvedFilter, limit, entityTypeFilter]);
 
   const reports = useMemo(() => data?.data?.reports || [], [data]);
   const processedReports = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     const filtered = reports.filter(report => {
-      // Entity type filter
-      if (entityTypeFilter !== "all" && report.entityType !== entityTypeFilter) {
-        return false;
-      }
-
       if (!normalizedSearch) return true;
       const haystack = [
         report.content,
@@ -193,7 +195,7 @@ export function ReportsSection() {
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [reports, searchTerm, sortMode, entityTypeFilter]);
+  }, [reports, searchTerm, sortMode]);
 
   const stats = useMemo(
     () => ({
@@ -493,6 +495,7 @@ export function ReportsSection() {
           <option value="all">Все источники</option>
           <option value="title">Тайтлы</option>
           <option value="chapter">Главы</option>
+          <option value="comment">Комментарии</option>
         </select>
 
         <button
@@ -656,7 +659,11 @@ export function ReportsSection() {
                   {formatTimeAgo(report.createdAt)}
                 </span>
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--secondary)]">
-                  {report.entityType === "title" ? "Тайтл" : "Глава"}
+                  {report.entityType === "title"
+                    ? "Тайтл"
+                    : report.entityType === "comment"
+                      ? "Комментарий"
+                      : "Глава"}
                 </span>
               </div>
 
@@ -1078,7 +1085,11 @@ export function ReportsSection() {
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">
                 <p className="text-xs text-[var(--muted-foreground)]">Источник</p>
                 <p className="text-sm font-medium text-[var(--foreground)]">
-                  {detailReport.entityType === "title" ? "Тайтл" : "Глава"}
+                  {detailReport.entityType === "title"
+                    ? "Тайтл"
+                    : detailReport.entityType === "comment"
+                      ? "Комментарий"
+                      : "Глава"}
                 </p>
               </div>
               <div className="rounded-lg bg-[var(--secondary)] p-3 text-center">

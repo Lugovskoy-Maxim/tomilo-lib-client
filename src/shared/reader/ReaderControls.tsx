@@ -1048,6 +1048,7 @@ export default function ReaderControls({
               <CommentsSection
                 entityType={CommentEntityType.CHAPTER}
                 entityId={currentChapter._id}
+                titleId={titleId}
               />
             </div>
           </div>
@@ -1107,6 +1108,7 @@ export default function ReaderControls({
               <CommentsSection
                 entityType={CommentEntityType.CHAPTER}
                 entityId={currentChapter._id}
+                titleId={titleId}
               />
             </div>
           </div>

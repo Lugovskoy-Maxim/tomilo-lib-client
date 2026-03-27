@@ -1767,7 +1767,7 @@ function ReadChapterPageContent({
       ? `Глава ${effectiveChapter.number}: ${effectiveChapter.title}`
       : `Глава ${effectiveChapter.number}`;
 
-    const fullTitle = `${chapterTitle} - ${title.title} | Manga-shi`;
+    const fullTitle = `${chapterTitle} - ${title.title} - Tomilo-lib.ru`;
 
     // Обновляем title
     document.title = fullTitle;
@@ -1784,8 +1784,11 @@ function ReadChapterPageContent({
       ogUrl.setAttribute("content", newUrl);
     }
 
+    const ogSiteName = document.querySelector('meta[property="og:site_name"]');
+    if (ogSiteName) ogSiteName.setAttribute("content", "Tomilo-lib.ru");
+
     // Обновляем description
-    const description = `Читать ${chapterTitle} манги ${title.title} онлайн на Manga-shi`;
+    const description = `Читать ${chapterTitle} манги ${title.title} онлайн на Tomilo-lib.ru`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute("content", description);
 
@@ -2622,7 +2625,7 @@ function ReadChapterPageContent({
                   <ChapterTranslatorInfo titleId={titleId} />
                 </div>
 
-                <ChapterCommentsSection chapterId={displayChapter._id} />
+                <ChapterCommentsSection chapterId={displayChapter._id} titleId={titleId} />
 
                 {/* Футер главы с кнопками навигации */}
                 {!infiniteScroll && (
@@ -2913,7 +2916,7 @@ function ReadChapterPageContent({
                           />
                         </div>
 
-                        <ChapterCommentsSection chapterId={loadedChapter._id} />
+                        <ChapterCommentsSection chapterId={loadedChapter._id} titleId={titleId} />
 
                         {/* Триггер и индикатор для последней загруженной главы */}
                         {isLastLoadedChapter && (

@@ -43,7 +43,7 @@ export default function ProfileStrip({
   const showStreak = !isPublicView || isOwnProfile || userProfile.showStats !== false;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 sm:gap-4 py-3 px-3 sm:px-4 rounded-xl border border-[color-mix(in_oklch,var(--border)_70%,transparent)] bg-[color-mix(in_oklch,var(--card)_88%,transparent)] dark:bg-[color-mix(in_oklch,var(--card)_58%,transparent)] backdrop-blur-[14px] shadow-[0_4px_24px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]">
+    <div className="flex flex-wrap items-center gap-3 sm:gap-4 py-3 px-3 sm:px-4 rounded-xl border border-[color-mix(in_oklch,var(--border)_70%,transparent)] bg-[color-mix(in_oklch,var(--card)_8%,transparent)] dark:bg-[color-mix(in_oklch,var(--card)_6%,transparent)] backdrop-blur-[32px] shadow-[0_4px_24px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]">
       {/* Аватар: контейнер с overflow-visible и отступом, чтобы рамка и эффекты не обрезались */}
       <div className="relative w-[7rem] h-[7rem] shrink-0 flex items-center justify-center overflow-visible rounded-full ring-2 ring-[var(--border)]/50">
         <div className="relative w-24 h-24 flex items-center justify-center overflow-visible">
@@ -89,7 +89,7 @@ export default function ProfileStrip({
         style={{ background: `linear-gradient(135deg, ${rankColor}12 0%, transparent 100%)` }}
       >
         <span
-          className="absolute inset-0 rounded-xl bg-[var(--card)] opacity-72 dark:opacity-50 pointer-events-none z-0"
+          className="absolute inset-0 rounded-xl bg-[var(--card)] opacity-20 dark:opacity-15 pointer-events-none z-0"
           aria-hidden
         />
         <div className="relative z-10 flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">

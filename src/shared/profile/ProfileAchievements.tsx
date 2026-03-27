@@ -125,7 +125,8 @@ function generateAchievements(userProfile: UserProfile): AchievementWithLevels[]
   const ratingsCount = userProfile.ratingsCount ?? 0;
   const longestStreak = userProfile.longestStreak ?? 0;
   const completedTitlesCount = userProfile.completedTitlesCount ?? 0;
-  const readingTimeMinutes = userProfile.readingTimeMinutes ?? 0;
+  /** Как в ProfileStats: при отсутствии данных с бэкенда — оценка по главам (~4 мин на главу). */
+  const readingTimeMinutes = userProfile.readingTimeMinutes ?? chaptersRead * 4;
   const balance = userProfile.balance ?? 0;
   const ownedDecorationsCount = userProfile.ownedDecorations?.length ?? 0;
   const likesReceivedCount = userProfile.likesReceivedCount ?? 0;
@@ -308,7 +309,7 @@ function generateAchievements(userProfile: UserProfile): AchievementWithLevels[]
         { threshold: 300, name: "Пять часов" },
         { threshold: 600, name: "Десять часов" },
         { threshold: 1800, name: "30 часов" },
-        { threshold: 5000, name: "Сто часов" },
+        { threshold: 6000, name: "Сто часов" },
         { threshold: 10000, name: "Мастер времени" },
       ],
       currentLevel: 0,
@@ -446,15 +447,17 @@ const AchievementCard = memo(function AchievementCard({
       return `${val}д`;
     }
     if (id === "time_reader") {
-      if (val >= 60) return `${Math.floor(val / 60)}ч`;
-      return `${val}м`;
+      if (val < 60) return `${val}м`;
+      const h = Math.floor(val / 60);
+      const m = val % 60;
+      return m === 0 ? `${h}ч` : `${h}ч ${m}м`;
     }
     return val.toLocaleString();
   };
 
   const badgeLabel = nextLevelData
     ? `${formatValue(achievement.currentValue, achievement.id)}/${formatValue(nextThreshold, achievement.id)}`
-    : String(achievement.currentValue);
+    : formatValue(achievement.currentValue, achievement.id);
 
   return (
     <article

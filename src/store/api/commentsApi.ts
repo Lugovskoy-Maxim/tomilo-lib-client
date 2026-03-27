@@ -98,7 +98,9 @@ export const commentsApi = createApi({
         url: `/comments/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, id) => [{ type: "Comments", id }],
+      // getComments помечает кэш как { type: 'Comments', id: `${entityType}-${entityId}` },
+      // а не id комментария — без общего тега список не инвалидировался.
+      invalidatesTags: (result, error, id) => [{ type: "Comments", id }, { type: "Comments" }],
     }),
 
     likeComment: builder.mutation<ApiResponseDto<Comment>, string>({
