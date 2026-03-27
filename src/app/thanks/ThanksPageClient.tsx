@@ -13,6 +13,7 @@ import { Header, Footer } from "@/widgets";
 import Breadcrumbs from "@/shared/breadcrumbs/breadcrumbs";
 import { useGetCharacterContributorsQuery } from "@/store/api/usersApi";
 import AssetImage from "@/shared/ui/AssetImage";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 function ContributorRow({
   user,
@@ -35,7 +36,7 @@ function ContributorRow({
         {user.avatar ? (
           <AssetImage
             src={user.avatar}
-            alt={user.username}
+            alt={formatUsernameDisplay(user.username)}
             fill
             sizes="40px"
             className="object-cover"
@@ -47,7 +48,7 @@ function ContributorRow({
         )}
       </div>
       <span className="font-medium text-[var(--foreground)] truncate flex-1 min-w-0">
-        {user.username}
+        {formatUsernameDisplay(user.username)}
       </span>
       <span className="text-sm text-[var(--primary)] font-medium whitespace-nowrap">
         {label}

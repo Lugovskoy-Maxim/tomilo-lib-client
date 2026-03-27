@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bookmark, Clock, Bell, Settings, User, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface QuickActionProps {
   href: string;
@@ -91,7 +92,8 @@ export function QuickActions() {
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-semibold text-[var(--foreground)]">
-                Привет, {user?.username || "читатель"}!
+                Привет,{" "}
+                {user?.username ? formatUsernameDisplay(user.username) : "читатель"}!
               </h3>
               <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">Быстрые действия</p>
             </div>

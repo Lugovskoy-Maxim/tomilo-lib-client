@@ -229,7 +229,7 @@ export default function ReadingPositionRestoreModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4">
       <div
         className="absolute inset-0 bg-black/50 animate-fade-in"
         onClick={onClose}
@@ -238,7 +238,7 @@ export default function ReadingPositionRestoreModal({
 
       <div
         ref={dialogRef}
-        className="relative w-full max-w-[280px] bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl animate-scale-in overflow-hidden"
+        className="relative w-full max-w-[320px] sm:max-w-[340px] bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl animate-scale-in overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         role="dialog"
@@ -246,19 +246,19 @@ export default function ReadingPositionRestoreModal({
         aria-labelledby="reading-position-restore-title"
       >
         {/* Компактный заголовок */}
-        <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center justify-between gap-2 px-3 sm:px-4 pt-3 pb-2">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-[var(--primary)]" aria-hidden />
             </div>
             <div className="min-w-0">
               <p
                 id="reading-position-restore-title"
-                className="text-sm font-medium text-[var(--foreground)] truncate"
+                className="text-sm sm:text-[15px] font-semibold text-[var(--foreground)] truncate"
               >
                 Продолжить?
               </p>
-              <p className="text-xs text-[var(--muted-foreground)] tabular-nums">
+              <p className="text-[11px] sm:text-xs text-[var(--muted-foreground)] tabular-nums">
                 стр. {page} из {totalPages} · {progressPercent}%
               </p>
             </div>
@@ -274,7 +274,7 @@ export default function ReadingPositionRestoreModal({
         </div>
 
         {/* Прогресс */}
-        <div className="px-3 pb-2">
+        <div className="px-3 sm:px-4 pb-2">
           <div className="h-1 bg-[var(--muted)] rounded-full overflow-hidden">
             <div
               className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
@@ -284,7 +284,7 @@ export default function ReadingPositionRestoreModal({
         </div>
 
         {/* Кнопки */}
-        <div className="px-3 pb-3 flex gap-2">
+        <div className="px-3 sm:px-4 pb-3 flex gap-2">
           <button
             ref={primaryActionRef}
             type="button"
@@ -292,7 +292,7 @@ export default function ReadingPositionRestoreModal({
               onRestore();
               onClose();
             }}
-            className="flex-1 py-2 px-3 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white text-sm font-medium rounded-lg transition-colors active:scale-[0.98]"
+            className="flex-1 py-2.5 px-3 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white text-sm font-medium rounded-lg transition-colors active:scale-[0.98]"
           >
             Продолжить
           </button>
@@ -315,7 +315,7 @@ export default function ReadingPositionRestoreModal({
             <button
               type="button"
               onClick={() => setShowCustomInput(!showCustomInput)}
-              className="w-full px-3 pb-2 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex items-center justify-center gap-1"
+              className="w-full px-3 sm:px-4 pb-2 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex items-center justify-center gap-1"
             >
               {showCustomInput ? (
                 <ChevronUp className="w-3 h-3" />
@@ -325,7 +325,7 @@ export default function ReadingPositionRestoreModal({
               Другая страница
             </button>
             {showCustomInput && (
-              <div className="px-3 pb-3 pt-0 space-y-2 border-t border-[var(--border)]/50">
+              <div className="px-3 sm:px-4 pb-3 pt-0 space-y-2 border-t border-[var(--border)]/50">
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -365,7 +365,7 @@ export default function ReadingPositionRestoreModal({
         )}
 
         {/* Настройки — компактный блок */}
-        <div className="px-3 pb-2 pt-1 border-t border-[var(--border)]/50 space-y-1">
+        <div className="px-3 sm:px-4 pb-2 pt-1 border-t border-[var(--border)]/50 space-y-1">
           <label className="flex items-center justify-between gap-2 py-1.5 cursor-pointer">
             <span className="text-[11px] text-[var(--muted-foreground)]">Мгновенно</span>
             <input
@@ -399,15 +399,15 @@ export default function ReadingPositionRestoreModal({
 
         {/* Таймер */}
         {autoRestoreEnabled && !isPaused && !isAlwaysStartFromBeginning && !instantContinue && (
-          <div className="px-3 pb-2 flex items-center gap-2">
+          <div className="px-3 sm:px-4 pb-2 flex items-center gap-2">
             <div className="flex-1 h-0.5 bg-[var(--muted)] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[var(--primary)] rounded-full transition-all duration-1000 ease-linear"
                 style={{ width: `${(countdown / 5) * 100}%` }}
               />
             </div>
-            <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums w-5">
-              {countdown} с
+            <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums w-8 text-right">
+              {countdown}с
             </span>
           </div>
         )}

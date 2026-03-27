@@ -11,6 +11,7 @@ import { getRankColor, getRankDisplay, getLevelProgress, levelToRank } from "@/l
 import { useProgressNotification } from "@/contexts/ProgressNotificationContext";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface ProfileSidebarProps {
   userProfile: UserProfile;
@@ -69,7 +70,7 @@ export default function ProfileSidebar({
         {/* Имя и роль */}
         <div className="text-center mb-3">
           <h1 className="text-base font-semibold text-[var(--foreground)] truncate px-1 flex items-center justify-center gap-1.5 flex-wrap">
-            {userProfile.username}
+            {formatUsernameDisplay(userProfile.username)}
             {isPremiumActive(userProfile.subscriptionExpiresAt) && (
               <PremiumBadge size="xs" ariaLabel="Премиум" />
             )}

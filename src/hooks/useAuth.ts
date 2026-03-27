@@ -111,7 +111,6 @@ export const useAuth = () => {
     data: readingHistoryData,
     isLoading: readingHistoryLoading,
     error: readingHistoryError,
-    refetch: refetchReadingHistory,
   } = useGetReadingHistoryQuery(
     { limit: 200, light: false },
     {
@@ -572,6 +571,14 @@ export const useAuth = () => {
         /already|already exists|duplicate|уже|дубликат/i.test(msg);
       const isRefetchNotStarted = (msg: string): boolean =>
         /cannot refetch.*has not been started/i.test(msg);
+      const isNetworkFetchFailure = (msg: string): boolean =>
+        /failed to fetch|networkerror|network request failed|load failed/i.test(msg);
+      const isOfflineReadMode = (): boolean =>
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("offlineRead") === "1";
+      const shouldSilenceNetworkHistoryError = (msg: string): boolean =>
+        isNetworkFetchFailure(msg) &&
+        (isOfflineReadMode() || (typeof navigator !== "undefined" && navigator.onLine === false));
 
       const doRetry = async () => tryAdd();
 
@@ -603,6 +610,9 @@ export const useAuth = () => {
             };
           }
         }
+        if (shouldSilenceNetworkHistoryError(result.error ?? "")) {
+          return { success: true };
+        }
         console.error("Error adding to reading history:", result.error);
         return result;
       } catch (error: unknown) {
@@ -610,6 +620,7 @@ export const useAuth = () => {
         if (isAlreadyInHistory(message)) return { success: true };
         // Refetch failed (e.g. profile query was skipped) but add may have succeeded — don't log
         if (isRefetchNotStarted(message)) return { success: true };
+        if (shouldSilenceNetworkHistoryError(message)) return { success: true };
         if (isVersionConflict(message)) {
           try {
             const retryResult = await doRetry();

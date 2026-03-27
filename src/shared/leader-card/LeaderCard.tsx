@@ -15,6 +15,7 @@ import { EquippedDecorations } from "@/types/user";
 import { formatLikesReceivedRu, formatCharactersAcceptedRu } from "@/lib/utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
@@ -430,7 +431,7 @@ function Top3Card({
         <div className="relative w-full h-full overflow-hidden rounded-full">
           <img
             src={avatarUrl}
-            alt={user.username}
+            alt={formatUsernameDisplay(user.username)}
             className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 ${styles.cardBorder} shadow-md bg-[var(--secondary)]`}
             onError={() => {
               if (avatarDecorationUrl && !avatarDecorationError) {
@@ -457,7 +458,7 @@ function Top3Card({
         <p
           className={`font-semibold text-white truncate max-w-[4.5rem] md:max-w-[140px] mx-auto drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${rank === 1 ? "text-xs md:text-lg" : "text-[11px] md:text-base"}`}
         >
-          {user.username}
+          {formatUsernameDisplay(user.username)}
         </p>
         {user.role && user.role !== "user" && (
           <span className="text-[9px] md:text-[10px] px-1 py-0.5 md:px-1.5 md:py-0.5 rounded bg-white/20 text-white/90 capitalize mt-0.5 inline-block">
@@ -568,7 +569,7 @@ function DefaultCard({
         <div className="w-full h-full overflow-hidden rounded-full">
           <img
             src={avatarUrl}
-            alt={user.username}
+            alt={formatUsernameDisplay(user.username)}
             className={`w-full h-full rounded-full object-cover aspect-square min-w-full min-h-full border-2 bg-[var(--secondary)] ${isCurrentUser ? "border-[var(--primary)]" : hasRarityEffect ? rarityStyles.borderClass : "border-[var(--border)]"}`}
             onError={() => {
               if (avatarDecorationUrl && !avatarDecorationError) setAvatarDecorationError(true);
@@ -596,9 +597,9 @@ function DefaultCard({
       <div className="flex-1 min-w-0 relative z-10">
         <p
           className={`font-medium truncate text-sm flex items-center gap-1 ${isPremiumActive(user.subscriptionExpiresAt) ? "text-amber-500" : isCurrentUser ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}
-          title={user.username}
+          title={formatUsernameDisplay(user.username)}
         >
-          <span className="truncate">{user.username}</span>
+          <span className="truncate">{formatUsernameDisplay(user.username)}</span>
           {isPremiumActive(user.subscriptionExpiresAt) && (
             <PremiumBadge size="xs" ariaLabel="Премиум-подписчик" />
           )}

@@ -32,6 +32,7 @@ import {
   findInventoryEntryForCanonicalId,
 } from "@/lib/gameInventory";
 import { getCoverUrls } from "@/lib/asset-url";
+import { formatUsernameDisplay } from "@/lib/username-display";
 import { getDecorationImageUrls } from "@/api/shop";
 import type { Disciple, DiscipleTechniquesEntry, InventoryEntry, TechniqueEntry } from "@/types/games";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
@@ -554,12 +555,11 @@ export function DisciplesSection() {
   const [candidateAvatarError, setCandidateAvatarError] = useState(false);
   /** После найма/обмена дубля скрываем панель кандидата, пока бэкенд не обновит lastRerollCandidate */
   const [consumedCandidateId, setConsumedCandidateId] = useState<string | null>(null);
-  const [failedCardMediaIds, setFailedCardMediaIds] = useState<Set<string>>(new Set());
   const [failedDiscipleAvatarIds, setFailedDiscipleAvatarIds] = useState<Set<string>>(new Set());
   const [barracksExpanded, setBarracksExpanded] = useState(false);
 
   const res = data?.data;
-  const disciples = (res?.disciples ?? []) as Disciple[];
+  const disciples = useMemo(() => (res?.disciples ?? []) as Disciple[], [res?.disciples]);
   const maxActive =
     res?.maxDisciples != null && res.maxDisciples > 0 ? res.maxDisciples : 3;
   const primaryId = res?.primaryDiscipleCharacterId ?? null;
@@ -598,7 +598,10 @@ export function DisciplesSection() {
     }
     return items;
   }, [activeRoster, warehouseRoster, maxActive, barracksExpanded]);
-  const profileCards = profileCardsData?.data?.cards ?? [];
+  const profileCards = useMemo(
+    () => profileCardsData?.data?.cards ?? [],
+    [profileCardsData?.data?.cards],
+  );
   const inventory = useMemo(() => normalizeGameInventoryList(inventoryData), [inventoryData]);
   const inventoryById = useMemo(() => {
     const m = new Map<string, InventoryEntry>();
@@ -629,7 +632,12 @@ export function DisciplesSection() {
     const fromSnap = squadFromUnknownArray(lastBattleOpponent?.disciples);
     if (fromSnap.length) return fromSnap;
     if (lastBattleOpponent?.username) {
-      return [{ name: lastBattleOpponent.username, avatar: lastBattleOpponent.avatar }];
+      return [
+        {
+          name: formatUsernameDisplay(lastBattleOpponent.username),
+          avatar: lastBattleOpponent.avatar,
+        },
+      ];
     }
     return [];
   }, [battleResult, lastBattleOpponent]);
@@ -1657,7 +1665,9 @@ export function DisciplesSection() {
                   <MatchOpponentAvatar avatarPath={opponent.avatar} />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold text-[var(--foreground)] truncate">{opponent.username}</span>
+                      <span className="font-semibold text-[var(--foreground)] truncate">
+                        {formatUsernameDisplay(opponent.username)}
+                      </span>
                       {opponent.userId?.startsWith?.("bot:") ? (
                         <span className="games-badge-bot shrink-0">бот</span>
                       ) : null}
@@ -1784,7 +1794,9 @@ export function DisciplesSection() {
                       <MatchOpponentAvatar avatarPath={weeklyOpponent.avatar} />
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold text-[var(--foreground)] truncate">{weeklyOpponent.username}</span>
+                          <span className="font-semibold text-[var(--foreground)] truncate">
+                            {formatUsernameDisplay(weeklyOpponent.username)}
+                          </span>
                           {weeklyOpponent.userId?.startsWith?.("bot:") ? (
                             <span className="games-badge-bot shrink-0">бот</span>
                           ) : null}
@@ -1841,7 +1853,9 @@ export function DisciplesSection() {
                     {leaderboard.slice(0, 10).map((entry, i) => (
                       <li key={entry.username} className="flex items-center justify-between gap-2">
                         <span className="games-muted text-xs w-5 shrink-0">#{i + 1}</span>
-                        <span className="truncate font-medium text-[var(--foreground)] min-w-0">{entry.username}</span>
+                        <span className="truncate font-medium text-[var(--foreground)] min-w-0">
+                          {formatUsernameDisplay(entry.username)}
+                        </span>
                         <span className="text-[var(--primary)] font-semibold shrink-0">{entry.weeklyRating}</span>
                         <span className="games-muted text-[11px] shrink-0">
                           {entry.weeklyWins}П / {entry.weeklyLosses}П

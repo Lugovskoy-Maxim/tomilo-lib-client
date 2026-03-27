@@ -1292,61 +1292,6 @@ function HeatmapSlotCell({
 }
 
 /* Schedule table: columns = hours, rows = minutes; each cell is a droppable slot */
-interface SlotCellProps {
-  droppableId: string;
-  jobs: AutoParsingJob[];
-  getImageUrl: (coverImage?: string) => string;
-  onEdit: (job: AutoParsingJob) => void;
-  onDelete: (id: string) => void;
-  onCheck: (id: string) => void;
-  onSync: (job: AutoParsingJob) => void;
-  syncingJobId: string | null;
-  deleteLoading: boolean;
-  checkLoading: boolean;
-  isNoneColumn?: boolean;
-}
-
-function SlotCell({
-  droppableId,
-  jobs,
-  getImageUrl,
-  onEdit,
-  onDelete,
-  onCheck,
-  onSync,
-  syncingJobId,
-  deleteLoading,
-  checkLoading,
-  isNoneColumn,
-}: SlotCellProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: droppableId });
-  return (
-    <td
-      ref={setNodeRef}
-      className={`py-1 px-1 align-top border-r border-[var(--border)] last:border-r-0 min-h-[44px] ${
-        isNoneColumn ? "min-w-[100px]" : "min-w-[64px]"
-      } ${isOver ? "bg-[var(--primary)]/10" : ""}`}
-    >
-      <div className="flex flex-col gap-2">
-        {jobs.map(job => (
-          <DraggableScheduleJobCard
-            key={job._id}
-            job={job}
-            getImageUrl={getImageUrl}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onCheck={onCheck}
-            onSync={onSync}
-            syncingJobId={syncingJobId}
-            deleteLoading={deleteLoading}
-            checkLoading={checkLoading}
-          />
-        ))}
-      </div>
-    </td>
-  );
-}
-
 interface ScheduleJobCardProps {
   job: AutoParsingJob;
   getImageUrl: (coverImage?: string) => string;

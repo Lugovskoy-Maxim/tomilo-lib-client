@@ -13,15 +13,7 @@ import {
   ShoppingBag,
   Palette,
   Trophy,
-  Crown,
-  Clock,
-  Star,
-  MessageSquare,
-  Flame,
-  BookOpen,
   Coins,
-  Heart,
-  Sparkles,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserAvatar } from "..";
@@ -31,24 +23,13 @@ import type { LeaderboardCategory } from "@/store/api/leaderboardApi";
 import { levelToRank, getLevelProgress, getRankColor } from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface LeaderboardPosition {
   category: LeaderboardCategory;
   position: number;
   label: string;
 }
-
-const CATEGORY_ICONS: Record<LeaderboardCategory, typeof Trophy> = {
-  level: Crown,
-  readingTime: Clock,
-  ratings: Star,
-  comments: MessageSquare,
-  streak: Flame,
-  chaptersRead: BookOpen,
-  likesReceived: Heart,
-  developmentHelp: Sparkles,
-  balance: Coins,
-};
 
 interface UserDropdownProps {
   isOpen: boolean;
@@ -148,7 +129,10 @@ export default function UserDropdown({
   const isAdmin = user?.role === "admin";
   const isAdult = adultEnabled;
 
-  const displayName = user?.name || user?.username || "Пользователь";
+  const displayName =
+    user?.name || user?.username
+      ? formatUsernameDisplay((user.name || user.username) as string)
+      : "Пользователь";
   const level = user?.level ?? 0;
   const experience = user?.experience ?? 0;
   const balance = user?.balance ?? 0;
@@ -269,20 +253,17 @@ export default function UserDropdown({
         <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-2.5 mt-1">
           <div className="flex items-center gap-1 min-w-0 flex-1 overflow-x-auto shrink-0">
             {leaderboardPositions.length > 0 ? (
-              leaderboardPositions.slice(0, 4).map(({ category, position, label }) => {
-                const Icon = CATEGORY_ICONS[category];
-                return (
-                  <Link
-                    key={category}
-                    href={`/leaders?category=${category}`}
-                    onClick={onClose}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200 hover:bg-amber-500/25 dark:hover:bg-amber-500/25 transition-colors shrink-0"
-                    title={label}
-                  >
-                    <Icon className="w-2.5 h-2.5 shrink-0" aria-hidden />#{position}
-                  </Link>
-                );
-              })
+              leaderboardPositions.slice(0, 4).map(({ category, position, label }) => (
+                <Link
+                  key={category}
+                  href={`/leaders?category=${category}`}
+                  onClick={onClose}
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200 hover:bg-amber-500/25 dark:hover:bg-amber-500/25 transition-colors shrink-0"
+                  title={label}
+                >
+                  #{position}
+                </Link>
+              ))
             ) : (
               <Link
                 href="/leaders"

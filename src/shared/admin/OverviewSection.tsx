@@ -28,6 +28,7 @@ import {
   useGetSystemInfoQuery,
 } from "@/store/api/adminApi";
 import { formatNumber } from "@/lib/utils";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 type AdminTab =
   | "overview"
@@ -489,7 +490,9 @@ export function OverviewSection({ onTabChange }: OverviewSectionProps) {
                     </p>
                     <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)] mt-0.5">
                       {activity.username && (
-                        <span className="font-medium">{activity.username}</span>
+                        <span className="font-medium">
+                          {formatUsernameDisplay(activity.username)}
+                        </span>
                       )}
                       {activity.username && " • "}
                       {new Date(activity.createdAt).toLocaleString("ru-RU", {

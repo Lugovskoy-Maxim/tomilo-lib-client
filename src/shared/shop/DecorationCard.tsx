@@ -16,6 +16,7 @@ import { useResolvedEquippedDecorations } from "@/hooks/useEquippedFrameUrl";
 import { useGetProfileByIdQuery } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import { getImageUrls } from "@/lib/asset-url";
+import { formatUsernameDisplay } from "@/lib/username-display";
 import type { EquippedDecorations } from "@/types/user";
 import ProfileHeaderPreview from "@/shared/profile/ProfileHeaderPreview";
 
@@ -185,13 +186,13 @@ function DecorationPreviewModal({
   onEquip,
   onUnequip,
   displayType,
-  anchorRect,
   fallbackSrc,
   authorDisplay,
   cultivatorLevel,
   displayAuthorName,
   displayAuthorLevel,
 }: DecorationPreviewModalProps) {
+  const displayUsername = formatUsernameDisplay(username);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [useFallback, setUseFallback] = useState(false);
   const effectiveImageSrc =
@@ -231,7 +232,7 @@ function DecorationPreviewModal({
         >
           <Image
             src={avatarSrcInPreview}
-            alt={username}
+            alt={displayUsername}
             fill
             unoptimized
             className="object-cover rounded-full"
@@ -246,34 +247,6 @@ function DecorationPreviewModal({
             aria-hidden
           />
         )}
-      </div>
-    );
-  };
-
-  const renderAuthorSummary = (size: "compact" | "regular" = "regular") => {
-    const name = displayAuthorName ?? decoration.authorUsername ?? null;
-    const textClass =
-      size === "compact"
-        ? "text-[10px] sm:text-xs text-[var(--muted-foreground)]"
-        : "text-sm text-[var(--muted-foreground)]";
-
-    if (authorDisplay === "cultivator") {
-      return (
-        <div className="space-y-0.5">
-          {name ? <p className={textClass}>Автор: {name}</p> : null}
-          {(displayAuthorLevel ?? cultivatorLevel) ? (
-            <p className={textClass}>Уровень: {displayAuthorLevel ?? cultivatorLevel}</p>
-          ) : null}
-        </div>
-      );
-    }
-
-    if (!name && displayAuthorLevel == null) return null;
-
-    return (
-      <div className="space-y-0.5">
-        {name ? <p className={textClass}>Автор: {name}</p> : null}
-        {displayAuthorLevel != null ? <p className={textClass}>Уровень {displayAuthorLevel}</p> : null}
       </div>
     );
   };
@@ -302,7 +275,7 @@ function DecorationPreviewModal({
               <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] shadow-md bg-[var(--secondary)] ring-2 ring-[var(--background)]">
                 <Image
                   src={resolvedUserAvatar}
-                  alt={username}
+                  alt={displayUsername}
                   fill
                   unoptimized
                   className="object-cover rounded-full"
@@ -312,7 +285,7 @@ function DecorationPreviewModal({
 
             <div className="relative z-10 w-full px-3 py-3 rounded-b-2xl bg-gradient-to-t from-black/80 to-transparent">
               <p className="font-semibold text-white text-sm truncate text-center drop-shadow-sm">
-                {username}
+                {displayUsername}
               </p>
               <p className="text-xs text-white/90 mt-1 text-center">
                 Уровень {Math.max(1, userLevel)}
@@ -346,7 +319,7 @@ function DecorationPreviewModal({
             <AvatarWithOptionalFrame size={56} />
             <div className="flex flex-col justify-center min-w-0">
               <span className="font-semibold text-sm text-[var(--foreground)] truncate">
-                {username}
+                {displayUsername}
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] mt-0.5">
                 <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold shrink-0">
@@ -363,7 +336,7 @@ function DecorationPreviewModal({
             <AvatarWithOptionalFrame size={32} />
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <span className="text-xs font-medium text-[var(--foreground)] truncate block">
-                {username}
+                {displayUsername}
               </span>
               <span className="text-[10px] text-[var(--muted-foreground)]">
                 Текст комментария...
@@ -548,7 +521,14 @@ function DecorationPreviewModal({
                   </p>
                 )}
                 {authorDisplay === "cultivator" && (
-                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Культиватор</p>
+                  <>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Культиватор</p>
+                    {(displayAuthorLevel ?? cultivatorLevel) != null && (
+                      <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                        Уровень: {displayAuthorLevel ?? cultivatorLevel}
+                      </p>
+                    )}
+                  </>
                 )}
                 {authorDisplay !== "cultivator" && (displayAuthorName ?? decoration.authorUsername) && (
                   <>
@@ -811,7 +791,9 @@ export function DecorationCard({
     resolvedFrameUrl ??
     getEquippedFrameUrl((user?.equippedDecorations ?? null) as EquippedDecorations | null);
   /** Буква для превью аватара в карточках рамок: первая буква ника или T для гостя */
-  const avatarPreviewLetter = user?.username?.trim()[0]?.toUpperCase() || "T";
+  const avatarPreviewLetter = user?.username
+    ? formatUsernameDisplay(user.username).charAt(0).toUpperCase()
+    : "T";
   /** URL аватара для превью в карточках рамок: активная декорация аватара или фото профиля */
   const userAvatarPreviewUrl = useMemo(() => {
     const url = avatarDecorationUrl ?? user?.avatar;

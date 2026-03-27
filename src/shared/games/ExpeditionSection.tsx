@@ -153,7 +153,7 @@ export function ExpeditionSection() {
       const label = item.name || item.itemId;
       toast.success(`Найдено: ${label} ×${item.count}`, 5000, { icon: item.icon });
     });
-  }, [expeditionData?.lastResult, expeditionData?.inProgress, toast]);
+  }, [expeditionData, toast]);
 
   if (expeditionLoading && !expeditionData) {
     return (

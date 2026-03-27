@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getImageUrls } from "@/lib/asset-url";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface UserAvatarProps {
   avatarUrl?: string | null;
@@ -47,19 +48,20 @@ export default function UserAvatar({
     setIsMounted(true);
   }, []);
 
+  const displayName = username ? formatUsernameDisplay(username) : "";
   const content =
     !effectiveAvatarUrl || imageError || !isMounted ? (
       <div
         className={`rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold ${className}`}
         style={{ width: size, height: size }}
       >
-        {username?.[0]?.toUpperCase() || "U"}
+        {displayName?.[0]?.toUpperCase() || "U"}
       </div>
     ) : (
       <OptimizedImage
         src={avatarSrc}
         fallbackSrc={avatarFallback !== avatarSrc ? avatarFallback : undefined}
-        alt={`Аватар ${username || "пользователя"}`}
+        alt={`Аватар ${displayName || "пользователя"}`}
         width={size}
         height={size}
         className={`rounded-full object-cover w-full h-full max-w-full max-h-full ${className}`}

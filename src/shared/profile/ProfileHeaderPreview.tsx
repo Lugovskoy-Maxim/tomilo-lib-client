@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { getRankColor, levelToRank } from "@/lib/rank-utils";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 type ProfileHeaderPreviewProps = {
   username: string;
@@ -98,7 +99,7 @@ export default function ProfileHeaderPreview({
             </div>
             <div className="flex items-center gap-1.5 min-w-0 flex-1 flex-nowrap">
               <span className="font-semibold text-xs text-[var(--foreground)] truncate min-w-0">
-                {username}
+                {formatUsernameDisplay(username)}
               </span>
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[var(--secondary)] border border-[var(--border)] text-[10px] font-medium text-[var(--foreground)] shrink-0 whitespace-nowrap">
                 <span

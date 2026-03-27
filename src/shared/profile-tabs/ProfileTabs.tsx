@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProfile } from "@/types/user";
 import { ChevronLeft, ChevronRight } from "lucide-react";

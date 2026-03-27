@@ -140,7 +140,7 @@ export default function ReaderControls({
   void instantContinue;
   void toggleInstantContinue;
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const startTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {

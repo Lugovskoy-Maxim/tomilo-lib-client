@@ -177,6 +177,7 @@ export function GamesManagementSection() {
     const url = URL.createObjectURL(iconFile);
     setIconPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- object URL lifecycle tied to iconFile
   }, [iconFile]);
   const [newDrop, setNewDrop] = useState({ itemId: "", chance: 0.05, minChaptersToday: 1, maxDropsPerDay: 3 });
   const [editingQuestRewardId, setEditingQuestRewardId] = useState<string | null>(null);
@@ -294,7 +295,10 @@ export function GamesManagementSection() {
   const [updateItem, { isLoading: isUpdatingItem }] = useUpdateGameItemMutation();
   const [deleteItem] = useDeleteGameItemMutation();
   const [grantItem] = useGrantItemMutation();
-  const items = Array.isArray(itemsData?.data?.items) ? itemsData.data.items : [];
+  const items = useMemo(
+    () => (Array.isArray(itemsData?.data?.items) ? itemsData.data.items : []),
+    [itemsData?.data?.items],
+  );
   const [itemsFilterType, setItemsFilterType] = useState<GameItemType | "">("");
   const [itemsFilterRarity, setItemsFilterRarity] = useState<GameItemRarity | "">("");
   const filteredItems = useMemo(() => {
@@ -321,6 +325,7 @@ export function GamesManagementSection() {
     const url = URL.createObjectURL(editIconFile);
     setEditIconPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- object URL lifecycle tied to editIconFile
   }, [editIconFile]);
 
   const { data: userGameData, isError: userGameDataError, refetch: refetchUserGameData } = useGetUserGameDataQuery(userDataUserId, { skip: !userDataUserId });
@@ -371,7 +376,10 @@ export function GamesManagementSection() {
   const [updateCardDeck, { isLoading: isUpdatingDeck }] = useUpdateCardDeckMutation();
   const [deleteCardDeck] = useDeleteCardDeckMutation();
   const { data: titlesData } = useGetTitlesQuery();
-  const titleOptions = Array.isArray(titlesData?.data?.titles) ? titlesData.data.titles : [];
+  const titleOptions = useMemo(
+    () => (Array.isArray(titlesData?.data?.titles) ? titlesData.data.titles : []),
+    [titlesData?.data?.titles],
+  );
   const titleNameById = useMemo(
     () =>
       new Map(

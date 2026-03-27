@@ -15,6 +15,7 @@ import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
 import { Pencil, Sparkles, Shield, Coins, Flame, HelpCircle } from "lucide-react";
 import Tooltip from "@/shared/ui/Tooltip";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface ProfileStripProps {
   userProfile: UserProfile;
@@ -61,7 +62,7 @@ export default function ProfileStrip({
       {/* Имя и роль */}
       <div className="min-w-0 flex-1">
         <h1 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] truncate flex items-center gap-2 flex-wrap">
-          {userProfile.username}
+          {formatUsernameDisplay(userProfile.username)}
           {isPremiumActive(userProfile.subscriptionExpiresAt) && (
             <Tooltip content="Премиум-подписчик" position="top" showIcon={false}>
               <span className="inline-flex">

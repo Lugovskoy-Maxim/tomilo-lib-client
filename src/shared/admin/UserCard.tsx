@@ -19,6 +19,7 @@ import { UserProfile } from "@/types/user";
 import Image from "next/image";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface UserCardProps {
   user: UserProfile & { isBanned?: boolean };
@@ -125,7 +126,7 @@ export function UserCard({
               !user.avatar.includes("null") ? (
                 <Image
                   src={normalizeUrl(user.avatar)}
-                  alt={user.username}
+                  alt={formatUsernameDisplay(user.username)}
                   width={48}
                   height={48}
                   unoptimized
@@ -134,7 +135,7 @@ export function UserCard({
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center">
                   <span className="text-lg font-bold text-[var(--primary)]">
-                    {user.username.charAt(0).toUpperCase()}
+                    {formatUsernameDisplay(user.username).charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
@@ -157,7 +158,7 @@ export function UserCard({
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-semibold text-[var(--foreground)] truncate text-sm leading-tight flex items-center gap-1">
-                    {user.username}
+                    {formatUsernameDisplay(user.username)}
                     {!isBanned && isPremiumActive(user.subscriptionExpiresAt) && (
                       <PremiumBadge size="xs" ariaLabel="Премиум" />
                     )}

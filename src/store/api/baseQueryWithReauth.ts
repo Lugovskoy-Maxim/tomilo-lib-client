@@ -7,6 +7,7 @@ export const AUTH_TOKEN_KEY = "tomilo_lib_token";
 export const REFRESH_TOKEN_KEY = "tomilo_lib_refresh_token";
 const TOKEN_SET_AT_KEY = "tomilo_lib_token_set_at";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const OFFLINE_READ_QUERY_PARAM = "offlineRead";
 
 /** Эндпоинт обновления токена на бэкенде (куки/refresh отправляются автоматически с credentials) */
 const REFRESH_URL = `${API_BASE.replace(/\/$/, "")}/auth/refresh`;
@@ -34,6 +35,13 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
         const shouldAttachToken = Boolean(token) && (!endpoint || !PUBLIC_ENDPOINTS.has(endpoint));
         if (shouldAttachToken && token) {
           headers.set("authorization", `Bearer ${token}`);
+        }
+
+        const isOfflineReadMode = new URLSearchParams(window.location.search).get(
+          OFFLINE_READ_QUERY_PARAM,
+        );
+        if (isOfflineReadMode === "1") {
+          headers.set("x-offline-read", "1");
         }
       }
       return headers;

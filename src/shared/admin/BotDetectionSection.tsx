@@ -6,6 +6,7 @@ import { adminApi } from "@/store/api/adminApi";
 import { useToast } from "@/hooks/useToast";
 import type { AdminUserDetails } from "@/types/admin";
 import Link from "next/link";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 const PAGE_SIZE = 20;
 
@@ -155,7 +156,7 @@ export function BotDetectionSection() {
                         href={`/admin?tab=users`}
                         className="text-[var(--primary)] hover:underline font-medium"
                       >
-                        {user.username ?? user._id}
+                        {user.username ? formatUsernameDisplay(user.username) : user._id}
                       </Link>
                     </td>
                     <td className="py-3 px-4 text-[var(--muted-foreground)] hidden sm:table-cell truncate max-w-[200px]">

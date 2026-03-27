@@ -35,9 +35,7 @@ export async function generateMetadata({ searchParams }: CollectionsPageProps): 
   const description = search
     ? `Коллекции по запросу «${search}». Подборки тайтлов по темам и жанрам для чтения онлайн.`
     : "Подборки тайтлов по темам и жанрам. Коллекции манги, манхвы и маньхуа для удобного чтения онлайн.";
-  const canonicalUrl = search
-    ? `${baseUrl}/collections?search=${encodeURIComponent(search)}`
-    : `${baseUrl}/collections`;
+  const canonicalUrl = `${baseUrl}/collections`;
 
   return buildServerSEOMetadata({
     title,

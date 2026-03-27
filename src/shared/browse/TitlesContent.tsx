@@ -110,7 +110,7 @@ export default function TitlesContent() {
   const [isFilterTransitioning, setIsFilterTransitioning] = useState(false);
   const scrollRestoreRef = useRef<number | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState(appliedFilters.search);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   // Восстановление из sessionStorage при монтировании
   useEffect(() => {

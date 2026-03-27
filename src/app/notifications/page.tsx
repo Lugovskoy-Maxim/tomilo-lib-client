@@ -22,6 +22,8 @@ import { pageTitle } from "@/lib/page-title";
 import { useSEO } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import NotificationCard from "@/shared/notification-card/NotificationCard";
+import NotificationChapterGroupCard from "@/shared/notification-card/NotificationChapterGroupCard";
+import { buildNewChapterGroupRows } from "@/lib/notification-navigation";
 import { Button } from "@/shared/ui/button";
 import {
   useGetNotificationsQuery,
@@ -124,6 +126,20 @@ export default function NotificationsPage() {
     });
   }, []);
 
+  const handleSelectGroup = useCallback((ids: string[], selected: boolean) => {
+    setSelectedIds((prev: Set<string>) => {
+      const newSet = new Set(prev);
+      ids.forEach(id => {
+        if (selected) {
+          newSet.add(id);
+        } else {
+          newSet.delete(id);
+        }
+      });
+      return newSet;
+    });
+  }, []);
+
   const handleSelectAll = useCallback(() => {
     const visibleIds = filteredNotifications.map(n => n._id);
     const allSelected = visibleIds.every(id => selectedIds.has(id));
@@ -221,6 +237,33 @@ export default function NotificationsPage() {
     [filteredNotifications],
   );
 
+  const renderNotificationRows = (list: Notification[]) => {
+    const rows = buildNewChapterGroupRows(list);
+    return rows.map(row => {
+      if (row.kind === "chapterGroup") {
+        const key = [...row.notifications].map(n => n._id).sort().join("-");
+        return (
+          <NotificationChapterGroupCard
+            key={key}
+            notifications={row.notifications}
+            selectedIds={selectedIds}
+            onSelectGroup={handleSelectGroup}
+            selectionMode={selectionMode}
+          />
+        );
+      }
+      return (
+        <NotificationCard
+          key={row.notification._id}
+          notification={row.notification}
+          isSelected={selectedIds.has(row.notification._id)}
+          onSelect={handleSelect}
+          selectionMode={selectionMode}
+        />
+      );
+    });
+  };
+
   const hasMorePages = pagination ? page < pagination.pages : false;
 
   if (!mounted) {
@@ -302,29 +345,32 @@ export default function NotificationsPage() {
     <>
       <Header />
       <main className="min-h-screen bg-[var(--background)]">
-        <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:py-8">
-          {/* Компактный заголовок */}
-          <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="w-full max-w-3xl mx-auto px-4 py-6 sm:py-10">
+          {/* Заголовок */}
+          <div className="flex items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] tracking-tight truncate">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] tracking-tight truncate">
                 Уведомления
               </h1>
               {unreadCount > 0 && (
-                <span className="flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full bg-[var(--primary)] text-[var(--primary-foreground)]">
-                  {unreadCount}
+                <span
+                  className="flex-shrink-0 min-w-[1.5rem] h-7 px-2 flex items-center justify-center text-xs font-bold rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] tabular-nums shadow-sm"
+                  aria-label={`Непрочитанных: ${unreadCount}`}
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               {unreadCount > 0 && (
                 <Button
                   onClick={handleMarkAllAsRead}
                   variant="ghost"
                   size="sm"
-                  className="gap-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  className="gap-1.5 rounded-xl h-9 px-3 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/80"
                 >
                   <CheckCheck className="w-4 h-4" />
-                  <span className="hidden sm:inline">Прочитать все</span>
+                  <span className="hidden sm:inline text-sm font-medium">Прочитать все</span>
                 </Button>
               )}
               <Button
@@ -334,29 +380,30 @@ export default function NotificationsPage() {
                   setSelectionMode(!selectionMode);
                   setSelectedIds(new Set());
                 }}
-                className={`rounded-lg ${selectionMode ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}
+                className={`h-9 rounded-xl px-3 text-sm font-medium ${selectionMode ? "bg-[var(--primary)]/12 text-[var(--primary)] ring-1 ring-[var(--primary)]/25" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/80"}`}
               >
                 {selectionMode ? "Готово" : "Выбрать"}
               </Button>
             </div>
           </div>
 
-          {/* Уровень 1: фильтры по типу */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide min-h-9 mb-4">
+          {/* Фильтры по типу */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory min-h-10 mb-5 -mx-1 px-1">
             {filterConfig.map(({ key, label, icon: Icon }) => {
               const count = typeCounts[key as keyof typeof typeCounts];
               const isActive = activeFilter === key;
               return (
                 <button
                   key={key}
+                  type="button"
                   onClick={() => setActiveFilter(key)}
                   className={`
-                    flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
-                    transition-colors whitespace-nowrap
+                    snap-start flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium
+                    transition-all whitespace-nowrap shrink-0
                     ${
                       isActive
-                        ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
-                        : "text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                        ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md shadow-[var(--primary)]/20"
+                        : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/90 hover:text-[var(--foreground)] border border-transparent hover:border-[var(--border)]"
                     }
                   `}
                 >
@@ -374,19 +421,21 @@ export default function NotificationsPage() {
             })}
           </div>
 
-          {/* Уровень 2: показ прочитанных / только новые */}
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-sm text-[var(--muted-foreground)] shrink-0">Показывать:</span>
-            <div className="flex items-center gap-0 rounded-lg border border-[var(--border)] bg-[var(--card)] p-0.5 shadow-sm">
+          {/* Показ: все / только новые */}
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <span className="text-sm font-medium text-[var(--muted-foreground)] shrink-0">
+              Показывать
+            </span>
+            <div className="inline-flex items-center rounded-xl border border-[var(--border)] bg-[var(--card)] p-1 shadow-sm">
               <button
                 type="button"
                 onClick={() => setShowRead(true)}
                 className={`
-                  flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all
                   ${
                     showRead
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/70"
                   }
                 `}
               >
@@ -397,11 +446,11 @@ export default function NotificationsPage() {
                 type="button"
                 onClick={() => setShowRead(false)}
                 className={`
-                  flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all
                   ${
                     !showRead
                       ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/70"
                   }
                 `}
               >
@@ -413,7 +462,7 @@ export default function NotificationsPage() {
 
           {/* Панель массовых действий */}
           {selectionMode && selectedIds.size > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-3 py-3 px-4 mb-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/15 animate-in fade-in duration-150">
+            <div className="flex flex-wrap items-center justify-between gap-3 py-3.5 px-4 mb-5 rounded-2xl bg-[var(--primary)]/[0.06] border border-[var(--primary)]/20 shadow-sm animate-in fade-in duration-150">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -465,92 +514,73 @@ export default function NotificationsPage() {
               ))}
             </div>
           ) : filteredNotifications.length > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {groupedNotifications.today.length > 0 && (
-                <section className="space-y-2">
-                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
-                    Сегодня
-                  </p>
-                  <div className="space-y-2">
-                    {groupedNotifications.today.map((notification: Notification) => (
-                      <NotificationCard
-                        key={notification._id}
-                        notification={notification}
-                        isSelected={selectedIds.has(notification._id)}
-                        onSelect={handleSelect}
-                        selectionMode={selectionMode}
-                      />
-                    ))}
+                <section className="space-y-3">
+                  <div className="flex items-center gap-3 px-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+                      Сегодня
+                    </span>
+                    <span className="h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
+                  </div>
+                  <div className="space-y-3">
+                    {renderNotificationRows(groupedNotifications.today)}
                   </div>
                 </section>
               )}
               {groupedNotifications.yesterday.length > 0 && (
-                <section className="space-y-2">
-                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
-                    Вчера
-                  </p>
-                  <div className="space-y-2">
-                    {groupedNotifications.yesterday.map((notification: Notification) => (
-                      <NotificationCard
-                        key={notification._id}
-                        notification={notification}
-                        isSelected={selectedIds.has(notification._id)}
-                        onSelect={handleSelect}
-                        selectionMode={selectionMode}
-                      />
-                    ))}
+                <section className="space-y-3">
+                  <div className="flex items-center gap-3 px-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+                      Вчера
+                    </span>
+                    <span className="h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
+                  </div>
+                  <div className="space-y-3">
+                    {renderNotificationRows(groupedNotifications.yesterday)}
                   </div>
                 </section>
               )}
               {groupedNotifications.thisWeek.length > 0 && (
-                <section className="space-y-2">
-                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
-                    На этой неделе
-                  </p>
-                  <div className="space-y-2">
-                    {groupedNotifications.thisWeek.map((notification: Notification) => (
-                      <NotificationCard
-                        key={notification._id}
-                        notification={notification}
-                        isSelected={selectedIds.has(notification._id)}
-                        onSelect={handleSelect}
-                        selectionMode={selectionMode}
-                      />
-                    ))}
+                <section className="space-y-3">
+                  <div className="flex items-center gap-3 px-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+                      На этой неделе
+                    </span>
+                    <span className="h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
+                  </div>
+                  <div className="space-y-3">
+                    {renderNotificationRows(groupedNotifications.thisWeek)}
                   </div>
                 </section>
               )}
               {groupedNotifications.earlier.length > 0 && (
-                <section className="space-y-2">
-                  <p className="text-xs font-medium text-[var(--muted-foreground)] px-1 py-0.5">
-                    Ранее
-                  </p>
-                  <div className="space-y-2">
-                    {groupedNotifications.earlier.map((notification: Notification) => (
-                      <NotificationCard
-                        key={notification._id}
-                        notification={notification}
-                        isSelected={selectedIds.has(notification._id)}
-                        onSelect={handleSelect}
-                        selectionMode={selectionMode}
-                      />
-                    ))}
+                <section className="space-y-3">
+                  <div className="flex items-center gap-3 px-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+                      Ранее
+                    </span>
+                    <span className="h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
+                  </div>
+                  <div className="space-y-3">
+                    {renderNotificationRows(groupedNotifications.earlier)}
                   </div>
                 </section>
               )}
 
               {pagination && pagination.pages > 1 && (
-                <div className="flex items-center justify-center gap-2 pt-4">
+                <div className="flex items-center justify-center gap-1 pt-6">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1 || isFetching}
-                    className="h-8 w-8 p-0 rounded-lg"
+                    className="h-10 w-10 p-0 rounded-xl border-[var(--border)]"
+                    aria-label="Предыдущая страница"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <span className="text-sm text-[var(--muted-foreground)] px-2">
+                  <span className="min-w-[5rem] text-center text-sm font-medium tabular-nums text-[var(--muted-foreground)] px-3">
                     {page} / {pagination.pages}
                   </span>
                   <Button
@@ -558,7 +588,8 @@ export default function NotificationsPage() {
                     size="sm"
                     onClick={() => setPage(p => p + 1)}
                     disabled={!hasMorePages || isFetching}
-                    className="h-8 w-8 p-0 rounded-lg"
+                    className="h-10 w-10 p-0 rounded-xl border-[var(--border)]"
+                    aria-label="Следующая страница"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Button>

@@ -234,7 +234,10 @@ export default function ProfileInventory() {
     };
     return { total, equipped, byType, byRarity };
   }, [displayList, effectiveEquipped]);
-  const profileCards = cardsResponse?.data?.cards ?? [];
+  const profileCards = useMemo(
+    () => cardsResponse?.data?.cards ?? [],
+    [cardsResponse?.data?.cards],
+  );
   const profileCardsShowcase = cardsResponse?.data?.showcase ?? [];
   const showcaseSort = cardsResponse?.data?.showcaseSort ?? "manual";
   const showcaseIds = new Set(profileCardsShowcase.map(card => card.id));

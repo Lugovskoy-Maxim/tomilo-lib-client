@@ -18,18 +18,17 @@ export interface UserLeaderboardPosition {
   period?: LeaderboardPeriod;
 }
 
-const ALL_CATEGORIES = [
-  "level",
-  "ratings",
-  "comments",
-  "streak",
-  "chaptersRead",
-  "likesReceived",
-  "developmentHelp",
-  "balance",
-] as const satisfies readonly LeaderboardCategory[];
-
-type QueryCategory = (typeof ALL_CATEGORIES)[number];
+type QueryCategory = Extract<
+  LeaderboardCategory,
+  | "level"
+  | "ratings"
+  | "comments"
+  | "streak"
+  | "chaptersRead"
+  | "likesReceived"
+  | "developmentHelp"
+  | "balance"
+>;
 
 const CATEGORY_LABELS: Record<QueryCategory, string> = {
   level: "Уровень",
@@ -224,9 +223,9 @@ export function useUserLeaderboardPositions(targetUserId?: string) {
     streakAll.data,
     streakMonth.data,
     streakWeek.data,
-    ratingsAllPeriods.data,
-    commentsAllPeriods.data,
-    chaptersReadAllPeriods.data,
+    ratingsAllPeriods,
+    commentsAllPeriods,
+    chaptersReadAllPeriods,
     likesReceivedAll.data,
     balanceAll.data,
     developmentContributors.data,

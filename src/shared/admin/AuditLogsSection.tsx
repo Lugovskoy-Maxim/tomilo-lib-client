@@ -32,6 +32,7 @@ import {
 } from "@/store/api/auditLogsApi";
 import { AdminCard } from "./ui";
 import { Pagination } from "@/shared/ui/pagination";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 const ACTION_LABELS: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   user_create: {
@@ -303,7 +304,7 @@ export function AuditLogsSection() {
             <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--card)] border border-[var(--border)]">
               <p className="text-[10px] sm:text-sm text-[var(--muted-foreground)]">Топ админ</p>
               <p className="text-sm sm:text-lg font-semibold text-[var(--foreground)] truncate">
-                {stats.topUsers[0].username}
+                {formatUsernameDisplay(stats.topUsers[0].username)}
               </p>
               <p className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">
                 {stats.topUsers[0].count} действий
@@ -476,7 +477,7 @@ export function AuditLogsSection() {
                               <span className="flex items-center gap-1">
                                 <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                 <span className="truncate max-w-[80px] sm:max-w-none">
-                                  {log.username}
+                                  {formatUsernameDisplay(log.username)}
                                 </span>
                                 <span className="px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-xs bg-[var(--card)]">
                                   {log.userRole}
@@ -567,7 +568,7 @@ export function AuditLogsSection() {
               <div>
                 <p className="text-xs text-[var(--muted-foreground)]">Пользователь</p>
                 <p className="text-sm font-medium text-[var(--foreground)]">
-                  {selectedLog.username} ({selectedLog.userRole})
+                  {formatUsernameDisplay(selectedLog.username)} ({selectedLog.userRole})
                 </p>
               </div>
               <div>

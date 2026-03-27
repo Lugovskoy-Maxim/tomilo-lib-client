@@ -16,6 +16,7 @@ import { LeaderTop10Badge } from "./LeaderTop10Badge";
 import { useTop10Badge } from "@/hooks/useTop10Badge";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
+import { formatUsernameDisplay } from "@/lib/username-display";
 
 interface CommentItemProps {
   comment: Comment;
@@ -286,11 +287,15 @@ export function CommentItem({ comment, onReply, onEdit, level = 0 }: CommentItem
                         href={profileHref}
                         className="hover:text-[var(--primary)] transition-colors focus:outline-none focus:underline truncate max-w-[140px] sm:max-w-none"
                       >
-                        {userData?.username || "Удаленный пользователь"}
+                        {userData?.username
+                          ? formatUsernameDisplay(userData.username)
+                          : "Удаленный пользователь"}
                       </Link>
                     ) : (
                       <span className="truncate max-w-[140px] sm:max-w-none">
-                        {userData?.username || "Удаленный пользователь"}
+                        {userData?.username
+                          ? formatUsernameDisplay(userData.username)
+                          : "Удаленный пользователь"}
                       </span>
                     )}
                     {isAdmin && (

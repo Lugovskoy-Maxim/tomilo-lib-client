@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetFilterOptionsQuery, useSearchTitlesQuery } from "@/store/api/titlesApi";
 import { Title } from "@/types/title";
@@ -961,17 +961,6 @@ export default function TitlesCatalogPage() {
           )}
         </>
       )}
-    </div>
-  );
-}
-
-function FilterRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <span className="block text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wide mb-2">
-        {label}
-      </span>
-      {children}
     </div>
   );
 }

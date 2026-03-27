@@ -126,7 +126,7 @@ export function WheelSection() {
   const [spinRotation, setSpinRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const spinDurationMs = 6000;
-  const spinEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spinEndTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const [, setCountdownTick] = useState(0);
 
   useEffect(() => () => {
@@ -140,7 +140,7 @@ export function WheelSection() {
     const id = setInterval(() => setCountdownTick((t) => t + 1), 60_000);
     return () => clearInterval(id);
   }, [nextSpinAt]);
-  const segments = wheel?.segments ?? [];
+  const segments = useMemo(() => wheel?.segments ?? [], [wheel?.segments]);
   const canSpin = wheel?.canSpin ?? false;
   const totalWeight = useMemo(
     () => segments.reduce((sum, segment) => sum + Math.max(0, Number(segment.weight ?? 0)), 0),

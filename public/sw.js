@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 const CACHE_SHELL = "tomilo-shell-v1";
 const CACHE_PAGES = "tomilo-pages-v1";
 const CACHE_IMAGES = "tomilo-images-v1";
@@ -8,6 +7,17 @@ const SHELL_PATHS = ["/", "/titles", "/bookmarks", "/history", "/offline.html"];
 function isSameOrigin(url) {
   try {
     return new URL(url).origin === self.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+function isForcedOfflineRequest(request, url) {
+  try {
+    const offlineHeader = request.headers.get("x-offline-read") === "1";
+    const offlineByQuery = url.searchParams.get("offlineRead") === "1";
+    const offlineByReferrer = typeof request.referrer === "string" && request.referrer.includes("offlineRead=1");
+    return offlineHeader || offlineByQuery || offlineByReferrer;
   } catch {
     return false;
   }
@@ -49,6 +59,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const { request } = event;
   const url = new URL(request.url);
+  const forceOffline = isForcedOfflineRequest(request, url);
 
   if (!isSameOrigin(request.url) || request.method !== "GET") return;
 
@@ -103,6 +114,23 @@ self.addEventListener("fetch", event => {
     url.pathname.includes("/api/") &&
     (url.pathname.includes("chapter") || url.pathname.includes("titles"))
   ) {
+    if (forceOffline) {
+      event.respondWith(
+        caches.match(request).then(cached => {
+          if (cached) return cached;
+          return caches.match(request, { ignoreSearch: true }).then(ignoreSearchCached => {
+            if (ignoreSearchCached) return ignoreSearchCached;
+            return new Response(JSON.stringify({ message: "Нет офлайн-копии главы" }), {
+              status: 503,
+              statusText: "Offline Cache Miss",
+              headers: { "Content-Type": "application/json" },
+            });
+          });
+        }),
+      );
+      return;
+    }
+
     event.respondWith(
       fetch(request)
         .then(res => {
@@ -120,16 +148,46 @@ self.addEventListener("fetch", event => {
     url.hostname.includes("s3.") ||
     url.pathname.includes("tomilolib")
   ) {
+    const normalizedImageUrl = `${url.origin}${url.pathname}`;
+    if (forceOffline) {
+      event.respondWith(
+        caches.match(request).then(cached => {
+          if (cached) return cached;
+          return caches
+            .match(normalizedImageUrl)
+            .then(normalizedCached =>
+              normalizedCached || caches.match(request, { ignoreSearch: true }),
+            )
+            .then(fallbackCached => fallbackCached || new Response("Нет офлайн-изображения", { status: 503 }));
+        }),
+      );
+      return;
+    }
+
     event.respondWith(
-      caches.match(request).then(
-        cached =>
-          cached ||
-          fetch(request).then(res => {
-            const clone = res.clone();
-            caches.open(CACHE_IMAGES).then(c => c.put(request, clone));
-            return res;
-          }),
-      ),
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+
+        return caches.match(normalizedImageUrl).then(normalizedCached => {
+          if (normalizedCached) return normalizedCached;
+
+          return fetch(request)
+            .then(res => {
+              const byRequest = res.clone();
+              const byPath = res.clone();
+              caches.open(CACHE_IMAGES).then(c => {
+                c.put(request, byRequest);
+                c.put(normalizedImageUrl, byPath);
+              });
+              return res;
+            })
+            .catch(() =>
+              caches
+                .match(request, { ignoreSearch: true })
+                .then(fallbackCached => fallbackCached || caches.match(normalizedImageUrl)),
+            );
+        });
+      }),
     );
   }
 });

@@ -1,6 +1,7 @@
 import { Calendar1, Mail, Sparkles, Shield } from "lucide-react";
 import { UserProfile } from "@/types/user";
 import { Button } from "@/shared/ui/button";
+import { formatUsernameDisplay } from "@/lib/username-display";
 import { Pencil } from "lucide-react";
 
 interface UserInfoProps {
@@ -37,7 +38,7 @@ export default function UserInfo({ userProfile, onEdit }: UserInfoProps) {
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--foreground)] tracking-tight truncate">
-            {userProfile.username}
+            {formatUsernameDisplay(userProfile.username)}
           </h1>
           {onEdit && (
             <Button

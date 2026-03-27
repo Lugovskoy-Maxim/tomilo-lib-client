@@ -124,7 +124,7 @@ export default function Carousel<T>({
 
   /** При ручной прокрутке/перетаскивании автопрокрутка приостанавливается. */
   const autoScrollPausedRef = useRef(false);
-  const autoScrollResumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoScrollResumeTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   /** isMobile — для разной скорости автопрокрутки и ResizeObserver. */
   const [isMobile, setIsMobile] = useState(false);

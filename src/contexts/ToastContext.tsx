@@ -27,7 +27,7 @@ interface ToastProviderProps {
 
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const timeoutIdsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const timeoutIdsRef = useRef<Map<string, ReturnType<typeof window.setTimeout>>>(new Map());
 
   const removeToast = useCallback((id: string) => {
     if (timeoutIdsRef.current.has(id)) {
