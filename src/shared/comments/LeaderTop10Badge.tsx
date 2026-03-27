@@ -44,9 +44,9 @@ interface LeaderTop10BadgeContentProps {
 }
 
 export function LeaderTop10BadgeContent({ badge }: LeaderTop10BadgeContentProps) {
-  const Icon = CATEGORY_ICONS[badge.category];
-  const shortLabel = CATEGORY_SHORT_LABELS[badge.category];
-  const periodLabel = PERIOD_LABELS[badge.period];
+  const Icon = CATEGORY_ICONS[badge.category] ?? Trophy;
+  const shortLabel = CATEGORY_SHORT_LABELS[badge.category] ?? badge.label;
+  const periodLabel = PERIOD_LABELS[badge.period] ?? "всё время";
   const showPeriod = badge.category === "ratings" || badge.category === "comments";
 
   return (
@@ -74,17 +74,21 @@ export function LeaderTop10Badge({ userId }: LeaderTop10BadgeProps) {
     return null;
   }
 
-  // На мобильных показываем только лучший топ (первый в списке), на sm+ — все
+  const primaryBadge = badges[0];
+  const hiddenBadgesCount = Math.max(0, badges.length - 1);
+
   return (
     <div className="inline-flex items-center gap-0.5 sm:gap-1 flex-wrap min-w-0 max-w-full">
-      {badges.map((badge, index) => (
-        <span
-          key={`${badge.category}-${badge.period}`}
-          className={index === 0 ? "inline-flex" : "hidden sm:inline-flex"}
+      <LeaderTop10BadgeContent badge={primaryBadge} />
+      {hiddenBadgesCount > 0 && (
+        <Link
+          href="/leaders"
+          className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-semibold bg-[var(--secondary)] text-[var(--muted-foreground)] border border-[var(--border)]/60 hover:bg-[var(--secondary)]/80 transition-colors"
+          title={`Ещё ${hiddenBadgesCount} позиций в топ-10`}
         >
-          <LeaderTop10BadgeContent badge={badge} />
-        </span>
-      ))}
+          +{hiddenBadgesCount}
+        </Link>
+      )}
     </div>
   );
 }
