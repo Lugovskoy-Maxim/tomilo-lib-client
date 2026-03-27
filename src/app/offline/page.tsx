@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Download, ExternalLink } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BookOpen, Download, ExternalLink, Loader2, Trash2 } from "lucide-react";
 import { Footer, Header } from "@/widgets";
 
 interface OfflineManifest {
@@ -19,6 +19,12 @@ interface OfflineManifest {
     chapterPath: string;
   }[];
   updatedAt: string;
+}
+
+const CACHE_PAGES = "tomilo-pages-v1";
+
+function getManifestStorageKey(titleId: string): string {
+  return `offline-title-manifest-${titleId}`;
 }
 
 function readOfflineManifests(): OfflineManifest[] {
@@ -45,9 +51,57 @@ function readOfflineManifests(): OfflineManifest[] {
 
 export default function OfflinePage() {
   const [manifests, setManifests] = useState<OfflineManifest[]>([]);
+  const [removingChapterKey, setRemovingChapterKey] = useState<string | null>(null);
 
   useEffect(() => {
     setManifests(readOfflineManifests());
+  }, []);
+
+  const handleRemoveChapter = useCallback(async (titleId: string, chapterId: string) => {
+    if (typeof window === "undefined" || !chapterId || !titleId) return;
+
+    const key = `${titleId}:${chapterId}`;
+    setRemovingChapterKey(key);
+
+    try {
+      const storageKey = getManifestStorageKey(titleId);
+      const rawManifest = window.localStorage.getItem(storageKey);
+      if (!rawManifest) return;
+
+      const manifest = JSON.parse(rawManifest) as OfflineManifest;
+      const chapterIndex = (manifest.chapterIds ?? []).findIndex(id => id === chapterId);
+      const chapterApiUrl =
+        chapterIndex >= 0
+          ? manifest.chapterApiUrls?.[chapterIndex]
+          : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api").replace(/\/$/, "")}/chapters/${chapterId}`;
+
+      if ("caches" in window && chapterApiUrl) {
+        const pagesCache = await caches.open(CACHE_PAGES);
+        await pagesCache.delete(chapterApiUrl);
+      }
+
+      const nextManifest: OfflineManifest = {
+        ...manifest,
+        chapterIds: (manifest.chapterIds ?? []).filter(id => id !== chapterId),
+        chapterApiUrls: (manifest.chapterApiUrls ?? []).filter(url => !url.endsWith(`/chapters/${chapterId}`)),
+        downloadedChapters: (manifest.downloadedChapters ?? []).filter(
+          chapter => chapter.chapterId !== chapterId,
+        ),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if ((nextManifest.chapterIds?.length ?? 0) === 0) {
+        window.localStorage.removeItem(storageKey);
+      } else {
+        window.localStorage.setItem(storageKey, JSON.stringify(nextManifest));
+      }
+
+      setManifests(readOfflineManifests());
+    } catch {
+      // Keep UX stable if local cache/localStorage is temporarily inconsistent.
+    } finally {
+      setRemovingChapterKey(null);
+    }
   }, []);
 
   const totalDownloadedChapters = useMemo(
@@ -110,19 +164,42 @@ export default function OfflinePage() {
                     </div>
 
                     <div className="mt-3 max-h-72 overflow-y-auto rounded-lg border border-[var(--border)]/60 bg-[var(--background)]/40 p-2 space-y-1">
-                      {(manifest.downloadedChapters ?? []).map(ch => (
-                        <Link
-                          key={`${manifest.titleId}-${ch.chapterId}`}
-                          href={`${ch.chapterPath}?offlineRead=1`}
-                          className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--background)]/70 transition-colors"
-                        >
-                          <BookOpen className="w-4 h-4 text-[var(--primary)] shrink-0" />
-                          <span className="truncate">
-                            Глава {ch.chapterNumber ?? "?"}
-                            {ch.chapterTitle ? ` - ${ch.chapterTitle}` : ""}
-                          </span>
-                        </Link>
-                      ))}
+                      {(manifest.downloadedChapters ?? []).map(ch => {
+                        const chapterKey = `${manifest.titleId}:${ch.chapterId}`;
+                        const isRemovingThisChapter = removingChapterKey === chapterKey;
+
+                        return (
+                          <div
+                            key={`${manifest.titleId}-${ch.chapterId}`}
+                            className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--background)]/70 transition-colors"
+                          >
+                            <Link
+                              href={`${ch.chapterPath}?offlineRead=1`}
+                              className="min-w-0 flex-1 flex items-center gap-2"
+                            >
+                              <BookOpen className="w-4 h-4 text-[var(--primary)] shrink-0" />
+                              <span className="truncate">
+                                Глава {ch.chapterNumber ?? "?"}
+                                {ch.chapterTitle ? ` - ${ch.chapterTitle}` : ""}
+                              </span>
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => void handleRemoveChapter(manifest.titleId, ch.chapterId)}
+                              disabled={isRemovingThisChapter}
+                              className="inline-flex items-center justify-center rounded-md p-1.5 text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 disabled:opacity-60"
+                              aria-label="Удалить офлайн главу"
+                              title="Удалить офлайн главу"
+                            >
+                              {isRemovingThisChapter ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </section>
                 ))}
