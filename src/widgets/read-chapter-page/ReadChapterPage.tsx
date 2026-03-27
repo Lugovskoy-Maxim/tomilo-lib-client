@@ -193,7 +193,7 @@ function ReadChapterPageContent({
   const [lastTapTime, setLastTapTime] = useState(0);
   const [totalContentHeight, setTotalContentHeight] = useState(0);
   const [imageRetryTokens, setImageRetryTokens] = useState<Map<string, number>>(new Map());
-  const restorePositionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restorePositionTimerRef = useRef<number | null>(null);
   const lastCurrentPageMeasureAtRef = useRef(0);
   const isPagedMode = readingMode === "paged";
   const isChaptersInRowMode = readChaptersInRow && !isPagedMode;
@@ -202,7 +202,7 @@ function ReadChapterPageContent({
   const [isLoadingNextChapter, setIsLoadingNextChapter] = useState(false);
   const [infiniteScrollLoadError, setInfiniteScrollLoadError] = useState<string | null>(null);
   const nextChapterLoadStartedAtRef = useRef(0);
-  const nextChapterLoadingHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextChapterLoadingHideTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const loadedChapterIdsRef = useRef<Set<string>>(new Set([chapter._id]));
   const [loadedChapterIds, setLoadedChapterIds] = useState<Set<string>>(new Set([chapter._id]));
   void loadedChapterIds;
@@ -210,9 +210,9 @@ function ReadChapterPageContent({
   // Чтение глав подряд: загруженные главы (текущая + подгруженные сверху/снизу)
   const [loadedChapters, setLoadedChapters] = useState<ReaderChapter[]>(() => [chapter]);
   const rowPrevLoadStartedAtRef = useRef(0);
-  const rowPrevLoadingHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowPrevLoadingHideTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const rowNextLoadStartedAtRef = useRef(0);
-  const rowNextLoadingHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowNextLoadingHideTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   const completeNextChapterLoading = useCallback(() => {
     const MIN_LOADING_MS = 350;
@@ -468,7 +468,7 @@ function ReadChapterPageContent({
   const historyPendingRef = useRef<Set<string>>(new Set());
   const historyRetryAttemptedRef = useRef<Set<string>>(new Set());
   const viewsUpdatedRef = useRef<Set<string>>(new Set());
-  const menuHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const menuHideTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   // Функция для сброса таймера скрытия меню
   const resetHideTimeout = useCallback(() => {
@@ -898,7 +898,7 @@ function ReadChapterPageContent({
   const lastScrollYRef = useRef(0);
   const isHeaderVisibleRef = useRef(true);
   const showScrollTopButtonRef = useRef(false);
-  const headerVisibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const headerVisibilityTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const SCROLL_TOP_ZONE = 120; // в начале страницы хедер всегда виден
   const SCROLL_DOWN_THRESHOLD = 70; // скрыть хедер после прокрутки вниз
   const SCROLL_UP_THRESHOLD = 50; // показать хедер при прокрутке вверх
@@ -1460,7 +1460,7 @@ function ReadChapterPageContent({
     if (isPagedMode) return;
 
     let rafId: number | null = null;
-    let timerId: ReturnType<typeof setTimeout> | null = null;
+    let timerId: ReturnType<typeof window.setTimeout> | null = null;
 
     const runScrollWork = () => {
       rafId = null;

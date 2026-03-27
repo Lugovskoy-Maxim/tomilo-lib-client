@@ -126,7 +126,7 @@ export function WheelSection() {
   const [spinRotation, setSpinRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const spinDurationMs = 6000;
-  const spinEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const spinEndTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const [, setCountdownTick] = useState(0);
 
   useEffect(() => () => {

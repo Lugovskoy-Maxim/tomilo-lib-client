@@ -15,8 +15,8 @@ export function useRefreshButton(): UseRefreshButtonReturn {
   const [isPressing, setIsPressing] = useState(false);
   const [pressProgress, setPressProgress] = useState(0);
   const [showRefreshTooltip, setShowRefreshTooltip] = useState(false);
-  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pressTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const progressIntervalRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   const startPressing = useCallback(() => {
     setIsPressing(true);

@@ -31,7 +31,7 @@ export function AgeVerificationModal({ isOpen, onConfirm, onCancel }: AgeVerific
 
   // Таймер задержки кнопки после включения галочки
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof window.setTimeout>;
 
     if (isChecked && countdown > 0) {
       timer = setTimeout(() => {

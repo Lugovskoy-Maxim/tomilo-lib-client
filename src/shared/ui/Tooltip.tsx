@@ -28,7 +28,7 @@ export default function Tooltip({
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   const clearHideTimeout = useCallback(() => {
     if (hideTimeoutRef.current !== null) {

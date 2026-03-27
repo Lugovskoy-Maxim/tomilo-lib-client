@@ -83,7 +83,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const mobileMenuCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mobileMenuCloseTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const { login, isAuthenticated } = useAuth();
   const [promoCode, setPromoCode] = useState("");
   const [redeemPromoCode, { isLoading: isRedeemingPromo }] = useRedeemPromoCodeMutation();

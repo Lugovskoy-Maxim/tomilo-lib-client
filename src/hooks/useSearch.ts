@@ -51,7 +51,7 @@ export function useSearch() {
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => getRecentSearches());
   const [fullSearchResults, setFullSearchResults] = useState<SearchResult[] | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   // RTK Query: автодополнение (показываем подсказки при вводе)
   const {

@@ -77,7 +77,7 @@ export default function FeaturedTitleBlock({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isSlideVisible, setIsSlideVisible] = useState(true);
   const [progress, setProgress] = useState(0);
-  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressIntervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
   const lastTickRef = useRef<number>(Date.now());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   void bookmarkLoading;

@@ -416,7 +416,7 @@ export function RightContent({
   };
 
   // Throttled scroll handler для подгрузки глав
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {

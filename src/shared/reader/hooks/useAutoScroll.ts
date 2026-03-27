@@ -28,7 +28,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}): UseAutoScroll
   const [autoScrollSpeed, setAutoScrollSpeedState] = useState<AutoScrollSpeed>(
     () => sharedAutoScrollSpeedRef.current,
   );
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
   const stopAutoScrollRef = useRef<(() => void) | null>(null);
 
   // Sub-pixel accumulator for smooth scrolling
