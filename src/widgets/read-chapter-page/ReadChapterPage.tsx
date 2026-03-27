@@ -204,6 +204,8 @@ function ReadChapterPageContent({
   const [infiniteScrollLoadError, setInfiniteScrollLoadError] = useState<string | null>(null);
   const nextChapterLoadStartedAtRef = useRef(0);
   const nextChapterLoadingHideTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  /** После снятия isLoadingNextChapter: не даём сразу снова дернуть подгрузку (observer + scroll-fallback). */
+  const nextInfiniteScrollAutoLoadAllowedAtRef = useRef(0);
   const loadedChapterIdsRef = useRef<Set<string>>(new Set([chapter._id]));
   const [loadedChapterIds, setLoadedChapterIds] = useState<Set<string>>(new Set([chapter._id]));
   void loadedChapterIds;
@@ -217,8 +219,14 @@ function ReadChapterPageContent({
 
   const completeNextChapterLoading = useCallback(() => {
     const MIN_LOADING_MS = 350;
+    const COOLDOWN_AFTER_LOAD_MS = 900;
     const elapsed = Date.now() - nextChapterLoadStartedAtRef.current;
     const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+
+    const finish = () => {
+      setIsLoadingNextChapter(false);
+      nextInfiniteScrollAutoLoadAllowedAtRef.current = Date.now() + COOLDOWN_AFTER_LOAD_MS;
+    };
 
     if (nextChapterLoadingHideTimerRef.current) {
       clearTimeout(nextChapterLoadingHideTimerRef.current);
@@ -226,12 +234,12 @@ function ReadChapterPageContent({
     }
 
     if (remaining === 0) {
-      setIsLoadingNextChapter(false);
+      finish();
       return;
     }
 
     nextChapterLoadingHideTimerRef.current = setTimeout(() => {
-      setIsLoadingNextChapter(false);
+      finish();
       nextChapterLoadingHideTimerRef.current = null;
     }, remaining);
   }, []);
@@ -278,8 +286,22 @@ function ReadChapterPageContent({
     }, remaining);
   }, []);
 
-  const loadNextChapterInfiniteScroll = useCallback(() => {
-    if (loadedChapters.length === 0) return;
+  const loadNextChapterInfiniteScroll = useCallback(
+    (options?: { force?: boolean }) => {
+      const force = options?.force === true;
+      if (loadedChapters.length === 0) return;
+
+      if (!force) {
+        if (Date.now() < nextInfiniteScrollAutoLoadAllowedAtRef.current) return;
+        const lastCh = loadedChapters[loadedChapters.length - 1];
+        if (lastCh.images.length > 0) {
+          const firstKey = `${lastCh._id}-0`;
+          const firstReady =
+            loadedImagesRef.current.has(firstKey) || imageLoadErrors.has(firstKey);
+          if (!firstReady) return;
+        }
+      }
+
     setInfiniteScrollLoadError(null);
     const lastLoadedChapter = loadedChapters[loadedChapters.length - 1];
     const lastChapterIndex = chapters.findIndex(ch => ch._id === lastLoadedChapter._id);
@@ -327,16 +349,19 @@ function ReadChapterPageContent({
       .finally(() => {
         completeNextChapterLoading();
       });
-  }, [
-    loadedChapters,
-    chapters,
-    chapter._id,
-    fetchChapterById,
-    isAuthenticated,
-    addToReadingHistory,
-    titleId,
-    completeNextChapterLoading,
-  ]);
+    },
+    [
+      loadedChapters,
+      chapters,
+      chapter._id,
+      fetchChapterById,
+      isAuthenticated,
+      addToReadingHistory,
+      titleId,
+      completeNextChapterLoading,
+      imageLoadErrors,
+    ],
+  );
 
   useEffect(() => {
     return () => {
@@ -401,6 +426,7 @@ function ReadChapterPageContent({
     setVisibleChapterId(chapter._id);
     setLoadedImagesByChapter({});
     loadedImagesRef.current = new Set();
+    nextInfiniteScrollAutoLoadAllowedAtRef.current = 0;
     const newSet = new Set([chapter._id]);
     setLoadedChapterIds(newSet);
     loadedChapterIdsRef.current = newSet;
@@ -1497,6 +1523,7 @@ function ReadChapterPageContent({
         if (distanceToBottom < 400) loadNextChapter();
       } else if (infiniteScroll && !isLoadingNextChapter && distanceToBottom < 420) {
         // Фолбэк: observer может не сработать на некоторых мобильных браузерах.
+        // Те же ограничения, что и у observer (кулдаун + первая страница последней главы).
         loadNextChapterInfiniteScroll();
       }
 
@@ -1794,6 +1821,11 @@ function ReadChapterPageContent({
 
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute("content", description);
+
+    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twitterTitle) twitterTitle.setAttribute("content", fullTitle);
+    const twitterDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twitterDesc) twitterDesc.setAttribute("content", description);
     // shouldShowChapterTitle — стабильная функция из контекста
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [infiniteScroll, effectiveChapter, title.title, slug, titleId]);
@@ -2708,7 +2740,7 @@ function ReadChapterPageContent({
                             </p>
                             <button
                               type="button"
-                              onClick={loadNextChapterInfiniteScroll}
+                              onClick={() => loadNextChapterInfiniteScroll({ force: true })}
                               disabled={isLoadingNextChapter}
                               className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors text-sm font-medium"
                             >
@@ -2965,7 +2997,7 @@ function ReadChapterPageContent({
                                 </p>
                                 <button
                                   type="button"
-                                  onClick={loadNextChapterInfiniteScroll}
+                                  onClick={() => loadNextChapterInfiniteScroll({ force: true })}
                                   disabled={isLoadingNextChapter}
                                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--secondary)] hover:bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors text-sm font-medium"
                                 >

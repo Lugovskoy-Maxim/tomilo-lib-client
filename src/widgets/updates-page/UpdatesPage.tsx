@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { GridSection, Footer, Header } from "@/widgets";
-import { pageTitle } from "@/lib/page-title";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
 import { useSEO } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
@@ -71,7 +70,6 @@ export default function UpdatesPage() {
 
   useEffect(() => {
     setMounted(true);
-    pageTitle.setTitlePage("Лента новых глав - Tomilo-lib.ru");
   }, []);
 
   if (!mounted) {
