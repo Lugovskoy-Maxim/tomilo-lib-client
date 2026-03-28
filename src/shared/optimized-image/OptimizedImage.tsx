@@ -35,6 +35,16 @@ interface OptimizedImageProps {
 
 const DEFAULT_SIZES = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
 
+/** Совпадает с `images.remotePatterns` в next.config — для этих хостов включаем `/_next/image` (WebP/AVIF, нужный размер). */
+function isRemoteHostOptimizedByNext(hostname: string): boolean {
+  return (
+    hostname === "s3.regru.cloud" ||
+    hostname === "tomilo-lib.ru" ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1"
+  );
+}
+
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
@@ -183,9 +193,17 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // чтобы избежать «пустых» состояний при быстрой смене src (например, в каруселях).
   const showImage = (hidePlaceholder ? shouldLoad : isLoaded) && visible;
 
-  // Remote URL → unoptimized: иначе /_next/image тянет файл с CDN с таймаутом 7 с (TimeoutError при медленном ответе).
   const isRemoteUrl = Boolean(currentSrc?.startsWith("http"));
-  const shouldUnoptimize = unoptimized || isRemoteUrl;
+  let remoteUsesNextOptimizer = false;
+  if (isRemoteUrl && currentSrc) {
+    try {
+      remoteUsesNextOptimizer = isRemoteHostOptimizedByNext(new URL(currentSrc).hostname);
+    } catch {
+      remoteUsesNextOptimizer = false;
+    }
+  }
+  /** Внешние URL с неизвестного хоста — без прокси (полный файл); S3 и свой домен — через Next Image (меньше вес, быстрее LCP). */
+  const shouldUnoptimize = unoptimized || (isRemoteUrl && !remoteUsesNextOptimizer);
 
   // Общие стили для изображения
   const imageClassName = `${className} ${isLoaded ? "loaded" : ""} transition-opacity duration-200 ${showImage ? "opacity-100" : "opacity-0"}`;
@@ -225,6 +243,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             draggable={draggable}
             onDragStart={handleDragStart}
             unoptimized={shouldUnoptimize}
+            decoding={priority ? "sync" : "async"}
           />
         ) : (
           <Image
@@ -242,6 +261,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             draggable={draggable}
             onDragStart={handleDragStart}
             unoptimized={shouldUnoptimize}
+            decoding={priority ? "sync" : "async"}
           />
         ))}
     </div>

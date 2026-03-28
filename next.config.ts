@@ -52,7 +52,7 @@ const nextConfig: NextConfig = {
   images: {
     // Allow common mock/demo hosts
     domains: [],
-    qualities: [85],
+    qualities: [78, 85],
     remotePatterns: [
       {
         protocol: "http",

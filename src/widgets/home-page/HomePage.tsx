@@ -1,34 +1,95 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
+import dynamic from "next/dynamic";
 import { Clock, Gem, LibraryIcon, SquareArrowOutUpRight } from "lucide-react";
 
-import CollectionCard from "@/shared/collection-card/CollectionCard";
+import GridSection from "@/widgets/grid-section/GridSection";
 import LazySection from "@/shared/lazy-section/LazySection";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
-import ContinueReadingSection from "@/widgets/home-page/ContinueReadingSection";
 import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
 import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
-import { TelegramSection } from "@/shared/home";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
-import { Carousel, Footer, GridSection, Header } from "@/widgets";
-import TopCombinedSection from "@/widgets/top-combined-section/TopCombinedSection";
-import TopTitlesSection from "@/widgets/top-titles-section/TopTitlesSection";
 import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetLatestUpdatesQuery } from "@/store/api/titlesApi";
-import RandomTitlesComponent from "@/shared/random-titles/RandomTitles";
 import { CarouselSkeleton } from "@/shared/skeleton/CarouselSkeleton";
 import { TopCombinedSkeleton } from "@/shared/skeleton/TopCombinedSkeleton";
 import { GridSkeleton } from "@/shared/skeleton/GridSkeleton";
 import { FeaturedTitleSkeleton } from "@/shared/skeleton/FeaturedTitleSkeleton";
-import Recommendations from "@/shared/recommendations/Recommendations";
+import { NewsBlockSkeleton } from "@/shared/skeleton/NewsBlockSkeleton";
 import LinesBackground from "@/shared/lines-background/LinesBackground";
-import NewsBlock from "@/widgets/home-page/NewsBlock";
-import { AgeVerificationModal } from "@/shared/modal/AgeVerificationModal";
 import { AgeVerificationProvider } from "@/contexts/AgeVerificationContext";
 import type { Collection } from "@/types/collection";
+import type { HomeFeaturedTitle } from "@/lib/map-popular-titles-home";
+
+const ContinueReadingSectionDynamic = dynamic(
+  () => import("@/widgets/home-page/ContinueReadingSection"),
+  {
+    loading: () => (
+      <CarouselSkeleton
+        cardWidth="w-[280px] sm:w-[300px] md:w-[320px]"
+        variant="reading"
+        showDescription
+      />
+    ),
+  },
+);
+
+const RecommendationsDynamic = dynamic(() => import("@/shared/recommendations/Recommendations"), {
+  loading: () => <CarouselSkeleton cardWidth="w-32 sm:w-36 md:w-40 lg:w-44" variant="poster" />,
+});
+
+const NewsBlockDynamic = dynamic(() => import("@/widgets/home-page/NewsBlock"), {
+  loading: () => <NewsBlockSkeleton />,
+});
+
+const RandomTitlesDynamic = dynamic(() => import("@/shared/random-titles/RandomTitles"), {
+  loading: () => <GridSkeleton showTitle variant="trending" />,
+});
+
+const TopCombinedSectionDynamic = dynamic(
+  () => import("@/widgets/top-combined-section/TopCombinedSection"),
+  {
+    loading: () => (
+      <div className="w-full">
+        <TopCombinedSkeleton />
+      </div>
+    ),
+  },
+);
+
+const TelegramSectionDynamic = dynamic(
+  () => import("@/shared/home/TelegramSection").then(m => ({ default: m.TelegramSection })),
+  { loading: () => null },
+);
+
+const HeaderDynamic = dynamic(() => import("@/widgets/header/header"), {
+  loading: () => (
+    <header
+      className="relative z-[var(--z-dropdown)] w-full h-[var(--header-height)] bg-white dark:bg-[rgba(8,8,12,0.92)] border-b border-[rgba(var(--border-rgb),0.65)] dark:border-[rgba(255,255,255,0.06)]"
+      aria-hidden
+    />
+  ),
+});
+
+const FooterDynamic = dynamic(() => import("@/widgets/footer/footer"), {
+  loading: () => <div className="h-20 w-full max-w-7xl mx-auto bg-muted/20 animate-pulse rounded-lg" aria-hidden />,
+});
+
+const TopTitlesSectionDynamic = dynamic(
+  () => import("@/widgets/top-titles-section/TopTitlesSection"),
+  { loading: () => <GridSkeleton showTitle variant="trending" /> },
+);
+
+const CarouselDynamic = dynamic(() => import("@/widgets/carousel/carousel"));
+
+const CollectionCardDynamic = dynamic(() => import("@/shared/collection-card/CollectionCard"));
+
+const AgeVerificationModalDynamic = dynamic(() =>
+  import("@/shared/modal/AgeVerificationModal").then(m => ({ default: m.AgeVerificationModal })),
+);
 
 type VisibleSections = HomeVisibleSections &
   StaticDataVisibleSections &
@@ -72,7 +133,7 @@ const DataCarousel = memo(function DataCarousel({
   if (!data?.length) return null;
 
   return (
-    <Carousel
+    <CarouselDynamic
       title={title}
       data={data as any[]}
       cardComponent={CardComponent as any}
@@ -82,9 +143,15 @@ const DataCarousel = memo(function DataCarousel({
   );
 });
 
-export default function HomePage() {
+interface HomePageProps {
+  /** С сервера — популярные тайтлы до ответа RTK (LCP) */
+  initialPopularTitles?: HomeFeaturedTitle[] | null;
+}
+
+export default function HomePage({ initialPopularTitles = null }: HomePageProps) {
   const [mounted, setMounted] = useState(false);
-  const [visibleSections, setVisibleSections] = useState<VisibleSections>({});
+  /** Сразу `featured: true` — иначе useHomeData пропускает запрос популярных, а LazySection ждёт IntersectionObserver → поздний LCP. */
+  const [visibleSections, setVisibleSections] = useState<VisibleSections>({ featured: true });
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingAgeAction, setPendingAgeAction] = useState<(() => void) | null>(null);
   void pendingAgeAction;
@@ -117,7 +184,7 @@ export default function HomePage() {
   const includeAdult = !user ? true : user.displaySettings?.isAdult !== false;
 
   const { popularTitles, randomTitles, underratedTitles, topManhwa, topManhua, top2026 } =
-    useHomeData({ visibleSections, includeAdult });
+    useHomeData({ visibleSections, includeAdult, initialPopularTitles });
   // latest-updates загружаем только через RTK Query ниже — не дублируем запрос из useStaticData
   const { collections } = useStaticData({
     visibleSections: { ...visibleSections, latestUpdates: false },
@@ -135,6 +202,7 @@ export default function HomePage() {
     {
       refetchOnMountOrArgChange: 600,
       refetchOnFocus: false,
+      skip: !visibleSections.latestUpdates,
     },
   );
   const latestUpdates = {
@@ -192,53 +260,8 @@ export default function HomePage() {
   return (
     <AgeVerificationProvider requestAgeVerification={requestAgeVerification}>
       {mounted && <LinesBackground />}
-      <Header />
+      <HeaderDynamic />
       <main className={mainClassName}>
-        {!mounted ? (
-          <>
-            <FeaturedTitleSkeleton />
-            <CarouselSkeleton
-              cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-              variant="reading"
-              showDescription
-            />
-            <GridSkeleton showTitle variant="trending" />
-            <GridSkeleton showTitle variant="trending" />
-            <GridSkeleton variant="updates" />
-            <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <div className="w-9 h-9 rounded-xl bg-[var(--muted)] animate-pulse" />
-                <div className="h-7 w-28 bg-[var(--muted)] rounded animate-pulse" />
-              </div>
-              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                <div className="flex gap-4 p-4 sm:p-5">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-5 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
-                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                  </div>
-                </div>
-                <div className="flex gap-4 p-4 sm:p-5 border-t border-[var(--border)]">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-5 w-2/3 bg-[var(--muted)] rounded animate-pulse" />
-                    <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <GridSkeleton showTitle variant="trending" />
-            <CarouselSkeleton
-              cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"
-              variant="collection"
-              showDescription
-            />
-            <div className="w-full">
-              <TopCombinedSkeleton />
-            </div>
-          </>
-        ) : (
-          <>
             {/* Популярные тайтлы — полноширинный блок */}
             <LazySection
               sectionId="featured"
@@ -263,21 +286,23 @@ export default function HomePage() {
         <GenresQuickAccess />
         */}
 
-            {/* Продолжить чтение */}
-            <LazySection
-              sectionId="reading"
-              onVisible={handleSectionVisible}
-              isVisible={!!visibleSections.reading || !!isAuthenticated}
-              skeleton={
-                <CarouselSkeleton
-                  cardWidth="w-68 sm:w-72 md:w-80 lg:w-96"
-                  variant="reading"
-                  showDescription
-                />
-              }
-            >
-              <ContinueReadingSection clientReadingHistory={continueReading ?? undefined} />
-            </LazySection>
+            {/* Продолжить чтение — только для авторизованных (иначе скелетон сменялся бы на null и давал CLS) */}
+            {isAuthenticated && (
+              <LazySection
+                sectionId="reading"
+                onVisible={handleSectionVisible}
+                isVisible={!!visibleSections.reading || !!isAuthenticated}
+                skeleton={
+                  <CarouselSkeleton
+                    cardWidth="w-[280px] sm:w-[300px] md:w-[320px]"
+                    variant="reading"
+                    showDescription
+                  />
+                }
+              >
+                <ContinueReadingSectionDynamic clientReadingHistory={continueReading ?? undefined} />
+              </LazySection>
+            )}
 
             <LazySection
               sectionId="topPeriod"
@@ -285,7 +310,7 @@ export default function HomePage() {
               isVisible={!!visibleSections.topPeriod}
               skeleton={<GridSkeleton showTitle variant="trending" />}
             >
-              <TopTitlesSection limit={10} />
+              <TopTitlesSectionDynamic limit={10} />
             </LazySection>
 
             {/* В тренде на этой неделе — временно отключено */}
@@ -344,7 +369,7 @@ export default function HomePage() {
                   <CarouselSkeleton cardWidth="w-32 sm:w-36 md:w-40 lg:w-44" variant="poster" />
                 }
               >
-                <Recommendations limit={10} />
+                <RecommendationsDynamic limit={10} />
               </LazySection>
             )}
 
@@ -353,32 +378,9 @@ export default function HomePage() {
               sectionId="news"
               onVisible={handleSectionVisible}
               isVisible={!!visibleSections.news}
-              skeleton={
-                <div className="w-full max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
-                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                    <div className="w-9 h-9 rounded-xl bg-[var(--muted)] animate-pulse" />
-                    <div className="h-7 w-28 bg-[var(--muted)] rounded animate-pulse" />
-                  </div>
-                  <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                    <div className="flex gap-4 p-4 sm:p-5">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-5 w-3/4 bg-[var(--muted)] rounded animate-pulse" />
-                        <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                      </div>
-                    </div>
-                    <div className="flex gap-4 p-4 sm:p-5 border-t border-[var(--border)]">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[var(--muted)] animate-pulse" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-5 w-2/3 bg-[var(--muted)] rounded animate-pulse" />
-                        <div className="h-4 w-full bg-[var(--muted)] rounded animate-pulse" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
+              skeleton={<NewsBlockSkeleton />}
             >
-              <NewsBlock />
+              <NewsBlockDynamic />
             </LazySection>
 
             {/* Недооцененные: высокий рейтинг, мало просмотров */}
@@ -411,7 +413,7 @@ export default function HomePage() {
               isVisible={!!visibleSections.random}
               skeleton={<GridSkeleton showTitle variant="trending" />}
             >
-              <RandomTitlesComponent
+              <RandomTitlesDynamic
                 data={randomTitles.data}
                 loading={randomTitles.loading}
                 error={randomTitles.error}
@@ -419,7 +421,7 @@ export default function HomePage() {
             </LazySection>
 
             {/* Telegram секция */}
-            <TelegramSection />
+            <TelegramSectionDynamic />
 
             {/* Коллекции */}
             <LazySection
@@ -439,7 +441,7 @@ export default function HomePage() {
                 data={collections.data}
                 loading={collections.loading}
                 error={collections.error}
-                cardComponent={CollectionCard}
+                cardComponent={CollectionCardDynamic}
                 description="Здесь подобраны самые популярные коллекции, которые вы можете прочитать."
                 type="collection"
                 href="/collections"
@@ -467,15 +469,13 @@ export default function HomePage() {
                 {topManhwa.loading || top2026.loading || topManhua.loading ? (
                   <TopCombinedSkeleton />
                 ) : topManhwa.error || top2026.error || topManhua.error ? null : (
-                  <TopCombinedSection data={topCombinedData} />
+                  <TopCombinedSectionDynamic data={topCombinedData} />
                 )}
               </div>
             </LazySection>
-          </>
-        )}
       </main>
-      <Footer />
-      <AgeVerificationModal
+      <FooterDynamic />
+      <AgeVerificationModalDynamic
         isOpen={showAgeModal}
         onConfirm={handleAgeConfirm}
         onCancel={handleAgeCancel}

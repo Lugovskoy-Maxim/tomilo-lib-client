@@ -3,6 +3,9 @@ import { HomePage } from "@/widgets";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
 import { getDefaultOgImageUrl } from "@/lib/seo-og-image";
 import AdBlock from "@/shared/ad-block/AdBlock";
+import { fetchPopularTitlesForHome } from "@/lib/fetch-popular-titles-home";
+import { mapPopularTitlesResponseToHome } from "@/lib/map-popular-titles-home";
+import { getCoverUrls } from "@/lib/asset-url";
 
 const siteBaseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
@@ -31,10 +34,23 @@ const homeBreadcrumbJsonLd = {
   itemListElement: [{ "@type": "ListItem", position: 1, name: "Tomilo-lib.ru", item: siteBaseUrl }],
 };
 
-export default function Home() {
+export default async function Home() {
+  const popularResponse = await fetchPopularTitlesForHome();
+  const initialPopularTitles = mapPopularTitlesResponseToHome(popularResponse);
+  const firstCover = initialPopularTitles[0]?.image;
+  const lcpPreloadHref =
+    typeof firstCover === "string" && firstCover.length > 0
+      ? getCoverUrls(firstCover, "").primary
+      : null;
+
   return (
     <>
-      <HomePage />
+      {lcpPreloadHref ? (
+        <link rel="preload" href={lcpPreloadHref} as="image" fetchPriority="high" />
+      ) : null}
+      <HomePage
+        initialPopularTitles={initialPopularTitles.length > 0 ? initialPopularTitles : null}
+      />
       <AdBlock />
       <script
         type="application/ld+json"

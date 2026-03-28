@@ -6,7 +6,7 @@ export const FeaturedTitleSkeleton: React.FC = () => (
     aria-label="Загрузка популярных тайтлов"
   >
     <div className="relative w-full overflow-hidden">
-      <div className="relative z-10 w-full flex flex-col min-h-[280px] sm:min-h-[340px] md:min-h-[420px] md:flex-row gap-3 sm:gap-5 md:gap-8">
+      <div className="relative z-10 w-full flex flex-col min-h-[300px] sm:min-h-[360px] md:min-h-[380px] md:flex-row gap-3 sm:gap-5 md:gap-8 md:items-stretch">
         {/* Обложка */}
         <div className="relative w-full md:w-auto flex-shrink-0 flex justify-center md:block">
           <div className="w-28 sm:w-40 md:w-56 aspect-[2/3] rounded-lg sm:rounded-xl bg-[var(--muted)] shimmer ring-1 ring-[var(--border)]" />

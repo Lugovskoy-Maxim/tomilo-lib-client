@@ -171,6 +171,10 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
+        {/* Обложки и статика с S3 — ранний DNS/TLS, если браузер запрашивает хост напрямую (прямые URL, preload). */}
+        <link rel="dns-prefetch" href="https://s3.regru.cloud" />
+        <link rel="preconnect" href="https://s3.regru.cloud" crossOrigin="" />
+
         {/* РСЯ — после загрузки страницы, чтобы не конкурировать с критическим JS/CSS */}
         <Script id="yandex-rsa-init" strategy="lazyOnload">{`window.yaContextCb=window.yaContextCb||[]`}</Script>
         <Script src="https://yandex.ru/ads/system/context.js" strategy="lazyOnload" async />

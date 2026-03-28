@@ -42,7 +42,7 @@ const AdBlock = ({
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4">
-      <Script src="https://ad.mail.ru/static/ads-async.js" strategy="afterInteractive" async />
+      <Script src="https://ad.mail.ru/static/ads-async.js" strategy="lazyOnload" async />
       <div className="w-full max-w-[950px] overflow-hidden">
         <ins
           ref={insRef}
@@ -57,7 +57,7 @@ const AdBlock = ({
           data-ad-slot={adSlot}
         />
       </div>
-      <Script id={scriptId} strategy="afterInteractive">
+      <Script id={scriptId} strategy="lazyOnload">
         {`(MRGtag = window.MRGtag || []).push({});`}
       </Script>
     </div>

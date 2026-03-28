@@ -3,9 +3,35 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-# По умолчанию 3050 — чтобы не конфликтовать с dev на :3000
-PORT="${LIGHTHOUSE_PORT:-3050}"
+
+# Свободен ли TCP-порт (LISTEN)
+port_in_use() {
+  lsof -iTCP:"$1" -sTCP:LISTEN -P -n >/dev/null 2>&1
+}
+
+# 3050–3099: не конфликтуем с dev :3000; при занятости — следующий свободный
+if [ -n "${LIGHTHOUSE_PORT:-}" ]; then
+  PORT="$LIGHTHOUSE_PORT"
+  if port_in_use "$PORT"; then
+    echo "Порт $PORT занят. Освободите его или не задавайте LIGHTHOUSE_PORT — скрипт выберет сам." >&2
+    exit 1
+  fi
+else
+  PORT=""
+  for p in $(seq 3050 3099); do
+    if ! port_in_use "$p"; then
+      PORT=$p
+      break
+    fi
+  done
+  if [ -z "${PORT:-}" ]; then
+    echo "Не найден свободный порт в диапазоне 3050–3099." >&2
+    exit 1
+  fi
+fi
+
 URL="${LIGHTHOUSE_URL:-http://127.0.0.1:${PORT}}"
+echo "Lighthouse: сервер на $URL (порт $PORT)" >&2
 
 npm run build
 

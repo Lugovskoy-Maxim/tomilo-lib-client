@@ -425,24 +425,26 @@ export default function ContinueReadingSection({ clientReadingHistory }: Continu
         )}
       </div>
 
-      {items.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div
-          ref={scrollRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto overflow-y-visible py-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-both carousel-scroll will-change-scroll cursor-grab active:cursor-grabbing select-none"
-          style={{ userSelect: "none" }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onClickCapture={handleClickCapture}
-        >
-          {items.map(item => (
-            <ContinueCard key={item.titleId} item={item} />
-          ))}
-        </div>
-      )}
+      <div className="min-h-[260px] sm:min-h-[280px]">
+        {items.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div
+            ref={scrollRef}
+            className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto overflow-y-visible py-2 scrollbar-hide scroll-smooth min-w-0 touch-pan-both carousel-scroll will-change-scroll cursor-grab active:cursor-grabbing select-none"
+            style={{ userSelect: "none" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onClickCapture={handleClickCapture}
+          >
+            {items.map(item => (
+              <ContinueCard key={item.titleId} item={item} />
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
