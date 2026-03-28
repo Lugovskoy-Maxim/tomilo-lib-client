@@ -27,6 +27,9 @@ import { useAgeVerification } from "@/contexts/AgeVerificationContext";
 import { getCoverUrls } from "@/lib/asset-url";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 
+/** Обложка в блоке: mobile w-28 / sm:w-32, desktop md:w-56 — узкий `sizes` ускоряет LCP через `/_next/image`. */
+const FEATURED_HERO_COVER_SIZES = "(max-width: 767px) 128px, 224px";
+
 interface FeaturedTitleData {
   id: string;
   slug?: string;
@@ -108,16 +111,16 @@ export default function FeaturedTitleBlock({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only userId/userBirthDate; `user` reference changes every render from Redux
   }, [userId, userBirthDate]);
 
-  // Предзагрузка изображений всех слайдов при монтировании
+  // Предзагрузка только текущего и следующего слайда — не конкурирует с LCP за канал (раньше грузили все слайды).
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    data.forEach(item => {
-      if (!item.image) return;
+    if (typeof window === "undefined" || data.length === 0) return;
+    const preload = (i: number) => {
+      const item = data[i];
+      if (!item?.image) return;
       const { primary, fallback } = getCoverUrls(item.image, "");
       if (primary) {
         const img = new Image();
         img.src = primary;
-        // При ошибке пробуем fallback
         img.onerror = () => {
           if (fallback && fallback !== primary) {
             const fallbackImg = new Image();
@@ -125,8 +128,12 @@ export default function FeaturedTitleBlock({
           }
         };
       }
-    });
-  }, [data]);
+    };
+    preload(currentIndex);
+    if (data.length > 1) {
+      preload((currentIndex + 1) % data.length);
+    }
+  }, [data, currentIndex]);
 
   useEffect(() => {
     setCategoryOpen(false);
@@ -423,6 +430,8 @@ export default function FeaturedTitleBlock({
                 errorSrc={IMAGE_HOLDER.src}
                 alt={currentItem.title}
                 fill
+                sizes={FEATURED_HERO_COVER_SIZES}
+                quality={78}
                 priority
                 draggable={false}
                 hidePlaceholder
@@ -554,6 +563,8 @@ export default function FeaturedTitleBlock({
                 errorSrc={IMAGE_HOLDER.src}
                 alt={currentItem.title}
                 fill
+                sizes={FEATURED_HERO_COVER_SIZES}
+                quality={78}
                 priority
                 draggable={false}
                 hidePlaceholder

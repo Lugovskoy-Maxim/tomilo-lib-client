@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "analyze": "ANALYZE=true next build",
+    "perf:lighthouse": "bash scripts/perf-lighthouse.sh",
     "bot:chapters": "node scripts/telegram-chapters-bot.mjs",
     "check:api": "node scripts/check-api-endpoints.mjs",
     "format": "prettier --write .",

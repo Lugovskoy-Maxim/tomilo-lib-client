@@ -24,6 +24,10 @@ import {
   ReaderSettingsProvider,
 } from "@/shared/reader/hooks/useReaderSettings";
 import { getImageUrls } from "@/lib/asset-url";
+import {
+  getContinuousScrollImageLoadProps,
+  readerImageSizes,
+} from "@/lib/reader-image-loading";
 
 import {
   saveReadingPosition,
@@ -1156,6 +1160,7 @@ function ReadChapterPageContent({
               priorities.set(pageNum, "low");
             }
           });
+          priorities.set(1, "high");
           setImageLoadPriority(priorities);
 
           setIsPositionRestored(true);
@@ -1290,19 +1295,20 @@ function ReadChapterPageContent({
     const currentIndex = Math.max(0, Math.min(totalImagesAll - 1, currentPage - 1));
     const limitedIndices = new Set<number>();
 
-    // Первые страницы обычно нужны почти всем.
-    [0, 1, 2].forEach(i => {
-      if (i >= 0 && i < totalImagesAll) limitedIndices.add(i);
-    });
+    const headPages = isSlowConnection ? 3 : 6;
+    for (let i = 0; i < headPages && i < totalImagesAll; i++) {
+      limitedIndices.add(i);
+    }
 
-    // Небольшой "коридор" вокруг текущей страницы.
-    const start = Math.max(0, currentIndex - 2);
-    const end = Math.min(totalImagesAll - 1, currentIndex + 5);
-    for (let i = start; i <= end; i++) limitedIndices.add(i);
+    const radius = isSlowConnection ? 2 : 12;
+    const forward = isSlowConnection ? 5 : 18;
+    const start = Math.max(0, currentIndex - radius);
+    const end = Math.min(totalImagesAll - 1, currentIndex + forward);
+    for (let i = start; i <= end; i++) {
+      limitedIndices.add(i);
+    }
 
-    const indicesToPreload = isSlowConnection
-      ? Array.from(limitedIndices).sort((a, b) => a - b)
-      : Array.from({ length: totalImagesAll }, (_, i) => i);
+    const indicesToPreload = Array.from(limitedIndices).sort((a, b) => a - b);
 
     const totalImages = indicesToPreload.length;
 
@@ -1414,6 +1420,7 @@ function ReadChapterPageContent({
             priorities.set(pageNum, "low"); // Остальные - низкий приоритет
           }
         });
+        priorities.set(1, "high");
         setImageLoadPriority(priorities);
       }
     };
@@ -1556,6 +1563,7 @@ function ReadChapterPageContent({
             priorities.set(pageNum, "low");
           }
         });
+        priorities.set(1, "high");
         setImageLoadPriority(priorities);
       }
     };
@@ -2132,9 +2140,17 @@ function ReadChapterPageContent({
                               alt={`Глава ${ch.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                              sizes={readerImageSizes(isMobile, imageWidth)}
                               className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                               quality={imageQuality}
-                              loading={imageIndex < (isMobile ? 6 : 3) ? "eager" : "lazy"}
+                              loading={
+                                imageIndex === 0
+                                  ? "eager"
+                                  : imageIndex < 2
+                                    ? "eager"
+                                    : "lazy"
+                              }
+                              fetchPriority={imageIndex === 0 ? "high" : undefined}
                               onLoad={() => {
                                 loadedImagesRef.current.add(imageLoadKey);
                                 setLoadedImagesByChapter(prev => ({
@@ -2143,7 +2159,7 @@ function ReadChapterPageContent({
                                 }));
                               }}
                               onError={() => handleImageError(ch._id, imageIndex, src)}
-                              priority={imageIndex < (isMobile ? 3 : 1)}
+                              priority={imageIndex === 0}
                               onClick={() =>
                                 handleImageDoubleTap(
                                   imageUrl,
@@ -2335,9 +2351,11 @@ function ReadChapterPageContent({
                                     height={
                                       isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)
                                     }
+                                    sizes={readerImageSizes(isMobile, imageWidth)}
                                     className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                                     quality={imageQuality}
                                     loading={shouldEagerLoad ? "eager" : "lazy"}
+                                    fetchPriority={shouldEagerLoad ? "high" : undefined}
                                     onLoad={() => {
                                       loadedImagesRef.current.add(imageLoadKey);
                                       setLoadedImagesByChapter(prev => ({
@@ -2486,6 +2504,12 @@ function ReadChapterPageContent({
                       loadedImagesByChapter[displayChapter._id] ?? new Set<number>();
                     const isImageLoaded =
                       loadedImagesRef.current.has(imageLoadKey) || loadedInChapter.has(imageIndex);
+                    const pageNumber = imageIndex + 1;
+                    const loadProps = getContinuousScrollImageLoadProps(
+                      imageIndex,
+                      pageNumber,
+                      imageLoadPriority,
+                    );
 
                     return (
                       <div
@@ -2495,7 +2519,7 @@ function ReadChapterPageContent({
                       >
                         <div
                           className="relative w-full flex justify-center px-0 sm:px-4"
-                          data-page={imageIndex + 1}
+                          data-page={pageNumber}
                           data-reader-image-key={errorKey}
                           style={{
                             maxWidth: isMobile ? "100%" : `${imageWidth}px`,
@@ -2532,11 +2556,12 @@ function ReadChapterPageContent({
                               alt={`Глава ${displayChapter.number}, Страница ${imageIndex + 1}`}
                               width={isMobile ? 800 : imageWidth}
                               height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                              sizes={readerImageSizes(isMobile, imageWidth)}
                               className={`${imageFitClass} shadow-lg sm:shadow-2xl transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                               quality={
                                 imageLoadPriority.size > 0
                                   ? (() => {
-                                      const priority = imageLoadPriority.get(imageIndex + 1);
+                                      const priority = imageLoadPriority.get(pageNumber);
                                       switch (priority) {
                                         case "high":
                                           return imageQuality;
@@ -2550,15 +2575,8 @@ function ReadChapterPageContent({
                                     })()
                                   : imageQuality
                               }
-                              loading={
-                                imageLoadPriority.size > 0
-                                  ? imageLoadPriority.get(imageIndex + 1) === "high"
-                                    ? "eager"
-                                    : "lazy"
-                                  : imageIndex < (isMobile ? 6 : 3)
-                                    ? "eager"
-                                    : "lazy"
-                              }
+                              loading={loadProps.loading}
+                              fetchPriority={loadProps.fetchPriority}
                               onLoad={() => {
                                 loadedImagesRef.current.add(imageLoadKey);
                                 setLoadedImagesByChapter(prev => ({
@@ -2569,11 +2587,7 @@ function ReadChapterPageContent({
                                 }));
                               }}
                               onError={() => handleImageError(displayChapter._id, imageIndex, src)}
-                              priority={
-                                imageLoadPriority.size > 0
-                                  ? imageLoadPriority.get(imageIndex + 1) === "high"
-                                  : imageIndex < (isMobile ? 3 : 1)
-                              }
+                              priority={loadProps.priority}
                             />
                           ) : (
                             <div className="w-full min-h-[200px] sm:min-h-[280px] bg-gradient-to-b from-[var(--card)] to-[var(--secondary)]/50 flex items-center justify-center px-4 rounded-lg border border-[var(--border)]/50">
@@ -2885,6 +2899,7 @@ function ReadChapterPageContent({
                                       height={
                                         isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)
                                       }
+                                      sizes={readerImageSizes(isMobile, imageWidth)}
                                       className={`${imageFitClass} shadow-lg sm:shadow-2xl transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                                       quality={imageQuality}
                                       loading="lazy"

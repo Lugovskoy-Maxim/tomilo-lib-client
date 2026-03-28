@@ -320,7 +320,12 @@ export default function NotificationCard({
 
   const showResolutionBlock = Boolean(resolutionText);
 
-  const showEntitySubline = isReportType && (resolvedEntityName || chapterDisplayName);
+  const isCommentType =
+    notification.type === "comment_reply" || notification.type === "comment_reactions";
+
+  const showEntitySubline =
+    (isReportType && (resolvedEntityName || chapterDisplayName)) ||
+    (isCommentType && (resolvedEntityName || chapterDisplayName));
 
   if (isDeleting) return null;
 

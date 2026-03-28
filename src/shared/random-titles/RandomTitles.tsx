@@ -1,5 +1,5 @@
 import React from "react";
-import CarouselCard from "@/shared/popular-card/PopularCard";
+import { CarouselPopularCard } from "@/shared/popular-card/PopularCard";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
 import { Carousel } from "@/widgets";
 import { SquareArrowOutUpRight } from "lucide-react";
@@ -47,7 +47,7 @@ const RandomTitles: React.FC<RandomTitlesProps> = ({ data, loading, error }) => 
     <Carousel
       title="Рекомендуем для просмотра"
       data={data}
-      cardComponent={CarouselCard}
+      cardComponent={CarouselPopularCard}
       type="browse"
       navigationIcon={<SquareArrowOutUpRight className="w-6 h-6" />}
       cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"

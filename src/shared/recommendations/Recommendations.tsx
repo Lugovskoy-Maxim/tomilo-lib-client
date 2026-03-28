@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { Star } from "lucide-react";
-import CarouselCard from "@/shared/popular-card/PopularCard";
+import { CarouselPopularCard } from "@/shared/popular-card/PopularCard";
 import { Carousel } from "@/widgets";
 import { getTitlePath } from "@/lib/title-paths";
 import { useGetRecommendedTitlesQuery } from "@/store/api/titlesApi";
@@ -102,7 +102,7 @@ export default function Recommendations({ limit = 10 }: RecommendationsProps) {
       <Carousel
         title=""
         data={transformedData}
-        cardComponent={CarouselCard}
+        cardComponent={CarouselPopularCard}
         description=""
         type="browse"
         cardWidth="w-24 sm:w-28 md:w-32 lg:w-36"

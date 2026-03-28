@@ -7,6 +7,7 @@ import {
   useGetRandomTitlesQuery,
 } from "@/store/api/titlesApi";
 import { normalizeGenres } from "@/lib/genre-normalizer";
+import type { HomeFeaturedTitle } from "@/lib/map-popular-titles-home";
 
 export type HomeVisibleSections = Partial<{
   popular: boolean;
@@ -22,6 +23,8 @@ export type HomeVisibleSections = Partial<{
 export interface HomeDataOptions {
   visibleSections?: HomeVisibleSections;
   includeAdult?: boolean;
+  /** С сервера (page.tsx) — блок «Популярные» рисуется до ответа RTK, быстрее LCP */
+  initialPopularTitles?: HomeFeaturedTitle[] | null;
 }
 
 export const useHomeData = (
@@ -163,7 +166,7 @@ export const useHomeData = (
     error: unknown;
   };
 } => {
-  const { visibleSections = {}, includeAdult = false } = options;
+  const { visibleSections = {}, includeAdult = false, initialPopularTitles = null } = options;
 
   // Опции кэша: не дергать сервер при каждом заходе на главную.
   // refetchOnMountOrArgChange: 600 — обновлять только если данные старше 10 мин.
@@ -181,7 +184,7 @@ export const useHomeData = (
   // Популярные тайтлы — запрос только когда секция в viewport
   const {
     data: popularTitlesData,
-    isLoading: popularTitlesLoading,
+    isLoading: popularTitlesQueryLoading,
     isUninitialized: popularTitlesUninitialized,
     error: popularTitlesError,
   } = useGetPopularTitlesQuery(
@@ -240,8 +243,8 @@ export const useHomeData = (
     { ...popularCacheOptions, skip: skipUnderrated },
   );
 
-  // Мемоизированное преобразование популярных тайтлов
-  const popularTitles = useMemo(
+  // Мемоизированное преобразование популярных тайтлов (RTK приоритетнее SSR-данных)
+  const popularTitlesFromApi = useMemo(
     () =>
       popularTitlesData?.data?.map(item => ({
         id: item.id,
@@ -257,6 +260,16 @@ export const useHomeData = (
       })) || [],
     [popularTitlesData],
   );
+
+  const popularTitles = useMemo((): HomeFeaturedTitle[] => {
+    if (popularTitlesFromApi.length > 0) return popularTitlesFromApi;
+    if (initialPopularTitles?.length) return initialPopularTitles;
+    return [];
+  }, [popularTitlesFromApi, initialPopularTitles]);
+
+  const popularTitlesLoading =
+    popularTitles.length === 0 &&
+    (popularTitlesQueryLoading || popularTitlesUninitialized);
 
   // Мемоизированное преобразование случайных тайтлов
   const randomTitles = useMemo(
@@ -449,7 +462,7 @@ export const useHomeData = (
   return {
     popularTitles: {
       data: popularTitles,
-      loading: popularTitlesLoading || popularTitlesUninitialized,
+      loading: popularTitlesLoading,
       error: popularTitlesError,
     },
     recentTitles: {

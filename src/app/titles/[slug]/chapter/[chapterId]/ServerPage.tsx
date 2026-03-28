@@ -12,10 +12,13 @@ export default async function ServerChapterPage({
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   try {
-    // Получаем данные тайтла по slug
-    const titleResponse = await fetch(`${apiUrl}/titles/slug/${slug}?populateChapters=false`, {
-      cache: "no-store",
-    });
+    const titleUrl = `${apiUrl}/titles/slug/${slug}?populateChapters=false`;
+    const chapterUrl = `${apiUrl}/chapters/${chapterId}`;
+
+    const [titleResponse, chapterResponse] = await Promise.all([
+      fetch(titleUrl, { cache: "no-store" }),
+      fetch(chapterUrl, { cache: "no-store" }),
+    ]);
 
     if (!titleResponse.ok) {
       if (titleResponse.status === 404) {
@@ -45,12 +48,8 @@ export default async function ServerChapterPage({
     const titleData: import("@/types/title").Title = titleApiResponse.data;
     const titleId = titleData._id;
 
-    // Получаем данные главы.
-    // Важно: при 500 не заваливаем ридер целиком — используем данные из /chapters/title/... ниже.
+    // Данные главы (параллельно с тайтлом). При 500 не заваливаем ридер — fallback из /chapters/title/...
     let chapterData: import("@/types/title").Chapter | null = null;
-    const chapterResponse = await fetch(`${apiUrl}/chapters/${chapterId}`, {
-      cache: "no-store",
-    });
 
     if (!chapterResponse.ok) {
       if (chapterResponse.status === 404) {

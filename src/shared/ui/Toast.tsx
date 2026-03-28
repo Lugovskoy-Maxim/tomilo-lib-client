@@ -83,6 +83,21 @@ export const Toast: React.FC<ToastProps> = ({ toast }) => {
         <p className="text-[13px] sm:text-sm font-medium text-[var(--foreground)] leading-snug">
           {toast.message}
         </p>
+        {toast.actionLabel && toast.onAction && (
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                toast.onAction?.();
+              } finally {
+                removeToast(toast.id);
+              }
+            }}
+            className="mt-2 text-xs font-semibold text-[var(--primary)] hover:underline"
+          >
+            {toast.actionLabel}
+          </button>
+        )}
       </div>
       <button
         type="button"

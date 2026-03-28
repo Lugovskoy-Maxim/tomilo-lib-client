@@ -30,9 +30,31 @@ interface OptimizedImageProps {
   sizes?: string;
   /** Использовать нативный img вместо next/image (для внешних изображений без настроенных доменов) */
   unoptimized?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
 }
 
 const DEFAULT_SIZES = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
+
+/** Совпадает с `images.remotePatterns` в next.config — для этих хостов включаем `/_next/image` (WebP/AVIF, нужный размер). */
+function isRemoteHostOptimizedByNext(hostname: string): boolean {
+  return (
+    hostname === "s3.regru.cloud" ||
+    hostname === "tomilo-lib.ru" ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1"
+  );
+}
+
+/** Декорации магазина часто GIF / анимированный WebP — Next Image их не перекодирует; без unoptimized сыпятся предупреждения в dev. */
+function isDecorationOrAnimatedSafeUnoptimized(src: string): boolean {
+  if (!src) return false;
+  try {
+    const path = new URL(src).pathname.toLowerCase();
+    return path.includes("/decorations/");
+  } catch {
+    return /\/decorations\//i.test(src);
+  }
+}
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
@@ -56,6 +78,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   errorContent,
   sizes,
   unoptimized = false,
+  fetchPriority,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [shouldLoad, setShouldLoad] = useState(priority);
@@ -181,11 +204,20 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // чтобы избежать «пустых» состояний при быстрой смене src (например, в каруселях).
   const showImage = (hidePlaceholder ? shouldLoad : isLoaded) && visible;
 
-  // В dev-режиме next/image optimization может вызывать timeout при обращении к удалённым серверам.
-  // Используем unoptimized для всех http/https URL чтобы избежать проблем.
-  // Next.js Image Optimization лучше работает в production с правильно настроенным CDN.
-  const isRemoteUrl = currentSrc?.startsWith("http");
-  const shouldUnoptimize = unoptimized || isRemoteUrl;
+  const isRemoteUrl = Boolean(currentSrc?.startsWith("http"));
+  let remoteUsesNextOptimizer = false;
+  if (isRemoteUrl && currentSrc) {
+    try {
+      remoteUsesNextOptimizer = isRemoteHostOptimizedByNext(new URL(currentSrc).hostname);
+    } catch {
+      remoteUsesNextOptimizer = false;
+    }
+  }
+  /** Внешние URL с неизвестного хоста — без прокси (полный файл); S3 и свой домен — через Next Image (меньше вес, быстрее LCP). */
+  const shouldUnoptimize =
+    unoptimized ||
+    isDecorationOrAnimatedSafeUnoptimized(currentSrc) ||
+    (isRemoteUrl && !remoteUsesNextOptimizer);
 
   // Общие стили для изображения
   const imageClassName = `${className} ${isLoaded ? "loaded" : ""} transition-opacity duration-200 ${showImage ? "opacity-100" : "opacity-0"}`;
@@ -217,6 +249,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             sizes={sizes || DEFAULT_SIZES}
             quality={quality}
             priority={priority}
+            fetchPriority={fetchPriority ?? (priority ? "high" : undefined)}
             className={`${imageClassName} object-cover`}
             style={style}
             onLoad={handleLoad}
@@ -224,6 +257,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             draggable={draggable}
             onDragStart={handleDragStart}
             unoptimized={shouldUnoptimize}
+            decoding={priority ? "sync" : "async"}
           />
         ) : (
           <Image
@@ -233,6 +267,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             height={height || 220}
             quality={quality}
             priority={priority}
+            fetchPriority={fetchPriority ?? (priority ? "high" : undefined)}
             className={imageClassName}
             style={style}
             onLoad={handleLoad}
@@ -240,6 +275,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             draggable={draggable}
             onDragStart={handleDragStart}
             unoptimized={shouldUnoptimize}
+            decoding={priority ? "sync" : "async"}
           />
         ))}
     </div>

@@ -33,26 +33,30 @@ export const CarouselSkeleton: React.FC<CarouselSkeletonProps> = ({
     </div>
     <div className="flex gap-3 sm:gap-4 overflow-hidden items-stretch py-2 sm:py-4">
       {[...Array(itemCount)].map((_, i) => (
-        <div key={i} className={`flex-shrink-0 ${cardWidth}`}>
+        <div
+          key={i}
+          className={`flex-shrink-0 ${variant === "reading" ? "w-[280px] sm:w-[300px] md:w-[320px]" : cardWidth}`}
+        >
           {variant === "reading" ? (
-            <div className="relative flex h-32 sm:h-36 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-sm overflow-hidden">
-              <div className="w-24 sm:w-28 md:w-32 h-full bg-[var(--muted)] shimmer relative">
-                <div className="absolute bottom-2 left-2">
-                  <div className="h-5 bg-[var(--muted)] rounded w-14 shimmer" />
+            <div className="relative flex min-h-[145px] sm:min-h-[152px] rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-sm overflow-hidden">
+              {/* Соответствует ContinueCard: обложка 90×129 / sm: 96×128 */}
+              <div className="w-[90px] h-[129px] sm:w-24 sm:h-32 shrink-0 bg-[var(--muted)] animate-pulse relative">
+                <div className="absolute bottom-1.5 left-1.5">
+                  <div className="h-4 w-12 bg-[var(--muted-foreground)]/20 rounded" />
                 </div>
               </div>
-              <div className="flex-1 p-3 flex flex-col min-w-0">
-                <div className="h-4 bg-[var(--muted)] rounded w-full shimmer mb-1" />
-                <div className="h-4 bg-[var(--muted)] rounded w-4/5 shimmer mb-2" />
-                <div className="flex items-center gap-1.5 mb-auto">
-                  <div className="h-5 bg-[var(--muted)] rounded w-20 shimmer" />
+              <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between min-w-0">
+                <div>
+                  <div className="h-4 bg-[var(--muted)] rounded w-full animate-pulse mb-1" />
+                  <div className="h-4 bg-[var(--muted)] rounded w-4/5 animate-pulse mb-2" />
+                  <div className="h-3 bg-[var(--muted)] rounded w-24 animate-pulse" />
                 </div>
-                <div className="mt-auto pt-2 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="h-3 bg-[var(--muted)] rounded w-24 shimmer" />
-                    <div className="h-3 bg-[var(--muted)] rounded w-8 shimmer" />
+                <div className="space-y-2 mt-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="h-3 bg-[var(--muted)] rounded w-28 animate-pulse" />
+                    <div className="h-3 bg-[var(--muted)] rounded w-8 animate-pulse" />
                   </div>
-                  <div className="h-2.5 bg-[var(--muted)] rounded-full w-full shimmer" />
+                  <div className="h-1.5 bg-[var(--muted)] rounded-full w-full animate-pulse" />
                 </div>
               </div>
             </div>

@@ -9,7 +9,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { Toast, ToastContextType } from "@/types/toast";
+import { Toast, ToastContextType, AddToastOptions } from "@/types/toast";
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
@@ -38,9 +38,17 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   }, []);
 
   const addToast = useCallback(
-    (type: Toast["type"], message: string, duration = 5000, options?: { icon?: string }) => {
+    (type: Toast["type"], message: string, duration = 5000, options?: AddToastOptions) => {
       const id = Date.now().toString();
-      const toast: Toast = { id, type, message, duration, icon: options?.icon };
+      const toast: Toast = {
+        id,
+        type,
+        message,
+        duration,
+        icon: options?.icon,
+        actionLabel: options?.actionLabel,
+        onAction: options?.onAction,
+      };
 
       setToasts(prev => [...prev, toast]);
 
