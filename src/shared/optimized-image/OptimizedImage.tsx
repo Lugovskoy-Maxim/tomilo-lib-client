@@ -45,6 +45,17 @@ function isRemoteHostOptimizedByNext(hostname: string): boolean {
   );
 }
 
+/** Декорации магазина часто GIF / анимированный WebP — Next Image их не перекодирует; без unoptimized сыпятся предупреждения в dev. */
+function isDecorationOrAnimatedSafeUnoptimized(src: string): boolean {
+  if (!src) return false;
+  try {
+    const path = new URL(src).pathname.toLowerCase();
+    return path.includes("/decorations/");
+  } catch {
+    return /\/decorations\//i.test(src);
+  }
+}
+
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
@@ -203,7 +214,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     }
   }
   /** Внешние URL с неизвестного хоста — без прокси (полный файл); S3 и свой домен — через Next Image (меньше вес, быстрее LCP). */
-  const shouldUnoptimize = unoptimized || (isRemoteUrl && !remoteUsesNextOptimizer);
+  const shouldUnoptimize =
+    unoptimized ||
+    isDecorationOrAnimatedSafeUnoptimized(currentSrc) ||
+    (isRemoteUrl && !remoteUsesNextOptimizer);
 
   // Общие стили для изображения
   const imageClassName = `${className} ${isLoaded ? "loaded" : ""} transition-opacity duration-200 ${showImage ? "opacity-100" : "opacity-0"}`;
