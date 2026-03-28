@@ -1,6 +1,14 @@
 import { Notification } from "@/types/notifications";
 import { getChapterPath, getTitlePath } from "@/lib/title-paths";
 
+/** Минимальный срез WS-события `notification` для перехода к комментарию */
+export type CommentNotificationSocketPayload = {
+  type: string;
+  titleId?: string;
+  chapterId?: string;
+  metadata?: Record<string, unknown>;
+};
+
 export interface ChapterLike {
   _id?: string;
   titleId?: string | { _id?: string };
@@ -112,4 +120,48 @@ export function resolveNotificationNavigation(
     navTitleId && notifChapterId ? getChapterPath({ id: navTitleId, slug }, notifChapterId) : null;
 
   return { navTitleId, slug, notifChapterId, titlePath, chapterPath };
+}
+
+/**
+ * Ссылка на тайтл/главу с якорем комментария из WS-пейлоада (без populate titleId).
+ */
+export function getHrefForCommentNotificationFromSocket(
+  payload: CommentNotificationSocketPayload,
+): string | null {
+  if (payload.type !== "comment_reply" && payload.type !== "comment_reactions") {
+    return null;
+  }
+  const meta = payload.metadata as
+    | {
+        commentId?: string;
+        entityType?: string;
+        entityId?: string;
+        titleId?: string;
+        chapterId?: string;
+      }
+    | undefined;
+
+  const commentId = typeof meta?.commentId === "string" ? meta.commentId.trim() : "";
+  const hash = commentId ? `#comment-${commentId}` : "";
+
+  const entityType = meta?.entityType;
+  const titleIdStr =
+    (typeof payload.titleId === "string" ? payload.titleId.trim() : "") ||
+    (typeof meta?.titleId === "string" ? meta.titleId.trim() : "") ||
+    (entityType === "title" && meta?.entityId ? String(meta.entityId) : "");
+
+  if (!titleIdStr) return null;
+
+  const chapterIdStr =
+    (typeof payload.chapterId === "string" ? payload.chapterId.trim() : "") ||
+    (typeof meta?.chapterId === "string" ? meta.chapterId.trim() : "") ||
+    (entityType === "chapter" && meta?.entityId ? String(meta.entityId) : "");
+
+  const isChapter = entityType === "chapter" || (!!chapterIdStr && entityType !== "title");
+
+  if (isChapter && chapterIdStr) {
+    return getChapterPath({ id: titleIdStr }, chapterIdStr) + hash;
+  }
+
+  return `${getTitlePath({ id: titleIdStr })}?tab=comments${hash}`;
 }

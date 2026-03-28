@@ -14,6 +14,7 @@ import {
   User,
   Settings,
   MessageSquareReply,
+  MessageCircle,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -33,7 +34,14 @@ import { Notification } from "@/types/notifications";
 import LoginModal from "@/shared/modal/LoginModal";
 import RegisterModal from "@/shared/modal/RegisterModal";
 
-type NotificationFilter = "all" | "new_chapter" | "update" | "user" | "system" | "report_response";
+type NotificationFilter =
+  | "all"
+  | "new_chapter"
+  | "update"
+  | "user"
+  | "system"
+  | "report_response"
+  | "comments";
 
 const filterConfig = [
   { key: "all" as const, label: "Все", icon: Bell },
@@ -41,6 +49,7 @@ const filterConfig = [
   { key: "update" as const, label: "Обновления", icon: RefreshCw },
   { key: "user" as const, label: "Пользователи", icon: User },
   { key: "system" as const, label: "Система", icon: Settings },
+  { key: "comments" as const, label: "Комментарии", icon: MessageCircle },
   { key: "report_response" as const, label: "Ответы на жалобы", icon: MessageSquareReply },
 ];
 
@@ -96,11 +105,21 @@ export default function NotificationsPage() {
         notification.type === "complaint_response" ||
         notification.type === "report_resolved";
 
+      const isCommentType =
+        notification.type === "comment_reply" || notification.type === "comment_reactions";
+
       if (activeFilter !== "all") {
         if (activeFilter === "report_response" && !isReportReplyType) {
           return false;
         }
-        if (activeFilter !== "report_response" && notification.type !== activeFilter) {
+        if (activeFilter === "comments" && !isCommentType) {
+          return false;
+        }
+        if (
+          activeFilter !== "report_response" &&
+          activeFilter !== "comments" &&
+          notification.type !== activeFilter
+        ) {
           return false;
         }
       }
@@ -183,11 +202,16 @@ export default function NotificationsPage() {
       update: 0,
       user: 0,
       system: 0,
+      comments: 0,
       report_response: 0,
     };
     notificationsData.forEach(n => {
       if (n.type === "complaint_response" || n.type === "report_resolved") {
         counts.report_response++;
+        return;
+      }
+      if (n.type === "comment_reply" || n.type === "comment_reactions") {
+        counts.comments++;
         return;
       }
       if (n.type in counts) {
@@ -297,7 +321,7 @@ export default function NotificationsPage() {
             </div>
             <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">Уведомления</h1>
             <p className="text-[var(--muted-foreground)] mb-8 leading-relaxed">
-              Войдите в аккаунт, чтобы видеть уведомления о новых главах, обновлениях и ответах на
+              Войдите в аккаунт, чтобы видеть уведомления о новых главах, комментариях и ответах на
               жалобы
             </p>
             <div className="flex flex-wrap justify-center gap-3">

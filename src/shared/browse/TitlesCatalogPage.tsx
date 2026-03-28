@@ -926,9 +926,14 @@ export default function TitlesCatalogPage() {
       {!isError && titles.length > 0 && (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-            {titles.map((t) => (
+            {titles.map((t, index) => (
               <div key={t._id} className="grid-item-animate">
-                <PopularCard data={titleToCardProps(t)} onCardClick={handleCardClick} />
+                <PopularCard
+                  data={titleToCardProps(t)}
+                  onCardClick={handleCardClick}
+                  coverPriority={index < 4}
+                  coverLowPriority={index >= 16}
+                />
               </div>
             ))}
           </div>

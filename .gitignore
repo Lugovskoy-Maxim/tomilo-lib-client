@@ -49,3 +49,6 @@ next-env.d.ts
 TODO*
 IMAGE_OPTIMIZATION
 FILE_STRUCTURE
+
+# локальные отчёты Lighthouse
+.lighthouse/

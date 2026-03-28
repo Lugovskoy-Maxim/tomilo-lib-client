@@ -21,6 +21,7 @@ import ServiceWorkerRegistration from "@/shared/pwa/ServiceWorkerRegistration";
 import { OfflineBanner } from "@/shared/pwa/OfflineBanner";
 import { AddToHomeScreenBanner } from "@/shared/pwa/AddToHomeScreenBanner";
 import OfflineMutationSync from "@/shared/pwa/OfflineMutationSync";
+import WebVitalsReporter from "@/shared/performance/WebVitalsReporter";
 
 /** Viewport без ограничения зума — жесты (пинч) работают; авто-зум при фокусе на инпутах убираем через font-size в CSS */
 export const viewport: Viewport = {
@@ -122,12 +123,14 @@ const exo_2 = localFont({
   ],
   variable: "--font-exo_2",
   display: "swap",
+  preload: true,
 });
 
 const geistMono = localFont({
   src: "../fonts/GeistMono-latin.woff2",
   variable: "--font-geist-mono",
   display: "swap",
+  preload: false,
 });
 
 const comfortaa = localFont({
@@ -137,6 +140,7 @@ const comfortaa = localFont({
   ],
   variable: "--font-comfortaa",
   display: "swap",
+  preload: false,
 });
 
 const nunito = localFont({
@@ -146,6 +150,7 @@ const nunito = localFont({
   ],
   variable: "--font-nunito",
   display: "swap",
+  preload: false,
 });
 
 const rubik = localFont({
@@ -155,6 +160,7 @@ const rubik = localFont({
   ],
   variable: "--font-rubik",
   display: "swap",
+  preload: false,
 });
 
 export default function RootLayout({
@@ -165,9 +171,9 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
-        {/* РСЯ */}
-        <Script id="yandex-rsa-init">{`window.yaContextCb=window.yaContextCb||[]`}</Script>
-        <Script src="https://yandex.ru/ads/system/context.js" async></Script>
+        {/* РСЯ — после загрузки страницы, чтобы не конкурировать с критическим JS/CSS */}
+        <Script id="yandex-rsa-init" strategy="lazyOnload">{`window.yaContextCb=window.yaContextCb||[]`}</Script>
+        <Script src="https://yandex.ru/ads/system/context.js" strategy="lazyOnload" async />
 
         {/* Favicon и иконки */}
         <link rel="icon" type="image/x-icon" href="/favicons/favicon-16x16.png" />
@@ -228,7 +234,7 @@ export default function RootLayout({
           src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"
           strategy="afterInteractive"
         />
-        <Script id="yandex-metrika-counter" strategy="beforeInteractive">
+        <Script id="yandex-metrika-counter" strategy="afterInteractive">
           {`
             (function(m,e,t,r,i,k,a){
         m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -409,6 +415,7 @@ export default function RootLayout({
               </ThemeProvider>
               <NotificationSocketToasts />
               <DailyQuestCompletionToasts />
+              <WebVitalsReporter />
             </Providers>
             <ToastContainer />
             <ProgressNotificationContainer />

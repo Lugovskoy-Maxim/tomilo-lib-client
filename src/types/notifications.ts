@@ -51,6 +51,8 @@ export interface NotificationMetadata {
   entityId?: string;
   /** ID комментария (для comment_reply и comment_reactions) */
   commentId?: string;
+  /** Превью текста ответа (дублирует фрагмент в message, если задано на бэкенде) */
+  replyPreview?: string;
   /** ID тайтла в уведомлениях о комментариях (может дублировать entityId при entityType === "title") */
   titleId?: string;
   /** ID главы в уведомлениях о комментариях (может дублировать entityId при entityType === "chapter") */

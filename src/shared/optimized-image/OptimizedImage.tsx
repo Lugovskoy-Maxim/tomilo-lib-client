@@ -30,6 +30,7 @@ interface OptimizedImageProps {
   sizes?: string;
   /** Использовать нативный img вместо next/image (для внешних изображений без настроенных доменов) */
   unoptimized?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
 }
 
 const DEFAULT_SIZES = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
@@ -56,6 +57,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   errorContent,
   sizes,
   unoptimized = false,
+  fetchPriority,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [shouldLoad, setShouldLoad] = useState(priority);
@@ -181,10 +183,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // чтобы избежать «пустых» состояний при быстрой смене src (например, в каруселях).
   const showImage = (hidePlaceholder ? shouldLoad : isLoaded) && visible;
 
-  // В dev-режиме next/image optimization может вызывать timeout при обращении к удалённым серверам.
-  // Используем unoptimized для всех http/https URL чтобы избежать проблем.
-  // Next.js Image Optimization лучше работает в production с правильно настроенным CDN.
-  const isRemoteUrl = currentSrc?.startsWith("http");
+  // Remote URL → unoptimized: иначе /_next/image тянет файл с CDN с таймаутом 7 с (TimeoutError при медленном ответе).
+  const isRemoteUrl = Boolean(currentSrc?.startsWith("http"));
   const shouldUnoptimize = unoptimized || isRemoteUrl;
 
   // Общие стили для изображения
@@ -217,6 +217,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             sizes={sizes || DEFAULT_SIZES}
             quality={quality}
             priority={priority}
+            fetchPriority={fetchPriority ?? (priority ? "high" : undefined)}
             className={`${imageClassName} object-cover`}
             style={style}
             onLoad={handleLoad}
@@ -233,6 +234,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             height={height || 220}
             quality={quality}
             priority={priority}
+            fetchPriority={fetchPriority ?? (priority ? "high" : undefined)}
             className={imageClassName}
             style={style}
             onLoad={handleLoad}

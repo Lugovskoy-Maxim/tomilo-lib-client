@@ -49,7 +49,12 @@ const GridItem = memo(function GridItem({ title, index, onCardClick }: GridItemP
 
   return (
     <div className={`grid-item-animate ${delayClass}`}>
-      <PopularCard data={cardProps} onCardClick={handleClick} />
+      <PopularCard
+        data={cardProps}
+        onCardClick={handleClick}
+        coverPriority={index < 4}
+        coverLowPriority={index >= 16}
+      />
     </div>
   );
 });

@@ -24,14 +24,35 @@ export interface CardProps {
   isAdult: boolean;
 }
 
+/** Сетка каталога (2–6 колонок) — чтобы next/image не запрашивал картинку шириной весь экран на каждую карточку */
+export const CATALOG_COVER_SIZES =
+  "(max-width: 639px) 50vw, (max-width: 1023px) 34vw, (max-width: 1279px) 25vw, (max-width: 1535px) 20vw, 17vw";
+
+/** Узкие постеры в карусели (w-24 … w-36) */
+export const CAROUSEL_COVER_SIZES =
+  "(max-width: 640px) 112px, (max-width: 1024px) 128px, 160px";
+
 export interface PopularCardProps {
   data: CardProps;
   onCardClick?: (id: string) => void;
   /** Левый клик не переходит по ссылке; открытие только через ПКМ → «Открыть в новой вкладке» или клик колёсиком */
   openOnlyInNewTab?: boolean;
+  /** Атрибут `sizes` для обложки (каталог vs карусель) */
+  coverSizes?: string;
+  /** Ускоряет LCP: первые карточки в сетке */
+  coverPriority?: boolean;
+  /** Отложенная загрузка для нижних рядов */
+  coverLowPriority?: boolean;
 }
 
-function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) {
+function PopularCard({
+  data,
+  onCardClick,
+  openOnlyInNewTab,
+  coverSizes = CATALOG_COVER_SIZES,
+  coverPriority = false,
+  coverLowPriority = false,
+}: PopularCardProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [showAgeModal, setShowAgeModal] = useState(false);
@@ -110,6 +131,9 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
             fallbackSrc={imageFallback}
             alt={data.title}
             fill
+            sizes={coverSizes}
+            priority={coverPriority}
+            lowPriority={coverLowPriority}
             onDragStart={(e: React.DragEvent) => e.preventDefault()}
             draggable={false}
             hidePlaceholder
@@ -204,3 +228,8 @@ function PopularCard({ data, onCardClick, openOnlyInNewTab }: PopularCardProps) 
 }
 
 export default memo(PopularCard);
+
+/** Карточка для горизонтальной карусели — меньший `sizes`, чем у сетки каталога */
+export const CarouselPopularCard = memo(function CarouselPopularCard(props: Omit<PopularCardProps, "coverSizes">) {
+  return <PopularCard {...props} coverSizes={CAROUSEL_COVER_SIZES} />;
+});

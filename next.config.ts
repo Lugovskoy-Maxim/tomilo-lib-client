@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
       static: 0, // префетчнутые/статические страницы не кешировать на клиенте
       dynamic: 0, // динамические — по умолчанию 0 в Next 15, задаём явно
     },
+    // Меньше JS на странице: tree-shake barrel-exports (иконки, motion и т.д.)
+    optimizePackageImports: ["lucide-react", "framer-motion", "recharts"],
   },
   async headers() {
     return [
