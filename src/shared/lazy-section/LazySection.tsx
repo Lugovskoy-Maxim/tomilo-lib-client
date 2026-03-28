@@ -15,6 +15,8 @@ export interface LazySectionProps {
   children: React.ReactNode;
   /** rootMargin для Intersection Observer (подгрузка до появления в viewport) */
   rootMargin?: string;
+  /** Доп. классы на обёртку (например выравнивание с соседними секциями) */
+  className?: string;
 }
 
 /**
@@ -28,6 +30,7 @@ export default function LazySection({
   skeleton,
   children,
   rootMargin = "200px 0px",
+  className = "",
 }: LazySectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
@@ -51,7 +54,11 @@ export default function LazySection({
   const showContent = hasBeenVisible || isVisible;
 
   return (
-    <div ref={ref} id={`section-${sectionId}`} className="w-full min-w-0">
+    <div
+      ref={ref}
+      id={`section-${sectionId}`}
+      className={["w-full min-w-0", className].filter(Boolean).join(" ")}
+    >
       {showContent ? children : skeleton}
     </div>
   );

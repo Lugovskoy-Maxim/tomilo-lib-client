@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
       dynamic: 0, // динамические — по умолчанию 0 в Next 15, задаём явно
     },
     // Меньше JS на странице: tree-shake barrel-exports (иконки, motion и т.д.)
-    optimizePackageImports: ["lucide-react", "framer-motion", "recharts"],
+    optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "react-redux"],
   },
   async headers() {
     return [

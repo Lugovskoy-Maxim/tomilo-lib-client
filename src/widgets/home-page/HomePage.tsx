@@ -23,6 +23,7 @@ import LinesBackground from "@/shared/lines-background/LinesBackground";
 import { AgeVerificationProvider } from "@/contexts/AgeVerificationContext";
 import type { Collection } from "@/types/collection";
 import type { HomeFeaturedTitle } from "@/lib/map-popular-titles-home";
+import { HOME_MAIN_GAP_CLASS } from "@/widgets/home-page/home-constants";
 
 const ContinueReadingSectionDynamic = dynamic(
   () => import("@/widgets/home-page/ContinueReadingSection"),
@@ -99,6 +100,7 @@ type VisibleSections = HomeVisibleSections &
     news: boolean;
     featured: boolean;
     topPeriod: boolean;
+    telegram: boolean;
   }>;
 
 interface DataCarouselProps {
@@ -150,8 +152,11 @@ interface HomePageProps {
 
 export default function HomePage({ initialPopularTitles = null }: HomePageProps) {
   const [mounted, setMounted] = useState(false);
-  /** Сразу `featured: true` — иначе useHomeData пропускает запрос популярных, а LazySection ждёт IntersectionObserver → поздний LCP. */
-  const [visibleSections, setVisibleSections] = useState<VisibleSections>({ featured: true });
+  /** `featured` + `telegram`: сразу в DOM — LCP и единый вертикальный ритм с остальными секциями. */
+  const [visibleSections, setVisibleSections] = useState<VisibleSections>({
+    featured: true,
+    telegram: true,
+  });
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingAgeAction, setPendingAgeAction] = useState<(() => void) | null>(null);
   void pendingAgeAction;
@@ -254,8 +259,11 @@ export default function HomePage({ initialPopularTitles = null }: HomePageProps)
     setMounted(true);
   }, []);
 
-  const mainClassName =
-    "flex flex-col items-center justify-start gap-3 sm:gap-4 md:gap-6 md:pb-2 pb-12 sm:pb-16 w-full";
+  const mainClassName = [
+    "flex flex-col items-center justify-start w-full",
+    HOME_MAIN_GAP_CLASS,
+    "pb-12 sm:pb-16 md:pb-2",
+  ].join(" ");
 
   return (
     <AgeVerificationProvider requestAgeVerification={requestAgeVerification}>
@@ -420,8 +428,20 @@ export default function HomePage({ initialPopularTitles = null }: HomePageProps)
               />
             </LazySection>
 
-            {/* Telegram секция */}
-            <TelegramSectionDynamic />
+            {/* Telegram — в том же flex-стеке, что и LazySection, без лишнего зазора */}
+            <LazySection
+              sectionId="telegram"
+              onVisible={handleSectionVisible}
+              isVisible={!!visibleSections.telegram}
+              skeleton={
+                <div
+                  className="w-full max-w-7xl mx-auto h-40 rounded-xl bg-[var(--muted)]/25 animate-pulse"
+                  aria-hidden
+                />
+              }
+            >
+              <TelegramSectionDynamic />
+            </LazySection>
 
             {/* Коллекции */}
             <LazySection
