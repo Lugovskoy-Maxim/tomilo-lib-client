@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
 
 type OverlayContent = ReactNode;
 
@@ -30,7 +30,10 @@ export function OverlayProvider({ children }: OverlayProviderProps) {
     setContent(next);
   }, []);
 
-  const value: OverlayContextValue = { setOverlayContent };
+  const value = useMemo<OverlayContextValue>(
+    () => ({ setOverlayContent }),
+    [setOverlayContent],
+  );
 
   return (
     <OverlayContext.Provider value={value}>
