@@ -174,24 +174,26 @@ export function CommentReportModal({
   titleId,
 }: CommentReportModalProps) {
   const overlay = useOverlay();
+  /** Не кладём `overlay` в deps — объект контекста новый на каждом рендере провайдера и даёт бесконечный цикл. */
+  const setOverlayContent = overlay?.setOverlayContent;
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
   useEffect(() => {
-    if (!overlay) return;
+    if (!setOverlayContent) return;
     if (!isOpen) {
-      overlay.setOverlayContent(null);
+      setOverlayContent(null);
       return;
     }
-    overlay.setOverlayContent(
+    setOverlayContent(
       <CommentReportModalInner
         commentId={commentId}
         titleId={titleId}
         onClose={() => onCloseRef.current()}
       />,
     );
-    return () => overlay.setOverlayContent(null);
-  }, [isOpen, overlay, commentId, titleId]);
+    return () => setOverlayContent(null);
+  }, [isOpen, setOverlayContent, commentId, titleId]);
 
   if (overlay) return null;
 
