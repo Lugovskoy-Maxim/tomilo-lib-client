@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
       static: 0, // префетчнутые/статические страницы не кешировать на клиенте
       dynamic: 0, // динамические — по умолчанию 0 в Next 15, задаём явно
     },
+    // Не предзагружать записи роутера при старте — меньше конкурирующей работы с первым экраном
+    preloadEntriesOnStart: false,
     // Меньше JS на странице: tree-shake barrel-exports (иконки, motion и т.д.)
     optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "react-redux"],
   },

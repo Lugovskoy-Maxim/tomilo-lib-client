@@ -62,13 +62,12 @@ export async function generateMetadata({
     const { slug, chapterId } = resolvedParams;
     const baseUrl = process.env.NEXT_PUBLIC_URL || "https://tomilo-lib.ru";
 
-    // Получаем данные тайтла по slug
-    const titleData = await getTitleDataBySlug(slug);
+    const [titleData, chapterData] = await Promise.all([
+      getTitleDataBySlug(slug),
+      getChapterData(chapterId),
+    ]);
     const titleName = getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slug);
     const altNames = titleData?.altNames ?? (titleData as { alternativeTitles?: string[] })?.alternativeTitles ?? [];
-
-    // Получаем данные главы (при 500/сетевой ошибке — минимальные метаданные)
-    const chapterData = await getChapterData(chapterId);
     const chapterNumber = chapterData ? Number(chapterData.chapterNumber) || 0 : 0;
     const chapterTitle = (chapterData?.title as string) || "";
 
@@ -137,8 +136,10 @@ export default async function ChapterPage({
   let jsonLdScripts: React.ReactNode = null;
 
   try {
-    const titleData = await getTitleDataBySlug(resolved.slug);
-    const chapterData = await getChapterData(resolved.chapterId);
+    const [titleData, chapterData] = await Promise.all([
+      getTitleDataBySlug(resolved.slug),
+      getChapterData(resolved.chapterId),
+    ]);
     const titleName = titleData?.name || "Без названия";
     const chapterNumber = Number(chapterData?.chapterNumber) || 0;
     const chapterTitle = chapterData?.title || "";

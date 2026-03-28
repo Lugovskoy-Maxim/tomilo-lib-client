@@ -174,6 +174,9 @@ export default function RootLayout({
         {/* Обложки и статика с S3 — ранний DNS/TLS, если браузер запрашивает хост напрямую (прямые URL, preload). */}
         <link rel="dns-prefetch" href="https://s3.regru.cloud" />
         <link rel="preconnect" href="https://s3.regru.cloud" crossOrigin="" />
+        {/* Обложки/страницы с основного домена (часто /uploads на tomilo-lib.ru) — раньше TLS/HTTP2 */}
+        <link rel="dns-prefetch" href="https://tomilo-lib.ru" />
+        <link rel="preconnect" href="https://tomilo-lib.ru" crossOrigin="" />
 
         {/* РСЯ — после загрузки страницы, чтобы не конкурировать с критическим JS/CSS */}
         <Script id="yandex-rsa-init" strategy="lazyOnload">{`window.yaContextCb=window.yaContextCb||[]`}</Script>
