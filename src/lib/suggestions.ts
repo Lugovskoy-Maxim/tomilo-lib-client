@@ -1,4 +1,4 @@
-import type { Decoration } from "@/api/shop";
+import { rarityFromVoteCount, type Decoration } from "@/api/shop";
 
 export type SuggestionType = "avatar" | "frame" | "background" | "card";
 
@@ -12,6 +12,8 @@ export interface SuggestionForDecoration {
   authorId?: string;
   authorUsername?: string;
   authorLevel?: number;
+  /** Если задано — редкость в превью считается по порогам голосов (как у победителей недели). */
+  votesCount?: number;
 }
 
 /** Преобразует предложение в вид Decoration для превью и карточки в UI. */
@@ -23,7 +25,7 @@ export function suggestionToDecoration(s: SuggestionForDecoration): Decoration {
     price: 0,
     imageUrl: s.imageUrl,
     type: s.type,
-    rarity: "common",
+    rarity: s.votesCount != null ? rarityFromVoteCount(s.votesCount) : "common",
     authorId: s.authorId,
     authorUsername: s.authorUsername,
     authorLevel: s.authorLevel,
