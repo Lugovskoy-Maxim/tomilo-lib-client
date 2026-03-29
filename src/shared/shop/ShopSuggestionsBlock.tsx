@@ -12,7 +12,13 @@ import {
 } from "@/store/api/shopApi";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getDecorationImageUrls, VOTES_FOR_RARITY, DECORATION_PRICE_BY_RARITY, VOTE_REWARD_COINS } from "@/api/shop";
+import {
+  getDecorationImageUrls,
+  VOTES_FOR_RARITY,
+  DECORATION_PRICE_BY_RARITY,
+  VOTE_REWARD_COINS,
+  WEEKLY_SUGGESTION_WINNERS_COUNT,
+} from "@/api/shop";
 import {
   suggestionToDecoration,
   SUGGESTION_TYPES,
@@ -263,7 +269,7 @@ export function ShopSuggestionsBlock() {
               </span>
             </h2>
             <p className="text-[11px] text-[var(--muted-foreground)] truncate">
-              {AUTHOR_REVENUE_PERCENT}% авторам · победитель каждый понедельник
+              {AUTHOR_REVENUE_PERCENT}% авторам · {WEEKLY_SUGGESTION_WINNERS_COUNT} лучших по голосам каждый понедельник
             </p>
           </div>
         </div>
@@ -287,7 +293,7 @@ export function ShopSuggestionsBlock() {
         {/* Ранги по голосам и награда за голос */}
         <div className="mb-4 space-y-3">
           <p className="text-xs font-medium text-[var(--muted-foreground)]">
-            По числу голосов победителю назначается ранг и цена в магазине:
+            По числу голосов победителям назначается ранг и цена в магазине:
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {(["common", "rare", "epic", "legendary"] as const).map((r) => {
