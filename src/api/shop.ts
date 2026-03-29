@@ -137,6 +137,15 @@ export const VOTES_FOR_RARITY: Record<DecorationRarity, number> = {
   legendary: 30,
 };
 
+/** Ранг для превью по текущему числу голосов (те же пороги, что у победителей недели). */
+export function rarityFromVoteCount(votes: number): DecorationRarity {
+  const n = Math.max(0, Math.floor(Number(votes)) || 0);
+  if (n >= VOTES_FOR_RARITY.legendary) return "legendary";
+  if (n >= VOTES_FOR_RARITY.epic) return "epic";
+  if (n >= VOTES_FOR_RARITY.rare) return "rare";
+  return "common";
+}
+
 /** Монеты активности за один голос по предложению (должно совпадать с сервером shop.service VOTE_REWARD_COINS). */
 export const VOTE_REWARD_COINS = 100;
 

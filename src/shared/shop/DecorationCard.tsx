@@ -50,7 +50,6 @@ const RARITY_STYLES: Record<
   DecorationRarity,
   {
     border: string;
-    badge: string;
     label: string;
     /** Градиент свечения сверху для области картинки (рамка/аватар). */
     glowTop: string;
@@ -60,8 +59,6 @@ const RARITY_STYLES: Record<
 > = {
   common: {
     border: "border-slate-400/40 shadow-[0_0_0_1px_rgba(100,116,139,0.2)]",
-    badge:
-      "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700/80 dark:text-slate-200 dark:border-slate-600",
     label: "Обычная",
     glowTop: "from-slate-400/15 via-transparent to-transparent",
     glowSpin: "decoration-card-glow-common",
@@ -69,8 +66,6 @@ const RARITY_STYLES: Record<
   rare: {
     border:
       "border-blue-400/50 shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_0_12px_rgba(59,130,246,0.15)]",
-    badge:
-      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/60 dark:text-blue-200 dark:border-blue-700",
     label: "Редкая",
     glowTop: "from-blue-400/25 via-transparent to-transparent",
     glowSpin: "decoration-card-glow-rare",
@@ -78,8 +73,6 @@ const RARITY_STYLES: Record<
   epic: {
     border:
       "border-violet-400/50 shadow-[0_0_0_1px_rgba(139,92,246,0.3),0_0_16px_rgba(139,92,246,0.2)]",
-    badge:
-      "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/60 dark:text-violet-200 dark:border-violet-700",
     label: "Эпическая",
     glowTop: "from-violet-400/25 via-transparent to-transparent",
     glowSpin: "decoration-card-glow-epic",
@@ -87,21 +80,35 @@ const RARITY_STYLES: Record<
   legendary: {
     border:
       "border-amber-400/60 shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_0_20px_rgba(245,158,11,0.25)]",
-    badge:
-      "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-600",
     label: "Легендарная",
     glowTop: "from-amber-400/30 via-transparent to-transparent",
     glowSpin: "decoration-card-glow-legendary",
   },
 };
 
-/** Стили бейджа редкости для карточек аватара/рамки (новый дизайн) */
+/** Цвета бейджа редкости — одинаковые для аватара, рамки, фона и модалки. */
 const RARITY_CARD_BADGE: Record<DecorationRarity, string> = {
-  common: "bg-slate-500/90 text-white border border-slate-400/50 shadow",
-  rare: "bg-blue-500/90 text-white border border-blue-400/50 shadow",
-  epic: "bg-violet-500/90 text-white border border-violet-400/50 shadow",
-  legendary: "bg-amber-500/90 text-amber-50 border border-amber-400/50 shadow",
+  common: "bg-slate-500/90 text-white border border-slate-400/50 shadow-sm",
+  rare: "bg-blue-500/90 text-white border border-blue-400/50 shadow-sm",
+  epic: "bg-violet-500/90 text-white border border-violet-400/50 shadow-sm",
+  legendary: "bg-amber-500/90 text-amber-50 border border-amber-400/50 shadow-sm",
 };
+
+/** Единая «пилюля» редкости на карточках и в превью. */
+function rarityBadgePillClasses(rarity: DecorationRarity): string {
+  return `inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wide whitespace-nowrap z-10 shadow-md ring-1 ring-white/15 ${RARITY_CARD_BADGE[rarity]}`;
+}
+
+/** Общая оболочка карточки: глубина, лёгкий подъём при наведении. */
+const CARD_SHELL =
+  "shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:shadow-lg transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]";
+
+const CARD_FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]";
+
+/** Нижняя панель с названием и ценой (аватар / рамка). */
+const CARD_FOOTER_STRIP =
+  "relative z-[1] w-full border-t border-[var(--border)]/70 bg-gradient-to-b from-[var(--muted)]/35 via-[var(--card)]/98 to-[var(--card)] backdrop-blur-[2px]";
 
 const DEFAULT_AVATAR = "/logo/ring_logo.png";
 
@@ -349,6 +356,7 @@ function DecorationPreviewModal({
   };
 
   const renderMainImage = () => {
+    const rarity = normalizeRarity(decoration.rarity);
     if (displayType === "frame") {
       return (
         <div className="relative flex items-center justify-center">
@@ -377,7 +385,7 @@ function DecorationPreviewModal({
             )}
           </div>
           <span
-            className={`absolute top-1 right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap ${rarityStyle.badge}`}
+            className={`absolute top-2 left-1/2 -translate-x-1/2 ${rarityBadgePillClasses(rarity)}`}
           >
             {rarityStyle.label}
           </span>
@@ -402,8 +410,9 @@ function DecorationPreviewModal({
             onLoad={() => setIsImageLoading(false)}
             onError={handleImageError}
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-transparent pointer-events-none" />
           <span
-            className={`absolute top-2 right-2 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}
+            className={`absolute top-2 left-1/2 -translate-x-1/2 ${rarityBadgePillClasses(rarity)}`}
           >
             {rarityStyle.label}
           </span>
@@ -428,8 +437,9 @@ function DecorationPreviewModal({
             onLoad={() => setIsImageLoading(false)}
             onError={handleImageError}
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-transparent pointer-events-none" />
           <span
-            className={`absolute top-2 right-2 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${rarityStyle.badge}`}
+            className={`absolute top-2 left-1/2 -translate-x-1/2 ${rarityBadgePillClasses(rarity)}`}
           >
             {rarityStyle.label}
           </span>
@@ -460,7 +470,7 @@ function DecorationPreviewModal({
           />
         </div>
         <span
-          className={`absolute top-1 right-1 inline-flex px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap ${rarityStyle.badge}`}
+          className={`absolute top-2 left-1/2 -translate-x-1/2 ${rarityBadgePillClasses(rarity)}`}
         >
           {rarityStyle.label}
         </span>
@@ -1046,25 +1056,25 @@ export function DecorationCard({
         <article
           ref={cardRef}
           onClick={handleCardClick}
-          className={`group/card relative w-full min-w-0 self-start rounded-lg sm:rounded-xl md:rounded-2xl border-2 bg-[var(--card)] overflow-hidden cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative w-full min-w-0 self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] cursor-pointer ${CARD_SHELL} ${CARD_FOCUS} ${rarityStyle.border}`}
         >
           <div
-            className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
+            className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
             aria-hidden
           />
           <div
-            className={`absolute inset-0 rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`}
+            className={`absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b ${rarityStyle.glowTop} pointer-events-none z-0`}
             aria-hidden
           />
 
-          <div className="relative flex h-full flex-col">
-            <div className="relative flex aspect-square items-center justify-center px-3 py-4 sm:px-4 sm:py-5">
+          <div className="relative z-[1] flex h-full flex-col">
+            <div className="relative flex aspect-square items-center justify-center bg-[var(--muted)]/20 px-3 py-4 sm:px-5 sm:py-6">
               {/* Аватар: вложенный квадрат (внешний вписан, внутренний 100% — строго 1:1); рамка: 1:1.2 */}
               {isCircleCrop ? (
-                <div className="relative aspect-square h-full w-full max-h-[72%] max-w-[72%] shrink-0">
+                <div className="relative aspect-square h-full w-full max-h-[72%] max-w-[72%] shrink-0 drop-shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_8px_28px_rgba(0,0,0,0.45)]">
                   <div className="relative h-0 w-full pb-[100%] flex-shrink-0">
                     <div
-                      className="absolute inset-0 overflow-hidden"
+                      className="absolute inset-0 overflow-hidden ring-1 ring-black/10 dark:ring-white/10"
                       style={{ borderRadius: "50%" }}
                     >
                       <div
@@ -1100,36 +1110,36 @@ export function DecorationCard({
                     </div>
                   </div>
                   <span
-                    className={`absolute top-0 left-1/2 -translate-x-1/2 z-10 inline-flex px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${RARITY_CARD_BADGE[rarity]}`}
+                    className={`absolute top-2 left-1/2 -translate-x-1/2 ${rarityBadgePillClasses(rarity)}`}
                   >
                     {rarityStyle.label}
                   </span>
                   {isEquipped && (
-                    <span className="absolute -bottom-0.5 -left-0.5 inline-flex items-center rounded bg-emerald-500/90 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5">
+                    <span className="absolute -bottom-0.5 -left-0.5 inline-flex items-center rounded-full bg-emerald-500/90 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5">
                       <Check className="w-2 h-2 sm:w-3 sm:h-3" />
                     </span>
                   )}
                   {onlyWithSubscription && discountPercent > 0 && (
-                    <span className="absolute top-0.5 left-0.5 sm:top-1.5 sm:left-1.5 inline-flex items-center rounded bg-blue-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm">
+                    <span className="absolute top-0.5 left-0.5 sm:top-1.5 sm:left-1.5 inline-flex items-center rounded-full bg-blue-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm">
                       −{discountPercent}%
                     </span>
                   )}
                   {soldOut && (
-                    <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded-full bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
                       <PackageX className="w-2 h-2 sm:w-3 sm:h-3" />
                       Распродано
                     </span>
                   )}
                   {isOwned && (
-                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded bg-emerald-500/95 text-white text-[8px] sm:text-xs font-semibold px-1.5 py-0.5 whitespace-nowrap shadow-sm z-[2]">
+                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded-full bg-emerald-500/95 text-white text-[8px] sm:text-xs font-semibold px-1.5 py-0.5 whitespace-nowrap shadow-sm z-[2]">
                       Уже куплено
                     </span>
                   )}
                 </div>
               ) : (
-                <div className="relative h-full w-full max-h-[82%] max-w-[82%] shrink-0">
+                <div className="relative h-full w-full max-h-[82%] max-w-[82%] shrink-0 drop-shadow-[0_8px_24px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_8px_28px_rgba(0,0,0,0.4)]">
                   <div className="relative h-0 w-full pb-[120%]">
-                  <div className="absolute inset-0">
+                  <div className="absolute inset-0 rounded-lg ring-1 ring-black/[0.08] dark:ring-white/[0.1]">
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div
                         className="relative w-[83%] aspect-square rounded-full overflow-hidden bg-[var(--primary)] flex items-center justify-center text-white font-semibold"
@@ -1172,28 +1182,28 @@ export function DecorationCard({
                     )}
                   </div>
                   <span
-                    className={`absolute top-0 left-1/2 -translate-x-1/2 z-10 inline-flex px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${RARITY_CARD_BADGE[rarity]}`}
+                    className={`absolute top-2 left-1/2 -translate-x-1/2 ${rarityBadgePillClasses(rarity)}`}
                   >
                     {rarityStyle.label}
                   </span>
                   {isEquipped && (
-                    <span className="absolute -bottom-0.5 -left-0.5 inline-flex items-center rounded bg-emerald-500/90 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5">
+                    <span className="absolute -bottom-0.5 -left-0.5 inline-flex items-center rounded-full bg-emerald-500/90 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5">
                       <Check className="w-2 h-2 sm:w-3 sm:h-3" />
                     </span>
                   )}
                   {onlyWithSubscription && discountPercent > 0 && (
-                    <span className="absolute top-0.5 left-0.5 sm:top-1.5 sm:left-1.5 inline-flex items-center rounded bg-blue-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm">
+                    <span className="absolute top-0.5 left-0.5 sm:top-1.5 sm:left-1.5 inline-flex items-center rounded-full bg-blue-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm">
                       −{discountPercent}%
                     </span>
                   )}
                   {soldOut && (
-                    <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded-full bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
                       <PackageX className="w-2 h-2 sm:w-3 sm:h-3" />
                       Распродано
                     </span>
                   )}
                   {isOwned && (
-                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded bg-emerald-500/95 text-white text-[8px] sm:text-xs font-semibold px-1.5 py-0.5 whitespace-nowrap shadow-sm z-[2]">
+                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded-full bg-emerald-500/95 text-white text-[8px] sm:text-xs font-semibold px-1.5 py-0.5 whitespace-nowrap shadow-sm z-[2]">
                       Уже куплено
                     </span>
                   )}
@@ -1202,9 +1212,11 @@ export function DecorationCard({
               )}
             </div>
 
-            <div className="w-full border-t border-[var(--border)] bg-[var(--card)]/90 px-2 py-2 sm:px-2.5 sm:py-2.5 flex flex-col gap-0.5 rounded-b-lg sm:rounded-b-xl md:rounded-b-2xl">
+            <div
+              className={`${CARD_FOOTER_STRIP} flex flex-col gap-1 rounded-b-xl sm:rounded-b-2xl px-2.5 py-2.5 sm:px-3 sm:py-3`}
+            >
               <h3
-                className="font-semibold text-[10px] sm:text-xs leading-tight line-clamp-1 text-center text-[var(--foreground)]"
+                className="font-semibold text-[10px] sm:text-xs leading-snug line-clamp-2 text-center text-[var(--foreground)] tracking-tight"
                 title={decoration.name}
               >
                 {decoration.name}
@@ -1225,7 +1237,7 @@ export function DecorationCard({
                 <div className="flex flex-col items-center gap-0.5 text-center">
                   {onlyWithSubscription && subscriptionPrice != null ? (
                     <>
-                      <span className="inline-flex items-center gap-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--secondary)]/80 px-2 py-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs shadow-sm ring-1 ring-[var(--border)]/50">
                         <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
                         {formatPrice(subscriptionPrice)}
                       </span>
@@ -1236,7 +1248,7 @@ export function DecorationCard({
                     </>
                   ) : (
                     <>
-                      <span className="inline-flex items-center gap-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--secondary)]/80 px-2 py-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs shadow-sm ring-1 ring-[var(--border)]/50">
                         <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
                         {formatPrice(decoration.price)}
                       </span>
@@ -1259,12 +1271,12 @@ export function DecorationCard({
 
   const renderImageBlock = (aspectClass: string, largeBadges = false) => {
     const badgeCl = largeBadges
-      ? "px-2.5 py-1 rounded-lg text-xs font-semibold"
-      : "px-2 py-0.5 rounded-lg text-[10px] font-semibold";
+      ? "px-2.5 py-1 rounded-full text-xs font-semibold"
+      : "px-2 py-0.5 rounded-full text-[10px] font-semibold";
     const iconCl = largeBadges ? "w-3.5 h-3.5" : "w-3 h-3";
     return (
       <div
-        className={`relative overflow-hidden border-b border-[var(--border)] ${rarityStyle.border} bg-[var(--muted)] ${aspectClass}`}
+        className={`relative z-[1] overflow-hidden border-b border-[var(--border)]/80 bg-gradient-to-b from-[var(--muted)] to-[var(--muted)]/88 ${rarityStyle.border} ${aspectClass}`}
       >
         {isImageLoading && hasImage && (
           <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
@@ -1290,7 +1302,7 @@ export function DecorationCard({
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-transparent pointer-events-none" />
         <span
-          className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${badgeCl} ${rarityStyle.badge}`}
+          className={`absolute top-2 left-1/2 -translate-x-1/2 transition-opacity pointer-events-none ${compactGrid ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"} ${rarityBadgePillClasses(rarity)}`}
         >
           {rarityStyle.label}
         </span>
@@ -1342,18 +1354,20 @@ export function DecorationCard({
   ) => {
     const isLarge = contentSize === "large";
     return (
-      <div className={`flex flex-col ${isLarge ? "p-4 sm:p-5 gap-2.5" : "p-2.5 sm:p-3 gap-2"}`}>
+      <div
+        className={`flex flex-col ${isLarge ? "p-4 sm:p-5 gap-2.5" : "p-2.5 sm:p-3 gap-2"} ${CARD_FOOTER_STRIP} rounded-b-xl sm:rounded-b-2xl`}
+      >
         <div className="min-w-0">
-            <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-0.5 text-[10px] font-medium text-[var(--foreground)]">
+            <div className="mb-1.5 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full border border-[var(--border)]/80 bg-[var(--secondary)]/90 px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--foreground)] shadow-sm">
                 {TYPE_META[displayType].shortLabel}
               </span>
-              <span className="text-[10px] text-[var(--muted-foreground)]">
+              <span className="text-[10px] leading-snug text-[var(--muted-foreground)]">
                 {TYPE_META[displayType].previewHint}
               </span>
             </div>
           <h3
-            className={`font-semibold leading-tight ${isLarge ? "text-base sm:text-lg line-clamp-2" : "text-xs sm:text-sm line-clamp-1"} text-[var(--foreground)]`}
+            className={`font-semibold tracking-tight ${isLarge ? "text-base sm:text-lg leading-snug line-clamp-2" : "text-xs sm:text-sm leading-snug line-clamp-2"} text-[var(--foreground)]`}
             title={decoration.name}
           >
             {decoration.name}
@@ -1383,7 +1397,7 @@ export function DecorationCard({
           >
             {!hidePurchase && !isOwned ? (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] font-medium text-[var(--foreground)] shrink-0 ${isLarge ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2 py-1.5 text-xs"}`}
+                className={`inline-flex items-center gap-1.5 rounded-xl bg-[var(--secondary)]/90 border border-[var(--border)]/80 font-semibold text-[var(--foreground)] shadow-sm shrink-0 ${isLarge ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2 py-1.5 text-xs"}`}
               >
                 <Coins
                   className={isLarge ? "w-4 h-4 text-amber-500" : "w-3.5 h-3.5 text-amber-500"}
@@ -1451,7 +1465,7 @@ export function DecorationCard({
         <article
           ref={cardRef}
           onClick={handleCardClick}
-          className={`group/card relative w-full max-w-full ${cardMinW} self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative z-0 w-full max-w-full ${cardMinW} self-start overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] cursor-pointer ${CARD_SHELL} ${CARD_FOCUS} ${rarityStyle.border}`}
         >
           <div
             className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
@@ -1462,7 +1476,7 @@ export function DecorationCard({
             aria-hidden
           />
           {/* Область изображения — горизонтальный баннер (ширина > высота) */}
-          <div className="relative w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-[var(--muted)] shrink-0 min-w-0">
+          <div className="relative z-[1] w-full min-h-0 aspect-[21/9] sm:aspect-video overflow-hidden bg-gradient-to-b from-[var(--muted)] to-[var(--muted)]/80 ring-1 ring-inset ring-black/[0.06] dark:ring-white/[0.08] shrink-0 min-w-0">
             {isImageLoading && hasImage && (
               <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
                 <span className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
@@ -1485,12 +1499,12 @@ export function DecorationCard({
                 <ImageIcon className="w-12 h-12 text-[var(--muted-foreground)]" />
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/70 via-transparent to-transparent pointer-events-none" />
-            <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-sm text-[10px] font-medium text-white/90">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/10 to-black/30 pointer-events-none" />
+            <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md text-[10px] font-semibold tracking-wide text-white shadow-sm ring-1 ring-white/15">
               Фон профиля
             </span>
             {showStock && (
-              <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/50 backdrop-blur-sm text-[10px] font-medium text-white/90">
+              <span className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md text-[10px] font-semibold text-white/95 shadow-sm ring-1 ring-white/10">
                 {decoration.stock! <= 0
                   ? "Нет в наличии"
                   : decoration.stock! <= 3
@@ -1499,41 +1513,43 @@ export function DecorationCard({
               </span>
             )}
             <span
-              className={`absolute top-2 left-1/2 -translate-x-1/2 z-10 inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold border whitespace-nowrap opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none ${rarityStyle.badge}`}
+              className={`absolute top-2 left-1/2 -translate-x-1/2 transition-opacity pointer-events-none ${compactGrid ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"} ${rarityBadgePillClasses(rarity)}`}
             >
               {rarityStyle.label}
             </span>
             <div className="absolute top-2 left-2 right-2 flex flex-wrap items-center gap-1.5">
               {isEquipped && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/90 text-white text-[10px] font-semibold whitespace-nowrap">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/90 text-white text-[10px] font-semibold whitespace-nowrap">
                   <Sparkles className="w-3 h-3 fill-current" />
                   Надето
                 </span>
               )}
               {soldOut && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-500/90 text-white text-[10px] font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/90 text-white text-[10px] font-semibold">
                   <PackageX className="w-3 h-3" />
                   Распродано
                 </span>
               )}
               {isOwned && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/95 text-white text-[10px] font-semibold shadow-sm">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/95 text-white text-[10px] font-semibold shadow-sm">
                   Уже куплено
                 </span>
               )}
             </div>
           </div>
-          <div className="p-2.5 sm:p-3 flex flex-col gap-2 bg-[var(--card)]">
+          <div
+            className={`${CARD_FOOTER_STRIP} flex flex-col gap-2 rounded-b-xl sm:rounded-b-2xl p-3 sm:p-3.5`}
+          >
             <div className="min-w-0">
               <h3
-                className="font-semibold text-xs sm:text-sm leading-tight line-clamp-1 text-[var(--foreground)]"
+                className="font-semibold text-xs sm:text-sm leading-snug line-clamp-2 text-[var(--foreground)] tracking-tight"
                 title={decoration.name}
               >
                 {decoration.name}
               </h3>
               {decoration.description && (
                 <p
-                  className="text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-1"
+                  className="mt-0.5 text-[11px] sm:text-xs text-[var(--muted-foreground)] line-clamp-2 leading-relaxed"
                   title={decoration.description}
                 >
                   {decoration.description}
@@ -1550,9 +1566,9 @@ export function DecorationCard({
                 </p>
               )}
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 min-h-[2rem]">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 min-h-[2rem] pt-0.5">
               {!hidePurchase && !isOwned ? (
-                <span className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--secondary)]/90 border border-[var(--border)]/80 text-xs font-semibold text-[var(--foreground)] shadow-sm shrink-0">
                   <Coins className="w-3.5 h-3.5 text-amber-500" />
                   {formatPrice(decoration.price)}
                 </span>
@@ -1582,7 +1598,7 @@ export function DecorationCard({
         <article
           ref={cardRef}
           onClick={handleCardClick}
-          className={`group/card relative w-full ${cardMaxW} ${cardMinW} rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+          className={`group/card relative z-0 w-full ${cardMaxW} ${cardMinW} overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] cursor-pointer ${CARD_SHELL} ${CARD_FOCUS} ${rarityStyle.border}`}
         >
           <div
             className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
@@ -1607,7 +1623,7 @@ export function DecorationCard({
       <article
         ref={cardRef}
         onClick={handleCardClick}
-        className={`group/card relative w-full ${fallbackMaxW} ${cardMinW} rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] overflow-hidden shadow-sm hover:shadow-lg cursor-pointer ${rarityStyle.border}`}
+        className={`group/card relative z-0 w-full ${fallbackMaxW} ${cardMinW} overflow-hidden rounded-xl sm:rounded-2xl border-2 bg-[var(--card)] cursor-pointer ${CARD_SHELL} ${CARD_FOCUS} ${rarityStyle.border}`}
       >
         <div
           className={`absolute inset-0 rounded-xl sm:rounded-2xl pointer-events-none z-0 opacity-60 ${rarityStyle.glowSpin}`}
