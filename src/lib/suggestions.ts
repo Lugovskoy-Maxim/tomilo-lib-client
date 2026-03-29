@@ -52,7 +52,7 @@ export function isWithinOneHour(createdAt: string): boolean {
   return Date.now() - new Date(createdAt).getTime() < ONE_HOUR_MS;
 }
 
-/** Следующий понедельник 00:00 (локальное время) — момент принятия победителя недели. */
+/** Следующий понедельник 00:00 (локальное время) — момент принятия победителей недели (топ-3 по голосам). */
 export function getNextAcceptanceDate(): Date {
   const now = new Date();
   const next = new Date(now);

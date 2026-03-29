@@ -140,6 +140,9 @@ export const VOTES_FOR_RARITY: Record<DecorationRarity, number> = {
 /** Монеты активности за один голос по предложению (должно совпадать с сервером shop.service VOTE_REWARD_COINS). */
 export const VOTE_REWARD_COINS = 100;
 
+/** Сколько предложений попадает в магазин по итогам недели (должно совпадать с сервером shop.service WEEKLY_SUGGESTION_WINNERS_COUNT). */
+export const WEEKLY_SUGGESTION_WINNERS_COUNT = 3;
+
 export function getPriceByRarity(rarity: DecorationRarity): number {
   return DECORATION_PRICE_BY_RARITY[rarity] ?? DECORATION_PRICE_BY_RARITY.common;
 }
