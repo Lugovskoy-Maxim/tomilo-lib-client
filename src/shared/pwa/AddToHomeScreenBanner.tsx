@@ -16,15 +16,32 @@ export function AddToHomeScreenBanner() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    
+    // Проверка на standalone режим с учетом совместимости Safari
+    let standalone = false;
+    
+    // Современный способ
+    if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) {
+      standalone = true;
+    }
+    // Устаревший способ для iOS Safari
+    else if ('standalone' in navigator && (navigator as Navigator & { standalone?: boolean }).standalone) {
+      standalone = true;
+    }
+    
     setIsStandalone(standalone);
     const wasDismissed = localStorage.getItem(STORAGE_KEY_DISMISSED) === "true";
     setDismissed(wasDismissed);
   }, []);
 
   useEffect(() => {
+    // Проверяем, поддерживает ли браузер beforeinstallprompt (не поддерживается в Safari)
+    if (!('beforeinstallprompt' in window)) {
+      // В Safari скрываем баннер, так как установка через PWA работает по-другому
+      setDismissed(true);
+      return;
+    }
+
     const handler = (e: Event) => {
       e.preventDefault();
       const ev = e as unknown as { prompt: () => Promise<{ outcome: string }> };

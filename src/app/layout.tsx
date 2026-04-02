@@ -6,6 +6,8 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { FontProvider } from "@/contexts/FontContext";
 import { ProgressNotificationProvider } from "@/contexts/ProgressNotificationContext";
 import { OverlayProvider } from "@/contexts/OverlayContext";
+import { initSafariPolyfills } from "@/lib/safari-polyfills";
+import { SafariPolyfillInitializer } from "@/components/SafariPolyfillInitializer";
 
 import { Suspense } from "react";
 import Script from "next/script";
@@ -296,6 +298,7 @@ export default function RootLayout({
                         <OfflineMutationSync />
                         <OfflineBanner />
                         <AddToHomeScreenBanner />
+                        <SafariPolyfillInitializer />
                       </Suspense>
                       <Suspense fallback={null}>
                         <CardTiltEffect />
