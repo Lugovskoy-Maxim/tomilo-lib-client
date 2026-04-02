@@ -193,6 +193,44 @@ html.font-rubik body {
   display: none; /* Chrome, Safari and Opera */
 }
 
+/* Фиксы для Safari */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific fixes */
+  input, textarea, select {
+    font-size: 16px !important; /* Предотвращает авто-зум */
+  }
+  
+  /* Фикс для sticky элементов в Safari */
+  .sticky {
+    position: -webkit-sticky;
+  }
+  
+  /* Фикс для флекс-контейнеров в Safari */
+  .safari-flex-fix {
+    -webkit-flex-shrink: 0;
+  }
+  
+  /* Фикс для изображений в Safari */
+  img {
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Фикс для background-attachment: fixed в Safari */
+@supports not (background-attachment: fixed) {
+  .bg-fixed {
+    background-attachment: scroll;
+  }
+}
+
+/* Фикс для backdrop-filter в Safari */
+@supports (-webkit-backdrop-filter: blur(10px)) {
+  .backdrop-blur {
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
 /* Модули (профиль, хедер, футер, контент, мобильное меню и т.д.). admin.css подключается в app/admin/layout.tsx */
 @import "./styles/variables-rgb.css";
 @import "./styles/layout/index.css";

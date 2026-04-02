@@ -110,7 +110,8 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       return;
     }
 
-    const rootMarginValue = lowPriority ? "300px 0px" : "800px 0px";
+    // Используем корректный формат rootMargin для Safari (с единицами измерения)
+    const rootMarginValue = lowPriority ? "300px 0px 300px 0px" : "800px 0px 800px 0px";
     const forceLoadTimeout = window.setTimeout(
       () => {
         setShouldLoad(true);
@@ -127,7 +128,12 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           }
         });
       },
-      { rootMargin: rootMarginValue, threshold: 0.01 },
+      {
+        rootMargin: rootMarginValue,
+        threshold: 0.01,
+        // Добавляем fallback для старых браузеров
+        root: null
+      },
     );
 
     observer.observe(containerRef.current);
