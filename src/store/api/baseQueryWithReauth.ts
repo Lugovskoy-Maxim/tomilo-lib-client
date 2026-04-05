@@ -1,6 +1,7 @@
 import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 import type { BaseQueryApi } from "@reduxjs/toolkit/query/react";
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
 import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
 import { canQueueBody, enqueueOfflineMutation } from "@/lib/offlineMutationQueue";
 
@@ -38,11 +39,13 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
           headers.set("authorization", `Bearer ${token}`);
         }
 
-        const isOfflineReadMode = new URLSearchParams(window.location.search).get(
-          OFFLINE_READ_QUERY_PARAM,
-        );
-        if (isOfflineReadMode === "1") {
-          headers.set("x-offline-read", "1");
+        if (OFFLINE_FEATURES_ENABLED) {
+          const isOfflineReadMode = new URLSearchParams(window.location.search).get(
+            OFFLINE_READ_QUERY_PARAM,
+          );
+          if (isOfflineReadMode === "1") {
+            headers.set("x-offline-read", "1");
+          }
         }
       }
       return headers;
@@ -65,7 +68,13 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
     typeof result.error?.error === "string" &&
     /failed to fetch|networkerror|network request failed|load failed/i.test(result.error.error);
 
-  if (isOfflineNetworkFailure && isMutationMethod && !isAuthEndpoint && canQueueBody(requestMeta.body)) {
+  if (
+    OFFLINE_FEATURES_ENABLED &&
+    isOfflineNetworkFailure &&
+    isMutationMethod &&
+    !isAuthEndpoint &&
+    canQueueBody(requestMeta.body)
+  ) {
     enqueueOfflineMutation({
       url: requestMeta.url,
       method: requestMeta.method as "POST" | "PUT" | "PATCH" | "DELETE",

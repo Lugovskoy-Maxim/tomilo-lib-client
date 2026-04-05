@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
 
 export function useServiceWorkerRegistration() {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -15,6 +16,19 @@ export function useServiceWorkerRegistration() {
     const onOffline = () => setIsOnline(false);
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
+
+    if (!OFFLINE_FEATURES_ENABLED) {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then(regs => {
+          void Promise.all(regs.map(r => r.unregister()));
+        })
+        .catch(() => {});
+      return () => {
+        window.removeEventListener("online", onOnline);
+        window.removeEventListener("offline", onOffline);
+      };
+    }
 
     navigator.serviceWorker
       .register("/sw.js", { scope: "/" })

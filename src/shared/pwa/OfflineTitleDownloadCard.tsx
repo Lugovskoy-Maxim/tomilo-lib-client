@@ -1,5 +1,6 @@
 "use client";
 
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Download, ExternalLink, Loader2, Trash2 } from "lucide-react";
@@ -322,6 +323,10 @@ export default function OfflineTitleDownloadCard({
       setIsRemoving(false);
     }
   }, [isDownloading, isRemoving, titleId]);
+
+  if (!OFFLINE_FEATURES_ENABLED) {
+    return null;
+  }
 
   return (
     <div className="bg-[var(--secondary)]/70 backdrop-blur-md rounded-2xl p-4 border border-[var(--border)]/50">

@@ -19,6 +19,7 @@ import NotificationSocketToasts from "@/shared/ui/NotificationSocketToasts";
 import DailyQuestCompletionToasts from "@/shared/ui/DailyQuestCompletionToasts";
 import type { Metadata, Viewport } from "next";
 import CardTiltEffect from "@/shared/card-tilt/CardTiltEffect";
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
 import ServiceWorkerRegistration from "@/shared/pwa/ServiceWorkerRegistration";
 import { OfflineBanner } from "@/shared/pwa/OfflineBanner";
 import { AddToHomeScreenBanner } from "@/shared/pwa/AddToHomeScreenBanner";
@@ -295,8 +296,12 @@ export default function RootLayout({
                     <div className="contents">
                       <Suspense fallback={null}>
                         <ServiceWorkerRegistration />
-                        <OfflineMutationSync />
-                        <OfflineBanner />
+                        {OFFLINE_FEATURES_ENABLED && (
+                          <>
+                            <OfflineMutationSync />
+                            <OfflineBanner />
+                          </>
+                        )}
                         <AddToHomeScreenBanner />
                         <SafariPolyfillInitializer />
                       </Suspense>
