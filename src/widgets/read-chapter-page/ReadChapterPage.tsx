@@ -36,6 +36,7 @@ import {
   getCurrentPageEnhanced,
   clearOtherChaptersPositions,
 } from "@/lib/reading-position";
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
 import { formatNumber } from "@/lib/utils";
 import { formatNotificationTime } from "@/lib/date-utils";
 
@@ -123,7 +124,8 @@ function ReadChapterPageContent({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isOfflineReadMode = searchParams.get("offlineRead") === "1";
+  const isOfflineReadMode =
+    OFFLINE_FEATURES_ENABLED && searchParams.get("offlineRead") === "1";
 
   const { user, updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
   const { data: readingHistoryResponse } = useGetReadingHistoryQuery(

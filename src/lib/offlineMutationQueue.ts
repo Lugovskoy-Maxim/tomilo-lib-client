@@ -1,5 +1,7 @@
 "use client";
 
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
+
 const OFFLINE_MUTATION_QUEUE_KEY = "offline_mutation_queue_v1";
 const AUTH_TOKEN_KEY = "tomilo_lib_token";
 const OFFLINE_QUEUE_EVENT = "offline-mutation-queue-updated";
@@ -147,6 +149,7 @@ export function canQueueBody(body: unknown): boolean {
 }
 
 export function enqueueOfflineMutation(item: Omit<OfflineMutationQueueItem, "id" | "createdAt">): void {
+  if (!OFFLINE_FEATURES_ENABLED) return;
   if (typeof window === "undefined") return;
   const nextItem: OfflineMutationQueueItem = {
     ...item,
@@ -205,6 +208,7 @@ export async function flushOfflineMutationQueue(apiBaseUrl: string): Promise<{
   processed: number;
   failed: number;
 }> {
+  if (!OFFLINE_FEATURES_ENABLED) return { processed: 0, failed: 0 };
   if (typeof window === "undefined") return { processed: 0, failed: 0 };
   if (isSyncing) return { processed: 0, failed: 0 };
   if (navigator.onLine === false) return { processed: 0, failed: 0 };

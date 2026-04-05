@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
 import { BookOpen, Download, ExternalLink, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { Footer, Header } from "@/widgets";
 import {
@@ -79,6 +81,7 @@ function readOfflineManifests(): OfflineManifest[] {
 }
 
 export default function OfflinePage() {
+  const router = useRouter();
   const [manifests, setManifests] = useState<OfflineManifest[]>([]);
   const [removingChapterKey, setRemovingChapterKey] = useState<string | null>(null);
   const [queueSnapshot, setQueueSnapshot] = useState<OfflineQueueSnapshot>({
@@ -89,6 +92,12 @@ export default function OfflinePage() {
   });
   const [queueItems, setQueueItems] = useState<OfflineMutationQueueItem[]>([]);
   const [isManualSyncing, setIsManualSyncing] = useState(false);
+
+  useEffect(() => {
+    if (!OFFLINE_FEATURES_ENABLED) {
+      router.replace("/");
+    }
+  }, [router]);
 
   useEffect(() => {
     setManifests(readOfflineManifests());
@@ -228,6 +237,10 @@ export default function OfflinePage() {
     }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [queueItems]);
+
+  if (!OFFLINE_FEATURES_ENABLED) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-[var(--background)]">

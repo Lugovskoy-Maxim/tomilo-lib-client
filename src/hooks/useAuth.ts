@@ -21,6 +21,7 @@ import { checkAndSetAgeVerification, clearAgeVerification } from "@/lib/age-veri
 import { ReadingProgressResponse } from "@/types/progress";
 import type { ReadingHistoryEntry, ReadingHistoryChapter } from "@/types/store";
 
+import { OFFLINE_FEATURES_ENABLED } from "@/config/offlineFeatures";
 import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/store/api/authApi";
 import { reconnectNotificationsSocket } from "@/lib/notificationsSocket";
 import { useToast } from "@/hooks/useToast";
@@ -574,6 +575,7 @@ export const useAuth = () => {
       const isNetworkFetchFailure = (msg: string): boolean =>
         /failed to fetch|networkerror|network request failed|load failed/i.test(msg);
       const isOfflineReadMode = (): boolean =>
+        OFFLINE_FEATURES_ENABLED &&
         typeof window !== "undefined" &&
         new URLSearchParams(window.location.search).get("offlineRead") === "1";
       const shouldSilenceNetworkHistoryError = (msg: string): boolean =>
