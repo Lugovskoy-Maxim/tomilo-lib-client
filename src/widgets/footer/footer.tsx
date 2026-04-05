@@ -350,6 +350,8 @@ export default function Footer() {
               </span>
               <span className="text-xs text-[var(--muted-foreground)]" aria-hidden>·</span>
               <span className="text-xs">ИНН 553101511919</span>
+              <span className="text-xs">тел. +7 995 902-92-60</span>
+
             </div>
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[var(--muted-foreground)]">
               <Link
