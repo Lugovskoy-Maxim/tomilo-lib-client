@@ -1,7 +1,7 @@
+"use client";
+
 import Image from "next/image";
 import LOGO_IMAGE_COLOR from "../../../public/logo/tomilo_color.svg";
-// import SANTA_HAT_IMAGE from "../../../public/logo/snata_hat.svg";
-
 import Link from "next/link";
 
 type LogoVariant = "header" | "footer" | "default";
@@ -52,15 +52,6 @@ export default function Logo({
         sizes="(max-width: 640px) 80px, (max-width: 768px) 100px, 120px"
         className={sizeClass}
       />
-      {/* New Year's Santa Hat
-      <Image
-        src={SANTA_HAT_IMAGE}
-        alt=""
-        width={30}
-        height={30}
-        priority={false}
-        className="absolute -top-1 -right-3 z-10 rotate-30"
-      /> */}
     </Link>
   );
 }
