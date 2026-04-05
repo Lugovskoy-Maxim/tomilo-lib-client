@@ -1139,7 +1139,7 @@ export function DecorationCard({
               ) : (
                 <div className="relative h-full w-full max-h-[82%] max-w-[82%] shrink-0 drop-shadow-[0_8px_24px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_8px_28px_rgba(0,0,0,0.4)]">
                   <div className="relative h-0 w-full pb-[120%]">
-                  <div className="absolute inset-0 rounded-lg ring-1 ring-black/[0.08] dark:ring-white/[0.1]">
+                  <div className="absolute inset-0 rounded-lg">
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div
                         className="relative w-[83%] aspect-square rounded-full overflow-hidden bg-[var(--primary)] flex items-center justify-center text-white font-semibold"
