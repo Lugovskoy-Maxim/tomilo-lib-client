@@ -6,6 +6,7 @@ import { Header, Footer } from "@/widgets";
 import {
   GamesTabs,
   GamesHubIntro,
+  GamesHubHero,
   InventorySection,
   DisciplesSection,
   ExpeditionSection,
@@ -44,26 +45,24 @@ export default function GamesPage() {
   }, [searchParams]);
 
   useSEO({
-    title: "Мини-игры - Tomilo-lib.ru",
-    description: "Инвентарь, квесты, ученики, карточки, алхимия и колесо судьбы в одном игровом хабе.",
-    keywords: "мини-игры, инвентарь, квесты, карточки, ученики, алхимия, колесо судьбы",
+    title: "Мини-игры — Арена наставника | Tomilo-lib.ru",
+    description:
+      "Игровой хаб: инвентарь, ежедневные квесты, ученики, экспедиции, карточки, алхимия и колесо судьбы.",
+    keywords: "мини-игры, инвентарь, квесты, карточки, ученики, алхимия, колесо судьбы, томило",
   });
 
   return (
     <main className="games-hub min-h-screen overflow-x-hidden">
-      <AuthGuard redirectTo="/" requiredRole="admin">
+      <AuthGuard redirectTo="/">
         <Header />
 
-        <section className="games-header sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4">
-            <div className="text-center mb-3 sm:mb-4">
-              <h1 className="games-title">
-                Арена наставника
-              </h1>
-              <p className="games-subtitle max-w-sm mx-auto mt-0.5">
-                Инвентарь · Квесты · Ученики · Экспедиция · Карточки · Алхимия · Колесо
-              </p>
-            </div>
+        <GamesHubHero />
+
+        <section className="games-header sticky top-0 z-10 backdrop-blur-md bg-[color-mix(in_oklch,var(--background)_88%,transparent)] supports-[backdrop-filter]:bg-[color-mix(in_oklch,var(--background)_72%,transparent)] border-b border-[var(--border)] shadow-[0_1px_0_rgba(0,0,0,0.04)]">
+          <div className="max-w-7xl mx-auto px-3 py-2.5 sm:px-4 sm:py-3">
+            <p className="games-tabs-label text-center sm:text-left text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              Разделы
+            </p>
             <GamesTabs activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
         </section>
