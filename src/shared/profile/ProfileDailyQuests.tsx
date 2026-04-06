@@ -9,6 +9,8 @@ import { GameResultReveal } from "@/shared/games";
 interface ProfileDailyQuestsProps {
   /** Показать только первые N заданий (для компактного обзора) */
   maxVisible?: number;
+  /** На странице игр — оформление в стиле `games-panel` и `--primary` */
+  variant?: "profile" | "games";
 }
 
 /** Форматирует время до сброса: "5 ч 23 мин", "менее минуты", "завтра в 00:00" */
@@ -30,7 +32,8 @@ function formatResetIn(resetAtIso: string): string {
   return totalMinutes < 1 ? "менее минуты" : `${totalMinutes} мин`;
 }
 
-export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsProps = {}) {
+export default function ProfileDailyQuests({ maxVisible, variant = "profile" }: ProfileDailyQuestsProps = {}) {
+  const isGames = variant === "games";
   const { data: response, isLoading, isError } = useGetDailyQuestsQuery(undefined, {
     skip: typeof window === "undefined",
   });
@@ -78,10 +81,22 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+      <div
+        className={
+          isGames
+            ? "games-panel p-4 sm:p-5"
+            : "rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm p-4 sm:p-5 shadow-sm"
+        }
+      >
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-2xl bg-violet-500/15 border border-violet-500/25">
-            <ClipboardList className="w-5 h-5 text-violet-500" />
+          <div
+            className={
+              isGames
+                ? "p-2.5 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_14%,transparent)] border border-[color-mix(in_oklch,var(--primary)_28%,var(--border))]"
+                : "p-2.5 rounded-2xl bg-violet-500/15 border border-violet-500/25"
+            }
+          >
+            <ClipboardList className={`w-5 h-5 ${isGames ? "text-[var(--primary)]" : "text-violet-500"}`} />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-[var(--foreground)]">Ежедневные задания</h3>
@@ -100,12 +115,18 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm shadow-sm">
+    <div className={isGames ? "games-panel p-0 overflow-hidden shadow-sm" : "rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm shadow-sm"}>
       <div className="p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-violet-500/15 border border-violet-500/25">
-              <ClipboardList className="w-5 h-5 text-violet-500" />
+            <div
+              className={
+                isGames
+                  ? "p-2.5 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_14%,transparent)] border border-[color-mix(in_oklch,var(--primary)_28%,var(--border))]"
+                  : "p-2.5 rounded-2xl bg-violet-500/15 border border-violet-500/25"
+              }
+            >
+              <ClipboardList className={`w-5 h-5 ${isGames ? "text-[var(--primary)]" : "text-violet-500"}`} />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-[var(--foreground)]">Ежедневные задания</h3>
@@ -145,7 +166,9 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
                     ${claimed
                       ? "bg-emerald-500/5 border-emerald-500/20 shadow-none"
                       : canClaim
-                        ? "bg-violet-500/8 border-violet-500/25 ring-1 ring-violet-500/10"
+                        ? isGames
+                          ? "bg-[color-mix(in_oklch,var(--primary)_10%,var(--card))] border-[color-mix(in_oklch,var(--primary)_35%,var(--border))] ring-1 ring-[color-mix(in_oklch,var(--primary)_18%,transparent)]"
+                          : "bg-violet-500/8 border-violet-500/25 ring-1 ring-violet-500/10"
                         : "bg-[var(--secondary)]/20 border-[var(--border)]/40 hover:border-[var(--border)]/60"
                     }
                   `}
@@ -162,7 +185,9 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
                           ${claimed
                             ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                             : done
-                              ? "bg-violet-500/20 text-violet-600 dark:text-violet-400"
+                              ? isGames
+                                ? "bg-[color-mix(in_oklch,var(--primary)_18%,transparent)] text-[var(--primary)]"
+                                : "bg-violet-500/20 text-violet-600 dark:text-violet-400"
                               : "bg-[var(--secondary)]/80 text-[var(--muted-foreground)]"
                           }
                         `}
@@ -212,7 +237,7 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
                       <div
                         className={`
                           h-full rounded-full transition-all duration-500
-                          ${claimed ? "bg-emerald-500" : done ? "bg-violet-500" : "bg-violet-500/70"}
+                          ${claimed ? "bg-emerald-500" : done ? (isGames ? "bg-[var(--primary)]" : "bg-violet-500") : isGames ? "bg-[color-mix(in_oklch,var(--primary)_75%,var(--muted-foreground))]" : "bg-violet-500/70"}
                         `}
                         style={{ width: `${progressPct}%` }}
                       />
@@ -226,7 +251,11 @@ export default function ProfileDailyQuests({ maxVisible }: ProfileDailyQuestsPro
                         type="button"
                         onClick={() => handleClaim(q.id)}
                         disabled={isClaiming}
-                        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-violet-500 text-white text-xs font-semibold hover:bg-violet-600 active:scale-[0.98] disabled:opacity-70 transition-all"
+                        className={
+                          isGames
+                            ? "games-btn games-btn-primary w-full py-2 text-xs font-semibold"
+                            : "w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-violet-500 text-white text-xs font-semibold hover:bg-violet-600 active:scale-[0.98] disabled:opacity-70 transition-all"
+                        }
                       >
                         {isClaiming ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
