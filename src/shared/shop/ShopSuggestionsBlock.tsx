@@ -51,6 +51,7 @@ export function ShopSuggestionsBlock() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentUserId = user?.id ?? (user as { _id?: string })?._id ?? null;
   const isAdmin = (user as { role?: string })?.role === "admin";
+  const [isMounted, setIsMounted] = useState(false);
 
   const { data: suggestions = [], isLoading: loadingSuggestions } = useGetSuggestionsQuery();
   const [uploadImage, { isLoading: uploading }] = useUploadSuggestionImageMutation();
@@ -71,6 +72,7 @@ export function ShopSuggestionsBlock() {
   const [editingSuggestionId, setEditingSuggestionId] = useState<string | null>(null);
 
   useEffect(() => {
+    setIsMounted(true);
     try {
       setIsBlockHidden(localStorage.getItem(STORAGE_KEY_HIDDEN) === "true");
     } catch {
@@ -89,9 +91,7 @@ export function ShopSuggestionsBlock() {
   };
 
   const nextAcceptance = useMemo(() => getNextAcceptanceDate(), []);
-  const [countdownMs, setCountdownMs] = useState(() =>
-    Math.max(0, nextAcceptance.getTime() - Date.now()),
-  );
+  const [countdownMs, setCountdownMs] = useState(0);
   useEffect(() => {
     const tick = () => setCountdownMs(() => Math.max(0, nextAcceptance.getTime() - Date.now()));
     const id = setInterval(tick, 60_000);
@@ -332,7 +332,7 @@ export function ShopSuggestionsBlock() {
         </div>
 
         {/* Форма или призыв войти */}
-        {isAuthenticated ? (
+        {isMounted && isAuthenticated ? (
           <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--background)]/50 p-3">
             <button
               type="button"

@@ -1,5 +1,7 @@
 export { GamesTabs, isValidGamesTabId, type GamesTabId } from "./GamesTabs";
 export { GamesHubIntro } from "./GamesHubIntro";
+export { GamesHubHero } from "./GamesHubHero";
+export { GamesGuestPlaceholder } from "./GamesGuestPlaceholder";
 export { ExpeditionSection } from "./ExpeditionSection";
 export { InventorySection } from "./InventorySection";
 export { CardsCollectionSection } from "./CardsCollectionSection";

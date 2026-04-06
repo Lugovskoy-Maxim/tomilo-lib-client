@@ -112,6 +112,11 @@ function coerceSquadMember(row: unknown): BattleSquadPreview | null {
     r.characterName,
     r.displayName,
     r.titleName,
+    r.performerName,
+    r.attackerName,
+    r.defenderName,
+    r.unitName,
+    r.username,
     n?.name,
   );
   const avatar = pickFirstString(r.avatar, n?.avatar);
@@ -220,8 +225,8 @@ function BattleSquadMemberChip({ member }: { member: BattleSquadPreview }) {
   const showImg = Boolean(url && !imgFailed);
 
   return (
-    <div className="flex flex-col items-center gap-1 w-[4.5rem] sm:w-[5.25rem] shrink-0">
-      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-[var(--border)] bg-[var(--muted)]/25 overflow-hidden flex items-center justify-center">
+    <div className="flex flex-col items-center gap-1 w-[5rem] sm:w-[6rem] shrink-0">
+      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border border-[var(--border)] bg-[var(--muted)]/25 overflow-hidden flex items-center justify-center">
         {showImg ? (
           <img
             src={url}
@@ -230,7 +235,7 @@ function BattleSquadMemberChip({ member }: { member: BattleSquadPreview }) {
             onError={() => setImgFailed(true)}
           />
         ) : (
-          <Users className="w-6 h-6 text-[var(--muted-foreground)]" aria-hidden />
+          <Users className="w-8 h-8 text-[var(--muted-foreground)]" aria-hidden />
         )}
       </div>
       <div className="text-[10px] sm:text-[11px] text-center text-[var(--foreground)] font-medium leading-tight line-clamp-2 w-full">
@@ -557,8 +562,13 @@ export function DisciplesSection() {
   const [consumedCandidateId, setConsumedCandidateId] = useState<string | null>(null);
   const [failedDiscipleAvatarIds, setFailedDiscipleAvatarIds] = useState<Set<string>>(new Set());
   const [barracksExpanded, setBarracksExpanded] = useState(false);
+  const [subTab, setSubTab] = useState<"overview" | "roster" | "arena" | "weekly" | "library" | "shop">("overview");
 
   const res = data?.data;
+  const dailyBattlesCount = res?.dailyBattlesCount ?? 0;
+  const dailyBattlesLimit = 3; // максимальное количество боев в день для обычных пользователей
+  const battlesRemaining = dailyBattlesLimit - dailyBattlesCount;
+  const canBattle = battlesRemaining > 0 || res?.role === 'admin'; // админы без лимита
   const disciples = useMemo(() => (res?.disciples ?? []) as Disciple[], [res?.disciples]);
   const maxActive =
     res?.maxDisciples != null && res.maxDisciples > 0 ? res.maxDisciples : 3;
@@ -944,6 +954,7 @@ export function DisciplesSection() {
           <span className="games-muted text-sm">монет</span>
         </span>
         <span className="games-muted text-sm">Рейтинг <strong className="text-[var(--foreground)]">{res.combatRating}</strong></span>
+        <span className="games-muted text-sm">Бои сегодня <strong className="text-[var(--foreground)]">{dailyBattlesCount}/{dailyBattlesLimit}</strong></span>
         <span className="games-muted text-sm">В отряде <strong className="text-[var(--foreground)]">{activeRoster.length}/{maxActive}</strong></span>
         <span className="games-muted text-sm">Всего учеников <strong className="text-[var(--foreground)]">{disciples.length}</strong></span>
         {warehouseRoster.length > 0 ? (
@@ -1122,7 +1133,7 @@ export function DisciplesSection() {
             <h4 className="text-sm font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
               <Users className="w-4 h-4" aria-hidden /> Активный отряд (до {maxActive})
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+<div className="games-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
             {rosterItems.map((item) => {
               if (item.type === "warehouse-header") {
                 return (
@@ -1205,109 +1216,127 @@ export function DisciplesSection() {
                   ? "games-card games-card--compact col-span-full"
                   : "games-card games-card--compact";
               return (
-                <CardWrap key={d.characterId} className={cardClass}>
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <div className="shrink-0">
-                    <DiscipleAvatar
-                      avatarPath={d.avatar ?? ""}
-                      showImage={showDiscipleAvatar}
-                      onError={() => setFailedDiscipleAvatarIds(prev => new Set(prev).add(d.characterId))}
-                      size="md"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <p className="font-semibold text-sm text-[var(--foreground)] truncate inline-flex items-center gap-1">
-                      {d.name ?? "Ученик"}
-                      {primaryId === d.characterId ? (
-                        <span className="inline-flex shrink-0" title="Основной ученик">
-                          <Crown className="w-3.5 h-3.5 text-amber-500" aria-hidden />
+                <CardWrap key={d.characterId} className={`${cardClass} games-disciple-card`}>
+                  {/* Заголовок: аватар, имя, уровень, ранг */}
+                  <div className="games-disciple-card__header">
+                    <div className="games-disciple-card__avatar">
+                      <DiscipleAvatar
+                        avatarPath={d.avatar ?? ""}
+                        showImage={showDiscipleAvatar}
+                        onError={() => setFailedDiscipleAvatarIds(prev => new Set(prev).add(d.characterId))}
+                        size="lg"
+                      />
+                      {primaryId === d.characterId && (
+                        <span className="games-disciple-card__avatar-badge" title="Основной ученик">
+                          <Crown className="w-3 h-3" />
                         </span>
-                      ) : null}
-                    </p>
-                    {(d.level != null || d.rank) && (
-                      <span className="games-muted text-[11px] shrink-0 font-semibold">
-                        {d.level != null && <>Ур.{d.level}</>}
-                        {d.level != null && d.rank && " · "}
-                        {d.rank && <>{d.rank}</>}
-                      </span>
-                    )}
-                    {d.titleName && <span className="games-muted text-[11px] truncate">· {d.titleName}</span>}
+                      )}
+                    </div>
+                    <div className="games-disciple-card__info">
+                      <div className="games-disciple-card__name">
+                        {d.name ?? "Ученик"}
+                        {primaryId === d.characterId && (
+                          <Crown className="w-3.5 h-3.5 text-amber-500" aria-hidden />
+                        )}
+                      </div>
+                      {d.titleName && <div className="games-disciple-card__title">{d.titleName}</div>}
+                      <div className="games-disciple-card__meta">
+                        {d.level != null && <span className="games-disciple-card__level">Ур.{d.level}</span>}
+                        {d.rank && <span className="games-disciple-card__rank">{d.rank}</span>}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                  <span className="games-badge games-badge--primary text-[11px] px-1.5 py-0.5" title="CP"><Zap className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.cp)}</span></span>
-                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="Атака"><Swords className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.attack)}</span></span>
-                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="Защита"><Shield className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.defense)}</span></span>
-                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="Скорость"><Footprints className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.speed)}</span></span>
-                  <span className="games-badge text-[11px] px-1.5 py-0.5" title="HP"><Heart className="w-3 h-3" data-icon aria-hidden /><span>{formatStat(d.hp)}</span></span>
+
+                  {/* Статистика */}
+                  <div className="games-disciple-card__stats">
+                    <div className="games-disciple-card__stat" title="CP">
+                      <Zap className="games-disciple-card__stat-icon" />
+                      <span>{formatStat(d.cp)}</span>
+                    </div>
+                    <div className="games-disciple-card__stat" title="Атака">
+                      <Swords className="games-disciple-card__stat-icon" />
+                      <span>{formatStat(d.attack)}</span>
+                    </div>
+                    <div className="games-disciple-card__stat" title="Защита">
+                      <Shield className="games-disciple-card__stat-icon" />
+                      <span>{formatStat(d.defense)}</span>
+                    </div>
+                    <div className="games-disciple-card__stat" title="Скорость">
+                      <Footprints className="games-disciple-card__stat-icon" />
+                      <span>{formatStat(d.speed)}</span>
+                    </div>
+                    <div className="games-disciple-card__stat" title="HP">
+                      <Heart className="games-disciple-card__stat-icon" />
+                      <span>{formatStat(d.hp)}</span>
+                    </div>
+                  </div>
+
+                  {/* Прогресс опыта */}
                   {d.exp != null && d.expToNext != null && d.expToNext > 0 && (
-                    <span className="inline-flex items-center gap-1.5 ml-0.5 min-w-0">
-                      <span
-                        className="h-1.5 w-12 min-w-[3rem] max-w-20 rounded-full bg-[var(--muted)] overflow-hidden shrink-0"
-                        role="progressbar"
-                        aria-valuenow={d.exp}
-                        aria-valuemin={0}
-                        aria-valuemax={d.expToNext}
-                        title={`${d.exp}/${d.expToNext} XP`}
-                      >
-                        <span
-                          className="block h-full rounded-full bg-[var(--primary)] transition-all"
+                    <div className="games-disciple-card__progress">
+                      <div className="games-disciple-card__progress-label">
+                        <span>Опыт</span>
+                        <span>{d.exp}/{d.expToNext} XP</span>
+                      </div>
+                      <div className="games-disciple-card__progress-bar">
+                        <div
+                          className="games-disciple-card__progress-fill"
                           style={{ width: `${Math.min(100, (d.exp / d.expToNext) * 100)}%` }}
                         />
-                      </span>
-                      <span className="games-muted text-[11px] shrink-0">{d.exp}/{d.expToNext} XP</span>
-                    </span>
+                      </div>
+                    </div>
                   )}
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleTrain(d.characterId)}
-                    disabled={!res.canTrain || isTraining}
-                    className="games-btn games-btn-secondary games-btn-sm"
-                    title="Тренировка (1 раз в день)"
-                  >
-                    <Zap className="w-3 h-3" aria-hidden /> Тренировка
-                  </button>
-                  {!d.inWarehouse ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleSetPrimary(d.characterId)}
-                        disabled={primaryId === d.characterId || isSettingPrimary}
-                        className="games-btn games-btn-secondary games-btn-sm"
-                        title="Основной получает большую долю опыта в играх"
-                      >
-                        <Crown className="w-3 h-3" aria-hidden /> Основной
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleWarehouseToggle(d.characterId, true)}
-                        disabled={activeRoster.length <= 1 || isMovingWarehouse}
-                        className="games-btn games-btn-secondary games-btn-sm"
-                        title="В казарму (нужен хотя бы один активный)"
-                      >
-                        <Warehouse className="w-3 h-3" aria-hidden /> В казарму
-                      </button>
-                    </>
-                  ) : (
+
+                  {/* Действия */}
+                  <div className="games-disciple-card__actions">
                     <button
                       type="button"
-                      onClick={() => handleWarehouseToggle(d.characterId, false)}
-                      disabled={activeRoster.length >= maxActive || isMovingWarehouse}
-                      className="games-btn games-btn-secondary games-btn-sm"
+                      onClick={() => handleTrain(d.characterId)}
+                      disabled={!res.canTrain || isTraining}
+                      className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
+                      title="Тренировка (1 раз в день)"
                     >
-                      В отряд
+                      <Zap className="w-3 h-3" /> Тренировка
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleDismiss(d.characterId)}
-                    className="games-btn games-btn-danger games-btn-sm"
-                  >
-                    <UserMinus className="w-3 h-3" aria-hidden /> Отпустить
-                  </button>
-                </div>
+                    {!d.inWarehouse ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleSetPrimary(d.characterId)}
+                          disabled={primaryId === d.characterId || isSettingPrimary}
+                          className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
+                          title="Основной получает большую долю опыта в играх"
+                        >
+                          <Crown className="w-3 h-3" /> Основной
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleWarehouseToggle(d.characterId, true)}
+                          disabled={activeRoster.length <= 1 || isMovingWarehouse}
+                          className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
+                          title="В казарму (нужен хотя бы один активный)"
+                        >
+                          <Warehouse className="w-3 h-3" /> В казарму
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleWarehouseToggle(d.characterId, false)}
+                        disabled={activeRoster.length >= maxActive || isMovingWarehouse}
+                        className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
+                      >
+                        В отряд
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDismiss(d.characterId)}
+                      className="games-btn games-btn-danger games-btn-sm games-disciple-card__action"
+                    >
+                      <UserMinus className="w-3 h-3" /> Отпустить
+                    </button>
+                  </div>
                 <div className="mt-1.5 rounded-md border border-[var(--border)] bg-[var(--muted)]/20 p-2 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     {relatedCard?.stageImageUrl ? (

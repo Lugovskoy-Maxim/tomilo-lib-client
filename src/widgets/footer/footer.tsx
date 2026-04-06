@@ -23,6 +23,7 @@ import {
   Ticket,
   Scale,
   Heart,
+  Gamepad2,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -42,6 +43,7 @@ const FOOTER_NAV_GROUPS = [
       { href: "/thanks", label: "Благодарности", icon: Heart },
       { href: "/contact", label: "Контакты", icon: Mail },
       { href: "/updates", label: "Лента новых глав", icon: Rss },
+      { href: "/games", label: "Мини-игры (бета)", icon: Gamepad2 },
     ],
   },
   {
@@ -67,6 +69,7 @@ const MOBILE_MENU_SECTIONS = [
       { href: "/leaders", label: "Лидеры", icon: Crown },
       { href: "/contact", label: "Связаться с нами", icon: Mail },
       { href: "/updates", label: "Новые главы", icon: Rss, badge: "NEW" },
+      { href: "/games", label: "Мини-игры", icon: Gamepad2, badge: "β" },
       { href: "/promo", label: "Промокоды", icon: Ticket },
     ],
   },

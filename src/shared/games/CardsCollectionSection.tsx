@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, ArrowUpCircle, LibraryBig } from "lucide-react";
+import { Sparkles, ArrowUpCircle, LibraryBig, Search, Filter, SortAsc } from "lucide-react";
 
 import { getDecorationImageUrls } from "@/api/shop";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
 import { useGetProfileCardsQuery, useUpgradeProfileCardMutation } from "@/store/api/gamesApi";
+import Input from "@/shared/ui/input";
+import Tooltip from "@/shared/ui/Tooltip";
 
 import { GameResultReveal } from "./GameResultReveal";
 
@@ -22,24 +24,56 @@ export function CardsCollectionSection() {
     tone: "default" | "success" | "warning";
   }>({ open: false, title: "", tone: "default" });
 
+  // Состояния для фильтрации и сортировки
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"ready" | "name" | "stage" | "shards">("ready");
+  const [showOnlyUpgradable, setShowOnlyUpgradable] = useState(false);
+
   const cards = useMemo(() => data?.data?.cards ?? [], [data?.data?.cards]);
   const stats = data?.data?.stats;
 
-  const featuredCards = useMemo(
-    () =>
-      [...cards]
-        .sort((a, b) => {
+  const filteredCards = useMemo(() => {
+    let filtered = [...cards];
+    // Поиск по имени персонажа или названию карточки
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(card =>
+        (card.characterName?.toLowerCase().includes(query)) ||
+        (card.name?.toLowerCase().includes(query))
+      );
+    }
+    // Фильтр "только готовые к улучшению"
+    if (showOnlyUpgradable) {
+      filtered = filtered.filter(card => card.progression.canUpgrade);
+    }
+    // Сортировка
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "ready":
           const aReady = Number(Boolean(a.progression.canUpgrade));
           const bReady = Number(Boolean(b.progression.canUpgrade));
-          return (
-            bReady - aReady ||
-            Number(b.progression.nextStage != null) - Number(a.progression.nextStage != null) ||
-            (a.characterName ?? "").localeCompare(b.characterName ?? "")
-          );
-        })
-        .slice(0, 8),
-    [cards],
-  );
+          if (bReady !== aReady) return bReady - aReady;
+          // затем по наличию следующего этапа
+          const aHasNext = Number(a.progression.nextStage != null);
+          const bHasNext = Number(b.progression.nextStage != null);
+          if (bHasNext !== aHasNext) return bHasNext - aHasNext;
+          // затем по имени
+          return (a.characterName ?? "").localeCompare(b.characterName ?? "");
+        case "name":
+          return (a.characterName ?? "").localeCompare(b.characterName ?? "");
+        case "stage":
+          return (+b.currentStage || 0) - (+a.currentStage || 0); // выше этап - сначала
+        case "shards":
+          return (b.shards ?? 0) - (a.shards ?? 0); // больше осколков - сначала
+        default:
+          return 0;
+      }
+    });
+    return filtered;
+  }, [cards, searchQuery, sortBy, showOnlyUpgradable]);
+
+  // featuredCards - первые 8 карточек после фильтрации (для обратной совместимости)
+  const featuredCards = useMemo(() => filteredCards.slice(0, 8), [filteredCards]);
 
   useEffect(() => {
     if (!cards.length) {
@@ -86,6 +120,54 @@ export function CardsCollectionSection() {
         </div>
       </div>
 
+      {/* Блок управления: поиск, фильтры, сортировка */}
+      {filteredCards.length > 0 && (
+        <div className="games-panel py-3 px-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex-1 min-w-[200px] max-w-md">
+              <Input
+                type="search"
+                placeholder="Поиск по имени персонажа..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                icon={Search}
+                className="text-sm"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Tooltip content="Только карточки, готовые к улучшению" position="top" trigger="hover">
+                <label className="flex items-center gap-1 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showOnlyUpgradable}
+                    onChange={(e) => setShowOnlyUpgradable(e.target.checked)}
+                    className="rounded border-[var(--border)]"
+                  />
+                  <span className="games-muted">Только готовые</span>
+                </label>
+              </Tooltip>
+              <Tooltip content="Сортировка" position="top" trigger="hover">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as "ready" | "name" | "stage" | "shards")}
+                  className="games-select text-xs"
+                >
+                  <option value="ready">Готовность к улучшению</option>
+                  <option value="name">По имени</option>
+                  <option value="stage">По этапу (высокий)</option>
+                  <option value="shards">По осколкам (много)</option>
+                </select>
+              </Tooltip>
+            </div>
+          </div>
+          <p className="games-muted text-xs">
+            Показано: <strong>{filteredCards.length}</strong> из {cards.length} карточек
+            {searchQuery && ` по запросу «${searchQuery}»`}
+            {showOnlyUpgradable && ", только готовые к улучшению"}
+          </p>
+        </div>
+      )}
+
       {featuredCards.length === 0 ? (
         <div className="games-panel games-empty">
           <p className="games-muted">
@@ -93,7 +175,7 @@ export function CardsCollectionSection() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+<div className="games-grid grid gap-5 lg:gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featuredCards.map(card => {
             const upgradeBlockedLabel =
               card.progression.upgradeBlockReason === "missing_stage_image"
@@ -111,7 +193,7 @@ export function CardsCollectionSection() {
             return (
               <div key={card.id} className="games-panel space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-20 shrink-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--muted)]">
+<div className="w-24 shrink-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--muted)] lg:w-28">
                     {card.stageImageUrl ? (
                       <img
                         src={getDecorationImageUrls(card.stageImageUrl).primary}
