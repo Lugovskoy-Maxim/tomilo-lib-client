@@ -565,6 +565,10 @@ export function DisciplesSection() {
   const [subTab, setSubTab] = useState<"overview" | "roster" | "arena" | "weekly" | "library" | "shop">("overview");
 
   const res = data?.data;
+  const dailyBattlesCount = res?.dailyBattlesCount ?? 0;
+  const dailyBattlesLimit = 3; // максимальное количество боев в день для обычных пользователей
+  const battlesRemaining = dailyBattlesLimit - dailyBattlesCount;
+  const canBattle = battlesRemaining > 0 || res?.role === 'admin'; // админы без лимита
   const disciples = useMemo(() => (res?.disciples ?? []) as Disciple[], [res?.disciples]);
   const maxActive =
     res?.maxDisciples != null && res.maxDisciples > 0 ? res.maxDisciples : 3;
@@ -950,6 +954,7 @@ export function DisciplesSection() {
           <span className="games-muted text-sm">монет</span>
         </span>
         <span className="games-muted text-sm">Рейтинг <strong className="text-[var(--foreground)]">{res.combatRating}</strong></span>
+        <span className="games-muted text-sm">Бои сегодня <strong className="text-[var(--foreground)]">{dailyBattlesCount}/{dailyBattlesLimit}</strong></span>
         <span className="games-muted text-sm">В отряде <strong className="text-[var(--foreground)]">{activeRoster.length}/{maxActive}</strong></span>
         <span className="games-muted text-sm">Всего учеников <strong className="text-[var(--foreground)]">{disciples.length}</strong></span>
         {warehouseRoster.length > 0 ? (

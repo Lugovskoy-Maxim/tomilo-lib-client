@@ -6,6 +6,9 @@ import {
   useGetAlchemyStatusQuery,
   useAlchemyCraftMutation,
   useAlchemyUpgradeCauldronMutation,
+  useGetAlchemyShopQuery,
+  useRefreshAlchemyShopMutation,
+  useBuyAlchemyItemMutation,
   useGetDisciplesGameShopQuery,
   useDisciplesGameShopBuyMutation,
   useGetProfileDisciplesQuery,
@@ -26,6 +29,9 @@ export function AlchemySection() {
   const { data: statusData } = useGetAlchemyStatusQuery();
   const { data: shopData } = useGetDisciplesGameShopQuery();
   const { data: disciplesProfile } = useGetProfileDisciplesQuery();
+  const { data: alchemyShopData, isLoading: alchemyShopLoading } = useGetAlchemyShopQuery();
+  const [refreshAlchemyShop, { isLoading: isRefreshingShop }] = useRefreshAlchemyShopMutation();
+  const [buyAlchemyItem, { isLoading: isBuyingAlchemyItem }] = useBuyAlchemyItemMutation();
   const [buyShopOffer, { isLoading: isBuyingShop }] = useDisciplesGameShopBuyMutation();
   const [craft, { isLoading: isCrafting }] = useAlchemyCraftMutation();
   const [upgradeCauldron, { isLoading: isUpgrading }] = useAlchemyUpgradeCauldronMutation();
@@ -117,6 +123,26 @@ export function AlchemySection() {
       );
     } catch (e: unknown) {
       toast.error(getErrorMessage(e, "Не удалось купить"));
+    }
+  };
+
+  const handleRefreshAlchemyShop = async () => {
+    try {
+      const result = await refreshAlchemyShop().unwrap();
+      toast.success("Ассортимент лавки обновлён");
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Не удалось обновить лавку"));
+    }
+  };
+
+  const handleBuyAlchemyItem = async (index: number, directPurchase?: boolean) => {
+    try {
+      const result = await buyAlchemyItem({ index, directPurchase }).unwrap();
+      const itemName = alchemyShopData?.data?.assortment?.[index]?.name || "товар";
+      const price = result.data?.pricePaid ?? 0;
+      toast.success(`Куплено: ${itemName} за ${price} монет`);
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Не удалось купить товар"));
     }
   };
 
@@ -222,6 +248,78 @@ export function AlchemySection() {
           </div>
         </div>
       ) : null}
+
+      {/* Лавка алхимии */}
+      {alchemyShopData?.data && (
+        <div className="games-panel py-3 px-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <h3 className="games-panel-title flex items-center gap-2 text-base">
+              <FlaskConical className="w-4 h-4 text-[var(--primary)]" aria-hidden />
+              Лавка алхимии
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="games-muted text-xs">
+                Обновлено: {alchemyShopData.data.shopDate}
+              </span>
+              <button
+                type="button"
+                onClick={handleRefreshAlchemyShop}
+                disabled={!alchemyShopData.data.canRefresh || isRefreshingShop || coinBalance < alchemyShopData.data.refreshCost}
+                className="games-btn games-btn-secondary games-btn-sm"
+              >
+                {isRefreshingShop ? "..." : `Обновить (${alchemyShopData.data.refreshCost} монет)`}
+              </button>
+            </div>
+          </div>
+          <p className="games-muted text-xs mb-3">
+            Купите материалы для варки. Прямая покупка (x5 цены) доступна для любого товара.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {alchemyShopData.data.assortment.map((item, index) => (
+              <div
+                key={`${item.itemId}-${index}`}
+                className="games-btn games-btn-secondary games-btn-sm text-left inline-flex flex-col items-start gap-0.5 max-w-[220px]"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-xs font-medium text-[var(--foreground)]">
+                    {item.name || item.itemId} ×{item.count}
+                  </span>
+                  {item.purchased && (
+                    <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded">
+                      Куплено
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[11px] games-muted inline-flex items-center gap-1">
+                    {item.priceCoins}
+                    <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                  </span>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleBuyAlchemyItem(index, false)}
+                      disabled={item.purchased || isBuyingAlchemyItem || coinBalance < item.priceCoins}
+                      className="games-btn games-btn-primary games-btn-xs"
+                    >
+                      Купить
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleBuyAlchemyItem(index, true)}
+                      disabled={item.purchased || isBuyingAlchemyItem || coinBalance < item.priceCoins * 5}
+                      className="games-btn games-btn-warning games-btn-xs"
+                      title="Прямая покупка за 5x цену"
+                    >
+                      x5
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <GameItemExchangePanel
         title="Обмен предметов"

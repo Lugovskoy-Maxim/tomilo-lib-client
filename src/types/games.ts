@@ -189,6 +189,10 @@ export interface ProfileDisciplesResponse {
   combatRating: number;
   canTrain: boolean;
   canBattle: boolean;
+  /** Количество проведённых боёв сегодня */
+  dailyBattlesCount?: number;
+  /** Роль пользователя (admin, user) */
+  role?: string;
   /** Weekly PvP (1 бой/неделя). Опционально, если бэкенд ещё не обновлён */
   weekly?: WeeklyBattleStatus;
   balance: number;

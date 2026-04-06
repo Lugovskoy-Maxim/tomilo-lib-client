@@ -448,6 +448,69 @@ export const gamesApi = createApi({
       invalidatesTags: ["Alchemy"],
     }),
 
+    getAlchemyShop: builder.query<
+      ApiResponseDto<{
+        assortment: Array<{
+          itemId: string;
+          count: number;
+          priceCoins: number;
+          purchased: boolean;
+          isDirectPurchase: boolean;
+          name?: string;
+          icon?: string;
+        }>;
+        shopDate: string;
+        canRefresh: boolean;
+        refreshCost: number;
+      }>,
+      void
+    >({
+      query: () => ({ url: "/users/profile/alchemy/shop" }),
+      providesTags: ["Alchemy"],
+    }),
+
+    refreshAlchemyShop: builder.mutation<
+      ApiResponseDto<{
+        ok: boolean;
+        newAssortment: Array<{
+          itemId: string;
+          count: number;
+          priceCoins: number;
+          purchased: boolean;
+          isDirectPurchase: boolean;
+          name?: string;
+          icon?: string;
+        }>;
+        balance: number;
+      }>,
+      void
+    >({
+      query: () => ({
+        url: "/users/profile/alchemy/shop/refresh",
+        method: "POST",
+      }),
+      invalidatesTags: ["Alchemy"],
+    }),
+
+    buyAlchemyItem: builder.mutation<
+      ApiResponseDto<{
+        ok: boolean;
+        itemId: string;
+        count: number;
+        pricePaid: number;
+        balance: number;
+        purchased: boolean;
+      }>,
+      { index: number; directPurchase?: boolean }
+    >({
+      query: ({ index, directPurchase }) => ({
+        url: "/users/profile/alchemy/shop/buy",
+        method: "POST",
+        body: { index, directPurchase },
+      }),
+      invalidatesTags: ["Alchemy", "ProfileInventory"],
+    }),
+
     getWheel: builder.query<ApiResponseDto<WheelResponse>, void>({
       query: () => ({ url: "/users/profile/wheel" }),
       providesTags: ["Wheel"],
@@ -514,6 +577,9 @@ export const {
   useGetAlchemyStatusQuery,
   useAlchemyCraftMutation,
   useAlchemyUpgradeCauldronMutation,
+  useGetAlchemyShopQuery,
+  useRefreshAlchemyShopMutation,
+  useBuyAlchemyItemMutation,
   useGetWheelQuery,
   useWheelSpinMutation,
 } = gamesApi;
