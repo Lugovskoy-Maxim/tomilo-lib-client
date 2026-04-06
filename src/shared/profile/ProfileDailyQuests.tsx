@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { ClipboardList, Check, Loader2, Coins, Sparkles, Gift, Target } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ClipboardList, Check, Loader2, Coins, Sparkles, Gift, Target, Search, Filter, SortAsc } from "lucide-react";
 import { useGetDailyQuestsQuery, useClaimDailyQuestMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import { GameResultReveal } from "@/shared/games";
+import Input from "@/shared/ui/input";
+import Tooltip from "@/shared/ui/Tooltip";
 
 interface ProfileDailyQuestsProps {
   /** Показать только первые N заданий (для компактного обзора) */
@@ -48,9 +50,69 @@ export default function ProfileDailyQuests({ maxVisible, variant = "profile" }: 
     coins?: number;
   }>({ open: false, title: "" });
 
+  // Состояния для фильтрации и сортировки
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "available" | "completed">("all");
+  const [sortBy, setSortBy] = useState<"default" | "reward" | "progress">("default");
+
   const data = response?.success ? response.data : null;
   const allQuests = data?.quests ?? [];
-  const quests = maxVisible != null ? allQuests.slice(0, maxVisible) : allQuests;
+
+  // Общий прогресс по всем квестам
+  const totalProgress = useMemo(() => {
+    let completed = 0;
+    let total = 0;
+    allQuests.forEach(q => {
+      if (q.progress >= q.target) completed++;
+      total++;
+    });
+    return { completed, total, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
+  }, [allQuests]);
+
+  // Фильтрация и сортировка
+  const filteredQuests = useMemo(() => {
+    let filtered = [...allQuests];
+    // Поиск по названию или описанию
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(q =>
+        q.name.toLowerCase().includes(query) ||
+        (q.description?.toLowerCase() || "").includes(query)
+      );
+    }
+    // Фильтр по статусу
+    if (filter === "available") {
+      filtered = filtered.filter(q => q.progress < q.target && !q.claimedAt);
+    } else if (filter === "completed") {
+      filtered = filtered.filter(q => q.progress >= q.target || q.claimedAt);
+    }
+    // Сортировка
+    if (sortBy === "reward") {
+      filtered.sort((a, b) => {
+        const aReward = (a.rewardExp || 0) + (a.rewardCoins || 0);
+        const bReward = (b.rewardExp || 0) + (b.rewardCoins || 0);
+        return bReward - aReward;
+      });
+    } else if (sortBy === "progress") {
+      filtered.sort((a, b) => {
+        const aProgress = a.progress / a.target;
+        const bProgress = b.progress / b.target;
+        return bProgress - aProgress;
+      });
+    } else {
+      // default: сначала доступные для взятия, затем по порядку
+      filtered.sort((a, b) => {
+        const aCanClaim = a.progress >= a.target && !a.claimedAt;
+        const bCanClaim = b.progress >= b.target && !b.claimedAt;
+        if (aCanClaim && !bCanClaim) return -1;
+        if (!aCanClaim && bCanClaim) return 1;
+        return 0;
+      });
+    }
+    // Ограничение по maxVisible
+    if (maxVisible != null) filtered = filtered.slice(0, maxVisible);
+    return filtered;
+  }, [allQuests, searchQuery, filter, sortBy, maxVisible]);
 
   const handleClaim = async (questId: string) => {
     try {
@@ -141,16 +203,80 @@ export default function ProfileDailyQuests({ maxVisible, variant = "profile" }: 
             </p>
           ) : null}
         </div>
+       {/* Общий прогресс */}
+        <div className="games-panel py-3 px-4 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="games-muted text-xs">Прогресс дня</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">
+                {totalProgress.completed} из {totalProgress.total} заданий ({totalProgress.percent}%)
+              </p>
+            </div>
+            <div className="h-2 flex-1 max-w-[200px] rounded-full bg-[var(--secondary)]/60 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[var(--primary)]"
+                style={{ width: `${totalProgress.percent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Блок управления: поиск, фильтры, сортировка */}
+        {filteredQuests.length > 0 && (
+          <div className="games-panel py-3 px-4 mb-4 space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex-1 min-w-[200px] max-w-md">
+                <Input
+                  type="search"
+                  placeholder="Поиск по названию или описанию..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  icon={Search}
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Tooltip content="Фильтр по статусу" position="top" trigger="hover">
+                  <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value as "all" | "available" | "completed")}
+                    className="games-select text-xs"
+                  >
+                    <option value="all">Все задания</option>
+                    <option value="available">Доступные</option>
+                    <option value="completed">Завершённые</option>
+                  </select>
+                </Tooltip>
+                <Tooltip content="Сортировка" position="top" trigger="hover">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as "default" | "reward" | "progress")}
+                    className="games-select text-xs"
+                  >
+                    <option value="default">По умолчанию</option>
+                    <option value="reward">По награде</option>
+                    <option value="progress">По прогрессу</option>
+                  </select>
+                </Tooltip>
+              </div>
+            </div>
+            <p className="games-muted text-xs">
+              Показано: <strong>{filteredQuests.length}</strong> из {allQuests.length} заданий
+              {searchQuery && ` по запросу «${searchQuery}»`}
+              {filter !== "all" && `, фильтр: ${filter === "available" ? "доступные" : "завершённые"}`}
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
-          {quests.length === 0 ? (
+          {filteredQuests.length === 0 ? (
             <div className="col-span-full rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--secondary)]/20 py-8 text-center">
               <Target className="w-8 h-8 mx-auto text-[var(--muted-foreground)]/60 mb-2" />
               <p className="text-sm text-[var(--muted-foreground)]">На сегодня заданий нет</p>
               <p className="text-xs text-[var(--muted-foreground)]/80 mt-0.5">Зайдите завтра</p>
             </div>
           ) : (
-            quests.map(q => {
+            filteredQuests.map((q: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
               const done = q.progress >= q.target;
               const claimed = !!q.claimedAt;
               const canClaim = done && !claimed;
@@ -215,7 +341,7 @@ export default function ProfileDailyQuests({ maxVisible, variant = "profile" }: 
                           +{q.rewardCoins}
                         </span>
                       )}
-                      {q.rewardItems?.slice(0, 2).map(item => (
+                      {q.rewardItems?.slice(0, 2).map((item: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                         <span
                           key={`${q.id}-${item.itemId}`}
                           className="inline-flex items-center gap-1 rounded-md bg-[var(--secondary)]/60 px-1.5 py-0.5 text-[10px] text-[var(--foreground)]/90 max-w-[80px] truncate"

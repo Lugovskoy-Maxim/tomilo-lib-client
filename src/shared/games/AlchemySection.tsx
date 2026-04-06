@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useGetAlchemyRecipesQuery,
   useGetAlchemyStatusQuery,
@@ -12,7 +12,9 @@ import {
 } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
-import { FlaskConical, Sparkles, Coins, ShoppingBag } from "lucide-react";
+import { FlaskConical, Sparkles, Coins, ShoppingBag, Search, Filter, SortAsc } from "lucide-react";
+import Tooltip from "@/shared/ui/Tooltip";
+import Input from "@/shared/ui/input";
 
 import { GameResultReveal } from "./GameResultReveal";
 import { GAME_ART } from "./gameArt";
@@ -37,6 +39,11 @@ export function AlchemySection() {
     tone: "success" | "warning";
   }>({ open: false, title: "", tone: "success" });
 
+  // Фильтрация и сортировка
+  const [searchQuery, setSearchQuery] = useState("");
+  const [elementFilter, setElementFilter] = useState<string | "all">("all");
+  const [sortBy, setSortBy] = useState<"name" | "coinCost" | "mishap" | "element">("name");
+
   const recipes = (recipesData?.data?.recipes ?? []) as Array<{
     _id: string;
     name: string;
@@ -59,6 +66,45 @@ export function AlchemySection() {
   const canCraft = status?.canCraft ?? false;
   const shopOffers = shopData?.data?.offers ?? [];
   const coinBalance = disciplesProfile?.data?.balance ?? 0;
+
+  // Фильтрация и сортировка рецептов
+  const filteredRecipes = useMemo(() => {
+    let filtered = [...recipes];
+    // Поиск по названию или описанию
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(r =>
+        r.name.toLowerCase().includes(query) ||
+        (r.description && r.description.toLowerCase().includes(query))
+      );
+    }
+    // Фильтр по стихии
+    if (elementFilter !== "all") {
+      filtered = filtered.filter(r => r.element === elementFilter);
+    }
+    // Сортировка
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "coinCost":
+          return a.coinCost - b.coinCost;
+        case "mishap": {
+          const mishapA = a.effectiveMishapChancePercent ?? a.mishapChancePercent ?? 0;
+          const mishapB = b.effectiveMishapChancePercent ?? b.mishapChancePercent ?? 0;
+          return mishapA - mishapB;
+        }
+        case "element": {
+          const elementA = a.element ?? "";
+          const elementB = b.element ?? "";
+          return elementA.localeCompare(elementB);
+        }
+        default:
+          return 0;
+      }
+    });
+    return filtered;
+  }, [recipes, searchQuery, elementFilter, sortBy]);
 
   const handleBuyShop = async (offerId: string) => {
     try {
@@ -183,6 +229,56 @@ export function AlchemySection() {
         defaultExpanded
       />
 
+      {/* Блок управления: поиск, фильтры, сортировка */}
+      {!recipesSkeleton && hasRecipes && (
+        <div className="games-panel py-3 px-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex-1 min-w-[200px] max-w-md">
+              <Input
+                type="search"
+                placeholder="Поиск по названию или описанию..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                icon={Search}
+                className="text-sm"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Tooltip content="Фильтр по стихии" position="top" trigger="hover">
+                <select
+                  value={elementFilter}
+                  onChange={(e) => setElementFilter(e.target.value)}
+                  className="games-select text-xs"
+                >
+                  <option value="all">Все стихии</option>
+                  <option value="fire">Огонь</option>
+                  <option value="water">Вода</option>
+                  <option value="earth">Земля</option>
+                  <option value="air">Воздух</option>
+                  <option value="light">Свет</option>
+                  <option value="dark">Тьма</option>
+                </select>
+              </Tooltip>
+              <Tooltip content="Сортировка" position="top" trigger="hover">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as "name" | "coinCost" | "mishap" | "element")}
+                  className="games-select text-xs"
+                >
+                  <option value="name">По названию</option>
+                  <option value="coinCost">По стоимости монет</option>
+                  <option value="mishap">По риску котла</option>
+                  <option value="element">По стихии</option>
+                </select>
+              </Tooltip>
+            </div>
+          </div>
+          <p className="games-muted text-xs">
+            Показано: <strong className="text-[var(--primary)]">{filteredRecipes.length}</strong> из {recipes.length} рецептов
+          </p>
+        </div>
+      )}
+
       {recipesSkeleton ? (
         <div className="games-panel games-muted text-sm py-4 text-center">Загрузка рецептов алхимии…</div>
       ) : null}
@@ -265,60 +361,111 @@ export function AlchemySection() {
         </div>
       ) : null}
       {!recipesSkeleton && hasRecipes ? (
-      <div className="grid gap-4 sm:grid-cols-2">
-        {recipes.map((r) => (
-          <div key={r._id} className="games-recipe flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-start gap-2">
-                <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20 hidden sm:block">
-                  <img src={GAME_ART.alchemy.recipe} alt="" className="w-full h-full object-cover" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="games-recipe-name">{r.name}</h3>
-                  {r.description && <p className="games-muted mt-0.5 text-sm">{r.description}</p>}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {typeof r.effectiveMishapChancePercent === "number" && (
-                      <span className="games-reward-chip">Риск котла: {r.effectiveMishapChancePercent}%</span>
-                    )}
-                    {r.element && <span className="games-reward-chip">Стихия: {r.element}</span>}
-                  </div>
-                  <p className="games-muted mt-2 text-xs">
-                    Ингредиенты: {r.ingredients.map((i) => `${i.name || i.itemId} ×${i.count} (есть ${i.have})`).join(", ")}
-                  </p>
-                  {r.coinCost > 0 && <p className="games-muted text-xs mt-0.5">Монет: {r.coinCost}</p>}
-                  {r.resultPreview ? (
-                    <div className="flex flex-wrap gap-2 mt-2 text-xs">
-                      {r.resultPreview.common?.itemId ? (
-                        <span className="games-badge">
-                          Обычн.: {r.resultPreview.common.name || r.resultPreview.common.itemId}
-                        </span>
-                      ) : null}
-                      {r.resultPreview.quality?.itemId ? (
-                        <span className="games-badge">
-                          Улучш.: {r.resultPreview.quality.name || r.resultPreview.quality.itemId}
-                        </span>
-                      ) : null}
-                      {r.resultPreview.legendary?.itemId ? (
-                        <span className="games-badge">
-                          Легенд.: {r.resultPreview.legendary.name || r.resultPreview.legendary.itemId}
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleCraft(r._id)}
-              disabled={!r.canCraft || !canCraft || isCrafting}
-              className="games-btn games-btn-primary shrink-0"
-            >
-              {isCrafting ? "..." : "Варить"}
-            </button>
+        <>
+          {/* Информация о количестве отфильтрованных рецептов */}
+          <div className="games-panel py-2 px-4 mb-3">
+            <p className="games-muted text-sm">
+              Найдено рецептов: <strong>{filteredRecipes.length}</strong> из {recipes.length}
+              {searchQuery && ` по запросу «${searchQuery}»`}
+              {elementFilter !== "all" && `, стихия: ${elementFilter}`}
+            </p>
           </div>
-        ))}
-      </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {filteredRecipes.map((r) => {
+              const mishap = r.effectiveMishapChancePercent ?? r.mishapChancePercent ?? 0;
+              const elementColorMap = {
+                fire: "bg-red-500/20 text-red-300 border-red-500/30",
+                water: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+                earth: "bg-green-500/20 text-green-300 border-green-500/30",
+                air: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+                light: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+                dark: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+              };
+              const elementColor = r.element && typeof r.element === 'string' && r.element in elementColorMap ? elementColorMap[r.element as keyof typeof elementColorMap] : "bg-[var(--muted)]/20 text-[var(--muted-foreground)] border-[var(--border)]";
+              return (
+                <div key={r._id} className="games-recipe flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-start gap-2">
+                      <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20 hidden sm:block">
+                        <img src={GAME_ART.alchemy.recipe} alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="games-recipe-name">{r.name}</h3>
+                        {r.description && <p className="games-muted mt-0.5 text-sm">{r.description}</p>}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {typeof mishap === "number" && (
+                            <Tooltip content="Шанс неудачи (мишапа) при варке. Зависит от уровня котла." position="top" trigger="hover">
+                              <span className="games-reward-chip">
+                                Риск котла: {mishap}%
+                              </span>
+                            </Tooltip>
+                          )}
+                          {r.element && (
+                            <span className={`games-reward-chip ${elementColor} border`}>
+                              Стихия: {r.element}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-2">
+                          <p className="games-muted text-xs mb-1">Ингредиенты:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {r.ingredients.map((i, idx) => {
+                              const enough = i.have >= i.count;
+                              return (
+                                <Tooltip
+                                  key={idx}
+                                  content={`${i.name || i.itemId}: требуется ${i.count}, есть ${i.have}`}
+                                  position="top"
+                                  trigger="hover"
+                                >
+                                  <span className={`text-xs px-2 py-0.5 rounded-full border ${enough ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30"}`}>
+                                    {i.name || i.itemId} ×{i.count} ({i.have})
+                                  </span>
+                                </Tooltip>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {r.coinCost > 0 && (
+                          <p className="games-muted text-xs mt-2">
+                            <Coins className="inline w-3 h-3 mr-1" /> Монет: {r.coinCost}
+                          </p>
+                        )}
+                        {r.resultPreview ? (
+                          <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                            {r.resultPreview.common?.itemId ? (
+                              <span className="games-badge">
+                                Обычн.: {r.resultPreview.common.name || r.resultPreview.common.itemId}
+                              </span>
+                            ) : null}
+                            {r.resultPreview.quality?.itemId ? (
+                              <span className="games-badge">
+                                Улучш.: {r.resultPreview.quality.name || r.resultPreview.quality.itemId}
+                              </span>
+                            ) : null}
+                            {r.resultPreview.legendary?.itemId ? (
+                              <span className="games-badge">
+                                Легенд.: {r.resultPreview.legendary.name || r.resultPreview.legendary.itemId}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCraft(r._id)}
+                    disabled={!r.canCraft || !canCraft || isCrafting}
+                    className="games-btn games-btn-primary shrink-0"
+                  >
+                    {isCrafting ? "..." : "Варить"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
       ) : null}
       <GameResultReveal
         open={reveal.open}

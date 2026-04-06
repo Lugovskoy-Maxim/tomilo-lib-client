@@ -557,6 +557,7 @@ export function DisciplesSection() {
   const [consumedCandidateId, setConsumedCandidateId] = useState<string | null>(null);
   const [failedDiscipleAvatarIds, setFailedDiscipleAvatarIds] = useState<Set<string>>(new Set());
   const [barracksExpanded, setBarracksExpanded] = useState(false);
+  const [subTab, setSubTab] = useState<"overview" | "roster" | "arena" | "weekly" | "library" | "shop">("overview");
 
   const res = data?.data;
   const disciples = useMemo(() => (res?.disciples ?? []) as Disciple[], [res?.disciples]);
@@ -1122,7 +1123,7 @@ export function DisciplesSection() {
             <h4 className="text-sm font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
               <Users className="w-4 h-4" aria-hidden /> Активный отряд (до {maxActive})
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+<div className="games-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
             {rosterItems.map((item) => {
               if (item.type === "warehouse-header") {
                 return (

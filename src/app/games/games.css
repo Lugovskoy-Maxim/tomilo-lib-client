@@ -201,17 +201,23 @@
 }
 
 .games-hub .games-tab {
-  padding: 0.5rem 0.875rem;
+  padding: 0.625rem 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
   color: var(--muted-foreground);
   font-weight: 500;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
+}
+
+@media (min-width: 640px) {
+  .games-hub .games-tab {
+    font-size: 0.9375rem;
+  }
 }
 
 .games-hub .games-tab:hover {
@@ -274,12 +280,24 @@
 }
 
 /* Карточка сущности (ученик, кандидат) */
-.games-hub .games-card {
+.games-card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--card-radius, var(--radius));
-  padding: 1rem 1.25rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 1.125rem 1.375rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .games-card {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+.games-card:hover {
+  border-color: color-mix(in oklch, var(--border) 60%, var(--primary));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px) scale(1.02);
 }
 
 .games-hub .games-card:hover {
@@ -305,11 +323,11 @@
 }
 
 /* --- Слоты инвентаря --- */
-.games-hub .games-slot {
+.games-slot {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--card-radius, var(--radius));
-  padding: 0.75rem;
+  padding: 1rem;
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -324,16 +342,23 @@
   transform: translateY(0);
 }
 
-.games-hub .games-slot-icon {
-  width: 44px;
-  height: 44px;
-  margin: 0 auto 0.375rem;
+.games-slot-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0 auto 0.5rem;
   border-radius: calc(var(--radius) - 2px);
   background: var(--muted);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .games-slot-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
 }
 
 .games-hub .games-slot-name {
@@ -431,23 +456,30 @@
 }
 
 /* Аватар в карточке */
-.games-hub .games-card-avatar {
-  width: 40px;
-  height: 40px;
+.games-card-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: calc(var(--card-radius, var(--radius)) - 2px);
   object-fit: cover;
   border: 1px solid var(--border);
   background: var(--muted);
 }
 
-.games-hub .games-card-avatar--md {
-  width: 2.75rem;
-  height: 2.75rem;
+.games-card-avatar--md {
+  width: 3rem;
+  height: 3rem;
 }
 
-.games-hub .games-card-avatar--lg {
-  width: 4.5rem;
-  height: 4.5rem;
+.games-card-avatar--lg {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  .games-card-avatar--lg {
+    width: 4rem;
+    height: 4rem;
+  }
 }
 
 @media (min-width: 640px) {
@@ -570,14 +602,26 @@
   border-left: 3px solid var(--primary);
 }
 
+/* Games grid utility */
+.games-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .games-grid {
+    gap: 1.5rem;
+  }
+}
+
 /* --- Бейджи --- */
-.games-hub .games-badge {
+.games-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.375rem 0.625rem;
   border-radius: calc(var(--radius) - 2px);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   background: var(--accent);
   border: 1px solid var(--border);
@@ -793,4 +837,47 @@
 .games-reveal-close:hover {
   color: var(--foreground);
   background: var(--accent);
+}
+
+/* --- Утилиты для форм --- */
+.games-hub .games-select {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.games-hub .games-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 20%, transparent);
+}
+
+.games-hub .games-select:hover:not(:disabled) {
+  border-color: color-mix(in oklch, var(--border) 60%, var(--primary));
+}
+
+.games-hub .games-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Утилиты текста --- */
+.games-hub .games-muted {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.games-hub .games-muted-sm {
+  font-size: 0.75rem;
+}
+
+/* --- Чипы наград (уже есть, но добавим вариант для primary) */
+.games-hub .games-reward-chip--primary {
+  color: var(--primary);
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  background: color-mix(in oklch, var(--primary) 10%, var(--accent));
 }

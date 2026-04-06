@@ -8,14 +8,33 @@ import {
 } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
-import { Compass, Coins } from "lucide-react";
+import { Compass, Coins, Info } from "lucide-react";
 
 import { GAME_ART } from "./gameArt";
+import Tooltip from "@/shared/ui/Tooltip";
 
 const EXPEDITION_DIFFICULTY_ART: Record<"easy" | "normal" | "hard", string> = {
   easy: GAME_ART.raids.difficultyEasy,
   normal: GAME_ART.raids.difficultyNormal,
   hard: GAME_ART.raids.difficultyHard,
+};
+
+const EXPEDITION_DIFFICULTY_DETAILS: Record<"easy" | "normal" | "hard", { description: string; risk: string; duration: string }> = {
+  easy: {
+    description: "Самый дешёвый вариант: короткий поход, меньше риска засады и скромнее награда.",
+    risk: "Низкий",
+    duration: "~1 минута",
+  },
+  normal: {
+    description: "Средняя цена и длительность: награды и шансы между лёгкой и тяжёлой экспедицией.",
+    risk: "Средний",
+    duration: "~2 минуты",
+  },
+  hard: {
+    description: "Дороже и дольше: выше риск засады, но лучше шанс на редкий и ценный лут.",
+    risk: "Высокий",
+    duration: "~3 минуты",
+  },
 };
 
 /** Тип ответа экспедиции (inProgress, lastResult, completesAt и т.д.) */
@@ -215,7 +234,11 @@ export function ExpeditionSection() {
                     <>
                       {" "}
                       · Риск засады:{" "}
-                      <strong className="text-[var(--primary)]">{expeditionData.ambushRiskPercent}%</strong>
+                      <Tooltip content="Вероятность нападения врагов во время экспедиции. При засаде часть добычи теряется, если нет талисмана." position="top" trigger="hover">
+                        <strong className="text-[var(--primary)] inline-flex items-center gap-0.5">
+                          {expeditionData.ambushRiskPercent}% <Info className="w-3 h-3" />
+                        </strong>
+                      </Tooltip>
                     </>
                   )}
                 </p>
@@ -266,11 +289,18 @@ export function ExpeditionSection() {
               </p>
             </div>
           )}
-          <div className="games-muted text-xs">
+          <div className="games-muted text-xs flex items-center gap-1">
             Защита экспедиции: <strong className="text-[var(--foreground)]">{expeditionTalismanCount}</strong> талисм.
             {expeditionTalismanCount > 0
               ? " При засаде один талисман спишется автоматически."
               : " Если получите `expedition_talisman`, он будет срабатывать автоматически."}
+            <Tooltip
+              content="Талисманы экспедиции автоматически защищают от засады. При срабатывании один талисман расходуется, предотвращая потерю добычи."
+              position="top"
+              trigger="hover"
+            >
+              <Info className="w-3.5 h-3.5 text-[var(--muted-foreground)] cursor-help" aria-label="Подробности" />
+            </Tooltip>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -287,15 +317,27 @@ export function ExpeditionSection() {
                   />
                 </div>
                 <div className="p-3 flex flex-col gap-2 flex-1 min-h-0">
-                  <div className="text-sm font-semibold text-[var(--foreground)]">
-                    {d === "easy" ? "Лёгкая" : d === "normal" ? "Обычная" : "Тяжёлая"}
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
+                      {d === "easy" ? "Лёгкая" : d === "normal" ? "Обычная" : "Тяжёлая"}
+                    </div>
+                    <Tooltip
+                      content={
+                        <div className="text-xs space-y-1">
+                          <div><strong>Риск засады:</strong> {EXPEDITION_DIFFICULTY_DETAILS[d].risk}</div>
+                          <div><strong>Длительность:</strong> {EXPEDITION_DIFFICULTY_DETAILS[d].duration}</div>
+                          <div><strong>Стоимость:</strong> {expeditionData.costs?.[d] ?? "—"} монет</div>
+                          <div>{EXPEDITION_DIFFICULTY_DETAILS[d].description}</div>
+                        </div>
+                      }
+                      position="top"
+                      trigger="hover"
+                    >
+                      <Info className="w-3.5 h-3.5 text-[var(--muted-foreground)] cursor-help" aria-label="Подробности" />
+                    </Tooltip>
                   </div>
                   <p className="games-muted text-xs flex-1">
-                    {d === "easy"
-                      ? "Самый дешёвый вариант: короткий поход, меньше риска засады и скромнее награда."
-                      : d === "normal"
-                        ? "Средняя цена и длительность: награды и шансы между лёгкой и тяжёлой экспедицией."
-                        : "Дороже и дольше: выше риск засады, но лучше шанс на редкий и ценный лут."}
+                    {EXPEDITION_DIFFICULTY_DETAILS[d].description}
                   </p>
                   <button
                     type="button"
@@ -364,10 +406,23 @@ export function ExpeditionSection() {
                 <span className="games-reward-chip">+{expeditionData.lastResult.coinsGained ?? 0} монет</span>
                 <span className="games-reward-chip">+{expeditionData.lastResult.expGained ?? 0} опыта</span>
                 {(expeditionData.lastResult.itemsGained ?? []).map((i: { itemId: string; count: number; name?: string; icon?: string }, idx: number) => (
-                  <span key={idx} className="games-reward-chip inline-flex items-center gap-1">
-                    {i.icon ? <img src={i.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
-                    {i.name || i.itemId} ×{i.count}
-                  </span>
+                  <Tooltip
+                    key={idx}
+                    content={
+                      <div className="text-xs">
+                        <div><strong>{i.name || i.itemId}</strong></div>
+                        <div>ID: {i.itemId}</div>
+                        <div>Количество: {i.count}</div>
+                      </div>
+                    }
+                    position="top"
+                    trigger="hover"
+                  >
+                    <span className="games-reward-chip inline-flex items-center gap-1 cursor-help">
+                      {i.icon ? <img src={i.icon} alt="" className="w-4 h-4 rounded object-cover" /> : null}
+                      {i.name || i.itemId} ×{i.count}
+                    </span>
+                  </Tooltip>
                 ))}
                 {(expeditionData.lastResult as { ambush?: { happened: boolean; preventedByTalisman: boolean } }).ambush?.happened && (
                   <span className="games-reward-chip games-reward-chip--warning">

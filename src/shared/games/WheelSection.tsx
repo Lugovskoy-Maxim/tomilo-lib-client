@@ -4,12 +4,22 @@ import { useGetWheelQuery, useWheelSpinMutation } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { CircleDot, Coins, Sparkles, Gift, CircleOff, Percent, Clock3 } from "lucide-react";
+import { CircleDot, Coins, Sparkles, Gift, CircleOff, Percent, Clock3, Info } from "lucide-react";
 import type { WheelSegment } from "@/types/games";
+import Tooltip from "@/shared/ui/Tooltip";
 
 import { GameResultReveal } from "./GameResultReveal";
 
 const WHEEL_SIZE = 280;
+
+/** Цвета редкости для отображения в пуле наград */
+const RARITY_COLORS: Record<string, string> = {
+  common: "text-slate-500",
+  uncommon: "text-emerald-500",
+  rare: "text-blue-500",
+  epic: "text-purple-500",
+  legendary: "text-amber-500",
+};
 
 /** Форматирует время до момента (ISO): "через 2 ч 15 мин", "менее минуты", "завтра в 00:00" */
 function formatTimeUntil(isoString: string): string {
@@ -28,6 +38,22 @@ function formatTimeUntil(isoString: string): string {
     return minutes > 0 ? `через ${hours} ч ${minutes} мин` : `через ${hours} ч`;
   }
   return totalMinutes < 1 ? "менее минуты" : `через ${totalMinutes} мин`;
+}
+
+/** Форматирует прошедшее время (ISO): "только что", "2 мин назад", "5 ч назад" */
+function formatTimeAgo(isoString: string): string {
+  const target = new Date(isoString);
+  const now = new Date();
+  const ms = now.getTime() - target.getTime();
+  if (ms < 0) return "в будущем";
+  const totalSeconds = Math.floor(ms / 1000);
+  if (totalSeconds < 60) return "только что";
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  if (totalMinutes < 60) return `${totalMinutes} мин назад`;
+  const hours = Math.floor(totalMinutes / 60);
+  if (hours < 24) return `${hours} ч назад`;
+  const days = Math.floor(hours / 24);
+  return `${days} дн назад`;
 }
 
 /** Палитра сегментов: контрастные цвета «колеса судьбы» (чередуются тёплые/холодные) */
@@ -266,15 +292,32 @@ export function WheelSection() {
               </svg>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleSpin}
-            disabled={!canSpin || isSpinning || isAnimating}
-            className="games-wheel-cta inline-flex items-center gap-2"
+          <Tooltip
+            content={
+              !canSpin
+                ? nextSpinAt
+                  ? `Доступно ${formatTimeUntil(nextSpinAt)}`
+                  : "Спин недоступен"
+                : isSpinning
+                ? "Идёт запрос на сервер..."
+                : isAnimating
+                ? "Колесо вращается"
+                : "Нажмите, чтобы крутить колесо судьбы"
+            }
+            position="top"
+            trigger="hover"
+            showIcon={false}
           >
-            <CircleDot className={`w-7 h-7 ${isSpinning ? "animate-spin" : ""}`} aria-hidden />
-            {isSpinning ? "Крутим..." : isAnimating ? "Крутится..." : "Крутить колесо"}
-          </button>
+            <button
+              type="button"
+              onClick={handleSpin}
+              disabled={!canSpin || isSpinning || isAnimating}
+              className="games-wheel-cta inline-flex items-center gap-2"
+            >
+              <CircleDot className={`w-7 h-7 ${isSpinning ? "animate-spin" : ""}`} aria-hidden />
+              {isSpinning ? "Крутим..." : isAnimating ? "Крутится..." : "Крутить колесо"}
+            </button>
+          </Tooltip>
           {!canSpin && wheel.lastWheelSpinAt && (
             <p className="games-muted text-sm mt-3">Уже использовано сегодня. Завтра — снова.</p>
           )}
@@ -282,7 +325,20 @@ export function WheelSection() {
 
         <div className="space-y-4">
           <div className="games-panel">
-            <h3 className="games-panel-title">Пул наград</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="games-panel-title">Пул наград</h3>
+              <Tooltip
+                content={
+                  <div className="text-xs max-w-xs">
+                    <p>Вероятность выпадения каждого сегмента рассчитывается на основе его веса.</p>
+                    <p className="mt-1">Чем выше вес, тем больше шанс получить эту награду.</p>
+                  </div>
+                }
+                position="top"
+                showIcon={true}
+                iconClassName="w-4 h-4 text-[var(--muted-foreground)]"
+              />
+            </div>
             <div className="grid gap-2">
               {segmentsByChance.map((segment, index) => {
                 const chancePercent = totalWeight > 0 ? ((Number(segment.weight ?? 0) / totalWeight) * 100) : 0;
@@ -291,28 +347,53 @@ export function WheelSection() {
                   segment.rewardType === "xp" ? <Sparkles className="w-4 h-4 text-violet-500" aria-hidden /> :
                   segment.rewardType === "item" ? <Gift className="w-4 h-4 text-sky-500" aria-hidden /> :
                   <CircleOff className="w-4 h-4 text-slate-500" aria-hidden />;
+                const rarityColor = segment.rarity ? RARITY_COLORS[segment.rarity] || "text-slate-500" : "text-slate-500";
+                const tooltipContent = (
+                  <div className="text-xs space-y-1">
+                    <div className="font-semibold">{segment.label}</div>
+                    <div>Тип: {segment.rewardType}</div>
+                    {segment.rewardMeta?.valueText && <div>Значение: {segment.rewardMeta.valueText}</div>}
+                    <div>Шанс: {chancePercent.toFixed(2)}%</div>
+                    <div>Вес: {segment.weight ?? 0}</div>
+                    {segment.rarity && <div className={rarityColor}>Редкость: {segment.rarity}</div>}
+                  </div>
+                );
                 return (
-                  <div key={`${segment.label}-${index}`} className="games-wheel-reward-row">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="games-wheel-reward-icon">
-                        {segment.icon ? <img src={segment.icon} alt="" className="w-5 h-5 rounded object-cover" /> : icon}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-[var(--foreground)] truncate">{segment.label}</div>
-                        <div className="games-muted text-xs">
-                          {segment.rewardMeta?.valueText ? `${segment.rewardMeta.valueText} · ` : ""}
-                          {segment.rarity ? `редкость: ${segment.rarity}` : "награда колеса"}
+                  <Tooltip key={`${segment.label}-${index}`} content={tooltipContent} position="top" trigger="hover">
+                    <div className="games-wheel-reward-row">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="games-wheel-reward-icon">
+                          {segment.icon ? <img src={segment.icon} alt="" className="w-5 h-5 rounded object-cover" /> : icon}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-[var(--foreground)] truncate">{segment.label}</div>
+                          <div className="games-muted text-xs flex items-center gap-2">
+                            {segment.rewardMeta?.valueText && (
+                              <span className="text-[var(--foreground)]">{segment.rewardMeta.valueText}</span>
+                            )}
+                            {segment.rarity && (
+                              <span className={`${rarityColor} font-medium`}>{segment.rarity}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="shrink-0 w-24">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-[var(--foreground)] inline-flex items-center gap-1">
+                            <Percent className="w-3 h-3" aria-hidden />
+                            {chancePercent.toFixed(1)}%
+                          </span>
+                          <span className="games-muted text-[11px]">вес {segment.weight ?? 0}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-[var(--muted)]/30 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[var(--primary)] rounded-full"
+                            style={{ width: `${Math.min(chancePercent, 100)}%` }}
+                          />
                         </div>
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="inline-flex items-center gap-1 text-xs font-medium text-[var(--foreground)]">
-                        <Percent className="w-3.5 h-3.5 text-[var(--muted-foreground)]" aria-hidden />
-                        {chancePercent.toFixed(1)}%
-                      </div>
-                      <div className="games-muted text-[11px]">вес {segment.weight ?? 0}</div>
-                    </div>
-                  </div>
+                  </Tooltip>
                 );
               })}
             </div>
@@ -323,12 +404,37 @@ export function WheelSection() {
             {recentResults.length === 0 ? (
               <p className="games-muted text-sm">После первого спина здесь появится локальная история текущей сессии.</p>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {recentResults.map((entry, index) => (
-                  <span key={`${entry.at}-${index}`} className="games-reward-chip">
-                    {entry.label}
-                  </span>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {recentResults.map((entry, index) => {
+                  // Попробуем определить тип награды по label (очень приблизительно)
+                  const isCoins = entry.label.toLowerCase().includes("монет") || entry.label.includes("coins");
+                  const isExp = entry.label.toLowerCase().includes("опыт") || entry.label.includes("xp");
+                  const isItem = !isCoins && !isExp;
+                  const icon = isCoins ? <Coins className="w-3.5 h-3.5 text-amber-500" /> :
+                             isExp ? <Sparkles className="w-3.5 h-3.5 text-violet-500" /> :
+                             <Gift className="w-3.5 h-3.5 text-sky-500" />;
+                  return (
+                    <Tooltip
+                      key={`${entry.at}-${index}`}
+                      content={
+                        <div className="text-xs">
+                          <div className="font-semibold">{entry.label}</div>
+                          <div className="text-[var(--muted-foreground)]">{new Date(entry.at).toLocaleString("ru-RU")}</div>
+                        </div>
+                      }
+                      position="top"
+                      trigger="hover"
+                    >
+                      <div className="games-reward-chip flex items-center gap-2 p-2">
+                        {icon}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{entry.label}</div>
+                          <div className="text-xs text-[var(--muted-foreground)]">{formatTimeAgo(entry.at)}</div>
+                        </div>
+                      </div>
+                    </Tooltip>
+                  );
+                })}
               </div>
             )}
           </div>
