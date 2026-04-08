@@ -47,7 +47,7 @@ export default function SettingsNavigation({
 
   return (
     <nav
-      className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] overflow-hidden"
+      className="profile-glass-card rounded-xl overflow-hidden"
       aria-label="Быстрый переход по настройкам"
     >
       <div

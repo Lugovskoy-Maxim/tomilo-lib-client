@@ -4,6 +4,7 @@ import { BookOpen, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useGetReadingProgressQuery } from "@/store/api/titlesApi";
 import { getTitlePath } from "@/lib/title-paths";
+import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { getCoverUrls } from "@/lib/asset-url";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
@@ -20,7 +21,7 @@ export default function ReadingProgressBlock() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+      <div className="profile-glass-card rounded-xl p-4">
         <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3 flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-[var(--primary)]" />
           Прогресс чтения
@@ -35,14 +36,19 @@ export default function ReadingProgressBlock() {
   if (displayList.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+    <div className="profile-glass-card rounded-xl p-4">
       <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3 flex items-center gap-2">
         <BookOpen className="w-4 h-4 text-[var(--primary)]" />
         Прогресс чтения
       </h3>
       <ul className="space-y-2">
         {displayList.map(item => {
-          const titleName = (item.title?.name ?? item.title?.title) || `Тайтл #${item.titleId}`;
+          const titleName = item.title
+            ? getTitleDisplayNameForSEO(
+                item.title as unknown as Record<string, unknown>,
+                (item.title.slug ?? "").trim(),
+              )
+            : `Тайтл #${item.titleId}`;
           const slug = item.title?.slug;
           const cover = item.title?.cover ?? item.title?.coverImage;
           const total = item.totalChapters ?? 0;

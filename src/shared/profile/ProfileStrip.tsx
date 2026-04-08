@@ -43,7 +43,7 @@ export default function ProfileStrip({
   const showStreak = !isPublicView || isOwnProfile || userProfile.showStats !== false;
 
   return (
-    <div className="flex flex-col gap-3 py-3 px-2.5 min-[400px]:px-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 sm:px-4 rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/95 backdrop-blur-sm">
+    <div className="profile-glass-strip flex flex-col gap-3 py-4 px-3 min-[400px]:px-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 sm:px-5 rounded-2xl">
       {/* Верхняя строка на мобильных: аватар + имя */}
       <div className="flex items-center gap-3 min-w-0 sm:contents">
       {/* Аватар: контейнер с overflow-visible и отступом, чтобы рамка и эффекты не обрезались */}

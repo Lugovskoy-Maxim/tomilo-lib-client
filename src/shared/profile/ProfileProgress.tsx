@@ -109,7 +109,7 @@ function EventCard({ event }: { event: ProgressEvent }) {
   if (event.type === "level_up") {
     const rankColor = getRankColor(event.newRank.rank);
     return (
-      <div className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] hover:bg-[var(--muted)]/5 transition-colors">
+      <div className="flex items-start gap-3 p-3 profile-glass-card rounded-lg hover:bg-[var(--muted)]/5 transition-colors">
         <div className="p-2 rounded-md" style={{ backgroundColor: `${rankColor}18` }}>
           <Icon className="w-5 h-5" style={{ color: rankColor }} />
         </div>
@@ -155,7 +155,7 @@ function EventCard({ event }: { event: ProgressEvent }) {
     const rarityColor = RARITY_COLORS[achievement.rarity];
 
     return (
-      <div className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] hover:bg-[var(--muted)]/5 transition-colors">
+      <div className="flex items-start gap-3 p-3 profile-glass-card rounded-lg hover:bg-[var(--muted)]/5 transition-colors">
         <div className={`p-2 rounded-md ${config.bg}`}>
           <AchIcon className={`w-5 h-5 ${rarityColor}`} />
         </div>
@@ -183,7 +183,7 @@ function EventCard({ event }: { event: ProgressEvent }) {
 
   if (event.type === "exp_gain") {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] hover:bg-[var(--muted)]/5 transition-colors">
+      <div className="flex items-center gap-3 p-3 profile-glass-card rounded-lg hover:bg-[var(--muted)]/5 transition-colors">
         <div className={`p-2 rounded-md ${config.bg}`}>
           <Icon className={`w-5 h-5 ${config.color}`} />
         </div>
@@ -258,7 +258,7 @@ export default function ProfileProgress(props: ProfileProgressProps) {
     <div className="space-y-4">
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="p-3 profile-glass-card rounded-lg">
           <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
             <Zap className="w-3.5 h-3.5 text-yellow-500 shrink-0" aria-hidden />
             <span className="text-[10px] font-medium">Неделя</span>
@@ -268,7 +268,7 @@ export default function ProfileProgress(props: ProfileProgressProps) {
           </p>
         </div>
 
-        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="p-3 profile-glass-card rounded-lg">
           <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
             <TrendingUp className="w-3.5 h-3.5 text-orange-500 shrink-0" aria-hidden />
             <span className="text-[10px] font-medium">Месяц</span>
@@ -278,7 +278,7 @@ export default function ProfileProgress(props: ProfileProgressProps) {
           </p>
         </div>
 
-        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="p-3 profile-glass-card rounded-lg">
           <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
             <ArrowUp className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-hidden />
             <span className="text-[10px] font-medium">Уровни</span>
@@ -286,7 +286,7 @@ export default function ProfileProgress(props: ProfileProgressProps) {
           <p className="text-base font-semibold tabular-nums text-[var(--foreground)]">{stats.levelUps}</p>
         </div>
 
-        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="p-3 profile-glass-card rounded-lg">
           <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
             <Trophy className="w-3.5 h-3.5 text-purple-500 shrink-0" aria-hidden />
             <span className="text-[10px] font-medium">Награды</span>
@@ -296,7 +296,7 @@ export default function ProfileProgress(props: ProfileProgressProps) {
       </div>
 
       {/* History section */}
-      <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4">
+      <div className="profile-glass-card rounded-xl p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 min-w-0">
             <Calendar className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />

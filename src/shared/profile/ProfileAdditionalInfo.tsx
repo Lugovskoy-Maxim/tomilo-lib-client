@@ -328,7 +328,7 @@ export default function ProfileAdditionalInfo({
     userProfile.locale === "en" ? "English" : userProfile.locale === "ru" ? "Русский" : null;
 
   return (
-    <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4">
+    <div className="profile-glass-card rounded-xl p-4 sm:p-5">
       <div className="flex items-center gap-2 mb-3">
         <UserCheck className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
         <h2 className="text-sm font-semibold text-[var(--foreground)]">Об аккаунте</h2>

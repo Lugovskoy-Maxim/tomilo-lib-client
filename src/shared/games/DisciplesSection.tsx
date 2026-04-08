@@ -91,6 +91,11 @@ interface BattleResultState {
   winReason?: string;
   userTeamCp?: number;
   opponentTeamCp?: number;
+  /** Синергия отряда из 3 учеников (бонусы в бою), с бэка */
+  squadSynergy?: {
+    user?: { labels?: string[] };
+    opponent?: { labels?: string[] };
+  };
   [key: string]: unknown;
 }
 
@@ -1151,6 +1156,29 @@ export function DisciplesSection() {
                   {serverOutcomeText ? (
                     <p className="text-sm text-[var(--foreground)] leading-snug">{serverOutcomeText}</p>
                   ) : null}
+                  {(() => {
+                    const syn = battleResult.squadSynergy;
+                    const u = (syn?.user?.labels ?? []).filter((l) => typeof l === "string" && l.trim());
+                    const o = (syn?.opponent?.labels ?? []).filter((l) => typeof l === "string" && l.trim());
+                    if (!u.length && !o.length) return null;
+                    return (
+                      <div className="text-[11px] text-[var(--muted-foreground)] space-y-1 mt-2 rounded-lg border border-[var(--border)]/80 bg-[var(--muted)]/10 px-3 py-2">
+                        <p className="font-semibold text-[var(--foreground)] text-[10px] uppercase tracking-wide">
+                          Синергия отряда (в бою)
+                        </p>
+                        {u.length ? (
+                          <p>
+                            <span className="text-[var(--foreground)] font-medium">Вы:</span> {u.join(" · ")}
+                          </p>
+                        ) : null}
+                        {o.length ? (
+                          <p>
+                            <span className="text-[var(--foreground)] font-medium">Противник:</span> {o.join(" · ")}
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -1330,14 +1358,15 @@ export function DisciplesSection() {
                 Тренировка
               </span>
               <span className="games-dash-card__value text-base">
-                {res.canTrain ? "Можно" : "Сегодня готово"}
+                {res.canTrain ? "Можно провести" : "Уже была сегодня"}
               </span>
               <span className="text-[10px] text-[var(--muted-foreground)] leading-tight">
                 {typeof res.trainCostCoins === "number" ? (
                   <span className="inline-flex items-center gap-0.5">
+                    <span className="text-[var(--muted-foreground)]">Стоимость:</span>
                     {res.trainCostCoins}
                     <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
-                    за попытку
+                    <span>за одну тренировку</span>
                   </span>
                 ) : (
                   "Старт — во вкладке «Отряд»"

@@ -148,7 +148,7 @@ export default function ProfileDailyQuests({ maxVisible, variant = "profile" }: 
         className={
           isGames
             ? "games-panel p-4 sm:p-5"
-            : "rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm p-4 sm:p-5 shadow-sm"
+            : "profile-glass-card rounded-2xl p-4 sm:p-5 shadow-sm"
         }
       >
         <div className="flex items-center gap-3 mb-4">
@@ -178,7 +178,7 @@ export default function ProfileDailyQuests({ maxVisible, variant = "profile" }: 
   }
 
   return (
-    <div className={isGames ? "games-panel p-0 overflow-hidden shadow-sm" : "rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm shadow-sm"}>
+    <div className={isGames ? "games-panel p-0 overflow-hidden shadow-sm" : "profile-glass-card rounded-2xl shadow-sm"}>
       <div className="p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-3">

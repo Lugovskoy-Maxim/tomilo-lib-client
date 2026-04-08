@@ -206,6 +206,12 @@ export interface Decoration {
   authorUsername?: string;
   /** Уровень автора (принятая декорация). */
   authorLevel?: number;
+  /** Цена до скидки (зачёркнутая). Должна быть больше `price`, иначе не показываем акцию. */
+  originalPrice?: number;
+  /** Сколько пользователей владеют этим декором (если отдаёт бэкенд). */
+  ownersCount?: number;
+  /** Сколько раз оформляли покупку (если отдаёт бэкенд). */
+  purchaseCount?: number;
 }
 
 export interface ApiResponse<T> {
@@ -220,7 +226,9 @@ export interface ApiResponse<T> {
 
 /** Нормализует элемент из ответа API (поддержка snake_case и _id) */
 function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
-  const stock = (item.stock ?? item.quantity_remaining) as number | undefined;
+  const stock = (item.stock ?? item.quantity ?? item.quantity_remaining) as
+    | number
+    | undefined;
   const isSoldOut = (item.isSoldOut ?? item.is_sold_out ?? item.sold_out) as boolean | undefined;
   return {
     id: (item.id ?? item._id) as string,
@@ -239,6 +247,25 @@ function normalizeDecorationFromApi(item: Record<string, unknown>): Decoration {
       | boolean
       | undefined,
     bonus: (item.bonus as number | undefined) ?? undefined,
+    authorId: (item.authorId ?? item.author_id) as string | undefined,
+    authorUsername: (item.authorUsername ?? item.author_username) as string | undefined,
+    authorLevel: (item.authorLevel ?? item.author_level) as number | undefined,
+    originalPrice: (() => {
+      const v = (item.originalPrice ?? item.original_price) as number | undefined;
+      return v != null && !Number.isNaN(Number(v)) ? Number(v) : undefined;
+    })(),
+    ownersCount: (() => {
+      const v = item.ownersCount ?? item.owners_count;
+      if (v == null) return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined;
+    })(),
+    purchaseCount: (() => {
+      const v = item.purchaseCount ?? item.purchase_count;
+      if (v == null) return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined;
+    })(),
   };
 }
 
@@ -337,6 +364,8 @@ export interface CreateDecorationDto {
   isAvailable?: boolean;
   /** Лимит количества в магазине. Не задано — без лимита. */
   stock?: number;
+  /** Цена до скидки (опционально). */
+  originalPrice?: number;
 }
 
 export interface UpdateDecorationDto {
@@ -349,6 +378,8 @@ export interface UpdateDecorationDto {
   isAvailable?: boolean;
   /** Лимит количества в магазине. Не задано — без лимита. */
   stock?: number;
+  /** Цена до скидки (опционально). Передайте `null` или не передавайте, чтобы сбросить. */
+  originalPrice?: number | null;
 }
 
 export const createDecoration = async (

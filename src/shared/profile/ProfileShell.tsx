@@ -156,13 +156,13 @@ export default function ProfileShell({
     renderEmptyState()
   ) : (
     <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-20 max-[380px]:pt-[4.5rem] sm:pt-44 bg-transparent">
-      <div className="relative z-10 w-full mx-auto px-2 min-[380px]:px-3 sm:px-6 max-w-6xl min-w-0 overflow-x-hidden flex flex-1 flex-col pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:pb-0">
+      <div className="relative z-10 w-full mx-auto px-3 min-[380px]:px-4 sm:px-8 lg:px-12 max-w-6xl min-w-0 overflow-x-hidden flex flex-1 flex-col pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:pb-2">
         {/* Верхняя панель: назад + контекстная ссылка */}
-        <div className="flex flex-wrap items-stretch gap-2 py-2 sm:flex-nowrap sm:items-center sm:justify-between sm:gap-3 sm:py-3">
+        <div className="flex flex-wrap items-stretch gap-2 py-2 sm:flex-nowrap sm:items-center sm:justify-between sm:gap-3 sm:py-4">
           <button
             type="button"
             onClick={topBarBack}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-[var(--foreground)] bg-[var(--card)]/95 hover:bg-[var(--accent)] border border-[var(--border)] transition-colors sm:min-h-0 sm:rounded-xl sm:px-3"
+            className="profile-glass-toolbar flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[color-mix(in_oklch,var(--accent)_55%,transparent)] transition-colors sm:min-h-0 sm:rounded-xl sm:px-3"
             aria-label="Назад"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" aria-hidden />
@@ -172,7 +172,7 @@ export default function ProfileShell({
             {variant === "admin" && (
               <Link
                 href="/admin"
-                className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-[var(--card)]/95 hover:bg-red-500/10 border border-[var(--border)] transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
+                className="profile-glass-toolbar flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/15 transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
               >
                 <Shield className="w-4 h-4 shrink-0" aria-hidden />
                 <span className="whitespace-nowrap">Админка</span>
@@ -181,7 +181,7 @@ export default function ProfileShell({
             {(variant === "admin" || (variant === "other" && showMyProfileLink)) && (
               <Link
                 href="/profile"
-                className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--foreground)] bg-[var(--card)]/95 hover:bg-[var(--accent)] border border-[var(--border)] transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
+                className="profile-glass-toolbar flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[color-mix(in_oklch,var(--accent)_50%,transparent)] transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
               >
                 <UserIcon className="w-4 h-4 shrink-0" aria-hidden />
                 <span className="whitespace-nowrap">Мой профиль</span>
@@ -190,7 +190,7 @@ export default function ProfileShell({
             {variant === "own" && showAdminLink && (
               <Link
                 href="/admin"
-                className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-[var(--card)]/95 hover:bg-red-500/10 border border-[var(--border)] transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
+                className="profile-glass-toolbar flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/15 transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
               >
                 <Shield className="w-4 h-4 shrink-0" aria-hidden />
                 <span className="whitespace-nowrap">Админка</span>
@@ -207,7 +207,7 @@ export default function ProfileShell({
         )}
 
         {/* Полоска профиля: всё в одну линию */}
-        <div className="mb-3 sm:mb-4">
+        <div className="mb-5 sm:mb-7">
           <ProfileStrip
             userProfile={userProfile}
             onEdit={variant === "own" ? onEdit : undefined}
@@ -218,7 +218,7 @@ export default function ProfileShell({
         </div>
 
         {/* Один столбец контента */}
-        <div className="flex-1 min-h-0 flex flex-col gap-4 profile-shell-content">
+        <div className="flex-1 min-h-0 flex flex-col gap-6 sm:gap-8 profile-shell-content">
           {userProfile?.deletedAt && (
             <div className="rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
               <AlertTriangle
@@ -261,7 +261,7 @@ export default function ProfileShell({
             </div>
           )}
           {variant === "admin" && adminControls && <div className="shrink-0">{adminControls}</div>}
-          <div className="flex-1 min-h-0 min-w-0 rounded-xl border border-[var(--border)]/80 overflow-hidden flex flex-col bg-[var(--card)]/95 backdrop-blur-sm">
+          <div className="profile-shell-main-panel flex-1 min-h-0 min-w-0 rounded-2xl overflow-hidden flex flex-col">
             <ProfileTabs
               userProfile={userProfile}
               breadcrumbPrefix={breadcrumbPrefix ?? undefined}

@@ -110,7 +110,7 @@ export function ProfileTabs({
 
   function RestrictedPanel({ title, body }: { title: string; body: string }) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center text-center py-16 px-4 rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/5">
+      <div className="profile-glass-card flex flex-1 flex-col items-center justify-center text-center py-16 px-4 rounded-xl border-dashed">
         <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-foreground)]">
           <Lock className="h-5 w-5" strokeWidth={1.5} aria-hidden />
         </div>
@@ -121,9 +121,9 @@ export function ProfileTabs({
   }
 
   return (
-    <div className="w-full min-w-0 flex flex-col px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pt-4 sm:pb-5 md:px-5">
+    <div className="w-full min-w-0 flex flex-col px-3 pt-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-6 sm:pb-8 md:px-8">
       <nav
-        className="mb-3 border-b border-[var(--border)]/80 -mx-2 px-2 sm:mx-0 sm:px-0 sm:mb-4"
+        className="mb-4 rounded-xl border border-[color-mix(in_oklch,var(--border)_45%,transparent)] bg-[color-mix(in_oklch,var(--card)_72%,transparent)] px-1 -mx-1 backdrop-blur-md sm:mx-0 sm:mb-5 sm:border-0 sm:border-b sm:border-[var(--border)]/55 sm:rounded-none sm:bg-transparent sm:px-0 sm:backdrop-blur-none"
         aria-label="Разделы профиля"
       >
         <p className="sr-only">Прокрутите влево-вправо, чтобы увидеть все разделы</p>
@@ -169,7 +169,7 @@ export function ProfileTabs({
         </div>
       </nav>
 
-      <header className="mb-3 pb-3 border-b border-[var(--border)]/60 sm:mb-4">
+      <header className="mb-4 rounded-xl border border-[color-mix(in_oklch,var(--border)_38%,transparent)] bg-[color-mix(in_oklch,var(--card)_48%,transparent)] py-3 pl-5 pr-4 sm:mb-5 sm:py-3.5 sm:pl-6 sm:pr-5">
         <h2 className="text-base font-semibold tracking-tight text-[var(--foreground)] sm:text-sm">
           {sectionTitle}
         </h2>
@@ -181,7 +181,7 @@ export function ProfileTabs({
       <div className="flex-1 min-h-0 profile-content-scroll overflow-y-auto overflow-x-hidden pb-1 sm:pb-0">
         {/* О себе */}
         {activeTab === "overview" && (
-          <div className="space-y-4 sm:space-y-5 animate-fade-in-up">
+          <div className="space-y-5 sm:space-y-7 animate-fade-in-up">
             <ProfileAboutBlock userProfile={userProfile} />
             <ProfileAdditionalInfo userProfile={userProfile} isPublicView={isPublicView} />
             <ProfileContent
@@ -231,7 +231,7 @@ export function ProfileTabs({
 
         {/* Закладки */}
         {activeTab === "bookmarks" && (
-          <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4 min-h-[280px] flex flex-col animate-fade-in-up">
+          <div className="profile-glass-card rounded-xl p-4 sm:p-5 min-h-[280px] flex flex-col animate-fade-in-up">
             {isBookmarksRestricted ? (
               <RestrictedPanel
                 title="Закладки скрыты"
@@ -250,7 +250,7 @@ export function ProfileTabs({
 
         {/* История */}
         {activeTab === "history" && (
-          <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4 min-h-[280px] flex flex-col animate-fade-in-up">
+          <div className="profile-glass-card rounded-xl p-4 sm:p-5 min-h-[280px] flex flex-col animate-fade-in-up">
             {isHistoryRestricted ? (
               <RestrictedPanel
                 title="История чтения скрыта"
@@ -279,7 +279,7 @@ export function ProfileTabs({
             <aside className="mb-4 lg:mb-0 lg:sticky lg:top-2">
               <SettingsNavigation />
             </aside>
-            <div className="min-w-0 rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4">
+            <div className="profile-glass-card min-w-0 rounded-xl p-4 sm:p-5">
               <div id="settings-notifications" className="pb-5 mb-5 border-b border-[var(--border)]/50 last:border-b-0 last:pb-0 last:mb-0">
                 <h3 className="text-[11px] font-medium text-[var(--muted-foreground)] uppercase tracking-wide mb-3">
                   Уведомления

@@ -2,7 +2,18 @@
 
 import { useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { ShoppingBag, Check, Sparkles, ImageIcon, Coins, PackageX, X, Crown } from "lucide-react";
+import {
+  ShoppingBag,
+  Check,
+  Sparkles,
+  ImageIcon,
+  Coins,
+  PackageX,
+  X,
+  Crown,
+  Gift,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import {
   Decoration,
@@ -118,6 +129,32 @@ function formatPrice(n: number): string {
   return n.toLocaleString("ru-RU");
 }
 
+function decorationSalePercent(d: Pick<Decoration, "price" | "originalPrice">): number {
+  const o = d.originalPrice;
+  if (o == null || o <= d.price || d.price < 0) return 0;
+  return Math.round((1 - d.price / o) * 100);
+}
+
+function purchaseActionLabel(price: number): string {
+  return price === 0 ? "Бесплатно" : "Купить";
+}
+
+/** Статистика владения из API (если бэкенд отдаёт поля). */
+function DecorationStatsLine({ decoration: d }: { decoration: Decoration }) {
+  const owners = d.ownersCount;
+  const purchases = d.purchaseCount;
+  if (owners == null && purchases == null) return null;
+  const parts: string[] = [];
+  if (owners != null) parts.push(`у ${owners.toLocaleString("ru-RU")} игроков`);
+  if (purchases != null) parts.push(`покупок: ${purchases.toLocaleString("ru-RU")}`);
+  return (
+    <p className="flex items-center justify-center md:justify-start gap-1.5 text-xs text-[var(--muted-foreground)] mt-2">
+      <Users className="w-3.5 h-3.5 shrink-0 opacity-80" aria-hidden />
+      <span>{parts.join(" · ")}</span>
+    </p>
+  );
+}
+
 const TYPE_META: Record<
   "avatar" | "frame" | "background" | "card",
   { shortLabel: string; previewHint: string }
@@ -200,6 +237,7 @@ function DecorationPreviewModal({
   displayAuthorLevel,
 }: DecorationPreviewModalProps) {
   const displayUsername = formatUsernameDisplay(username);
+  const salePct = decorationSalePercent(decoration);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [useFallback, setUseFallback] = useState(false);
   const effectiveImageSrc =
@@ -489,7 +527,7 @@ function DecorationPreviewModal({
       >
         <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-[var(--border)] bg-[var(--background)]">
           <h2 className="text-base sm:text-lg font-semibold text-[var(--foreground)] truncate">
-            Купить украшение
+            {decoration.price === 0 ? "Бесплатное украшение" : "Купить украшение"}
           </h2>
           <button
             type="button"
@@ -554,12 +592,16 @@ function DecorationPreviewModal({
                 )}
               </div>
 
+              <DecorationStatsLine decoration={decoration} />
+
               {!isOwned && !hidePurchase && (
                 <div className="flex flex-col gap-1 mt-2">
                   {decoration.onlyWithSubscription && decoration.subscriptionPrice != null ? (
                     <>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Coins className="w-5 h-5 text-amber-500 shrink-0" />
+                        {decoration.subscriptionPrice > 0 && (
+                          <Coins className="w-5 h-5 text-amber-500 shrink-0" />
+                        )}
                         <span className="text-xl font-bold text-[var(--foreground)]">
                           {formatPrice(decoration.subscriptionPrice)}
                         </span>
@@ -576,11 +618,23 @@ function DecorationPreviewModal({
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center gap-2">
-                        <Coins className="w-5 h-5 text-amber-500" />
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {decoration.price > 0 && (
+                          <Coins className="w-5 h-5 text-amber-500 shrink-0" />
+                        )}
                         <span className="text-xl font-bold text-[var(--foreground)]">
                           {formatPrice(decoration.price)}
                         </span>
+                        {salePct > 0 && decoration.originalPrice != null && (
+                          <>
+                            <span className="text-sm text-[var(--muted-foreground)] line-through">
+                              {formatPrice(decoration.originalPrice)}
+                            </span>
+                            <span className="text-xs font-semibold rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 px-2 py-0.5">
+                              −{salePct}%
+                            </span>
+                          </>
+                        )}
                       </div>
                       {decoration.subscriptionPrice != null &&
                         decoration.subscriptionPrice < decoration.price && (
@@ -660,8 +714,12 @@ function DecorationPreviewModal({
                         <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <>
-                          <ShoppingBag className="w-4 h-4" />
-                          Купить
+                          {decoration.price === 0 ? (
+                            <Gift className="w-4 h-4" />
+                          ) : (
+                            <ShoppingBag className="w-4 h-4" />
+                          )}
+                          {purchaseActionLabel(decoration.price)}
                         </>
                       )}
                     </button>
@@ -795,6 +853,7 @@ export function DecorationCard({
     subscriptionPrice != null && decoration.price > 0 && subscriptionPrice < decoration.price
       ? Math.round((1 - subscriptionPrice / decoration.price) * 100)
       : 0;
+  const salePct = decorationSalePercent(decoration);
   const { avatarDecorationUrl, frameUrl: resolvedFrameUrl } = useResolvedEquippedDecorations();
   /** URL надетой рамки: из хука (разрешён по id через профиль/декорации) или fallback из user */
   const userFrameUrl =
@@ -825,7 +884,12 @@ export function DecorationCard({
     actionInProgressRef.current = true;
     try {
       await onPurchase?.(decoration.id);
-      if (showActionToast) success(`"${decoration.name}" куплено!`);
+      if (showActionToast)
+        success(
+          decoration.price === 0
+            ? `«${decoration.name}» получено бесплатно!`
+            : `«${decoration.name}» куплено!`,
+        );
     } catch {
       if (showActionToast) showError("Ошибка при покупке");
     } finally {
@@ -928,8 +992,12 @@ export function DecorationCard({
             />
           ) : (
             <>
-              <ShoppingBag className={compact ? iconSize : "w-4 h-4 shrink-0"} />
-              Купить
+              {decoration.price === 0 ? (
+                <Gift className={compact ? iconSize : "w-4 h-4 shrink-0"} />
+              ) : (
+                <ShoppingBag className={compact ? iconSize : "w-4 h-4 shrink-0"} />
+              )}
+              {purchaseActionLabel(decoration.price)}
             </>
           )}
         </button>
@@ -1124,6 +1192,11 @@ export function DecorationCard({
                       −{discountPercent}%
                     </span>
                   )}
+                  {salePct > 0 && (
+                    <span className="absolute top-0.5 right-0.5 sm:top-1.5 sm:right-1.5 inline-flex items-center rounded-full bg-rose-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm z-[2]">
+                      −{salePct}%
+                    </span>
+                  )}
                   {soldOut && (
                     <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded-full bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
                       <PackageX className="w-2 h-2 sm:w-3 sm:h-3" />
@@ -1196,6 +1269,11 @@ export function DecorationCard({
                       −{discountPercent}%
                     </span>
                   )}
+                  {salePct > 0 && (
+                    <span className="absolute top-0.5 right-0.5 sm:top-1.5 sm:right-1.5 inline-flex items-center rounded-full bg-rose-500 text-white text-[8px] sm:text-[10px] font-semibold px-1 py-0.5 sm:px-2 shadow-sm z-[2]">
+                      −{salePct}%
+                    </span>
+                  )}
                   {soldOut && (
                     <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex items-center gap-0.5 rounded-full bg-rose-500/95 text-white text-[8px] sm:text-xs font-semibold px-1 py-0.5 sm:px-2 whitespace-nowrap">
                       <PackageX className="w-2 h-2 sm:w-3 sm:h-3" />
@@ -1224,6 +1302,18 @@ export function DecorationCard({
               <div className="text-center">
                 {renderAuthorSummary("compact")}
               </div>
+              {(decoration.ownersCount != null || decoration.purchaseCount != null) && (
+                <p className="flex items-center justify-center gap-1 text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center leading-tight px-0.5">
+                  <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 opacity-80" aria-hidden />
+                  <span>
+                    {decoration.ownersCount != null &&
+                      `у ${decoration.ownersCount.toLocaleString("ru-RU")} игроков`}
+                    {decoration.ownersCount != null && decoration.purchaseCount != null && " · "}
+                    {decoration.purchaseCount != null &&
+                      `покупок ${decoration.purchaseCount.toLocaleString("ru-RU")}`}
+                  </span>
+                </p>
+              )}
               {showStock && (
                 <p className="text-[9px] sm:text-[10px] text-[var(--muted-foreground)] text-center">
                   {decoration.stock! <= 0
@@ -1238,7 +1328,9 @@ export function DecorationCard({
                   {onlyWithSubscription && subscriptionPrice != null ? (
                     <>
                       <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--secondary)]/80 px-2 py-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs shadow-sm ring-1 ring-[var(--border)]/50">
-                        <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
+                        {subscriptionPrice > 0 && (
+                          <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
+                        )}
                         {formatPrice(subscriptionPrice)}
                       </span>
                       <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] text-blue-600 dark:text-blue-400 font-medium">
@@ -1248,9 +1340,16 @@ export function DecorationCard({
                     </>
                   ) : (
                     <>
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--secondary)]/80 px-2 py-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs shadow-sm ring-1 ring-[var(--border)]/50">
-                        <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
+                      <span className="inline-flex flex-wrap items-center justify-center gap-1 rounded-lg bg-[var(--secondary)]/80 px-2 py-0.5 text-[var(--foreground)] font-semibold text-[10px] sm:text-xs shadow-sm ring-1 ring-[var(--border)]/50">
+                        {decoration.price > 0 && (
+                          <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />
+                        )}
                         {formatPrice(decoration.price)}
+                        {salePct > 0 && decoration.originalPrice != null && (
+                          <span className="font-normal text-[var(--muted-foreground)] line-through">
+                            {formatPrice(decoration.originalPrice)}
+                          </span>
+                        )}
                       </span>
                       {subscriptionPrice != null && subscriptionPrice < decoration.price && (
                         <span className="inline-flex items-center gap-0.5 text-[9px] text-[var(--muted-foreground)]">
@@ -1330,6 +1429,13 @@ export function DecorationCard({
               Уже куплено
             </span>
           )}
+          {salePct > 0 && (
+            <span
+              className={`inline-flex items-center gap-1 ${badgeCl} bg-rose-500/90 text-white ml-auto`}
+            >
+              −{salePct}%
+            </span>
+          )}
         </div>
         {showStock && (
           <div className="absolute bottom-2 left-2 right-2 flex justify-start">
@@ -1381,6 +1487,20 @@ export function DecorationCard({
                 </p>
               )}
               {renderAuthorSummary("compact")}
+          {(decoration.ownersCount != null || decoration.purchaseCount != null) && (
+            <p
+              className={`flex flex-wrap items-center gap-1 text-[var(--muted-foreground)] ${isLarge ? "text-xs" : "text-[11px]"}`}
+            >
+              <Users className="w-3 h-3 shrink-0 opacity-80" aria-hidden />
+              <span>
+                {decoration.ownersCount != null &&
+                  `у ${decoration.ownersCount.toLocaleString("ru-RU")} игроков`}
+                {decoration.ownersCount != null && decoration.purchaseCount != null && " · "}
+                {decoration.purchaseCount != null &&
+                  `покупок ${decoration.purchaseCount.toLocaleString("ru-RU")}`}
+              </span>
+            </p>
+          )}
           {showStock && (
             <p className={`${isLarge ? "text-xs" : "text-[11px]"} text-[var(--muted-foreground)]`}>
               {decoration.stock! <= 0
@@ -1397,12 +1517,19 @@ export function DecorationCard({
           >
             {!hidePurchase && !isOwned ? (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-xl bg-[var(--secondary)]/90 border border-[var(--border)]/80 font-semibold text-[var(--foreground)] shadow-sm shrink-0 ${isLarge ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2 py-1.5 text-xs"}`}
+                className={`inline-flex flex-wrap items-center gap-1.5 rounded-xl bg-[var(--secondary)]/90 border border-[var(--border)]/80 font-semibold text-[var(--foreground)] shadow-sm shrink-0 ${isLarge ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2 py-1.5 text-xs"}`}
               >
-                <Coins
-                  className={isLarge ? "w-4 h-4 text-amber-500" : "w-3.5 h-3.5 text-amber-500"}
-                />
+                {decoration.price > 0 && (
+                  <Coins
+                    className={isLarge ? "w-4 h-4 text-amber-500" : "w-3.5 h-3.5 text-amber-500"}
+                  />
+                )}
                 {formatPrice(decoration.price)}
+                {salePct > 0 && decoration.originalPrice != null && (
+                  <span className="font-normal text-[var(--muted-foreground)] line-through">
+                    {formatPrice(decoration.originalPrice)}
+                  </span>
+                )}
               </span>
             ) : !hidePurchase && isOwned ? (
               <span
@@ -1424,9 +1551,16 @@ export function DecorationCard({
           </div>
         ) : !hidePurchase && !isOwned && isAuthenticated ? (
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
-              <Coins className="w-3.5 h-3.5 text-amber-500" />
+            <span className="inline-flex flex-wrap items-center gap-1 px-2 py-1.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] shrink-0">
+              {decoration.price > 0 && (
+                <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              )}
               {formatPrice(decoration.price)}
+              {salePct > 0 && decoration.originalPrice != null && (
+                <span className="font-normal text-[var(--muted-foreground)] line-through">
+                  {formatPrice(decoration.originalPrice)}
+                </span>
+              )}
             </span>
             <button
               type="button"
@@ -1441,8 +1575,12 @@ export function DecorationCard({
                 <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <ShoppingBag className="w-4 h-4 shrink-0" />
-                  Купить
+                  {decoration.price === 0 ? (
+                    <Gift className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <ShoppingBag className="w-4 h-4 shrink-0" />
+                  )}
+                  {purchaseActionLabel(decoration.price)}
                 </>
               )}
             </button>
@@ -1535,6 +1673,11 @@ export function DecorationCard({
                   Уже куплено
                 </span>
               )}
+              {salePct > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/90 text-white text-[10px] font-semibold shadow-sm ml-auto">
+                  −{salePct}%
+                </span>
+              )}
             </div>
           </div>
           <div
@@ -1556,6 +1699,18 @@ export function DecorationCard({
                 </p>
               )}
               {renderAuthorSummary("compact")}
+              {(decoration.ownersCount != null || decoration.purchaseCount != null) && (
+                <p className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-[var(--muted-foreground)]">
+                  <Users className="w-3 h-3 shrink-0 opacity-80" aria-hidden />
+                  <span>
+                    {decoration.ownersCount != null &&
+                      `у ${decoration.ownersCount.toLocaleString("ru-RU")} игроков`}
+                    {decoration.ownersCount != null && decoration.purchaseCount != null && " · "}
+                    {decoration.purchaseCount != null &&
+                      `покупок ${decoration.purchaseCount.toLocaleString("ru-RU")}`}
+                  </span>
+                </p>
+              )}
               {showStock && (
                 <p className="text-[11px] text-[var(--muted-foreground)]">
                   {decoration.stock! <= 0
@@ -1568,9 +1723,16 @@ export function DecorationCard({
             </div>
             <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 min-h-[2rem] pt-0.5">
               {!hidePurchase && !isOwned ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--secondary)]/90 border border-[var(--border)]/80 text-xs font-semibold text-[var(--foreground)] shadow-sm shrink-0">
-                  <Coins className="w-3.5 h-3.5 text-amber-500" />
+                <span className="inline-flex flex-wrap items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--secondary)]/90 border border-[var(--border)]/80 text-xs font-semibold text-[var(--foreground)] shadow-sm shrink-0">
+                  {decoration.price > 0 && (
+                    <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  )}
                   {formatPrice(decoration.price)}
+                  {salePct > 0 && decoration.originalPrice != null && (
+                    <span className="font-normal text-[var(--muted-foreground)] line-through">
+                      {formatPrice(decoration.originalPrice)}
+                    </span>
+                  )}
                 </span>
               ) : !hidePurchase && isOwned ? (
                 <span

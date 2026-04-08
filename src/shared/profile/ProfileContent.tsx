@@ -61,7 +61,7 @@ export default function ProfileContent({
       .finally(() => {});
   }, [isPublicView, claimDailyBonus]);
 
-  const gap = compactOverview ? "gap-3" : "gap-4";
+  const gap = compactOverview ? "gap-4 sm:gap-5" : "gap-5 sm:gap-6";
   const maxBookmarks = compactOverview ? 5 : 10;
 
   return (
@@ -89,7 +89,7 @@ export default function ProfileContent({
 
       {showAchievementsPreview && !(isPublicView && userProfile.showAchievements === false) && (
         <div
-          className={`rounded-lg border border-[var(--border)]/80 bg-[var(--card)] ${compactOverview ? "p-3" : "p-3 sm:p-4"}`}
+          className={`profile-glass-card rounded-xl ${compactOverview ? "p-4" : "p-4 sm:p-5"}`}
         >
           <div className={`flex items-center justify-between ${compactOverview ? "mb-2" : "mb-3"}`}>
             <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function ProfileContent({
 
       {hiddenBookmarksMessage ? (
         <div
-          className={`rounded-lg border border-[var(--border)]/80 bg-[var(--card)] ${compactOverview ? "p-3" : "p-3 sm:p-4"}`}
+          className={`profile-glass-card rounded-xl ${compactOverview ? "p-4" : "p-4 sm:p-5"}`}
         >
           <h2 className="text-sm font-semibold text-[var(--foreground)] mb-1">Закладки</h2>
           <p className="text-xs text-[var(--muted-foreground)]">{hiddenBookmarksMessage}</p>
@@ -130,7 +130,7 @@ export default function ProfileContent({
       )}
 
       <div
-        className={`rounded-lg border border-[var(--border)]/80 bg-[var(--card)] flex flex-col ${compactOverview ? "p-3" : "p-3 sm:p-4"}`}
+        className={`profile-glass-card rounded-xl flex flex-col ${compactOverview ? "p-4" : "p-4 sm:p-5"}`}
       >
         {hiddenHistoryMessage ? (
           <div className="flex flex-1 items-center justify-center text-center py-6">

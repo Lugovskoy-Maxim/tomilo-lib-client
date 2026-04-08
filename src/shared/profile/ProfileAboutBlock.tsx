@@ -35,7 +35,7 @@ export default function ProfileAboutBlock({ userProfile }: ProfileAboutBlockProp
 
   return (
     <section
-      className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4"
+      className="profile-glass-card rounded-xl p-4 sm:p-5"
       aria-label="О пользователе"
     >
       {hasTop && (

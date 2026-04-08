@@ -1,7 +1,59 @@
 /* --- PROFILE PAGE --- */
 
 .profile-shell-content {
-  --profile-gap: 1rem;
+  --profile-gap: 1.5rem;
+}
+
+/* Панели со «стеклом»: фон читаемый, лёгкий просвет баннера */
+.profile-shell-main-panel {
+  background: color-mix(in oklch, var(--card) 78%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+  box-shadow: inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+[data-theme="dark"] .profile-shell-main-panel,
+.dark .profile-shell-main-panel {
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+  box-shadow: inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+
+.profile-glass-card {
+  background: color-mix(in oklch, var(--card) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+}
+
+[data-theme="dark"] .profile-glass-card,
+.dark .profile-glass-card {
+  background: color-mix(in oklch, var(--card) 78%, transparent);
+}
+
+.profile-glass-strip {
+  background: color-mix(in oklch, var(--card) 85%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid color-mix(in oklch, var(--border) 52%, transparent);
+  box-shadow: 0 2px 24px color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+
+[data-theme="dark"] .profile-glass-strip,
+.dark .profile-glass-strip {
+  background: color-mix(in oklch, var(--card) 82%, transparent);
+}
+
+.profile-glass-toolbar {
+  background: color-mix(in oklch, var(--card) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in oklch, var(--border) 52%, transparent);
+}
+
+[data-theme="dark"] .profile-glass-toolbar,
+.dark .profile-glass-toolbar {
+  background: color-mix(in oklch, var(--card) 84%, transparent);
 }
 
 /* Полоска профиля, карточка вкладок, уровень, вкладки, заголовок раздела — в Tailwind (ProfileStrip, ProfileShell, ProfileTabs). */

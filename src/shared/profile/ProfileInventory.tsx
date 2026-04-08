@@ -324,7 +324,7 @@ export default function ProfileInventory() {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-8 min-h-[200px] flex items-center justify-center">
+      <div className="profile-glass-card rounded-xl p-8 min-h-[200px] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
       </div>
     );
@@ -332,7 +332,7 @@ export default function ProfileInventory() {
 
   return (
     <div className="w-full animate-fade-in-up">
-      <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4">
+      <div className="profile-glass-card rounded-xl p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-[var(--border)]/50">
           <div className="flex items-center gap-2 min-w-0">
             <Package className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />

@@ -46,6 +46,8 @@ const emptyForm = {
   isAvailable: true,
   /** Пустая строка = без лимита. Число = макс. количество в магазине. */
   stock: "" as number | "",
+  isFree: false,
+  originalPrice: "" as number | "",
 };
 
 const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
@@ -102,15 +104,21 @@ export function ShopManagementSection() {
   const openEdit = (d: Decoration) => {
     setEditingDecoration(d);
     const rarity = (d.rarity ?? "common") as DecorationRarity;
+    const p = typeof d.price === "number" ? d.price : getPriceByRarity(rarity);
     setForm({
       name: d.name,
       description: d.description,
-      price: getPriceByRarity(rarity),
+      price: p,
       imageUrl: d.imageUrl,
       type: d.type,
       rarity,
       isAvailable: d.isAvailable ?? true,
       stock: d.stock !== undefined && d.stock !== null ? d.stock : "",
+      isFree: p === 0,
+      originalPrice:
+        d.originalPrice != null && !Number.isNaN(Number(d.originalPrice))
+          ? Number(d.originalPrice)
+          : ("" as number | ""),
     });
     setImageFile(null);
     setIsFormOpen(true);
@@ -142,7 +150,8 @@ export function ShopManagementSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim() || form.price < 0) return;
+    const effectivePrice = form.isFree ? 0 : form.price;
+    if (!form.name.trim() || effectivePrice < 0) return;
 
     const stockValue =
       form.stock === ""
@@ -155,6 +164,15 @@ export function ShopManagementSection() {
         ? stockValue
         : undefined;
 
+    const origParsed =
+      form.originalPrice === ""
+        ? NaN
+        : typeof form.originalPrice === "number"
+          ? form.originalPrice
+          : parseInt(String(form.originalPrice), 10);
+    const originalPriceParam =
+      Number.isFinite(origParsed) && origParsed > effectivePrice ? Math.floor(origParsed) : undefined;
+
     try {
       if (editingDecoration) {
         if (imageFile) {
@@ -163,11 +181,12 @@ export function ShopManagementSection() {
             file: imageFile,
             name: form.name.trim(),
             description: form.description.trim(),
-            price: form.price,
+            price: effectivePrice,
             type: form.type,
             rarity: form.rarity,
             isAvailable: form.isAvailable,
             stock: stockParam,
+            originalPrice: originalPriceParam,
           }).unwrap();
         } else {
           await updateDecoration({
@@ -175,12 +194,13 @@ export function ShopManagementSection() {
             dto: {
               name: form.name.trim(),
               description: form.description.trim(),
-              price: form.price,
+              price: effectivePrice,
               imageUrl: form.imageUrl.trim() || undefined,
               type: form.type,
               rarity: form.rarity,
               isAvailable: form.isAvailable,
               stock: stockParam,
+              originalPrice: originalPriceParam,
             },
           }).unwrap();
         }
@@ -194,10 +214,11 @@ export function ShopManagementSection() {
             type: form.type,
             name: form.name.trim() || undefined,
             description: form.description.trim() || undefined,
-            price: form.price,
+            price: effectivePrice,
             rarity: form.rarity,
             isAvailable: form.isAvailable,
             stock: stockParam,
+            originalPrice: originalPriceParam,
           }).unwrap();
         } else {
           const url = form.imageUrl.trim();
@@ -208,12 +229,13 @@ export function ShopManagementSection() {
           await createDecoration({
             name: form.name.trim(),
             description: form.description.trim(),
-            price: form.price,
+            price: effectivePrice,
             imageUrl: url,
             type: form.type,
             rarity: form.rarity,
             isAvailable: form.isAvailable,
             stock: stockParam,
+            originalPrice: originalPriceParam,
           }).unwrap();
         }
         toast.success("Украшение добавлено");
@@ -432,6 +454,9 @@ export function ShopManagementSection() {
                   <th className="text-right py-3 px-2 font-medium text-[var(--muted-foreground)]">
                     Цена
                   </th>
+                  <th className="text-left py-3 px-2 font-medium text-[var(--muted-foreground)]">
+                    Статистика
+                  </th>
                   <th className="text-center py-3 px-2 font-medium text-[var(--muted-foreground)]">
                     Остаток / Статус
                   </th>
@@ -473,7 +498,34 @@ export function ShopManagementSection() {
                     <td className="py-2 px-2 text-[var(--muted-foreground)]">
                       {typeLabel(d.type)}
                     </td>
-                    <td className="py-2 px-2 text-right font-medium">{d.price} монет</td>
+                    <td className="py-2 px-2 text-right font-medium">
+                      {d.price === 0 ? (
+                        <span className="text-emerald-600 dark:text-emerald-400">Бесплатно</span>
+                      ) : (
+                        <>
+                          {d.price} монет
+                          {d.originalPrice != null && d.originalPrice > d.price && (
+                            <span className="block text-xs text-[var(--muted-foreground)] line-through font-normal">
+                              было {d.originalPrice}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </td>
+                    <td className="py-2 px-2 text-[var(--muted-foreground)] text-xs max-w-[10rem]">
+                      {d.ownersCount != null || d.purchaseCount != null ? (
+                        <>
+                          {d.ownersCount != null && (
+                            <span className="block">У {d.ownersCount} игроков</span>
+                          )}
+                          {d.purchaseCount != null && (
+                            <span className="block">Покупок: {d.purchaseCount}</span>
+                          )}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="py-2 px-2 text-center">
                       {d.stock !== undefined ? (
                         d.isSoldOut || d.stock <= 0 ? (
@@ -576,9 +628,9 @@ export function ShopManagementSection() {
                 type="number"
                 min={0}
                 readOnly
-                value={form.price}
+                value={form.isFree ? 0 : form.price}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 text-[var(--foreground)] cursor-default"
-                title="Цена задаётся автоматически по редкости: 800 / 1200 / 1800 / 4000"
+                title="Цена по редкости: 800 / 1200 / 1800 / 4000. «Бесплатно» — 0 монет."
               />
             </div>
             <div>
@@ -603,7 +655,11 @@ export function ShopManagementSection() {
                 value={form.rarity}
                 onChange={e => {
                   const rarity = e.target.value as DecorationRarity;
-                  setForm(f => ({ ...f, rarity, price: getPriceByRarity(rarity) }));
+                  setForm(f => ({
+                    ...f,
+                    rarity,
+                    price: f.isFree ? 0 : getPriceByRarity(rarity),
+                  }));
                 }}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               >
@@ -613,6 +669,45 @@ export function ShopManagementSection() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isFree}
+                  onChange={e => {
+                    const free = e.target.checked;
+                    setForm(f => ({
+                      ...f,
+                      isFree: free,
+                      price: free ? 0 : getPriceByRarity(f.rarity),
+                    }));
+                  }}
+                  className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                  Бесплатно (0 монет)
+                </span>
+              </label>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Старая цена для скидки (необязательно)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.originalPrice === "" ? "" : form.originalPrice}
+                onChange={e => {
+                  const v = e.target.value;
+                  setForm(f => ({
+                    ...f,
+                    originalPrice: v === "" ? ("" as number | "") : parseInt(v, 10) || 0,
+                  }));
+                }}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                placeholder="Больше текущей цены — покажем зачёркнутой в магазине"
+              />
             </div>
             <div className="flex items-end pb-2">
               <label className="flex items-center gap-2 cursor-pointer">

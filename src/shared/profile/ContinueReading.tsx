@@ -8,20 +8,9 @@ import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import { useMemo, useState, useEffect } from "react";
 import { getCoverUrls } from "@/lib/asset-url";
 import { getChapterPath, getTitlePath } from "@/lib/title-paths";
+import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import IMAGE_HOLDER from "../../../public/404/image-holder.png";
-
-/** Пытается получить строку названия из объекта тайтла (API может отдавать name, title, titleName и т.д.) */
-function getTitleNameFromPopulated(
-  titleData: { name?: string; title?: string; [key: string]: unknown } | null,
-): string | null {
-  if (!titleData || typeof titleData !== "object") return null;
-  const name =
-    titleData.name ??
-    titleData.title ??
-    (titleData.titleName as string | undefined);
-  return typeof name === "string" && name.trim() ? name.trim() : null;
-}
 
 interface ContinueReadingProps {
   userProfile: UserProfile;
@@ -72,6 +61,7 @@ function getLastReadInfo(entry: ReadingHistoryEntry): {
         name?: string;
         title?: string;
         slug?: string;
+        altNames?: string[];
         coverImage?: string;
         chapters?: { chapterNumber: number }[];
       })
@@ -79,16 +69,12 @@ function getLastReadInfo(entry: ReadingHistoryEntry): {
 
   const titleId = isPopulated ? titleData!._id : (entry.titleId as string);
   const titleSlug = isPopulated ? titleData!.slug : undefined;
-  const nameFromPopulated = isPopulated ? getTitleNameFromPopulated(titleData!) : null;
-  const titleName =
-    nameFromPopulated ||
-    (titleSlug && titleSlug.trim()
-      ? titleSlug
-          .split("-")
-          .map(w => (w.length ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
-          .join(" ")
-      : null) ||
-    "Неизвестный тайтл";
+  const slugTrimmed = titleSlug?.trim() ?? "";
+  const titleName = isPopulated && titleData
+    ? getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slugTrimmed)
+    : slugTrimmed
+      ? getTitleDisplayNameForSEO({}, slugTrimmed)
+      : "Неизвестный тайтл";
   const coverImage = isPopulated ? (titleData!.coverImage ?? null) : null;
 
   const titleChapters = isPopulated
@@ -157,8 +143,10 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
   );
   const displayTitleName =
     needsTitleFetch && fetchedTitle
-      ? (fetchedTitle.name || lastRead!.titleName).trim() ||
-        lastRead!.titleName
+      ? getTitleDisplayNameForSEO(
+          fetchedTitle as unknown as Record<string, unknown>,
+          (fetchedTitle.slug ?? lastRead?.titleSlug ?? "").trim(),
+        )
       : lastRead?.titleName ?? "";
 
   const coverImage = lastRead?.coverImage;
@@ -177,7 +165,7 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
 
   if (!lastRead) {
     return (
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 p-4 sm:p-5">
+      <div className="profile-glass-card rounded-xl sm:rounded-2xl p-4 sm:p-5">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-[var(--primary)]/15">
             <Play className="w-5 h-5 text-[var(--primary)]" />

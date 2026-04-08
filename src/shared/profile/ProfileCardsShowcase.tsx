@@ -24,7 +24,7 @@ export default function ProfileCardsShowcase({
   if (cards.length === 0) return null;
 
   return (
-    <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+    <section className="profile-glass-card rounded-xl p-4 sm:p-5">
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="text-sm font-semibold text-[var(--foreground)]">
           {readOnly ? "Витрина карточек" : "Мои карточки на витрине"}

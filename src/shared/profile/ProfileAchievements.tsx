@@ -461,8 +461,10 @@ const AchievementCard = memo(function AchievementCard({
 
   return (
     <article
-      className={`group relative rounded-lg overflow-hidden flex flex-col min-h-0 transition-colors border border-[var(--border)]/70 ${
-        isUnlocked ? "bg-[var(--card)]" : "bg-[var(--muted)]/5 opacity-95 hover:opacity-100"
+      className={`group relative rounded-lg overflow-hidden flex flex-col min-h-0 transition-colors ${
+        isUnlocked
+          ? "profile-glass-card"
+          : "border border-[var(--border)]/50 bg-[color-mix(in_oklch,var(--card)_58%,transparent)] backdrop-blur-sm opacity-95 hover:opacity-100"
       }`}
     >
       {/* Верх: название + бейдж прогресса — как у ежедневных заданий */}
@@ -639,7 +641,7 @@ export default function ProfileAchievements({
 
   if (isAchievementsHidden) {
     return (
-      <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/5 py-12 px-4 text-center">
+      <div className="profile-glass-card rounded-xl border-dashed py-12 px-4 text-center">
         <Trophy className="w-8 h-8 mx-auto text-[var(--muted-foreground)] mb-2" aria-hidden />
         <p className="text-sm font-medium text-[var(--foreground)]">Достижения скрыты</p>
         <p className="text-xs text-[var(--muted-foreground)] mt-1 max-w-xs mx-auto leading-relaxed">
@@ -658,7 +660,7 @@ export default function ProfileAchievements({
   const hasMoreAchievements = !compact && achievements.length > INITIAL_FULL && !showAllAchievements;
 
   return (
-    <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] overflow-hidden">
+    <div className="profile-glass-card rounded-xl overflow-hidden">
       <div className={compact ? "p-3 sm:p-4" : "p-3 sm:p-4"}>
         <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">

@@ -106,7 +106,7 @@ export default function ProfileStats({
 
   if (isStatsHidden) {
     return (
-      <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/5 p-8 sm:p-10 text-center">
+      <div className="profile-glass-card rounded-xl border-dashed p-8 sm:p-10 text-center">
         <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)]">
           <svg
             className="w-8 h-8 text-[var(--muted-foreground)]"
@@ -190,7 +190,7 @@ export default function ProfileStats({
         {stats.map(stat => (
           <div
             key={stat.id}
-            className={`flex flex-col gap-1 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] ${
+            className={`flex flex-col gap-1 profile-glass-card rounded-lg ${
               showDetailed ? "p-3.5 sm:p-4" : "p-3"
             }`}
           >
@@ -214,7 +214,7 @@ export default function ProfileStats({
 
       {/* Level, Rank & Economy — компактный ряд при !showDetailed */}
       {!showDetailed ? (
-        <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="flex flex-wrap items-center gap-3 p-3 profile-glass-card rounded-lg">
           <div className="flex items-center gap-2">
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
@@ -246,7 +246,7 @@ export default function ProfileStats({
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Level progress */}
-        <div className="sm:col-span-2 rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="profile-glass-card sm:col-span-2 rounded-lg p-4">
           <div className="flex items-center gap-3 mb-3">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shrink-0"
@@ -374,7 +374,7 @@ export default function ProfileStats({
         </div>
 
         {/* XP card */}
-        <div className="relative rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="profile-glass-card relative rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
@@ -440,7 +440,7 @@ export default function ProfileStats({
         </div>
 
         {/* Balance card */}
-        <div className="relative rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="profile-glass-card relative rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Coins className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden />
@@ -500,7 +500,7 @@ export default function ProfileStats({
 
       {/* Bookmarks breakdown */}
       {showDetailed && totalBookmarks > 0 && (
-        <div className="rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
+        <div className="profile-glass-card rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <PieChart className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
             <div>
@@ -588,7 +588,7 @@ export default function ProfileStats({
           ].map(item => (
             <div
               key={item.label}
-              className="flex items-center gap-2.5 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]"
+              className="flex items-center gap-2.5 p-3 profile-glass-card rounded-lg"
             >
               <item.icon className={`w-4 h-4 ${item.color} shrink-0`} aria-hidden />
               <div className="min-w-0">
@@ -606,7 +606,7 @@ export default function ProfileStats({
       {showDetailed && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0 items-stretch">
           {/* How to earn XP */}
-          <div className="flex flex-col rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)] min-w-0 overflow-hidden">
+          <div className="profile-glass-card flex flex-col rounded-lg p-4 min-w-0 overflow-hidden">
             <div className="flex items-center gap-2 mb-3 shrink-0">
               <Zap className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
               <div className="min-w-0">
@@ -675,7 +675,7 @@ export default function ProfileStats({
           </div>
 
           {/* How to earn Coins */}
-          <div className="flex flex-col rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)] min-w-0 overflow-hidden">
+          <div className="profile-glass-card flex flex-col rounded-lg p-4 min-w-0 overflow-hidden">
             <div className="flex items-center gap-2 mb-3 shrink-0">
               <Coins className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden />
               <div className="min-w-0">

@@ -62,7 +62,7 @@ export default function NextRankProgress({ userProfile, onShowStats }: NextRankP
   const currentRankColor = getRankColor(currentRank.rank);
 
   return (
-    <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-gradient-to-br from-[var(--card)] to-[var(--card)]/80 overflow-hidden">
+    <div className="profile-glass-card rounded-xl sm:rounded-2xl overflow-hidden">
       <div
         className="p-4 sm:p-5"
         style={{
