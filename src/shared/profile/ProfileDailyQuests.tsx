@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ClipboardList, Check, Loader2, Coins, Sparkles, Gift, Target, Search, Filter, SortAsc } from "lucide-react";
+import { ClipboardList, Check, Loader2, Coins, Sparkles, Gift, Target, Search } from "lucide-react";
 import { useGetDailyQuestsQuery, useClaimDailyQuestMutation } from "@/store/api/authApi";
 import { useToast } from "@/hooks/useToast";
 import { GameResultReveal } from "@/shared/games";
@@ -56,7 +56,8 @@ export default function ProfileDailyQuests({ maxVisible, variant = "profile" }: 
   const [sortBy, setSortBy] = useState<"default" | "reward" | "progress">("default");
 
   const data = response?.success ? response.data : null;
-  const allQuests = data?.quests ?? [];
+  const questsFromApi = data?.quests;
+  const allQuests = useMemo(() => questsFromApi ?? [], [questsFromApi]);
 
   // Общий прогресс по всем квестам
   const totalProgress = useMemo(() => {

@@ -2,51 +2,68 @@
 
 import { UserProfile } from "@/types/user";
 import ProfileLeaderboardBadges from "./ProfileLeaderboardBadges";
-import { Calendar1, Heart } from "lucide-react";
+import { Heart, Cake } from "lucide-react";
 
 interface ProfileAboutBlockProps {
   userProfile: UserProfile;
 }
 
+function formatBirthDateLabel(dateStr: string): string {
+  const date = new Date(dateStr);
+  const today = new Date();
+  let age = today.getFullYear() - date.getFullYear();
+  const monthDiff = today.getMonth() - date.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+    age--;
+  }
+  const formattedDate = date.toLocaleDateString("ru-RU");
+  const mod10 = age % 10;
+  const mod100 = age % 100;
+  let ending = "лет";
+  if (mod100 >= 11 && mod100 <= 19) ending = "лет";
+  else if (mod10 === 1) ending = "год";
+  else if (mod10 >= 2 && mod10 <= 4) ending = "года";
+  return `${formattedDate} · ${age} ${ending}`;
+}
+
 export default function ProfileAboutBlock({ userProfile }: ProfileAboutBlockProps) {
-  const joinedDate = userProfile.createdAt ? new Date(userProfile.createdAt) : null;
-  const joinedLabel =
-    joinedDate && !Number.isNaN(joinedDate.getTime())
-      ? joinedDate.toLocaleDateString("ru-RU")
-      : null;
   const hasBio = Boolean(userProfile.bio?.trim());
   const hasGenre = Boolean(userProfile.favoriteGenre?.trim());
-  const hasJoined = joinedLabel != null;
+  const hasBirth = Boolean(userProfile.birthDate?.trim());
+
+  const hasTop = hasBio || hasGenre || hasBirth;
 
   return (
     <section
-      className="profile-about-block rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4"
+      className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4"
       aria-label="О пользователе"
     >
-      {(hasBio || hasGenre || hasJoined) && (
-        <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
+      {hasTop && (
+        <div className="space-y-3">
           {hasBio && (
-            <p className="profile-about-bio border-l-2 border-[var(--primary)]/50 pl-3 py-0.5 pr-2 italic text-[var(--foreground)]/90 leading-snug line-clamp-2 text-xs sm:text-sm w-full">
+            <p className="text-sm text-[var(--foreground)] leading-relaxed whitespace-pre-wrap">
               {userProfile.bio}
             </p>
           )}
-          <div className="flex flex-wrap items-center gap-2">
-            {hasGenre && (
-              <span className="inline-flex items-center gap-1 py-1 px-2 rounded-md bg-[var(--secondary)]/50 text-xs">
-                <Heart className="w-3 h-3 text-pink-500 shrink-0" />
-                <span className="truncate max-w-[140px]">{userProfile.favoriteGenre}</span>
+          <div className="flex flex-wrap gap-2">
+            {hasBirth && (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)]/70 bg-[var(--muted)]/5 px-2 py-1 text-xs text-[var(--muted-foreground)]">
+                <Cake className="h-3.5 w-3.5 shrink-0 text-[var(--foreground)]/70" aria-hidden />
+                {formatBirthDateLabel(userProfile.birthDate!)}
               </span>
             )}
-            {hasJoined && (
-              <span className="inline-flex items-center gap-1 py-1 px-2 rounded-md bg-[var(--secondary)]/50 text-xs text-[var(--muted-foreground)]">
-                <Calendar1 className="w-3 h-3 shrink-0" />
-                С {joinedLabel}
+            {hasGenre && (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)]/70 bg-[var(--muted)]/5 px-2 py-1 text-xs text-[var(--foreground)]">
+                <Heart className="h-3.5 w-3.5 shrink-0 text-pink-500" aria-hidden />
+                <span className="truncate max-w-[200px]">{userProfile.favoriteGenre}</span>
               </span>
             )}
           </div>
         </div>
       )}
-      <ProfileLeaderboardBadges userId={userProfile._id} />
+      <div className={hasTop ? "mt-4 pt-4 border-t border-[var(--border)]/50" : ""}>
+        <ProfileLeaderboardBadges userId={userProfile._id} />
+      </div>
     </section>
   );
 }

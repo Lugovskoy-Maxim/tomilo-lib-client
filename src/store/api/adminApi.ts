@@ -22,6 +22,8 @@ import {
 } from "@/types/admin";
 import {
   SpamStats,
+  SpamBackfillRequest,
+  SpamBackfillResult,
   SpamCommentsQuery,
   SpamCommentsResponse,
   SpamRestrictedUsersQuery,
@@ -400,6 +402,15 @@ export const adminApi = createApi({
       }),
       invalidatesTags: [ADMIN_SPAM_TAG],
     }),
+
+    backfillSpamChecks: builder.mutation<ApiResponseDto<SpamBackfillResult>, SpamBackfillRequest | void>({
+      query: body => ({
+        url: "/admin/spam/backfill",
+        method: "POST",
+        body: body ?? {},
+      }),
+      invalidatesTags: [ADMIN_SPAM_TAG],
+    }),
   }),
 });
 
@@ -443,4 +454,5 @@ export const {
   useGetSpamRestrictedUsersQuery,
   useRemoveSpamRestrictionMutation,
   useCleanupSpamCommentsMutation,
+  useBackfillSpamChecksMutation,
 } = adminApi;

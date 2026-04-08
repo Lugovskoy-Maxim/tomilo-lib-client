@@ -69,6 +69,7 @@ export function ExpeditionSection() {
   const {
     data: expeditionStatusData,
     isLoading: expeditionLoading,
+    isFetching: expeditionFetching,
     isError: expeditionStatusError,
     refetch: refetchExpedition,
   } = useGetDisciplesExpeditionStatusQuery();
@@ -178,7 +179,6 @@ export function ExpeditionSection() {
       const label = item.name || item.itemId;
 
       toast.success(`Найдено: ${label} ×${item.count}`, undefined, { icon: item.icon });
-
     });
   }, [expeditionData, toast, writeLastShownResult]);
 
@@ -190,10 +190,28 @@ export function ExpeditionSection() {
     );
   }
 
-  if (expeditionStatusError || !expeditionData) {
+  if (expeditionStatusError && !expeditionData) {
     return (
       <div className="games-panel text-[var(--destructive)]">
         <p className="games-muted text-sm">Не удалось загрузить статус экспедиции.</p>
+        <button
+          type="button"
+          className="games-btn games-btn-secondary games-btn-sm mt-3"
+          onClick={() => void refetchExpedition()}
+        >
+          Повторить
+        </button>
+      </div>
+    );
+  }
+
+  if (!expeditionData) {
+    return (
+      <div className="games-panel">
+        <p className="games-muted text-sm">Нет данных экспедиции.</p>
+        <button type="button" className="games-btn games-btn-secondary games-btn-sm mt-3" onClick={() => void refetchExpedition()}>
+          Обновить
+        </button>
       </div>
     );
   }
@@ -223,11 +241,11 @@ export function ExpeditionSection() {
       originMs = syntheticProgressStartRef.current!.originMs;
     }
     const total = expeditionTargetMs - originMs;
-    expeditionProgressPercent = total > 0 ? Math.min(100, Math.max(0, ((Date.now() - originMs) / total) * 100)) : 100;
+    expeditionProgressPercent = total > 0 ? Math.min(100, Math.max(0, ((countdownNow - originMs) / total) * 100)) : 100;
   }
 
   const formatCountdown = (untilMs: number): string => {
-    const left = Math.max(0, Math.floor((untilMs - Date.now()) / 1000));
+    const left = Math.max(0, Math.floor((untilMs - countdownNow) / 1000));
     const h = Math.floor(left / 3600);
     const m = Math.floor((left % 3600) / 60);
     const s = left % 60;
@@ -238,13 +256,50 @@ export function ExpeditionSection() {
     return parts.join(" ");
   };
 
+  const statusLabel = expeditionData.inProgress
+    ? "В походе"
+    : expeditionData.canStart
+      ? "Готово к отправке"
+      : "Кулдаун";
+
   return (
     <div className="space-y-4">
+      <div className="games-dash-grid">
+        <div className="games-dash-card games-dash-card--accent">
+          <span className="games-dash-card__label">Баланс</span>
+          <span className="games-dash-card__value inline-flex items-center gap-1">
+            {expeditionData.balance ?? "—"}
+            <Coins className="w-4 h-4 text-amber-500 opacity-90 shrink-0" aria-hidden />
+          </span>
+        </div>
+        <div className="games-dash-card">
+          <span className="games-dash-card__label">Талисман вылазки</span>
+          <span className="games-dash-card__value">{expeditionTalismanCount}</span>
+        </div>
+        <div className="games-dash-card">
+          <span className="games-dash-card__label">Статус</span>
+          <span className="games-dash-card__value text-base">{statusLabel}</span>
+        </div>
+      </div>
+
       <div className="games-panel">
-        <h3 className="games-panel-title flex items-center gap-2">
-          <Compass className="w-4 h-4 text-[var(--primary)]" aria-hidden />
-          Экспедиция
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="games-panel-title flex items-center gap-2 mb-0">
+            <Compass className="w-4 h-4 text-[var(--primary)]" aria-hidden />
+            Экспедиция
+          </h3>
+          {expeditionFetching ? (
+            <span className="text-[11px] text-[var(--muted-foreground)]">Обновление…</span>
+          ) : (
+            <button
+              type="button"
+              className="games-btn games-btn-secondary games-btn-sm"
+              onClick={() => void refetchExpedition()}
+            >
+              Обновить
+            </button>
+          )}
+        </div>
         <div className="space-y-3">
           {expeditionData.inProgress ? (
             <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/15 p-4 space-y-3">
@@ -323,7 +378,7 @@ export function ExpeditionSection() {
             Защита экспедиции: <strong className="text-[var(--foreground)]">{expeditionTalismanCount}</strong> талисм.
             {expeditionTalismanCount > 0
               ? " При засаде один талисман спишется автоматически."
-              : " Если получите `expedition_talisman`, он будет срабатывать автоматически."}
+              : " Если получите талисман вылазки в сумку, он будет срабатывать автоматически."}
             <Tooltip
               content="Талисманы экспедиции автоматически защищают от засады. При срабатывании один талисман расходуется, предотвращая потерю добычи."
               position="top"

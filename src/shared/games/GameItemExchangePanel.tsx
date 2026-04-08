@@ -21,7 +21,7 @@ export function GameItemExchangePanel({
   const toast = useToast();
   const contentId = useId();
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const { data, isLoading, isError } = useGetDisciplesItemExchangeRecipesQuery();
+  const { data, isLoading, isError, refetch } = useGetDisciplesItemExchangeRecipesQuery();
   const [runExchange, { isLoading: isExchanging }] = useDisciplesItemExchangeMutation();
   const recipes = data?.data?.recipes ?? [];
   const affordableCount = recipes.filter((r) => r.canAfford).length;
@@ -36,12 +36,19 @@ export function GameItemExchangePanel({
     );
   }
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <div
         className={`rounded-xl border border-[var(--border)] px-3 py-2.5 sm:px-4 text-[var(--destructive)] text-sm ${className}`}
       >
-        Не удалось загрузить обмен. Обновите страницу.
+        <p>Не удалось загрузить обмен.</p>
+        <button
+          type="button"
+          className="games-btn games-btn-secondary games-btn-sm mt-2"
+          onClick={() => void refetch()}
+        >
+          Повторить
+        </button>
       </div>
     );
   }

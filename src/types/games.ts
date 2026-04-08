@@ -200,6 +200,8 @@ export interface ProfileDisciplesResponse {
   balance: number;
   rerollCostCoins: number;
   trainCostCoins: number;
+  /** Пул призыва кандидата: весь каталог или только персонажи из закладок */
+  characterPool?: "all" | "bookmarks";
   lastRerollCandidate: {
     characterId: string;
     titleId: string;

@@ -18,6 +18,8 @@ import {
   Trophy,
   TrendingUp,
   Gift,
+  Star,
+  ShieldAlert,
 } from "lucide-react";
 import {
   getRankColor,
@@ -56,7 +58,6 @@ export default function ProfileStats({
   showDetailed = true,
   isPublicView = false,
 }: ProfileStatsProps) {
-  const [activeStatCard, setActiveStatCard] = useState<string | null>(null);
   const [showRankTooltip, setShowRankTooltip] = useState(false);
   const [showCoinsTooltip, setShowCoinsTooltip] = useState(false);
   const [showExpTooltip, setShowExpTooltip] = useState(false);
@@ -79,6 +80,8 @@ export default function ProfileStats({
   const commentsCount = userProfile.commentsCount ?? 0;
   const likesReceivedCount = userProfile.likesReceivedCount ?? 0;
   const completedTitlesCount = userProfile.completedTitlesCount ?? 0;
+  const ratingsCount = userProfile.ratingsCount ?? 0;
+  const reportsCount = userProfile.reportsCount ?? 0;
 
   const { progressPercent: expProgress, nextLevelExp } = getLevelProgress(level, experience);
   const rankInfo = levelToRank(level);
@@ -103,8 +106,8 @@ export default function ProfileStats({
 
   if (isStatsHidden) {
     return (
-      <div className="rounded-xl sm:rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-6 sm:p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--secondary)] flex items-center justify-center">
+      <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/5 p-8 sm:p-10 text-center">
+        <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)]">
           <svg
             className="w-8 h-8 text-[var(--muted-foreground)]"
             fill="none"
@@ -119,8 +122,8 @@ export default function ProfileStats({
             />
           </svg>
         </div>
-        <p className="text-[var(--foreground)] font-medium mb-1">Статистика скрыта</p>
-        <p className="text-sm text-[var(--muted-foreground)]">
+        <p className="text-sm font-medium text-[var(--foreground)] mb-1">Статистика скрыта</p>
+        <p className="text-xs text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
           Пользователь ограничил доступ к своей статистике в настройках приватности.
         </p>
       </div>
@@ -156,8 +159,6 @@ export default function ProfileStats({
       label: "Серия дней",
       value: formatStreak(currentStreak),
       subValue: `Рекорд: ${formatStreak(longestStreak)}`,
-      color: "from-orange-500 to-red-500",
-      bgColor: "bg-orange-500/10",
     },
     {
       id: "time",
@@ -165,8 +166,6 @@ export default function ProfileStats({
       label: "Время чтения",
       value: formatReadingTime(readingTimeMinutes),
       subValue: `${totalTitlesRead} тайтлов`,
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-500/10",
     },
     {
       id: "chapters",
@@ -174,8 +173,6 @@ export default function ProfileStats({
       label: "Глав прочитано",
       value: totalChaptersRead.toLocaleString(),
       subValue: `~${avgChaptersPerDay} в день`,
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-blue-500/10",
     },
     {
       id: "bookmarks",
@@ -183,45 +180,33 @@ export default function ProfileStats({
       label: "Закладки",
       value: totalBookmarks.toLocaleString(),
       subValue: `${bookmarksByCategory.reading} активных`,
-      color: "from-green-500 to-emerald-500",
-      bgColor: "bg-green-500/10",
     },
   ];
 
   return (
     <div className={showDetailed ? "space-y-5" : "space-y-3"}>
       {/* Main stats grid */}
-      <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3`}>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {stats.map(stat => (
           <div
             key={stat.id}
-            className={`group relative flex flex-col gap-1.5 rounded-xl bg-[var(--secondary)]/40 border border-[var(--border)]/60 hover:border-[var(--border)] hover:bg-[var(--secondary)]/60 transition-all duration-300 cursor-pointer overflow-hidden ${
-              showDetailed ? "p-4" : "p-3"
-            } ${activeStatCard === stat.id ? "ring-2 ring-[var(--primary)]/50" : ""}`}
-            onMouseEnter={() => setActiveStatCard(stat.id)}
-            onMouseLeave={() => setActiveStatCard(null)}
+            className={`flex flex-col gap-1 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] ${
+              showDetailed ? "p-3.5 sm:p-4" : "p-3"
+            }`}
           >
-            <div className="absolute top-0 right-0 w-16 h-16 opacity-5 pointer-events-none transform translate-x-4 -translate-y-4">
-              <stat.icon className="w-full h-full" />
+            <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
+              <stat.icon className="w-3.5 h-3.5 shrink-0 opacity-80" aria-hidden />
+              <span className="text-[10px] sm:text-xs font-medium leading-tight">{stat.label}</span>
             </div>
-
-            <div
-              className={`w-fit p-2 rounded-lg bg-gradient-to-br ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-300`}
+            <p
+              className={`font-semibold text-[var(--foreground)] tabular-nums leading-tight ${
+                showDetailed ? "text-base sm:text-lg" : "text-sm sm:text-base"
+              }`}
             >
-              <stat.icon className="w-4 h-4 text-white" />
-            </div>
-
-            <div>
-              <div className={`font-bold text-[var(--foreground)] tabular-nums leading-tight ${showDetailed ? "text-lg sm:text-xl" : "text-base sm:text-lg"}`}>
-                {stat.value}
-              </div>
-              <div className="text-[10px] sm:text-xs text-[var(--muted-foreground)]">{stat.label}</div>
-            </div>
-
+              {stat.value}
+            </p>
             {showDetailed && (
-              <div className="text-[10px] text-[var(--muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                {stat.subValue}
-              </div>
+              <p className="text-[10px] text-[var(--muted-foreground)] leading-snug">{stat.subValue}</p>
             )}
           </div>
         ))}
@@ -229,7 +214,7 @@ export default function ProfileStats({
 
       {/* Level, Rank & Economy — компактный ряд при !showDetailed */}
       {!showDetailed ? (
-        <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/60">
+        <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
           <div className="flex items-center gap-2">
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
@@ -261,7 +246,7 @@ export default function ProfileStats({
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Level progress */}
-        <div className="sm:col-span-2 relative rounded-xl p-4 bg-gradient-to-br from-[var(--secondary)]/50 to-[var(--secondary)]/30 border border-[var(--border)]/60">
+        <div className="sm:col-span-2 rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
           <div className="flex items-center gap-3 mb-3">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shrink-0"
@@ -369,15 +354,12 @@ export default function ProfileStats({
           <div className="space-y-1.5">
             <div className="h-2.5 rounded-full bg-[var(--secondary)] overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-700 ease-out relative"
+                className="h-full rounded-full transition-all duration-700 ease-out"
                 style={{
                   width: `${expProgress}%`,
-                  background: `linear-gradient(90deg, ${rankColor} 0%, ${rankColor}cc 100%)`,
-                  boxShadow: `0 0 8px ${rankColor}50`,
+                  backgroundColor: rankColor,
                 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
-              </div>
+              />
             </div>
             <div className="flex justify-between text-[10px] text-[var(--muted-foreground)]">
               <span className="flex items-center gap-1">
@@ -392,12 +374,10 @@ export default function ProfileStats({
         </div>
 
         {/* XP card */}
-        <div className="relative rounded-xl p-4 bg-gradient-to-br from-amber-500/10 to-yellow-500/5 border border-amber-500/20">
+        <div className="relative rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-amber-500/20">
-                <Zap className="w-4 h-4 text-amber-500" />
-              </div>
+              <Zap className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
               <span className="text-xs text-[var(--muted-foreground)]">Всего опыта</span>
             </div>
             <button
@@ -460,12 +440,10 @@ export default function ProfileStats({
         </div>
 
         {/* Balance card */}
-        <div className="relative rounded-xl p-4 bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-yellow-500/20">
+        <div className="relative rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-yellow-500/20">
-                <Coins className="w-4 h-4 text-yellow-500" />
-              </div>
+              <Coins className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden />
               <span className="text-xs text-[var(--muted-foreground)]">Монеты</span>
             </div>
             <button
@@ -522,37 +500,26 @@ export default function ProfileStats({
 
       {/* Bookmarks breakdown */}
       {showDetailed && totalBookmarks > 0 && (
-        <div className="rounded-xl p-5 bg-[var(--secondary)]/30 border border-[var(--border)]/60">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-[var(--chart-2)]/20">
-              <PieChart className="w-5 h-5 text-[var(--chart-2)]" />
-            </div>
+        <div className="rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)]">
+          <div className="flex items-center gap-2 mb-3">
+            <PieChart className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
             <div>
-              <h3 className="text-sm font-semibold text-[var(--foreground)]">
-                Распределение закладок
-              </h3>
-              <p className="text-xs text-[var(--muted-foreground)]">По категориям</p>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">Закладки по категориям</h3>
+              <p className="text-xs text-[var(--muted-foreground)]">Доля от общего числа</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {(Object.keys(bookmarksByCategory) as BookmarkCategory[]).map(category => {
               const count = bookmarksByCategory[category];
               const percent = totalBookmarks > 0 ? Math.round((count / totalBookmarks) * 100) : 0;
               return (
                 <div
                   key={category}
-                  className="text-center p-3 rounded-lg bg-[var(--card)]/50 border border-[var(--border)]/40"
+                  className="text-center p-2.5 rounded-md border border-[var(--border)]/60 bg-[var(--muted)]/5"
                 >
-                  <div
-                    className="w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                    style={{ backgroundColor: CATEGORY_COLORS[category] }}
-                  >
-                    {count}
-                  </div>
-                  <p className="text-xs font-medium text-[var(--foreground)]">
-                    {CATEGORY_LABELS[category]}
-                  </p>
+                  <p className="text-sm font-semibold tabular-nums text-[var(--foreground)]">{count}</p>
+                  <p className="text-[11px] text-[var(--foreground)] mt-0.5">{CATEGORY_LABELS[category]}</p>
                   <p className="text-[10px] text-[var(--muted-foreground)]">{percent}%</p>
                 </div>
               );
@@ -580,7 +547,7 @@ export default function ProfileStats({
 
       {/* Activity & Social stats */}
       {showDetailed && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
           {[
             {
               icon: Calendar,
@@ -596,7 +563,7 @@ export default function ProfileStats({
             },
             {
               icon: Heart,
-              label: "Получено лайков",
+              label: "Лайков",
               value: likesReceivedCount.toLocaleString(),
               color: "text-pink-500",
             },
@@ -606,14 +573,26 @@ export default function ProfileStats({
               value: completedTitlesCount.toLocaleString(),
               color: "text-green-500",
             },
+            {
+              icon: Star,
+              label: "Оценок",
+              value: ratingsCount.toLocaleString(),
+              color: "text-amber-500",
+            },
+            {
+              icon: ShieldAlert,
+              label: "Жалоб",
+              value: reportsCount.toLocaleString(),
+              color: "text-slate-500",
+            },
           ].map(item => (
             <div
               key={item.label}
-              className="flex items-center gap-3 p-3 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50"
+              className="flex items-center gap-2.5 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]"
             >
-              <item.icon className={`w-5 h-5 ${item.color} shrink-0`} />
+              <item.icon className={`w-4 h-4 ${item.color} shrink-0`} aria-hidden />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-[var(--foreground)] tabular-nums">
+                <p className="text-sm font-semibold text-[var(--foreground)] tabular-nums leading-tight">
                   {item.value}
                 </p>
                 <p className="text-[10px] text-[var(--muted-foreground)] truncate">{item.label}</p>
@@ -627,20 +606,16 @@ export default function ProfileStats({
       {showDetailed && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0 items-stretch">
           {/* How to earn XP */}
-          <div className="flex flex-col rounded-xl p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 min-w-0 overflow-hidden">
-            <div className="flex items-center gap-3 mb-4 shrink-0">
-              <div className="p-2 rounded-lg bg-amber-500/20 shrink-0">
-                <Zap className="w-5 h-5 text-amber-500" />
-              </div>
+          <div className="flex flex-col rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)] min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2 mb-3 shrink-0">
+              <Zap className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
               <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-[var(--foreground)]">
-                  Как получить опыт
-                </h3>
-                <p className="text-xs text-[var(--muted-foreground)]">Способы повышения уровня</p>
+                <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить опыт</h3>
+                <p className="text-xs text-[var(--muted-foreground)]">Начисление XP</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 min-w-0 flex-1 content-start">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-1.5 min-w-0 flex-1 content-start">
               {[
                 {
                   action: "Чтение новой главы",
@@ -680,7 +655,7 @@ export default function ProfileStats({
               ].map(item => (
                 <div
                   key={item.action}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0"
+                  className="flex items-center justify-between gap-2 py-2 px-2.5 rounded-md border border-[var(--border)]/50 min-w-0"
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <item.icon className={`w-4 h-4 shrink-0 ${item.color}`} />
@@ -700,20 +675,16 @@ export default function ProfileStats({
           </div>
 
           {/* How to earn Coins */}
-          <div className="flex flex-col rounded-xl p-5 bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-yellow-500/20 min-w-0 overflow-hidden">
-            <div className="flex items-center gap-3 mb-4 shrink-0">
-              <div className="p-2 rounded-lg bg-yellow-500/20 shrink-0">
-                <Coins className="w-5 h-5 text-yellow-500" />
-              </div>
+          <div className="flex flex-col rounded-lg p-4 border border-[var(--border)]/70 bg-[var(--card)] min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2 mb-3 shrink-0">
+              <Coins className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden />
               <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-[var(--foreground)]">
-                  Как получить монеты
-                </h3>
-                <p className="text-xs text-[var(--muted-foreground)]">Валюта для магазина</p>
+                <h3 className="text-sm font-semibold text-[var(--foreground)]">Как получить монеты</h3>
+                <p className="text-xs text-[var(--muted-foreground)]">Валюта магазина</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2 min-w-0 flex-1 content-start">
+            <div className="grid grid-cols-1 gap-1.5 min-w-0 flex-1 content-start">
               {[
                 {
                   action: "Повышение уровня",
@@ -729,7 +700,7 @@ export default function ProfileStats({
               ].map(item => (
                 <div
                   key={item.action}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-[var(--card)]/60 border border-[var(--border)]/30 min-w-0"
+                  className="flex items-center justify-between gap-2 py-2 px-2.5 rounded-md border border-[var(--border)]/50 min-w-0"
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <item.icon className={`w-4 h-4 shrink-0 ${item.color}`} />

@@ -15,7 +15,7 @@ import {
 } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
-import { FlaskConical, Sparkles, Coins, ShoppingBag, Search, Filter, SortAsc } from "lucide-react";
+import { FlaskConical, Sparkles, Coins, ShoppingBag, Search } from "lucide-react";
 import Tooltip from "@/shared/ui/Tooltip";
 import Input from "@/shared/ui/input";
 
@@ -25,7 +25,12 @@ import { GameItemExchangePanel } from "./GameItemExchangePanel";
 
 export function AlchemySection() {
   const toast = useToast();
-  const { data: recipesData, isLoading: recipesLoading, isError: recipesError } = useGetAlchemyRecipesQuery();
+  const {
+    data: recipesData,
+    isLoading: recipesLoading,
+    isError: recipesError,
+    refetch: refetchRecipes,
+  } = useGetAlchemyRecipesQuery();
   const { data: statusData } = useGetAlchemyStatusQuery();
   const { data: shopData } = useGetDisciplesGameShopQuery();
   const { data: disciplesProfile } = useGetProfileDisciplesQuery();
@@ -50,7 +55,7 @@ export function AlchemySection() {
   const [elementFilter, setElementFilter] = useState<string | "all">("all");
   const [sortBy, setSortBy] = useState<"name" | "coinCost" | "mishap" | "element">("name");
 
-  const recipes = (recipesData?.data?.recipes ?? []) as Array<{
+  type RecipeRow = {
     _id: string;
     name: string;
     description: string;
@@ -67,7 +72,12 @@ export function AlchemySection() {
     mishapChancePercent?: number;
     effectiveMishapChancePercent?: number;
     canCraft: boolean;
-  }>;
+  };
+
+  const recipes = useMemo(
+    () => (recipesData?.data?.recipes ?? []) as RecipeRow[],
+    [recipesData?.data?.recipes],
+  );
   const status = statusData?.data;
   const canCraft = status?.canCraft ?? false;
   const shopOffers = shopData?.data?.offers ?? [];
@@ -128,7 +138,7 @@ export function AlchemySection() {
 
   const handleRefreshAlchemyShop = async () => {
     try {
-      const result = await refreshAlchemyShop().unwrap();
+      await refreshAlchemyShop().unwrap();
       toast.success("Ассортимент лавки обновлён");
     } catch (e: unknown) {
       toast.error(getErrorMessage(e, "Не удалось обновить лавку"));
@@ -207,10 +217,17 @@ export function AlchemySection() {
     }
   };
 
-  if (recipesError) {
+  if (recipesError && !recipesData) {
     return (
       <div className="games-panel text-[var(--destructive)]">
-        <p>Не удалось загрузить рецепты алхимии. Проверьте сеть и обновите страницу.</p>
+        <p>Не удалось загрузить рецепты алхимии. Проверьте сеть и попробуйте снова.</p>
+        <button
+          type="button"
+          className="games-btn games-btn-secondary games-btn-sm mt-3"
+          onClick={() => void refetchRecipes()}
+        >
+          Повторить
+        </button>
       </div>
     );
   }
@@ -250,6 +267,9 @@ export function AlchemySection() {
       ) : null}
 
       {/* Лавка алхимии */}
+      {alchemyShopLoading && alchemyShopData == null ? (
+        <div className="games-panel py-3 px-4 games-muted text-sm">Загрузка лавки алхимии…</div>
+      ) : null}
       {alchemyShopData?.data && (
         <div className="games-panel py-3 px-4">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -455,19 +475,14 @@ export function AlchemySection() {
 
       {!recipesSkeleton && hasRecipes && !canCraft ? (
         <div className="games-panel border-[var(--border)] bg-[var(--accent)]">
-          <p className="games-muted text-sm">🧪 Сегодня лимит варок исчерпан. Завтра можно снова.</p>
+          <p className="games-muted text-sm inline-flex items-center gap-2">
+            <FlaskConical className="w-4 h-4 shrink-0 text-[var(--primary)]" aria-hidden />
+            Сегодня лимит варок исчерпан. Завтра можно снова.
+          </p>
         </div>
       ) : null}
       {!recipesSkeleton && hasRecipes ? (
         <>
-          {/* Информация о количестве отфильтрованных рецептов */}
-          <div className="games-panel py-2 px-4 mb-3">
-            <p className="games-muted text-sm">
-              Найдено рецептов: <strong>{filteredRecipes.length}</strong> из {recipes.length}
-              {searchQuery && ` по запросу «${searchQuery}»`}
-              {elementFilter !== "all" && `, стихия: ${elementFilter}`}
-            </p>
-          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {filteredRecipes.map((r) => {
               const mishap = r.effectiveMishapChancePercent ?? r.mishapChancePercent ?? 0;

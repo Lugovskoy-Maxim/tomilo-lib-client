@@ -4,7 +4,7 @@ import { useGetWheelQuery, useWheelSpinMutation } from "@/store/api/gamesApi";
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { CircleDot, Coins, Sparkles, Gift, CircleOff, Percent, Clock3, Info } from "lucide-react";
+import { CircleDot, Coins, Sparkles, Gift, CircleOff, Percent, Clock3 } from "lucide-react";
 import type { WheelSegment } from "@/types/games";
 import Tooltip from "@/shared/ui/Tooltip";
 
@@ -27,7 +27,11 @@ function formatTimeUntil(isoString: string): string {
   const now = new Date();
   const ms = target.getTime() - now.getTime();
   if (ms <= 0) return "скоро";
+  const totalSeconds = Math.floor(ms / 1000);
   const totalMinutes = Math.floor(ms / 60_000);
+  if (totalMinutes < 1) {
+    return totalSeconds <= 1 ? "менее секунды" : `через ${totalSeconds} с`;
+  }
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   if (hours >= 24) {
@@ -163,7 +167,7 @@ export function WheelSection() {
   const nextSpinAt = wheel?.nextSpinAt;
   useEffect(() => {
     if (!nextSpinAt || new Date(nextSpinAt).getTime() <= Date.now()) return;
-    const id = setInterval(() => setCountdownTick((t) => t + 1), 60_000);
+    const id = setInterval(() => setCountdownTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, [nextSpinAt]);
   const segments = useMemo(() => wheel?.segments ?? [], [wheel?.segments]);
@@ -409,7 +413,6 @@ export function WheelSection() {
                   // Попробуем определить тип награды по label (очень приблизительно)
                   const isCoins = entry.label.toLowerCase().includes("монет") || entry.label.includes("coins");
                   const isExp = entry.label.toLowerCase().includes("опыт") || entry.label.includes("xp");
-                  const isItem = !isCoins && !isExp;
                   const icon = isCoins ? <Coins className="w-3.5 h-3.5 text-amber-500" /> :
                              isExp ? <Sparkles className="w-3.5 h-3.5 text-violet-500" /> :
                              <Gift className="w-3.5 h-3.5 text-sky-500" />;

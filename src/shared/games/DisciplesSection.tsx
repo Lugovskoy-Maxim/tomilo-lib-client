@@ -36,9 +36,25 @@ import { formatUsernameDisplay } from "@/lib/username-display";
 import { getDecorationImageUrls } from "@/api/shop";
 import type { Disciple, DiscipleTechniquesEntry, InventoryEntry, TechniqueEntry } from "@/types/games";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
-import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart, UserPlus, BookOpen, ShoppingBag, Warehouse, ChevronDown, ChevronRight, Package, Loader2, LayoutDashboard, Store } from "lucide-react";
+import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart, UserPlus, BookOpen, ShoppingBag, Warehouse, ChevronDown, ChevronRight, Package, Loader2, LayoutDashboard, Store, Dumbbell } from "lucide-react";
 
 import { GAME_ART, battleBuffArtForLog, weeklyBattleBiomeArt } from "./gameArt";
+
+/** Тексты «интриги» на время призыва (ротация) */
+const REROLL_FLAVOR_LINES = [
+  "Отправляемся в школу на поиск талантов…",
+  "Просматриваем свитки одобренных кандидатов…",
+  "Настраиваем духовный резонанс с библиотекой…",
+  "Ищем среди учеников того, кто откликнется на призыв…",
+  "Почти у цели — осталось немного удачи и ци…",
+];
+
+const RECRUIT_FLAVOR_LINES = [
+  "Оформляем договор с кандидатом…",
+  "Вносим имя в реестр отряда…",
+  "Проводим посвящение в ученики…",
+];
+
 /** Элемент лога боя */
 interface BattleLogEntry {
   action?: string;
@@ -73,6 +89,8 @@ interface BattleResultState {
   outcomeReason?: string;
   defeatReason?: string;
   winReason?: string;
+  userTeamCp?: number;
+  opponentTeamCp?: number;
   [key: string]: unknown;
 }
 
@@ -139,6 +157,27 @@ function squadFromUnknownArray(raw: unknown): BattleSquadPreview[] {
   return raw.map(coerceSquadMember).filter((x): x is BattleSquadPreview => x != null);
 }
 
+/** Дополняет состав из resultScreen аватаром/картой из снапшота матчмейкинга или профиля (по characterId). */
+function mergeBattleSquads(primary: BattleSquadPreview[], enrich: BattleSquadPreview[]): BattleSquadPreview[] {
+  if (!enrich.length) return primary;
+  if (!primary.length) return enrich;
+  const byId = new Map<string, BattleSquadPreview>();
+  for (const m of enrich) {
+    const k = m.characterId?.trim();
+    if (k) byId.set(k, m);
+  }
+  return primary.map((m) => {
+    const k = m.characterId?.trim();
+    const e = k ? byId.get(k) : undefined;
+    if (!e) return m;
+    return {
+      ...m,
+      avatar: m.avatar ?? e.avatar,
+      mediaUrl: m.mediaUrl ?? e.mediaUrl,
+    };
+  });
+}
+
 function firstNonEmptySquad(...sources: unknown[]): BattleSquadPreview[] {
   for (const s of sources) {
     const m = squadFromUnknownArray(s);
@@ -149,12 +188,13 @@ function firstNonEmptySquad(...sources: unknown[]): BattleSquadPreview[] {
 
 function squadsFromResultScreen(br: BattleResultState): { user: BattleSquadPreview[]; opponent: BattleSquadPreview[] } {
   const teams = br.teams as Record<string, unknown> | undefined;
+  // Состав из resultScreen.teams с бэка — приоритет (имена после боя)
   const user = firstNonEmptySquad(
+    teams?.user,
+    teams?.ally,
     br.userDisciples,
     br.userSquad,
     br.userTeam,
-    teams?.user,
-    teams?.ally,
     (br.user as { disciples?: unknown })?.disciples,
   );
   const ext = br as {
@@ -163,14 +203,14 @@ function squadsFromResultScreen(br: BattleResultState): { user: BattleSquadPrevi
     enemySquad?: unknown;
   };
   const opponent = firstNonEmptySquad(
+    teams?.opponent,
+    teams?.enemy,
     br.opponentDisciples,
     br.opponentSquad,
     br.opponentTeam,
     ext.opponentRoster,
     ext.enemyDisciples,
     ext.enemySquad,
-    teams?.opponent,
-    teams?.enemy,
     (br.opponent as { disciples?: unknown })?.disciples,
   );
   return { user, opponent };
@@ -561,7 +601,13 @@ function DisciplesSubNav({
 
 export function DisciplesSection() {
   const toast = useToast();
-  const { data, isLoading, isError: isProfileError, refetch: refetchDisciples } = useGetProfileDisciplesQuery();
+  const {
+    data,
+    isLoading,
+    isFetching: isProfileFetching,
+    isError: isProfileError,
+    refetch: refetchDisciples,
+  } = useGetProfileDisciplesQuery();
   const { data: profileCardsData, refetch: refetchCards } = useGetProfileCardsQuery();
   const { data: inventoryData, refetch: refetchInventory } = useGetProfileInventoryQuery();
   const [reroll, { isLoading: isRerolling }] = useDisciplesRerollMutation();
@@ -598,6 +644,10 @@ export function DisciplesSection() {
   const [failedDiscipleAvatarIds, setFailedDiscipleAvatarIds] = useState<Set<string>>(new Set());
   const [barracksExpanded, setBarracksExpanded] = useState(false);
   const [subTab, setSubTab] = useState<DisciplesSubTab>("overview");
+  /** Показываем спиннер на конкретной кнопке «Тренировка», не блокируя весь отряд без индикации */
+  const [trainingCharacterId, setTrainingCharacterId] = useState<string | null>(null);
+  /** Индекс строки для оверлея призыва / найма */
+  const [summonFlavorIdx, setSummonFlavorIdx] = useState(0);
 
   const res = data?.data;
   const dailyBattlesCount = res?.dailyBattlesCount ?? 0;
@@ -663,22 +713,24 @@ export function DisciplesSection() {
   const userSquadForResult = useMemo((): BattleSquadPreview[] => {
     if (!battleResult) return [];
     const fromApi = squadsFromResultScreen(battleResult).user;
-    if (fromApi.length) return fromApi;
-    return activeRoster.map((d) => ({
+    const fromRoster = activeRoster.map((d) => ({
       name: d.name,
       avatar: d.avatar,
       characterId: d.characterId,
       level: d.level,
       mediaUrl: d.cardMedia?.mediaUrl,
     }));
+    if (fromApi.length) return mergeBattleSquads(fromApi, fromRoster);
+    return fromRoster;
   }, [battleResult, activeRoster]);
 
   const opponentSquadForResult = useMemo((): BattleSquadPreview[] => {
     if (!battleResult) return [];
     const fromApi = squadsFromResultScreen(battleResult).opponent;
-    if (fromApi.length) return fromApi;
     const fromSnap = squadFromUnknownArray(lastBattleOpponent?.disciples);
-    if (fromSnap.length) return fromSnap;
+    let squad = fromApi.length ? fromApi : fromSnap;
+    squad = mergeBattleSquads(squad, fromSnap);
+    if (squad.length) return squad;
     if (lastBattleOpponent?.username) {
       return [
         {
@@ -752,6 +804,34 @@ export function DisciplesSection() {
     setBattleLogExpanded(false);
   }, [battleResult]);
 
+  useEffect(() => {
+    if (!isRerolling && !isRecruiting) {
+      setSummonFlavorIdx(0);
+      return;
+    }
+    const lines = isRerolling ? REROLL_FLAVOR_LINES : RECRUIT_FLAVOR_LINES;
+    setSummonFlavorIdx(0);
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const scheduleNext = () => {
+      const ms = 3000 + Math.floor(Math.random() * 3001); // 3–6 с до следующей фразы
+      timeoutId = setTimeout(() => {
+        if (cancelled) return;
+        setSummonFlavorIdx((i) => (i + 1) % lines.length);
+        scheduleNext();
+      }, ms);
+    };
+    scheduleNext();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [isRerolling, isRecruiting]);
+
+  const summonOverlayLine = isRerolling
+    ? REROLL_FLAVOR_LINES[summonFlavorIdx % REROLL_FLAVOR_LINES.length]
+    : RECRUIT_FLAVOR_LINES[summonFlavorIdx % RECRUIT_FLAVOR_LINES.length];
+
   const CANDIDATE_TTL_MS = 10 * 60 * 1000;
 
   const handleReroll = async () => {
@@ -809,9 +889,10 @@ export function DisciplesSection() {
   };
 
   const handleTrain = async (characterId: string) => {
+    setTrainingCharacterId(characterId);
     try {
-      const res = await train(characterId).unwrap();
-      const outcome = res?.data?.outcome;
+      const trainRes = await train(characterId).unwrap();
+      const outcome = trainRes?.data?.outcome;
       toast.success(
         outcome === "fail"
           ? "Тренировка не удалась: без прироста статов, но опыт получили все ученики (основной — больше всего)"
@@ -819,6 +900,8 @@ export function DisciplesSection() {
       );
     } catch (e: unknown) {
       toast.error(getErrorMessage(e, "Не удалось потренировать"));
+    } finally {
+      setTrainingCharacterId(null);
     }
   };
 
@@ -971,10 +1054,17 @@ export function DisciplesSection() {
     }
   };
 
-  if (isProfileError) {
+  if (isProfileError && !res) {
     return (
       <div className="games-panel text-[var(--destructive)]">
-        <p>Не удалось загрузить данные учеников. Проверьте сеть и обновите страницу.</p>
+        <p>Не удалось загрузить данные учеников. Проверьте сеть и попробуйте снова.</p>
+        <button
+          type="button"
+          className="games-btn games-btn-secondary games-btn-sm mt-3"
+          onClick={() => void refetchDisciples()}
+        >
+          Повторить
+        </button>
       </div>
     );
   }
@@ -984,7 +1074,17 @@ export function DisciplesSection() {
 
   return (
     <div className="space-y-4">
-      <DisciplesSubNav active={subTab} onChange={setSubTab} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <DisciplesSubNav active={subTab} onChange={setSubTab} />
+        </div>
+        {isProfileFetching ? (
+          <span className="text-[11px] text-[var(--muted-foreground)] inline-flex items-center gap-1.5 shrink-0">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden />
+            Обновление…
+          </span>
+        ) : null}
+      </div>
 
       {battleResult &&
         (() => {
@@ -1087,8 +1187,14 @@ export function DisciplesSection() {
                     </div>
                   </div>
                 ) : null}
+                {showHpBars && hpState ? (
+                  <p className="text-[11px] text-[var(--muted-foreground)] leading-snug -mt-2">
+                    Максимум ОЗ у сторон разный: он считается от всего отряда (статы и защита), а не только от уровня одного
+                    ученика. Оставшиеся ОЗ сверху — не «одинаковые полоски», даже если суммарно снято урона похоже.
+                  </p>
+                ) : null}
 
-                {!outcomeWin && battleDamageSummary ? (
+                {battleDamageSummary ? (
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/12 px-3 py-3 text-xs text-[var(--muted-foreground)] leading-relaxed">
                     <p className="font-semibold text-[var(--foreground)] mb-1.5">Разбор по логу</p>
                     <p className="mb-1.5">
@@ -1098,13 +1204,14 @@ export function DisciplesSection() {
                       {battleDamageSummary.userHealed + battleDamageSummary.opponentHealed > 0
                         ? ` · лечение (вы +${battleDamageSummary.userHealed}, враг +${battleDamageSummary.opponentHealed})`
                         : ""}
-                      .
+                      . Это не «текущие ОЗ», а накопленный урон по бою; при большем начальном запасе у соперника он может
+                      остаться с большим числом ОЗ при похожей сумме снятого.
                     </p>
                     <p>
                       Победа, если у противника 0 ОЗ, или после лимита ходов у вас больше ОЗ (при равенстве — по скорости отряда).
                       Щиты и поглощение не входят в число «снято ОЗ».
                     </p>
-                    {battleDamageSummary.userDealt > battleDamageSummary.opponentDealt ? (
+                    {!outcomeWin && battleDamageSummary.userDealt > battleDamageSummary.opponentDealt ? (
                       <p className="mt-2 text-[var(--foreground)] font-medium">
                         По сумме вы нанесли больше урона по ОЗ, но исход могли решить лечение, щиты и порядок ходов.
                       </p>
@@ -1117,9 +1224,9 @@ export function DisciplesSection() {
                     <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2 flex items-center justify-between gap-2">
                         <span>Ваш отряд</span>
-                        {typeof (battleResult as any).userTeamCp === "number" ? (
+                        {typeof battleResult.userTeamCp === "number" ? (
                           <span className="text-[10px] font-bold text-[var(--primary)] tabular-nums">
-                            CP {(battleResult as any).userTeamCp}
+                            CP {battleResult.userTeamCp}
                           </span>
                         ) : null}
                       </div>
@@ -1132,9 +1239,9 @@ export function DisciplesSection() {
                     <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-3">
                       <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2 flex items-center justify-between gap-2">
                         <span>Противник</span>
-                        {typeof (battleResult as any).opponentTeamCp === "number" ? (
+                        {typeof battleResult.opponentTeamCp === "number" ? (
                           <span className="text-[10px] font-bold text-[var(--primary)] tabular-nums">
-                            CP {(battleResult as any).opponentTeamCp}
+                            CP {battleResult.opponentTeamCp}
                           </span>
                         ) : null}
                       </div>
@@ -1218,14 +1325,36 @@ export function DisciplesSection() {
               </span>
             </div>
             <div className="games-dash-card">
-              <span className="games-dash-card__label">В отряде</span>
-              <span className="games-dash-card__value">
-                {activeRoster.length}/{maxActive}
+              <span className="games-dash-card__label inline-flex items-center gap-1">
+                <Dumbbell className="w-3.5 h-3.5 text-[var(--primary)] shrink-0" aria-hidden />
+                Тренировка
+              </span>
+              <span className="games-dash-card__value text-base">
+                {res.canTrain ? "Можно" : "Сегодня готово"}
+              </span>
+              <span className="text-[10px] text-[var(--muted-foreground)] leading-tight">
+                {typeof res.trainCostCoins === "number" ? (
+                  <span className="inline-flex items-center gap-0.5">
+                    {res.trainCostCoins}
+                    <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                    за попытку
+                  </span>
+                ) : (
+                  "Старт — во вкладке «Отряд»"
+                )}
               </span>
             </div>
             <div className="games-dash-card">
-              <span className="games-dash-card__label">Учеников всего</span>
-              <span className="games-dash-card__value">{disciples.length}</span>
+              <span className="games-dash-card__label inline-flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-[var(--primary)] shrink-0" aria-hidden />
+                Команда
+              </span>
+              <span className="games-dash-card__value">
+                {activeRoster.length}/{disciples.length > 0 ? disciples.length : activeRoster.length || 0}
+              </span>
+              <span className="text-[10px] text-[var(--muted-foreground)] leading-tight">
+                в активном отряде из всех учеников · слоты {activeRoster.length}/{maxActive}
+              </span>
             </div>
             <div className="games-dash-card">
               <span className="games-dash-card__label">Карточки</span>
@@ -1284,6 +1413,10 @@ export function DisciplesSection() {
             </div>
           ) : null}
 
+          <p className="text-[11px] text-[var(--muted-foreground)] text-center sm:text-left max-w-2xl">
+            Тренировку запускаете с карточки ученика во вкладке «Отряд»: раз в день, за монеты; опыт получают все активные и в казарме, большая доля — у основного.
+          </p>
+
           <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
             <button type="button" className="games-btn games-btn-secondary games-btn-sm" onClick={() => setSubTab("roster")}>
               Отряд и техники
@@ -1297,6 +1430,17 @@ export function DisciplesSection() {
               </button>
             ) : null}
           </div>
+          <p className="text-[11px] text-[var(--muted-foreground)] text-center sm:text-left max-w-2xl">
+            Призыв:{" "}
+            {res.characterPool === "bookmarks" ? (
+              <>
+                приоритет — персонажи из тайтлов в ваших закладках; к каталогу добавляются и другие одобренные герои, чтобы
+                не крутился один и тот же узкий набор.
+              </>
+            ) : (
+              <>случайный одобренный персонаж из общего каталога.</>
+            )}
+          </p>
         </>
       )}
 
@@ -1386,7 +1530,22 @@ export function DisciplesSection() {
         <>
       {/* Кандидат — обзор */}
       {lastReroll && (
-        <div className="games-panel">
+        <div className="games-panel relative overflow-hidden">
+          {(isRerolling || isRecruiting) && (
+            <div
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-[inherit] bg-[var(--background)]/88 backdrop-blur-[2px] px-4 py-6 text-center"
+              role="status"
+              aria-live="polite"
+            >
+              <Loader2 className="w-10 h-10 text-[var(--primary)] animate-spin shrink-0" aria-hidden />
+              <p className="text-sm font-medium text-[var(--foreground)] max-w-sm leading-snug min-h-[2.75rem] flex items-center justify-center">
+                {summonOverlayLine}
+              </p>
+              <p className="text-[11px] text-[var(--muted-foreground)]">
+                {isRerolling ? "Ищем нового кандидата…" : "Принимаем в отряд…"}
+              </p>
+            </div>
+          )}
           <h3 className="games-panel-title">Кандидат в ученики</h3>
           <div className="flex flex-wrap items-center gap-4">
             <DiscipleAvatar
@@ -1447,15 +1606,26 @@ export function DisciplesSection() {
 
       {!lastReroll && (
         <div className="games-panel text-center">
-          <button
-            type="button"
-            onClick={handleReroll}
-            disabled={!canReroll || isRerolling}
-            className="games-btn games-btn-primary inline-flex items-center gap-2"
-          >
-            <RefreshCw className={`w-5 h-5 ${isRerolling ? "animate-spin" : ""}`} />
-            Призвать ученика — {res.rerollCostCoins} <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden /> монет
-          </button>
+          {isRerolling ? (
+            <div className="py-6 px-4 flex flex-col items-center gap-3" role="status" aria-live="polite">
+              <Loader2 className="w-11 h-11 text-[var(--primary)] animate-spin shrink-0" aria-hidden />
+              <p className="text-sm font-medium text-[var(--foreground)] max-w-md leading-relaxed min-h-[3.25rem] flex items-center justify-center">
+                {summonOverlayLine}
+              </p>
+              <p className="text-[11px] text-[var(--muted-foreground)]">Не закрывайте вкладку — кандидат скоро появится.</p>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReroll}
+              disabled={!canReroll || isRerolling}
+              className="games-btn games-btn-primary inline-flex items-center gap-2"
+            >
+              <RefreshCw className="w-5 h-5 shrink-0" aria-hidden />
+              Призвать ученика — {res.rerollCostCoins}{" "}
+              <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden /> монет
+            </button>
+          )}
         </div>
       )}
         </>
@@ -1467,7 +1637,11 @@ export function DisciplesSection() {
       <div>
         <h3 className="games-panel-title">Ваши ученики</h3>
         <p className="games-muted text-sm mb-3">
-          Активный отряд участвует в боях и вылазках и получает от них опыт (основной ученик — с большей долей). Лишних можно отправить в казарму.
+          В активном отряде{" "}
+          <strong className="text-[var(--foreground)]">
+            {activeRoster.length} из {disciples.length}
+          </strong>{" "}
+          учеников (всего в ростере). До {maxActive} слотов в бою; лишних можно отправить в казарму. Опыт с боёв и вылазок получают все активные, основной — с большей долей.
         </p>
         {disciples.length === 0 ? (
           <p className="games-muted text-sm">Нет учеников. Призовите кандидата во вкладке «Обзор».</p>
@@ -1636,10 +1810,30 @@ export function DisciplesSection() {
                       type="button"
                       onClick={() => handleTrain(d.characterId)}
                       disabled={!res.canTrain || isTraining}
-                      className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
-                      title="Тренировка (1 раз в день)"
+                      className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action inline-flex items-center gap-1 flex-wrap justify-center"
+                      title={
+                        res.canTrain
+                          ? `Тренировка раз в день · ${typeof res.trainCostCoins === "number" ? `${res.trainCostCoins} монет` : "стоимость на сервере"}`
+                          : "Сегодня тренировка уже проведена"
+                      }
                     >
-                      <Zap className="w-3 h-3" /> Тренировка
+                      {isTraining && trainingCharacterId === d.characterId ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin shrink-0" aria-hidden />
+                          Тренировка…
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3 h-3 shrink-0" aria-hidden />
+                          Тренировка
+                          {typeof res.trainCostCoins === "number" ? (
+                            <span className="inline-flex items-center gap-0.5 opacity-90 text-[10px] ml-0.5">
+                              {res.trainCostCoins}
+                              <Coins className="w-2.5 h-2.5 text-amber-500" aria-hidden />
+                            </span>
+                          ) : null}
+                        </>
+                      )}
                     </button>
                     {!d.inWarehouse ? (
                       <>
@@ -1859,7 +2053,7 @@ export function DisciplesSection() {
               <button
                 type="button"
                 onClick={handleFindMatch}
-                disabled={!res.canBattle || activeRoster.length === 0 || findingMatch || isBattling}
+                disabled={!canBattle || activeRoster.length === 0 || findingMatch || isBattling}
                 className="games-btn games-btn-primary inline-flex items-center justify-center gap-2 min-w-[12rem] px-6"
               >
                 {findingMatch ? (
@@ -1871,7 +2065,7 @@ export function DisciplesSection() {
                   <>Найти противника</>
                 )}
               </button>
-              {!res.canBattle ? (
+              {!canBattle ? (
                 <p className="text-xs text-amber-600 dark:text-amber-400">Сейчас нельзя начать бой (лимит или кулдаун).</p>
               ) : null}
               {activeRoster.length === 0 ? (

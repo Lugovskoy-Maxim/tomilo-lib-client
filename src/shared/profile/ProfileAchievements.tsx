@@ -461,22 +461,9 @@ const AchievementCard = memo(function AchievementCard({
 
   return (
     <article
-      className={`
-        group relative rounded-xl overflow-hidden
-        flex flex-col min-h-0 transition-all duration-200 border
-        ${isUnlocked
-          ? "bg-[var(--card)]/90 border-[var(--border)]/60"
-          : "bg-[var(--secondary)]/20 border-[var(--border)]/40 hover:border-[var(--border)]/60"
-        }
-      `}
-      style={
-        isUnlocked && achievement.color
-          ? {
-              borderColor: `${achievement.color}40`,
-              backgroundColor: `${achievement.color}08`,
-            }
-          : undefined
-      }
+      className={`group relative rounded-lg overflow-hidden flex flex-col min-h-0 transition-colors border border-[var(--border)]/70 ${
+        isUnlocked ? "bg-[var(--card)]" : "bg-[var(--muted)]/5 opacity-95 hover:opacity-100"
+      }`}
     >
       {/* Верх: название + бейдж прогресса — как у ежедневных заданий */}
       <div className="p-3 pb-0 flex flex-col gap-2 min-h-0 shrink-0">
@@ -652,14 +639,12 @@ export default function ProfileAchievements({
 
   if (isAchievementsHidden) {
     return (
-      <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm overflow-hidden shadow-sm">
-        <div className="rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--secondary)]/20 py-12 px-4 text-center">
-          <Trophy className="w-10 h-10 mx-auto text-[var(--muted-foreground)]/60 mb-3" />
-          <p className="text-sm font-medium text-[var(--foreground)]">Достижения скрыты</p>
-          <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            Пользователь ограничил доступ в настройках приватности.
-          </p>
-        </div>
+      <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/5 py-12 px-4 text-center">
+        <Trophy className="w-8 h-8 mx-auto text-[var(--muted-foreground)] mb-2" aria-hidden />
+        <p className="text-sm font-medium text-[var(--foreground)]">Достижения скрыты</p>
+        <p className="text-xs text-[var(--muted-foreground)] mt-1 max-w-xs mx-auto leading-relaxed">
+          Пользователь ограничил доступ в настройках приватности.
+        </p>
       </div>
     );
   }
@@ -673,30 +658,25 @@ export default function ProfileAchievements({
   const hasMoreAchievements = !compact && achievements.length > INITIAL_FULL && !showAllAchievements;
 
   return (
-    <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/80 backdrop-blur-sm overflow-hidden shadow-sm">
-      <div className={compact ? "p-3 sm:p-4" : "p-4 sm:p-5"}>
-        {/* Header — в стиле ежедневных заданий */}
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/25">
-              <Trophy className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
+    <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] overflow-hidden">
+      <div className={compact ? "p-3 sm:p-4" : "p-3 sm:p-4"}>
+        <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
+            <Trophy className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+            <div className="min-w-0">
               <h2 className="text-sm font-semibold text-[var(--foreground)]">Достижения</h2>
               <p className="text-xs text-[var(--muted-foreground)]">
                 {unlockedLevels} из {totalLevels} уровней
               </p>
             </div>
           </div>
-          <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20">
-            <span className="text-xs font-bold text-[var(--foreground)] tabular-nums">
-              {overallPercent}%
-            </span>
+          <div className="shrink-0 tabular-nums text-xs font-semibold text-[var(--foreground)] px-2 py-1 rounded-md border border-[var(--border)]/70 bg-[var(--muted)]/5">
+            {overallPercent}%
           </div>
         </div>
 
         {/* Список достижений — сетка как у ежедневных заданий; items-start чтобы при раскрытии одной карточки остальные в строке не растягивались */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-start">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 items-start">
           {displayedAchievements.map(achievement => (
             <AchievementCard
               key={achievement.id}
@@ -711,7 +691,7 @@ export default function ProfileAchievements({
           <button
             type="button"
             onClick={() => setShowAllAchievements(true)}
-            className="mt-3 w-full py-2.5 rounded-xl text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 border border-[var(--border)]/60 transition-colors"
+            className="mt-3 w-full py-2 rounded-md text-xs font-medium text-[var(--primary)] hover:bg-[var(--muted)]/10 border border-[var(--border)]/70 transition-colors"
           >
             Показать ещё ({achievements.length - INITIAL_FULL})
           </button>

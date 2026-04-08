@@ -4,6 +4,8 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
   // Корень проекта для file tracing (убирает предупреждение о нескольких lockfile)
   outputFileTracingRoot: path.join(__dirname),
@@ -52,6 +54,12 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    /**
+     * В dev с Turbopack иногда падает кэш оптимизатора: LRUCache «calculateSize returned 0»
+     * (пустой/нестандартный ответ по URL). Без оптимизации в development ошибки в консоли исчезают;
+     * production-сборка по-прежнему оптимизирует картинки.
+     */
+    unoptimized: isDev,
     // Allow common mock/demo hosts
     domains: [],
     qualities: [78, 85],

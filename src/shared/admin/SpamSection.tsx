@@ -10,11 +10,13 @@ import {
   XCircle,
   ExternalLink,
   UserX,
+  ListChecks,
 } from "lucide-react";
 import Image from "next/image";
 
 import { useToast } from "@/hooks/useToast";
 import {
+  useBackfillSpamChecksMutation,
   useCleanupSpamCommentsMutation,
   useGetSpamCommentsQuery,
   useGetSpamRestrictedUsersQuery,
@@ -156,6 +158,9 @@ export function SpamSection() {
   const [reasonTargetCommentId, setReasonTargetCommentId] = useState<string | null>(null);
 
   const [cleanupConfirmOpen, setCleanupConfirmOpen] = useState(false);
+  const [backfillModalOpen, setBackfillModalOpen] = useState(false);
+  const [backfillDays, setBackfillDays] = useState(30);
+  const [backfillLimit, setBackfillLimit] = useState<1000 | 2000 | "unlimited">(2000);
 
   const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useGetSpamStatsQuery({
     includeOld,
@@ -177,6 +182,7 @@ export function SpamSection() {
   const [markAsSpam, { isLoading: isMarkingAsSpam }] = useMarkCommentAsSpamMutation();
   const [markAsNotSpam, { isLoading: isMarkingAsNotSpam }] = useMarkCommentAsNotSpamMutation();
   const [cleanupSpamComments, { isLoading: isCleaningUp }] = useCleanupSpamCommentsMutation();
+  const [backfillSpamChecks, { isLoading: isBackfilling }] = useBackfillSpamChecksMutation();
   const [removeRestriction, { isLoading: isRemovingRestriction }] = useRemoveSpamRestrictionMutation();
 
   const stats = statsData?.data;
@@ -252,6 +258,31 @@ export function SpamSection() {
     }
   }, [cleanupSpamComments, toast, refetchStats, refetchSpamComments]);
 
+  const handleBackfillSpam = useCallback(async () => {
+    try {
+      const body = {
+        days: backfillDays,
+        onlyUnchecked: true,
+        dryRun: false,
+        ...(backfillLimit !== "unlimited" ? { limit: backfillLimit } : {}),
+      };
+      const res = await backfillSpamChecks(body).unwrap();
+      const d = res.data;
+      if (d) {
+        toast.success(
+          `Перепроверка: просмотрено ${d.scanned}, помечено спамом ${d.markedSpam}, предупреждений ${d.warned}, ограничений ${d.restricted}`,
+        );
+      } else {
+        toast.success("Перепроверка выполнена");
+      }
+      setBackfillModalOpen(false);
+      refetchStats();
+      refetchSpamComments();
+    } catch {
+      toast.error("Не удалось выполнить перепроверку комментариев");
+    }
+  }, [backfillSpamChecks, backfillDays, backfillLimit, toast, refetchStats, refetchSpamComments]);
+
   const handleRemoveRestriction = useCallback(
     async (u: SpamRestrictedUser) => {
       if (!u._id) return;
@@ -288,6 +319,17 @@ export function SpamSection() {
           <p className="text-sm text-[var(--muted-foreground)] mt-1">
             Управление спам-комментариями и временными ограничениями пользователей.
           </p>
+          <p className="text-sm text-[var(--muted-foreground)] mt-2 rounded-lg border border-[var(--border)] bg-[var(--background)]/80 px-3 py-2">
+            Здесь только комментарии, которые уже{" "}
+            <span className="text-[var(--foreground)] font-medium">помечены как спам</span> в системе.
+            Экспорт комментариев (CSV) обычно содержит{" "}
+            <span className="text-[var(--foreground)] font-medium">все</span> сообщения — повторы, реклама и флуд в
+            списке не появятся, пока их не отметить спамом (вручную или эвристикой на сервере). Пометка — в разделе{" "}
+            <Link href="/admin?tab=comments" className="text-[var(--primary)] underline-offset-2 hover:underline">
+              Комментарии
+            </Link>
+            ; для старых записей — кнопка «Перепроверить» ниже.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -298,14 +340,26 @@ export function SpamSection() {
             <RefreshCw className={`w-4 h-4 ${statsLoading ? "animate-spin" : ""}`} />
           </button>
           {subTab === "comments" && (
-            <button
-              onClick={() => setCleanupConfirmOpen(true)}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
-              title="Удалить все комментарии, помеченные как спам"
-            >
-              <Trash2 className="w-4 h-4" />
-              Очистить спам
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setBackfillModalOpen(true)}
+                disabled={isBackfilling}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)]/80 text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors disabled:opacity-50"
+                title="Запустить эвристическую перепроверку недавних комментариев на сервере"
+              >
+                <ListChecks className="w-4 h-4" />
+                Перепроверить
+              </button>
+              <button
+                onClick={() => setCleanupConfirmOpen(true)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
+                title="Удалить все комментарии, помеченные как спам"
+              >
+                <Trash2 className="w-4 h-4" />
+                Очистить спам
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -388,8 +442,15 @@ export function SpamSection() {
           ) : spamCommentsError ? (
             <div className="text-center py-10 text-red-500">Ошибка загрузки</div>
           ) : spamComments.length === 0 ? (
-            <div className="text-center py-10 text-[var(--muted-foreground)]">
-              Спам-комментарии не найдены
+            <div className="text-center py-10 text-[var(--muted-foreground)] space-y-2 max-w-lg mx-auto">
+              <p className="m-0">Помеченных спам-комментариев нет — счётчики выше будут 0.</p>
+              <p className="m-0 text-xs">
+                Чтобы обработать похожие на спам сообщения из экспорта, откройте{" "}
+                <Link href="/admin?tab=comments" className="text-[var(--primary)] underline-offset-2 hover:underline">
+                  Комментарии
+                </Link>{" "}
+                и пометьте их как спам.
+              </p>
             </div>
           ) : (
             <div className="grid gap-3">
@@ -631,6 +692,71 @@ export function SpamSection() {
         confirmText={isCleaningUp ? "Очистка..." : "Удалить"}
         isLoading={isCleaningUp}
       />
+
+      <AdminModal
+        isOpen={backfillModalOpen}
+        onClose={() => setBackfillModalOpen(false)}
+        title="Перепроверка комментариев"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--muted-foreground)] m-0">
+            Сервер пройдётся по комментариям за выбранный период (ещё не проверенным антиспамом), выставит метки и при
+            необходимости скроет сообщения.
+          </p>
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-[var(--muted-foreground)]">Период</label>
+            <select
+              value={backfillDays}
+              onChange={e => setBackfillDays(Number(e.target.value))}
+              className="admin-input w-full"
+              disabled={isBackfilling}
+            >
+              <option value={7}>7 дней</option>
+              <option value={14}>14 дней</option>
+              <option value={30}>30 дней</option>
+              <option value={60}>60 дней</option>
+              <option value={90}>90 дней</option>
+              <option value={180}>180 дней</option>
+              <option value={365}>365 дней</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-[var(--muted-foreground)]">Лимит комментариев за проход</label>
+            <select
+              value={backfillLimit}
+              onChange={e => {
+                const v = e.target.value;
+                setBackfillLimit(v === "unlimited" ? "unlimited" : (Number(v) as 1000 | 2000));
+              }}
+              className="admin-input w-full"
+              disabled={isBackfilling}
+            >
+              <option value={1000}>1000</option>
+              <option value={2000}>2000</option>
+              <option value="unlimited">Без лимита</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border)]">
+            <button
+              type="button"
+              onClick={() => setBackfillModalOpen(false)}
+              disabled={isBackfilling}
+              className="px-4 py-2 rounded-lg bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors disabled:opacity-50"
+            >
+              Отмена
+            </button>
+            <button
+              type="button"
+              onClick={handleBackfillSpam}
+              disabled={isBackfilling}
+              className="px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {isBackfilling ? "Выполняется..." : "Запустить"}
+            </button>
+          </div>
+        </div>
+      </AdminModal>
 
       <AdminModal
         isOpen={reasonModalOpen}

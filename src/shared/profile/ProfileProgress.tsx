@@ -109,8 +109,8 @@ function EventCard({ event }: { event: ProgressEvent }) {
   if (event.type === "level_up") {
     const rankColor = getRankColor(event.newRank.rank);
     return (
-      <div className="flex items-start gap-4 p-4 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50 hover:border-[var(--border)] transition-colors">
-        <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${rankColor}20` }}>
+      <div className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] hover:bg-[var(--muted)]/5 transition-colors">
+        <div className="p-2 rounded-md" style={{ backgroundColor: `${rankColor}18` }}>
           <Icon className="w-5 h-5" style={{ color: rankColor }} />
         </div>
         <div className="flex-1 min-w-0">
@@ -155,8 +155,8 @@ function EventCard({ event }: { event: ProgressEvent }) {
     const rarityColor = RARITY_COLORS[achievement.rarity];
 
     return (
-      <div className="flex items-start gap-4 p-4 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50 hover:border-[var(--border)] transition-colors">
-        <div className={`p-2.5 rounded-xl ${config.bg}`}>
+      <div className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] hover:bg-[var(--muted)]/5 transition-colors">
+        <div className={`p-2 rounded-md ${config.bg}`}>
           <AchIcon className={`w-5 h-5 ${rarityColor}`} />
         </div>
         <div className="flex-1 min-w-0">
@@ -183,8 +183,8 @@ function EventCard({ event }: { event: ProgressEvent }) {
 
   if (event.type === "exp_gain") {
     return (
-      <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--secondary)]/30 border border-[var(--border)]/50 hover:border-[var(--border)] transition-colors">
-        <div className={`p-2.5 rounded-xl ${config.bg}`}>
+      <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)] hover:bg-[var(--muted)]/5 transition-colors">
+        <div className={`p-2 rounded-md ${config.bg}`}>
           <Icon className={`w-5 h-5 ${config.color}`} />
         </div>
         <div className="flex-1 min-w-0">
@@ -258,74 +258,51 @@ export default function ProfileProgress(props: ProfileProgressProps) {
     <div className="space-y-4">
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-yellow-500/15">
-              <Zap className="w-4 h-4 text-yellow-500" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)]">
-              За неделю
-            </span>
+        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+          <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
+            <Zap className="w-3.5 h-3.5 text-yellow-500 shrink-0" aria-hidden />
+            <span className="text-[10px] font-medium">Неделя</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">
+          <p className="text-base font-semibold tabular-nums text-[var(--foreground)]">
             {stats.weeklyXp.toLocaleString()} XP
           </p>
         </div>
 
-        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-orange-500/15">
-              <TrendingUp className="w-4 h-4 text-orange-500" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)]">
-              За месяц
-            </span>
+        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+          <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
+            <TrendingUp className="w-3.5 h-3.5 text-orange-500 shrink-0" aria-hidden />
+            <span className="text-[10px] font-medium">Месяц</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">
+          <p className="text-base font-semibold tabular-nums text-[var(--foreground)]">
             {stats.monthlyXp.toLocaleString()} XP
           </p>
         </div>
 
-        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/15">
-              <ArrowUp className="w-4 h-4 text-amber-500" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)]">
-              Уровней
-            </span>
+        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+          <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
+            <ArrowUp className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-hidden />
+            <span className="text-[10px] font-medium">Уровни</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">{stats.levelUps}</p>
+          <p className="text-base font-semibold tabular-nums text-[var(--foreground)]">{stats.levelUps}</p>
         </div>
 
-        <div className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/60">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-purple-500/15">
-              <Trophy className="w-4 h-4 text-purple-500" />
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)]">
-              Достижений
-            </span>
+        <div className="p-3 rounded-lg border border-[var(--border)]/70 bg-[var(--card)]">
+          <div className="flex items-center gap-1.5 mb-1 text-[var(--muted-foreground)]">
+            <Trophy className="w-3.5 h-3.5 text-purple-500 shrink-0" aria-hidden />
+            <span className="text-[10px] font-medium">Награды</span>
           </div>
-          <p className="text-lg font-bold text-[var(--foreground)]">{stats.achievements}</p>
+          <p className="text-base font-semibold tabular-nums text-[var(--foreground)]">{stats.achievements}</p>
         </div>
       </div>
 
       {/* History section */}
-      <div className="rounded-xl border border-[var(--border)]/80 bg-[var(--card)]/90 backdrop-blur-sm p-3 sm:p-4 shadow-sm">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
-            </div>
+      <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Calendar className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-[var(--foreground)]">
-                История прогресса
-              </h2>
-              <p className="text-xs sm:text-sm text-[var(--muted-foreground)]">
-                {history.length} событий
-              </p>
+              <h2 className="text-sm font-semibold text-[var(--foreground)]">История прогресса</h2>
+              <p className="text-xs text-[var(--muted-foreground)]">{history.length} событий</p>
             </div>
           </div>
 

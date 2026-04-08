@@ -63,3 +63,21 @@ export interface SpamRestrictedUsersResponse {
   pagination: SpamPagination;
 }
 
+/** Тело POST /admin/spam/backfill */
+export interface SpamBackfillRequest {
+  /** Глубина перепроверки в днях от текущей даты */
+  days?: number;
+  /** Макс. число комментариев за проход; без поля — по правилам бэкенда (часто без верхней границы) */
+  limit?: number;
+  onlyUnchecked?: boolean;
+  dryRun?: boolean;
+}
+
+/** Ответ POST /admin/spam/backfill */
+export interface SpamBackfillResult {
+  scanned: number;
+  markedSpam: number;
+  warned: number;
+  restricted: number;
+}
+

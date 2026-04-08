@@ -324,7 +324,7 @@ export default function ProfileInventory() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 min-h-[200px] flex items-center justify-center shadow-sm">
+      <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-8 min-h-[200px] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[var(--primary)]/30 border-t-[var(--primary)] rounded-full animate-spin" />
       </div>
     );
@@ -332,12 +332,10 @@ export default function ProfileInventory() {
 
   return (
     <div className="w-full animate-fade-in-up">
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 sm:p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-[var(--border)]/60">
+      <div className="rounded-lg border border-[var(--border)]/80 bg-[var(--card)] p-3 sm:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-[var(--border)]/50">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-[var(--chart-2)]/15 text-[var(--chart-2)] shrink-0">
-              <Package className="w-4 h-4" />
-            </div>
+            <Package className="w-4 h-4 text-[var(--muted-foreground)] shrink-0" aria-hidden />
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-[var(--foreground)] truncate">Инвентарь</h2>
               <p className="text-[var(--muted-foreground)] text-xs truncate">
@@ -353,7 +351,7 @@ export default function ProfileInventory() {
           </div>
           <Link
             href="/tomilo-shop"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[var(--primary)] to-[var(--chart-1)] text-white text-xs font-medium hover:opacity-90 transition-opacity shadow-sm shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[var(--border)]/80 bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-medium hover:opacity-90 transition-opacity shrink-0"
           >
             <ShoppingBag className="w-3.5 h-3.5" />
             В магазин
