@@ -81,6 +81,7 @@ export function CommentItem({
         : null;
   const isAdmin = userData?.role === "admin";
   const isOwner = Boolean(user && authorId && user._id === authorId);
+  const isCurrentUserAdmin = user?.role === "admin" || user?.role === "moderator";
   /** Жалоба: достаточно знать id автора (populate необязателен). */
   const canReport = Boolean(user && authorId && !isOwner);
   const profileHref = authorId
@@ -216,7 +217,15 @@ export function CommentItem({
   }, [showMenu, menuAnchorRect, setOverlayContent, closeMenu]);
 
   const handleDelete = async () => {
-    if (!confirm("Вы уверены, что хотите удалить этот комментарий?")) return;
+    const isAdminDeletingOther = isCurrentUserAdmin && !isOwner;
+    let message = "Вы уверены, что хотите удалить этот комментарий?";
+    if (isAdminDeletingOther && userData?.username) {
+      const username = formatUsernameDisplay(userData.username);
+      message = `Вы действуете как администратор. Удалить комментарий пользователя ${username}?`;
+    } else if (isAdminDeletingOther) {
+      message = "Вы действуете как администратор. Удалить комментарий другого пользователя?";
+    }
+    if (!confirm(message)) return;
     try {
       await deleteComment(comment._id).unwrap();
     } catch (error) {
@@ -365,7 +374,7 @@ export function CommentItem({
                 )}
                 <div className="flex items-center gap-1 sm:gap-2 ml-auto min-w-0 flex-wrap justify-end">
                   <LeaderTop10Badge userId={authorId ?? undefined} />
-                  {isOwner && (
+                  {(isOwner || isCurrentUserAdmin) && (
                     <div className="relative">
                       <button
                         onClick={e => (setOverlayContent ? openMenu(e) : setShowMenu(prev => !prev))}

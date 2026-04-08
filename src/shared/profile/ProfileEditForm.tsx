@@ -22,6 +22,7 @@ function validateUsername(username: string): string | null {
   const trimmed = username.trim();
   if (!trimmed) return "Введите имя пользователя";
   if (trimmed.length < 2) return "Имя не короче 2 символов";
+  if (trimmed.length > 16) return "Имя не должно превышать 16 символов";
   return null;
 }
 
