@@ -8,6 +8,7 @@ import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { getOgImageUrl } from "@/lib/seo-og-image";
 import { sanitizeMetaString } from "@/lib/seo-meta-sanitize";
 import { buildServerSEOMetadata } from "@/lib/seo-metadata";
+import { normalizeGenres } from "@/lib/genre-normalizer";
 import AdBlock from "@/shared/ad-block/AdBlock";
 
 interface PageProps {
@@ -88,7 +89,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const altNames = titleData.altNames ?? (titleData as { alternativeTitles?: string[] }).alternativeTitles ?? [];
     const titleType = titleData.type || "other";
     const titleTypeTranslate = translateTitleType(titleType);
-    const genresStr = (titleData.genres ?? []).join(", ");
+    // Нормализуем жанры для SEO (перевод на русский, приведение к единому формату)
+    const normalizedGenres = normalizeGenres(titleData.genres ?? []);
+    const genresStr = normalizedGenres.join(", ");
     let shortDescription = titleData.description
       ? titleData.description.substring(0, 160).replace(/<[^>]*>/g, "")
       : `Читать ${titleName} онлайн на Tomilo-lib.ru.${genresStr ? ` ${genresStr}` : ""}`;
@@ -132,7 +135,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: [
         titleName,
         ...altNames,
-        ...(titleData.genres || []),
+        ...normalizedGenres,
         titleData.author,
         titleData.artist,
         "манга",
@@ -155,7 +158,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         publishedTime,
         modifiedTime,
         section: titleData.type,
-        tags: [...(titleData.genres || []), ...altNames],
+        tags: [...normalizedGenres, ...altNames],
       },
       authors: titleData.author ? [titleData.author] : [],
       creator: titleData.artist || titleData.author || undefined,
