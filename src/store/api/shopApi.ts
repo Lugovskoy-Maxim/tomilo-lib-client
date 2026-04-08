@@ -61,7 +61,9 @@ function getAuthorFromItem(item: Record<string, unknown>): {
 /** Нормализует элемент: _id → id, добавляет type если передан массив по типу */
 function normalizeDecoration(item: Record<string, unknown>, type?: DecorationType): Decoration {
   const id = (item.id ?? item._id) as string;
-  const stock = (item.stock ?? item.quantity_remaining) as number | undefined;
+  const stock = (item.stock ?? item.quantity ?? item.quantity_remaining) as
+    | number
+    | undefined;
   const isSoldOut = (item.isSoldOut ?? item.is_sold_out ?? item.sold_out) as boolean | undefined;
   const author = getAuthorFromItem(item);
   return {
@@ -84,6 +86,22 @@ function normalizeDecoration(item: Record<string, unknown>, type?: DecorationTyp
     authorId: author.authorId,
     authorUsername: author.authorUsername,
     authorLevel: author.authorLevel,
+    originalPrice: (() => {
+      const v = (item.originalPrice ?? item.original_price) as number | undefined;
+      return v != null && !Number.isNaN(Number(v)) ? Number(v) : undefined;
+    })(),
+    ownersCount: (() => {
+      const v = item.ownersCount ?? item.owners_count;
+      if (v == null) return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined;
+    })(),
+    purchaseCount: (() => {
+      const v = item.purchaseCount ?? item.purchase_count;
+      if (v == null) return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined;
+    })(),
   };
 }
 
@@ -287,9 +305,10 @@ export const shopApi = createApi({
         rarity?: "common" | "rare" | "epic" | "legendary";
         isAvailable?: boolean;
         stock?: number;
+        originalPrice?: number;
       }
     >({
-      query: ({ file, type, name, description, price, rarity, isAvailable, stock }) => {
+      query: ({ file, type, name, description, price, rarity, isAvailable, stock, originalPrice }) => {
         const formData = new FormData();
         // Backend expects "file" (multer). Use explicit filename so server recognizes the part.
         formData.append("file", file, file.name || "image");
@@ -301,6 +320,7 @@ export const shopApi = createApi({
         if (rarity !== undefined) formData.append("rarity", rarity);
         if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
         if (stock !== undefined) formData.append("stock", String(stock));
+        if (originalPrice !== undefined) formData.append("originalPrice", String(originalPrice));
         return {
           url: "/shop/admin/decorations/upload",
           method: "POST",
@@ -335,9 +355,21 @@ export const shopApi = createApi({
         rarity?: "common" | "rare" | "epic" | "legendary";
         isAvailable?: boolean;
         stock?: number;
+        originalPrice?: number;
       }
     >({
-      query: ({ id, file, name, description, price, type, rarity, isAvailable, stock }) => {
+      query: ({
+        id,
+        file,
+        name,
+        description,
+        price,
+        type,
+        rarity,
+        isAvailable,
+        stock,
+        originalPrice,
+      }) => {
         const formData = new FormData();
         // Backend expects "file" (multer). Use explicit filename so server recognizes the part.
         formData.append("file", file, file.name || "image");
@@ -348,6 +380,7 @@ export const shopApi = createApi({
         if (rarity !== undefined) formData.append("rarity", rarity);
         if (isAvailable !== undefined) formData.append("isAvailable", String(isAvailable));
         if (stock !== undefined) formData.append("stock", String(stock));
+        if (originalPrice !== undefined) formData.append("originalPrice", String(originalPrice));
         return {
           url: `/shop/admin/decorations/${id}`,
           method: "PATCH",

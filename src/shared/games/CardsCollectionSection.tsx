@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, ArrowUpCircle, LibraryBig, Search, Filter, SortAsc } from "lucide-react";
+import { Sparkles, ArrowUpCircle, LibraryBig, Search } from "lucide-react";
 
 import { getDecorationImageUrls } from "@/api/shop";
 import { useToast } from "@/hooks/useToast";
@@ -89,7 +89,7 @@ export function CardsCollectionSection() {
     return (
       <div className="games-panel text-[var(--destructive)]">
         <p>Не удалось загрузить коллекцию карточек.</p>
-        <button type="button" className="games-btn games-btn-secondary games-btn-sm mt-3" onClick={() => refetch()}>
+        <button type="button" className="games-btn games-btn-secondary games-btn-sm mt-3" onClick={() => void refetch()}>
           Повторить
         </button>
       </div>

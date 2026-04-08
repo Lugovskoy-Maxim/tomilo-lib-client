@@ -65,6 +65,10 @@ const emptyAdminForm = {
   rarity: "common" as DecorationRarity,
   isAvailable: true,
   stock: "" as number | "",
+  /** Подарок: цена 0, кнопка «Бесплатно» в магазине. */
+  isFree: false,
+  /** Старая цена для отображения скидки (необязательно). */
+  originalPrice: "" as number | "",
 };
 
 const ACCEPTED_IMAGE_TYPES = "image/png,image/jpeg,image/jpg,image/webp,image/gif";
@@ -273,15 +277,21 @@ export function ShopSection({ type }: ShopSectionProps) {
   const openEdit = (d: Decoration) => {
     setEditingDecoration(d);
     const rarity = (d.rarity ?? "common") as DecorationRarity;
+    const p = typeof d.price === "number" ? d.price : getPriceByRarity(rarity);
     setForm({
       name: d.name ?? "",
       description: d.description ?? "",
-      price: getPriceByRarity(rarity),
+      price: p,
       imageUrl: d.imageUrl ?? "",
       type: d.type,
       rarity,
       isAvailable: d.isAvailable ?? true,
       stock: d.stock !== undefined && d.stock !== null ? d.stock : "",
+      isFree: p === 0,
+      originalPrice:
+        d.originalPrice != null && !Number.isNaN(Number(d.originalPrice))
+          ? Number(d.originalPrice)
+          : ("" as number | ""),
     });
     setImageFile(null);
     setIsFormOpen(true);
@@ -314,7 +324,8 @@ export function ShopSection({ type }: ShopSectionProps) {
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAdmin) return;
-    if (!form.name.trim() || form.price < 0) return;
+    const effectivePrice = form.isFree ? 0 : form.price;
+    if (!form.name.trim() || effectivePrice < 0) return;
 
     const stockValue =
       form.stock === ""
@@ -327,6 +338,15 @@ export function ShopSection({ type }: ShopSectionProps) {
         ? stockValue
         : undefined;
 
+    const origParsed =
+      form.originalPrice === ""
+        ? NaN
+        : typeof form.originalPrice === "number"
+          ? form.originalPrice
+          : parseInt(String(form.originalPrice), 10);
+    const originalPriceParam =
+      Number.isFinite(origParsed) && origParsed > effectivePrice ? Math.floor(origParsed) : undefined;
+
     try {
       if (editingDecoration) {
         if (imageFile) {
@@ -335,11 +355,12 @@ export function ShopSection({ type }: ShopSectionProps) {
             file: imageFile,
             name: form.name.trim(),
             description: form.description.trim(),
-            price: form.price,
+            price: effectivePrice,
             type: form.type,
             rarity: form.rarity,
             isAvailable: form.isAvailable,
             stock: stockParam,
+            originalPrice: originalPriceParam,
           }).unwrap();
         } else {
           await updateDecoration({
@@ -347,12 +368,13 @@ export function ShopSection({ type }: ShopSectionProps) {
             dto: {
               name: form.name.trim(),
               description: form.description.trim(),
-              price: form.price,
+              price: effectivePrice,
               imageUrl: form.imageUrl.trim() || undefined,
               type: form.type,
               rarity: form.rarity,
               isAvailable: form.isAvailable,
               stock: stockParam,
+              originalPrice: originalPriceParam,
             },
           }).unwrap();
         }
@@ -364,10 +386,11 @@ export function ShopSection({ type }: ShopSectionProps) {
             type: form.type,
             name: form.name.trim() || undefined,
             description: form.description.trim() || undefined,
-            price: form.price,
+            price: effectivePrice,
             rarity: form.rarity,
             isAvailable: form.isAvailable,
             stock: stockParam,
+            originalPrice: originalPriceParam,
           }).unwrap();
         } else {
           const url = form.imageUrl.trim();
@@ -378,12 +401,13 @@ export function ShopSection({ type }: ShopSectionProps) {
           await createDecoration({
             name: form.name.trim(),
             description: form.description.trim(),
-            price: form.price,
+            price: effectivePrice,
             imageUrl: url,
             type: form.type,
             rarity: form.rarity,
             isAvailable: form.isAvailable,
             stock: stockParam,
+            originalPrice: originalPriceParam,
           }).unwrap();
         }
         toast.success("Украшение добавлено");
@@ -511,9 +535,9 @@ export function ShopSection({ type }: ShopSectionProps) {
                 type="number"
                 min={0}
                 readOnly
-                value={form.price}
+                value={form.isFree ? 0 : form.price}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 text-[var(--foreground)] cursor-default"
-                title="Цена по редкости: 800 / 1200 / 1800 / 4000"
+                title="Цена по редкости: 800 / 1200 / 1800 / 4000. Включите «Бесплатно», чтобы выставить 0."
               />
             </div>
 
@@ -525,7 +549,11 @@ export function ShopSection({ type }: ShopSectionProps) {
                 value={form.rarity}
                 onChange={e => {
                   const rarity = e.target.value as DecorationRarity;
-                  setForm(f => ({ ...f, rarity, price: getPriceByRarity(rarity) }));
+                  setForm(f => ({
+                    ...f,
+                    rarity,
+                    price: f.isFree ? 0 : getPriceByRarity(rarity),
+                  }));
                 }}
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               >
@@ -535,6 +563,51 @@ export function ShopSection({ type }: ShopSectionProps) {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isFree}
+                  onChange={e => {
+                    const free = e.target.checked;
+                    setForm(f => ({
+                      ...f,
+                      isFree: free,
+                      price: free ? 0 : getPriceByRarity(f.rarity),
+                    }));
+                  }}
+                  className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                  Бесплатно (0 монет, в магазине — кнопка «Бесплатно»)
+                </span>
+              </label>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+                Старая цена для скидки (зачёркнутая, необязательно)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.originalPrice === "" ? "" : form.originalPrice}
+                onChange={e => {
+                  const v = e.target.value;
+                  setForm(f => ({
+                    ...f,
+                    originalPrice: v === "" ? ("" as number | "") : parseInt(v, 10) || 0,
+                  }));
+                }}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                placeholder="Например, 2000 при текущей цене 1200"
+              />
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                Должна быть больше текущей цены. Бэкенд должен сохранять поле{" "}
+                <code className="text-[11px]">originalPrice</code>.
+              </p>
             </div>
 
             <div className="flex items-end pb-2">
@@ -759,12 +832,14 @@ export function ShopSection({ type }: ShopSectionProps) {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        <p className="text-sm text-[var(--muted-foreground)]">{typeDescriptions[type]}</p>
+        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed max-w-xl">
+          {typeDescriptions[type]}
+        </p>
         {isAdmin && (
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity shrink-0"
           >
             <Plus className="w-4 h-4" />
             Добавить
@@ -772,8 +847,8 @@ export function ShopSection({ type }: ShopSectionProps) {
         )}
       </div>
 
-      {/* Фильтры по качеству и цене — всегда видны, на мобильных удобная вертикальная группировка и крупные поля */}
-      <div className="mb-4 space-y-3">
+      {/* Фильтры */}
+      <div className="mb-5 rounded-2xl border border-[var(--border)]/80 bg-[var(--card)]/40 p-3 sm:p-4 space-y-3 shadow-sm">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <span className="text-xs font-medium text-[var(--muted-foreground)] w-full sm:w-auto">
             Качество

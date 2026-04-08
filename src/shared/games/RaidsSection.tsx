@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Compass, ShieldAlert, TimerReset } from "lucide-react";
+import { Compass, ShieldAlert, TimerReset, Loader2 } from "lucide-react";
 
 import { useToast } from "@/hooks/useToast";
 import { getErrorMessage } from "@/lib/utils";
@@ -26,7 +26,7 @@ const RAID_OPTIONS: Array<{
 
 export function RaidsSection() {
   const toast = useToast();
-  const { data, isLoading, isError, refetch } = useGetDisciplesExpeditionStatusQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useGetDisciplesExpeditionStatusQuery();
   const [startExpedition, { isLoading: isStarting }] = useDisciplesStartExpeditionMutation();
   const [revealOpen, setRevealOpen] = useState(false);
   const [lastShownResultAt, setLastShownResultAt] = useState<string | null>(null);
@@ -50,12 +50,23 @@ export function RaidsSection() {
     return <div className="games-empty games-muted">Загрузка вылазок...</div>;
   }
 
-  if (isError || !status) {
+  if (isError && !status) {
     return (
       <div className="games-panel text-[var(--destructive)]">
         <p>Не удалось загрузить статус вылазок и рейдов.</p>
-        <button type="button" className="games-btn games-btn-secondary games-btn-sm mt-3" onClick={() => refetch()}>
+        <button type="button" className="games-btn games-btn-secondary games-btn-sm mt-3" onClick={() => void refetch()}>
           Повторить
+        </button>
+      </div>
+    );
+  }
+
+  if (!status) {
+    return (
+      <div className="games-panel">
+        <p className="games-muted text-sm">Нет данных вылазки.</p>
+        <button type="button" className="games-btn games-btn-secondary games-btn-sm mt-3" onClick={() => void refetch()}>
+          Обновить
         </button>
       </div>
     );
@@ -74,9 +85,23 @@ export function RaidsSection() {
               Текущая expedition-система оформлена как единый контур походов: от быстрой разведки до полноценного рейда.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="games-badge">Баланс: {status.balance}</span>
             <span className="games-badge">Риск засады: {status.ambushRiskPercent}%</span>
+            {isFetching ? (
+              <span className="inline-flex items-center gap-1 text-[var(--muted-foreground)]">
+                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" aria-hidden />
+                обновление
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="games-btn games-btn-secondary games-btn-xs"
+                onClick={() => void refetch()}
+              >
+                Обновить
+              </button>
+            )}
           </div>
         </div>
 
@@ -109,20 +134,27 @@ export function RaidsSection() {
                   <button
                     type="button"
                     disabled={!status.canStart || !status.hasDisciples || isStarting}
-                    className="games-btn games-btn-primary mt-4 w-full justify-center"
+                    className="games-btn games-btn-primary mt-4 w-full justify-center inline-flex items-center gap-2"
                     onClick={async () => {
                       try {
                         const result = await startExpedition({ difficulty: option.difficulty }).unwrap();
                         toast.success(
                           `${option.title} начат${option.difficulty === "hard" ? " как рейд" : ""}. Завершение: ${result.data?.completesAt ?? "скоро"}`,
                         );
-                        refetch();
-                      } catch (error) {
+                        void refetch();
+                      } catch (error: unknown) {
                         toast.error(getErrorMessage(error, "Не удалось отправить отряд"));
                       }
                     }}
                   >
-                    {isStarting ? "Отправка..." : `Начать ${option.title.toLowerCase()}`}
+                    {isStarting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
+                        Отправка…
+                      </>
+                    ) : (
+                      `Начать ${option.title.toLowerCase()}`
+                    )}
                   </button>
                   </div>
                 </div>

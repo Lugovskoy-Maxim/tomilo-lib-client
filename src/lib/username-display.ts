@@ -181,5 +181,10 @@ export function formatUsernameDisplay(raw: string | null | undefined): string {
     i += cp > 0xffff ? 2 : 1;
     out.push(mapCodePoint(cp));
   }
-  return out.join("");
+  const normalized = out.join("");
+  // Ограничение длины до 16 символов
+  if (normalized.length > 16) {
+    return normalized.substring(0, 16);
+  }
+  return normalized;
 }

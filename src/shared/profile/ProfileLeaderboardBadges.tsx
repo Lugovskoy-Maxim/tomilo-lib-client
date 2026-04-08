@@ -32,12 +32,12 @@ export default function ProfileLeaderboardBadges({ userId }: ProfileLeaderboardB
   }
 
   return (
-    <div className="rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-amber-400/5 p-3 sm:p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-1.5 rounded-lg bg-amber-500/20">
-          <Trophy className="w-4 h-4 text-amber-500" />
-        </div>
-        <h3 className="text-sm font-semibold text-[var(--foreground)]">В Топ-10</h3>
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <Trophy className="w-3.5 h-3.5 text-[var(--muted-foreground)] shrink-0" aria-hidden />
+        <h3 className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wide">
+          Топ лидербордов
+        </h3>
       </div>
 
       <Link href="/leaders" className="block">
@@ -47,12 +47,12 @@ export default function ProfileLeaderboardBadges({ userId }: ProfileLeaderboardB
             return (
               <span
                 key={category}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-amber-500/15 to-amber-400/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:from-amber-500/25 hover:to-amber-400/20 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border border-[var(--border)]/70 bg-[var(--muted)]/5 text-[var(--foreground)] hover:bg-[var(--muted)]/10 transition-colors cursor-pointer"
                 title={`${label}: место ${position}`}
               >
-                <Icon className="w-3.5 h-3.5" aria-hidden />
-                <span className="font-bold text-amber-600 dark:text-amber-400">#{position}</span>
-                <span className="text-amber-600/80 dark:text-amber-300/80">{label}</span>
+                <Icon className="w-3.5 h-3.5 text-[var(--muted-foreground)]" aria-hidden />
+                <span className="tabular-nums font-semibold">#{position}</span>
+                <span className="text-[var(--muted-foreground)]">{label}</span>
               </span>
             );
           })}

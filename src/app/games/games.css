@@ -1063,3 +1063,159 @@
   flex: 1;
   min-width: calc(50% - 0.375rem);
 }
+
+/* Подвкладки учеников / игровой арены */
+.games-hub .games-disciples-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border-radius: var(--card-radius, var(--radius));
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--card) 94%, var(--primary) 6%);
+}
+
+.games-hub .games-disciples-subtab {
+  padding: 0.5rem 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.games-hub .games-disciples-subtab:hover {
+  color: var(--foreground);
+  background: var(--accent);
+  border-color: var(--border);
+}
+
+.games-hub .games-disciples-subtab.active {
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 10%, var(--card));
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+}
+
+.games-hub .games-disciples-subtab .subtab-icon {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  opacity: 0.9;
+}
+
+/* Дашборд обзора */
+.games-hub .games-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .games-hub .games-dash-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .games-hub .games-dash-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.games-hub .games-dash-card {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.75rem 0.875rem;
+  min-height: 4.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.games-hub .games-dash-card__label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+.games-hub .games-dash-card__value {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.games-hub .games-dash-card--accent {
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  background: color-mix(in oklch, var(--primary) 6%, var(--card));
+}
+
+.games-hub .games-dash-card--accent .games-dash-card__value {
+  color: var(--primary);
+}
+
+/* Полоски ОЗ в итоге боя */
+.games-battle-hp-row {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .games-battle-hp-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.games-battle-hp-bar-wrap {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 0.65rem 0.75rem;
+  background: color-mix(in oklch, var(--muted) 14%, transparent);
+}
+
+.games-battle-hp-bar-wrap__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.35rem;
+}
+
+.games-battle-hp-bar {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.games-battle-hp-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.games-battle-hp-bar__fill--user {
+  background: linear-gradient(90deg, var(--primary), color-mix(in oklch, var(--primary) 70%, white));
+}
+
+.games-battle-hp-bar__fill--opp {
+  background: linear-gradient(90deg, color-mix(in oklch, var(--destructive) 75%, var(--muted)), var(--destructive));
+}
+
+.games-battle-hp-bar-wrap__nums {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}

@@ -8,6 +8,7 @@ import { useGetTitleByIdQuery } from "@/store/api/titlesApi";
 import { ReadingHistoryEntry } from "@/types/store";
 import { getChapterPath } from "@/lib/title-paths";
 import { getCoverUrls } from "@/lib/asset-url";
+import { getTitleDisplayNameForSEO } from "@/lib/seo-title-name";
 import { translateTitleType } from "@/lib/title-type-translations";
 import OptimizedImage from "@/shared/optimized-image/OptimizedImage";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
@@ -64,6 +65,7 @@ function normalizeEntry(entry: ReadingHistoryEntry): ContinueItem | null {
         name?: string;
         title?: string;
         slug?: string;
+        altNames?: string[];
         coverImage?: string;
         type?: string;
         chapters?: { chapterNumber: number }[];
@@ -71,7 +73,13 @@ function normalizeEntry(entry: ReadingHistoryEntry): ContinueItem | null {
     : null;
 
   const titleId = isPopulated ? titleData!._id : (entry.titleId as string);
-  const name = (isPopulated ? titleData!.name || titleData!.title : null) || `Тайтл #${titleId}`;
+  const name =
+    isPopulated && titleData
+      ? getTitleDisplayNameForSEO(
+          titleData as Record<string, unknown>,
+          (titleData.slug ?? "").trim(),
+        )
+      : `Тайтл #${titleId}`;
   const slug = isPopulated ? titleData!.slug : undefined;
   const coverImage = isPopulated ? (titleData!.coverImage ?? null) : null;
   const type = isPopulated ? (titleData!.type ?? "") : "";
@@ -132,7 +140,10 @@ function ContinueCard({ item }: { item: ContinueItem }) {
 
   const name =
     shouldFetch && titleData
-      ? (titleData.name ?? (titleData as { title?: string }).title ?? item.name)
+      ? getTitleDisplayNameForSEO(
+          titleData as unknown as Record<string, unknown>,
+          (titleData.slug ?? item.slug ?? "").trim(),
+        )
       : item.name;
   const coverImage =
     shouldFetch && titleData ? (titleData.coverImage ?? item.coverImage) : item.coverImage;

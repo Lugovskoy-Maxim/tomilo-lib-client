@@ -79,6 +79,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     username: (username: string): string | null => {
       if (!username) return "Имя обязательно";
       if (username.length < 3) return "Минимум 3 символа";
+      if (username.length > 16) return "Имя не должно превышать 16 символов";
       return null;
     },
     confirmPassword: (confirm: string): string | null => {

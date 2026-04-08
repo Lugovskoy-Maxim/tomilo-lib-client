@@ -16,7 +16,7 @@ export function GamesGuestPlaceholder({ onLogin, onRegister }: GamesGuestPlaceho
         </div>
         <h2 className="text-lg font-semibold text-[var(--foreground)] m-0 mb-2">Войдите в аккаунт</h2>
         <p className="games-muted text-sm m-0 mb-5">
-          Мини-игры, инвентарь и награды доступны после входа. Регистрация бесплатна.
+          Арена наставника, инвентарь и награды доступны после входа. Регистрация бесплатна.
         </p>
         <div className="flex flex-col sm:flex-row gap-2 justify-center">
           <button type="button" onClick={onLogin} className="games-btn games-btn-primary justify-center gap-2">

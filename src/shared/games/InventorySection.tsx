@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Package, Search, SortAsc, Filter } from "lucide-react";
+import { Package, Search, SortAsc, Filter, BookOpen, ClipboardList, CircleDot } from "lucide-react";
 import { useGetProfileInventoryQuery } from "@/store/api/gamesApi";
 import { normalizeGameInventoryList } from "@/lib/gameInventory";
 import { GameItemExchangePanel } from "./GameItemExchangePanel";
@@ -33,7 +33,7 @@ type RarityFilter = GameItemRarity | "all";
 const LORE_BY_ID = new Map(GAME_ITEMS_LORE.map(entry => [entry.id, entry]));
 
 export function InventorySection() {
-  const { data, isLoading, error } = useGetProfileInventoryQuery(undefined, { skip: false });
+  const { data, isLoading, error, refetch } = useGetProfileInventoryQuery(undefined, { skip: false });
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [rarityFilter, setRarityFilter] = useState<RarityFilter>("all");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -116,7 +116,10 @@ export function InventorySection() {
   if (error) {
     return (
       <div className="games-panel text-[var(--destructive)]">
-        Не удалось загрузить инвентарь.
+        <p>Не удалось загрузить инвентарь.</p>
+        <button type="button" className="games-btn games-btn-secondary games-btn-sm mt-3" onClick={() => void refetch()}>
+          Повторить
+        </button>
       </div>
     );
   }
@@ -133,10 +136,19 @@ export function InventorySection() {
           <p className="games-muted mb-2">
             Сумка пуста. Собирайте предметы за чтение глав, квесты и колесо судьбы.
           </p>
-          <ul className="games-muted text-sm text-left max-w-sm mx-auto space-y-1">
-            <li>📖 Чтение глав — шанс дропа</li>
-            <li>✅ Ежедневные квесты — награды</li>
-            <li>🎡 Колесо судьбы — спин раз в день</li>
+          <ul className="games-muted text-sm text-left max-w-sm mx-auto space-y-2">
+            <li className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 shrink-0 text-[var(--primary)] opacity-80" aria-hidden />
+              Чтение глав — шанс дропа
+            </li>
+            <li className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 shrink-0 text-[var(--primary)] opacity-80" aria-hidden />
+              Ежедневные квесты — награды
+            </li>
+            <li className="flex items-center gap-2">
+              <CircleDot className="w-4 h-4 shrink-0 text-[var(--primary)] opacity-80" aria-hidden />
+              Колесо судьбы — спин раз в день
+            </li>
           </ul>
         </div>
       </div>
@@ -149,10 +161,20 @@ export function InventorySection() {
         title="Обмен предметов"
         subtitle="Соедините расходники по схеме — результат сразу попадёт в инвентарь."
       />
-      <p className="games-muted text-sm">
-        Всего: <strong className="text-[var(--primary)]">{totalItems}</strong> · Уникальных:{" "}
-        <strong className="text-[var(--primary)]">{inventory.length}</strong>
-      </p>
+      <div className="games-dash-grid">
+        <div className="games-dash-card games-dash-card--accent">
+          <span className="games-dash-card__label">Всего штук</span>
+          <span className="games-dash-card__value">{totalItems}</span>
+        </div>
+        <div className="games-dash-card">
+          <span className="games-dash-card__label">Уникальных позиций</span>
+          <span className="games-dash-card__value">{inventory.length}</span>
+        </div>
+        <div className="games-dash-card">
+          <span className="games-dash-card__label">После фильтра</span>
+          <span className="games-dash-card__value">{filteredInventory.length}</span>
+        </div>
+      </div>
       <div className="flex flex-wrap items-center gap-3 mb-3">
         <div className="flex-1 min-w-[200px] max-w-md">
           <Input

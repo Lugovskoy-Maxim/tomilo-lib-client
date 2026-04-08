@@ -1,5 +1,4 @@
 import {
-  BarChart3,
   Bookmark,
   Clock,
   LayoutDashboard,
@@ -38,8 +37,8 @@ export const tabMeta: Record<
 > = {
   overview: {
     label: "О себе",
-    icon: BarChart3,
-    description: "Информация и краткий обзор",
+    icon: User,
+    description: "Био, аккаунт, карточки и активность",
   },
   stats: {
     label: "Статистика",

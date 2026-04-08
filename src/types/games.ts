@@ -189,6 +189,8 @@ export interface ProfileDisciplesResponse {
   combatRating: number;
   canTrain: boolean;
   canBattle: boolean;
+  /** Лимит аренных боёв в сутки (с сервера) */
+  maxBattlesPerDay?: number;
   /** Количество проведённых боёв сегодня */
   dailyBattlesCount?: number;
   /** Роль пользователя (admin, user) */
@@ -198,6 +200,8 @@ export interface ProfileDisciplesResponse {
   balance: number;
   rerollCostCoins: number;
   trainCostCoins: number;
+  /** Пул призыва кандидата: весь каталог или только персонажи из закладок */
+  characterPool?: "all" | "bookmarks";
   lastRerollCandidate: {
     characterId: string;
     titleId: string;
