@@ -70,11 +70,12 @@ function getLastReadInfo(entry: ReadingHistoryEntry): {
   const titleId = isPopulated ? titleData!._id : (entry.titleId as string);
   const titleSlug = isPopulated ? titleData!.slug : undefined;
   const slugTrimmed = titleSlug?.trim() ?? "";
-  const titleName = isPopulated && titleData
-    ? getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slugTrimmed)
-    : slugTrimmed
-      ? getTitleDisplayNameForSEO({}, slugTrimmed)
-      : "Неизвестный тайтл";
+  const titleName =
+    isPopulated && titleData
+      ? getTitleDisplayNameForSEO(titleData as Record<string, unknown>, slugTrimmed)
+      : slugTrimmed
+        ? getTitleDisplayNameForSEO({}, slugTrimmed)
+        : "Неизвестный тайтл";
   const coverImage = isPopulated ? (titleData!.coverImage ?? null) : null;
 
   const titleChapters = isPopulated
@@ -134,9 +135,8 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
 
     return getLastReadInfo(sorted[0]);
   }, [readingHistory]);
-
-  const needsTitleFetch =
-    lastRead && lastRead.titleName === "Неизвестный тайтл" && lastRead.titleId;
+const needsTitleFetch =
+  lastRead && lastRead.titleName === "Неизвестный тайтл" && lastRead.titleId;
   const { data: fetchedTitle } = useGetTitleByIdQuery(
     { id: lastRead?.titleId ?? "" },
     { skip: !needsTitleFetch },
@@ -147,7 +147,7 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
           fetchedTitle as unknown as Record<string, unknown>,
           (fetchedTitle.slug ?? lastRead?.titleSlug ?? "").trim(),
         )
-      : lastRead?.titleName ?? "";
+      : (lastRead?.titleName ?? "");
 
   const coverImage = lastRead?.coverImage;
 
