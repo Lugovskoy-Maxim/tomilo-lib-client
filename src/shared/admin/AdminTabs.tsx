@@ -36,6 +36,7 @@ import {
   Bot,
   UserCheck,
   Gamepad2,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -59,6 +60,7 @@ export type AdminTab =
   | "users"
   | "bots"
   | "reports"
+  | "spam"
   | "character-moderation"
   | "notifications"
   | "ip-management"
@@ -86,6 +88,7 @@ export const ADMIN_TABS: AdminTab[] = [
   "users",
   "bots",
   "reports",
+  "spam",
   "character-moderation",
   "notifications",
   "ip-management",
@@ -145,6 +148,7 @@ const tabGroups: TabGroup[] = [
       { id: "users", label: "Пользователи", icon: Users, shortcut: "U" },
       { id: "bots", label: "Подозрительные / Боты", icon: Bot },
       { id: "reports", label: "Жалобы", icon: AlertTriangle, shortcut: "R" },
+      { id: "spam", label: "Спам", icon: ShieldAlert },
       { id: "character-moderation", label: "Персонажи (на модерации)", icon: UserCheck },
       { id: "notifications", label: "Уведомления", icon: Bell },
     ],

@@ -35,6 +35,7 @@ import {
   useGetCommentsStatsQuery,
   useBulkDeleteCommentsMutation,
   useDeleteCommentMutation,
+  useMarkCommentAsSpamMutation,
 } from "@/store/api/adminApi";
 import { getTitlePath } from "@/lib/title-paths";
 import { Comment, CommentEntityType, CommentReactionCount } from "@/types/comment";
@@ -184,6 +185,11 @@ export function CommentsSection() {
   const [editContent, setEditContent] = useState("");
   const [isEditSaving, setIsEditSaving] = useState(false);
 
+  // Spam mark modal
+  const [spamReasonOpen, setSpamReasonOpen] = useState(false);
+  const [spamReasonText, setSpamReasonText] = useState("Помечено администратором");
+  const [spamTargetCommentId, setSpamTargetCommentId] = useState<string | null>(null);
+
   // Bulk hide modal
   const [bulkHideOpen, setBulkHideOpen] = useState(false);
   const [isBulkHiding, setIsBulkHiding] = useState(false);
@@ -250,6 +256,7 @@ export function CommentsSection() {
   const [deleteComment, { isLoading: isDeleting }] = useDeleteCommentMutation();
   const [updateComment] = useUpdateCommentMutation();
   const [bulkDeleteComments] = useBulkDeleteCommentsMutation();
+  const [markCommentAsSpam, { isLoading: isMarkingAsSpam }] = useMarkCommentAsSpamMutation();
 
   // Статистика комментариев с нового API
   const { data: commentsStatsData } = useGetCommentsStatsQuery();
@@ -424,6 +431,34 @@ export function CommentsSection() {
     setIsEditMode(false);
     setEditContent("");
   }, []);
+
+  const openSpamModal = useCallback((commentId: string) => {
+    setSpamTargetCommentId(commentId);
+    setSpamReasonText("Помечено администратором");
+    setSpamReasonOpen(true);
+  }, []);
+
+  const closeSpamModal = useCallback(() => {
+    setSpamReasonOpen(false);
+    setSpamTargetCommentId(null);
+    setSpamReasonText("Помечено администратором");
+  }, []);
+
+  const submitSpamMark = useCallback(async () => {
+    if (!spamTargetCommentId) return;
+    const reason = spamReasonText.trim();
+    if (!reason) {
+      toast.error("Укажите причину");
+      return;
+    }
+    try {
+      await markCommentAsSpam({ id: spamTargetCommentId, reason }).unwrap();
+      toast.success("Комментарий помечен как спам");
+      closeSpamModal();
+    } catch {
+      toast.error("Не удалось пометить как спам");
+    }
+  }, [spamTargetCommentId, spamReasonText, markCommentAsSpam, toast, closeSpamModal]);
 
   const handleSaveEdit = useCallback(async () => {
     if (!detailComment || !editContent.trim()) return;
@@ -726,6 +761,13 @@ export function CommentsSection() {
                     title="Редактировать"
                   >
                     <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => openSpamModal(comment._id)}
+                    className="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                    title="Пометить как спам"
+                  >
+                    <ThumbsDown className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleToggleVisibility(comment)}
@@ -1193,6 +1235,40 @@ export function CommentsSection() {
             )}
           </div>
         )}
+      </AdminModal>
+
+      <AdminModal
+        isOpen={spamReasonOpen}
+        onClose={closeSpamModal}
+        title="Пометить как спам"
+        size="md"
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Комментарий появится во вкладке «Спам». Причина будет сохранена на сервере.
+          </p>
+          <Input
+            type="text"
+            value={spamReasonText}
+            onChange={e => setSpamReasonText(e.target.value)}
+            placeholder="Причина..."
+          />
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border)]">
+            <button
+              onClick={closeSpamModal}
+              className="px-4 py-2 rounded-lg bg-[var(--secondary)] text-[var(--foreground)] hover:bg-[var(--accent)] transition-colors"
+            >
+              Отмена
+            </button>
+            <button
+              onClick={submitSpamMark}
+              disabled={isMarkingAsSpam || !spamReasonText.trim()}
+              className="px-4 py-2 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {isMarkingAsSpam ? "Сохранение..." : "Пометить"}
+            </button>
+          </div>
+        </div>
       </AdminModal>
     </div>
   );

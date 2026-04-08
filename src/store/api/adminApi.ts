@@ -20,17 +20,25 @@ import {
   ExportUsersParams,
   ExportTitlesParams,
 } from "@/types/admin";
+import {
+  SpamStats,
+  SpamCommentsQuery,
+  SpamCommentsResponse,
+  SpamRestrictedUsersQuery,
+  SpamRestrictedUsersResponse,
+} from "@/types/spam";
 
 const ADMIN_TAG = "Admin";
 const ADMIN_USERS_TAG = "AdminUsers";
 const ADMIN_COMMENTS_TAG = "AdminComments";
 const ADMIN_LOGS_TAG = "AdminLogs";
+const ADMIN_SPAM_TAG = "AdminSpam";
 
 export const adminApi = createApi({
   reducerPath: "adminApi",
   keepUnusedDataFor: 60,
   baseQuery: baseQueryWithReauth,
-  tagTypes: [ADMIN_TAG, ADMIN_USERS_TAG, ADMIN_COMMENTS_TAG, ADMIN_LOGS_TAG],
+  tagTypes: [ADMIN_TAG, ADMIN_USERS_TAG, ADMIN_COMMENTS_TAG, ADMIN_LOGS_TAG, ADMIN_SPAM_TAG],
   endpoints: builder => ({
     // ============== ДАШБОРД И СТАТИСТИКА ==============
 
@@ -326,6 +334,69 @@ export const adminApi = createApi({
       }),
       invalidatesTags: [ADMIN_TAG],
     }),
+
+    // ============== АНТИСПАМ ==============
+
+    getSpamStats: builder.query<ApiResponseDto<SpamStats>, void>({
+      query: () => "/admin/spam/stats",
+      providesTags: [ADMIN_SPAM_TAG],
+    }),
+
+    getSpamComments: builder.query<ApiResponseDto<SpamCommentsResponse>, SpamCommentsQuery>({
+      query: ({ page = 1, limit = 20 } = {}) => ({
+        url: "/admin/spam/comments",
+        params: { page, limit },
+      }),
+      providesTags: [ADMIN_SPAM_TAG],
+    }),
+
+    markCommentAsSpam: builder.mutation<ApiResponseDto<{ success?: boolean }>, { id: string; reason: string }>({
+      query: ({ id, reason }) => ({
+        url: `/admin/spam/comments/${id}/mark-as-spam`,
+        method: "POST",
+        body: { reason },
+      }),
+      invalidatesTags: [ADMIN_SPAM_TAG],
+    }),
+
+    markCommentAsNotSpam: builder.mutation<
+      ApiResponseDto<{ success?: boolean }>,
+      { id: string; reason: string }
+    >({
+      query: ({ id, reason }) => ({
+        url: `/admin/spam/comments/${id}/mark-as-not-spam`,
+        method: "POST",
+        body: { reason },
+      }),
+      invalidatesTags: [ADMIN_SPAM_TAG],
+    }),
+
+    getSpamRestrictedUsers: builder.query<
+      ApiResponseDto<SpamRestrictedUsersResponse>,
+      SpamRestrictedUsersQuery
+    >({
+      query: ({ page = 1, limit = 20 } = {}) => ({
+        url: "/admin/spam/restricted-users",
+        params: { page, limit },
+      }),
+      providesTags: [ADMIN_SPAM_TAG],
+    }),
+
+    removeSpamRestriction: builder.mutation<ApiResponseDto<{ success?: boolean }>, string>({
+      query: userId => ({
+        url: `/admin/spam/users/${userId}/remove-restriction`,
+        method: "POST",
+      }),
+      invalidatesTags: [ADMIN_SPAM_TAG],
+    }),
+
+    cleanupSpamComments: builder.mutation<ApiResponseDto<{ deletedCount: number }>, void>({
+      query: () => ({
+        url: "/admin/spam/cleanup",
+        method: "POST",
+      }),
+      invalidatesTags: [ADMIN_SPAM_TAG],
+    }),
   }),
 });
 
@@ -361,4 +432,12 @@ export const {
   useLazyExportTitlesQuery,
   // Кэш
   useClearCacheMutation,
+  // Антиспам
+  useGetSpamStatsQuery,
+  useGetSpamCommentsQuery,
+  useMarkCommentAsSpamMutation,
+  useMarkCommentAsNotSpamMutation,
+  useGetSpamRestrictedUsersQuery,
+  useRemoveSpamRestrictionMutation,
+  useCleanupSpamCommentsMutation,
 } = adminApi;
