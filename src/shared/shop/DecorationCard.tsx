@@ -145,7 +145,7 @@ function DecorationStatsLine({ decoration: d }: { decoration: Decoration }) {
   const purchases = d.purchaseCount;
   if (owners == null && purchases == null) return null;
   const parts: string[] = [];
-  if (owners != null) parts.push(`у ${owners.toLocaleString("ru-RU")} игроков`);
+  if (owners != null) parts.push(`у ${owners.toLocaleString("ru-RU")} пользователей`);
   if (purchases != null) parts.push(`покупок: ${purchases.toLocaleString("ru-RU")}`);
   return (
     <p className="flex items-center justify-center md:justify-start gap-1.5 text-xs text-[var(--muted-foreground)] mt-2">
@@ -1307,7 +1307,7 @@ export function DecorationCard({
                   <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 opacity-80" aria-hidden />
                   <span>
                     {decoration.ownersCount != null &&
-                      `у ${decoration.ownersCount.toLocaleString("ru-RU")} игроков`}
+                      `у ${decoration.ownersCount.toLocaleString("ru-RU")} пользователей`}
                     {decoration.ownersCount != null && decoration.purchaseCount != null && " · "}
                     {decoration.purchaseCount != null &&
                       `покупок ${decoration.purchaseCount.toLocaleString("ru-RU")}`}
@@ -1494,7 +1494,7 @@ export function DecorationCard({
               <Users className="w-3 h-3 shrink-0 opacity-80" aria-hidden />
               <span>
                 {decoration.ownersCount != null &&
-                  `у ${decoration.ownersCount.toLocaleString("ru-RU")} игроков`}
+                  `у ${decoration.ownersCount.toLocaleString("ru-RU")} пользователей`}
                 {decoration.ownersCount != null && decoration.purchaseCount != null && " · "}
                 {decoration.purchaseCount != null &&
                   `покупок ${decoration.purchaseCount.toLocaleString("ru-RU")}`}
@@ -1704,7 +1704,7 @@ export function DecorationCard({
                   <Users className="w-3 h-3 shrink-0 opacity-80" aria-hidden />
                   <span>
                     {decoration.ownersCount != null &&
-                      `у ${decoration.ownersCount.toLocaleString("ru-RU")} игроков`}
+                      `у ${decoration.ownersCount.toLocaleString("ru-RU")} пользователей`}
                     {decoration.ownersCount != null && decoration.purchaseCount != null && " · "}
                     {decoration.purchaseCount != null &&
                       `покупок ${decoration.purchaseCount.toLocaleString("ru-RU")}`}
