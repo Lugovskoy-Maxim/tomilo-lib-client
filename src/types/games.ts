@@ -189,6 +189,8 @@ export interface ProfileDisciplesResponse {
   combatRating: number;
   canTrain: boolean;
   canBattle: boolean;
+  /** Лимит аренных боёв в сутки (с сервера) */
+  maxBattlesPerDay?: number;
   /** Количество проведённых боёв сегодня */
   dailyBattlesCount?: number;
   /** Роль пользователя (admin, user) */

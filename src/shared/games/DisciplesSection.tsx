@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ComponentType } from "react";
 import {
   useGetProfileDisciplesQuery,
   useGetProfileCardsQuery,
@@ -36,7 +36,7 @@ import { formatUsernameDisplay } from "@/lib/username-display";
 import { getDecorationImageUrls } from "@/api/shop";
 import type { Disciple, DiscipleTechniquesEntry, InventoryEntry, TechniqueEntry } from "@/types/games";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
-import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart, UserPlus, BookOpen, ShoppingBag, Warehouse, ChevronDown, ChevronRight, Package, Loader2 } from "lucide-react";
+import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart, UserPlus, BookOpen, ShoppingBag, Warehouse, ChevronDown, ChevronRight, Package, Loader2, LayoutDashboard, Store } from "lucide-react";
 
 import { GAME_ART, battleBuffArtForLog, weeklyBattleBiomeArt } from "./gameArt";
 /** Элемент лога боя */
@@ -347,7 +347,7 @@ function formatBattleLogLine(
         : "";
 
   if (e.action === "damage" || e.action === "item_damage") {
-    return `Ход ${turn}: ${performer} (${side}) наносит урон — «${tech}»${targetHint}${val != null ? ` · −${val} ОЗ` : ""}${absorbSuffix}${dodgeSuffix}`;
+    return `Ход ${turn}: ${performer} (${side}) — «${tech}»${targetHint}${val != null ? ` · снято с ОЗ: ${val}` : ""}${absorbSuffix}${dodgeSuffix}`;
   }
   if (e.action === "heal" || e.action === "item_heal") {
     return `Ход ${turn}: ${performer} (${side}) лечит — «${tech}»${targetHint}${val != null ? ` · +${val} ОЗ` : ""}${dodgeSuffix}`;
@@ -524,6 +524,41 @@ function sortTechniquesForLibrary(
   });
 }
 
+type DisciplesSubTab = "overview" | "roster" | "arena" | "weekly" | "economy";
+
+function DisciplesSubNav({
+  active,
+  onChange,
+}: {
+  active: DisciplesSubTab;
+  onChange: (t: DisciplesSubTab) => void;
+}) {
+  const tabs: { id: DisciplesSubTab; label: string; Icon: ComponentType<{ className?: string }> }[] = [
+    { id: "overview", label: "Обзор", Icon: LayoutDashboard },
+    { id: "roster", label: "Отряд", Icon: Users },
+    { id: "arena", label: "Арена", Icon: Swords },
+    { id: "weekly", label: "Неделя", Icon: CalendarDays },
+    { id: "economy", label: "Знания и лавка", Icon: Store },
+  ];
+  return (
+    <div className="games-disciples-subnav" role="tablist" aria-label="Разделы учеников и арены">
+      {tabs.map(({ id, label, Icon }) => (
+        <button
+          key={id}
+          type="button"
+          role="tab"
+          aria-selected={active === id}
+          className={`games-disciples-subtab ${active === id ? "active" : ""}`}
+          onClick={() => onChange(id)}
+        >
+          <Icon className="subtab-icon" aria-hidden />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function DisciplesSection() {
   const toast = useToast();
   const { data, isLoading, isError: isProfileError, refetch: refetchDisciples } = useGetProfileDisciplesQuery();
@@ -562,13 +597,16 @@ export function DisciplesSection() {
   const [consumedCandidateId, setConsumedCandidateId] = useState<string | null>(null);
   const [failedDiscipleAvatarIds, setFailedDiscipleAvatarIds] = useState<Set<string>>(new Set());
   const [barracksExpanded, setBarracksExpanded] = useState(false);
-  const [subTab, setSubTab] = useState<"overview" | "roster" | "arena" | "weekly" | "library" | "shop">("overview");
+  const [subTab, setSubTab] = useState<DisciplesSubTab>("overview");
 
   const res = data?.data;
   const dailyBattlesCount = res?.dailyBattlesCount ?? 0;
-  const dailyBattlesLimit = 3; // максимальное количество боев в день для обычных пользователей
-  const battlesRemaining = dailyBattlesLimit - dailyBattlesCount;
-  const canBattle = battlesRemaining > 0 || res?.role === 'admin'; // админы без лимита
+  const dailyBattlesLimit = res?.maxBattlesPerDay ?? 3;
+  const battlesRemaining = Math.max(0, dailyBattlesLimit - dailyBattlesCount);
+  const canBattle =
+    typeof res?.canBattle === "boolean"
+      ? res.canBattle
+      : battlesRemaining > 0 || res?.role === "admin";
   const disciples = useMemo(() => (res?.disciples ?? []) as Disciple[], [res?.disciples]);
   const maxActive =
     res?.maxDisciples != null && res.maxDisciples > 0 ? res.maxDisciples : 3;
@@ -776,8 +814,8 @@ export function DisciplesSection() {
       const outcome = res?.data?.outcome;
       toast.success(
         outcome === "fail"
-          ? "Тренировка сорвалась: статы без прироста, но опыт распределён между всеми учениками (основной — больше)"
-          : "Тренировка завершена: статы выбранного ученика растут; опыт получают все (основной — больше)",
+          ? "Тренировка не удалась: без прироста статов, но опыт получили все ученики (основной — больше всего)"
+          : "Тренировка: прирост статов с упором на самые слабые характеристики; опыт — всему отряду (основной — больше)",
       );
     } catch (e: unknown) {
       toast.error(getErrorMessage(e, "Не удалось потренировать"));
@@ -946,106 +984,407 @@ export function DisciplesSection() {
 
   return (
     <div className="space-y-4">
-      {/* Статы */}
-      <div className="games-panel flex flex-wrap items-center justify-center gap-3 py-2 px-3">
-        <span className="inline-flex items-center gap-1.5">
-          <Coins className="w-4 h-4 text-[var(--primary)]" aria-hidden />
-          <strong className="text-[var(--primary)]">{res.balance}</strong>
-          <span className="games-muted text-sm">монет</span>
-        </span>
-        <span className="games-muted text-sm">Рейтинг <strong className="text-[var(--foreground)]">{res.combatRating}</strong></span>
-        <span className="games-muted text-sm">Бои сегодня <strong className="text-[var(--foreground)]">{dailyBattlesCount}/{dailyBattlesLimit}</strong></span>
-        <span className="games-muted text-sm">В отряде <strong className="text-[var(--foreground)]">{activeRoster.length}/{maxActive}</strong></span>
-        <span className="games-muted text-sm">Всего учеников <strong className="text-[var(--foreground)]">{disciples.length}</strong></span>
-        {warehouseRoster.length > 0 ? (
-          <span className="games-muted text-sm">В казарме <strong className="text-[var(--foreground)]">{warehouseRoster.length}</strong></span>
-        ) : null}
-        <span className="games-muted text-sm">Карточки <strong className="text-[var(--foreground)]">{cardsSummary.total}</strong></span>
-        <span className="games-muted text-sm">Готовы <strong className="text-[var(--foreground)]">{cardsSummary.upgradeReady}</strong></span>
-        {cardsSummary.missing > 0 ? (
-          <span className="games-muted text-sm">Не получено <strong className="text-[var(--foreground)]">{cardsSummary.missing}</strong></span>
-        ) : null}
-      </div>
+      <DisciplesSubNav active={subTab} onChange={setSubTab} />
 
-      {libraryLive && (
-        <div className="games-panel py-3 px-4">
-          <h3 className="games-panel-title flex items-center gap-2 text-base mb-2">
-            <BookOpen className="w-4 h-4 text-[var(--primary)]" aria-hidden />
-            Библиотека
-          </h3>
-          <p className="games-muted text-xs mb-2">
-            Уровень библиотеки открывает продвинутые техники. Растёт за вылазки, изучение техник и свиток знаний (ниже).
-          </p>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-semibold text-[var(--foreground)]">Ур. {libraryLive.level}</span>
-            <span
-              className="h-2 w-28 min-w-[7rem] rounded-full bg-[var(--muted)] overflow-hidden"
-              role="progressbar"
-              aria-valuenow={libraryLive.exp}
-              aria-valuemin={0}
-              aria-valuemax={libraryLive.expToNext}
+      {battleResult &&
+        (() => {
+          const outcomeWin = battleResult.outcome === "win";
+          const serverOutcomeText =
+            typeof battleResult.outcomeReason === "string" && battleResult.outcomeReason.trim()
+              ? battleResult.outcomeReason.trim()
+              : outcomeWin && typeof battleResult.winReason === "string" && battleResult.winReason.trim()
+                ? battleResult.winReason.trim()
+                : !outcomeWin && typeof battleResult.defeatReason === "string" && battleResult.defeatReason.trim()
+                  ? battleResult.defeatReason.trim()
+                  : "";
+          const fullLog = Array.isArray(battleResult.battleLog) ? battleResult.battleLog : [];
+          const logLimit = battleLogExpanded ? fullLog.length : Math.min(20, fullLog.length);
+          const logSlice = fullLog.slice(0, logLimit);
+          const getInvLabel = (id: string) => getItemLabel(id, inventoryById);
+          const hpState = battleResult.hp as
+            | { hpUser?: number; hpOpp?: number; maxUser?: number; maxOpp?: number }
+            | undefined;
+          const showHpBars =
+            hpState &&
+            typeof hpState.hpUser === "number" &&
+            typeof hpState.maxUser === "number" &&
+            typeof hpState.hpOpp === "number" &&
+            typeof hpState.maxOpp === "number";
+
+          return (
+            <div
+              className={`games-panel games-result-screen rounded-2xl overflow-hidden border-2 shadow-lg ${
+                outcomeWin ? "games-result-win border-emerald-500/25" : "games-result-lose border-red-500/20"
+              }`}
             >
-              <span
-                className="block h-full rounded-full bg-violet-500/90"
-                style={{
-                  width: `${Math.min(100, (libraryLive.exp / Math.max(1, libraryLive.expToNext)) * 100)}%`,
-                }}
-              />
-            </span>
-            <span className="games-muted text-xs">
-              {libraryLive.exp}/{libraryLive.expToNext} до след. уровня
-            </span>
-          </div>
-          {scrollOffer && typeof scrollOffer.priceCoins === "number" ? (
-            <div className="mt-3 pt-3 border-t border-[var(--border)] flex flex-wrap items-center gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-medium text-[var(--foreground)]">Свиток знаний</div>
-                <p className="games-muted text-[11px]">
-                  +{(scrollOffer as { libraryExp?: number }).libraryExp ?? 0} опыта библиотеки за монеты
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={isBuyingShop || (res?.balance ?? 0) < scrollOffer.priceCoins}
-                onClick={() => handleBuyShop(String(scrollOffer.offerId))}
-                className="games-btn games-btn-secondary games-btn-sm inline-flex items-center gap-1 shrink-0"
+              <div
+                className={`flex flex-col sm:flex-row gap-4 p-4 sm:p-5 border-b border-[var(--border)] ${
+                  outcomeWin ? "bg-emerald-500/[0.07]" : "bg-red-500/[0.06]"
+                }`}
               >
-                Купить {scrollOffer.priceCoins}
-                <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
-              </button>
+                <div className="w-full max-w-[11rem] sm:max-w-[9.5rem] aspect-[5/4] rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20 shrink-0 mx-auto sm:mx-0 shadow-inner">
+                  <img
+                    src={outcomeWin ? GAME_ART.battle.victory : GAME_ART.battle.defeat}
+                    alt=""
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col gap-2">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="games-panel-title mb-0 text-lg sm:text-xl">
+                        {outcomeWin ? "Победа" : "Поражение"}
+                      </h3>
+                      <p className="text-xs games-muted mt-1">Итог боя · лог и ОЗ ниже</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBattleResult(null);
+                        setLastBattleOpponent(null);
+                      }}
+                      className="games-btn games-btn-secondary games-btn-sm shrink-0"
+                    >
+                      Закрыть
+                    </button>
+                  </div>
+                  {serverOutcomeText ? (
+                    <p className="text-sm text-[var(--foreground)] leading-snug">{serverOutcomeText}</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-5 space-y-4">
+                {showHpBars ? (
+                  <div className="games-battle-hp-row">
+                    <div className="games-battle-hp-bar-wrap">
+                      <div className="games-battle-hp-bar-wrap__label">Ваш отряд</div>
+                      <div className="games-battle-hp-bar">
+                        <div
+                          className="games-battle-hp-bar__fill games-battle-hp-bar__fill--user"
+                          style={{
+                            width: `${Math.min(100, (hpState!.hpUser! / Math.max(1, hpState!.maxUser!)) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="games-battle-hp-bar-wrap__nums">
+                        {hpState!.hpUser} / {hpState!.maxUser} ОЗ
+                      </div>
+                    </div>
+                    <div className="games-battle-hp-bar-wrap">
+                      <div className="games-battle-hp-bar-wrap__label">Противник</div>
+                      <div className="games-battle-hp-bar">
+                        <div
+                          className="games-battle-hp-bar__fill games-battle-hp-bar__fill--opp"
+                          style={{
+                            width: `${Math.min(100, (hpState!.hpOpp! / Math.max(1, hpState!.maxOpp!)) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="games-battle-hp-bar-wrap__nums">
+                        {hpState!.hpOpp} / {hpState!.maxOpp} ОЗ
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {!outcomeWin && battleDamageSummary ? (
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/12 px-3 py-3 text-xs text-[var(--muted-foreground)] leading-relaxed">
+                    <p className="font-semibold text-[var(--foreground)] mb-1.5">Разбор по логу</p>
+                    <p className="mb-1.5">
+                      Суммарно снято ОЗ (по записям урона): вы ≈{" "}
+                      <strong className="text-[var(--foreground)]">{battleDamageSummary.userDealt}</strong>, противник ≈{" "}
+                      <strong className="text-[var(--foreground)]">{battleDamageSummary.opponentDealt}</strong>
+                      {battleDamageSummary.userHealed + battleDamageSummary.opponentHealed > 0
+                        ? ` · лечение (вы +${battleDamageSummary.userHealed}, враг +${battleDamageSummary.opponentHealed})`
+                        : ""}
+                      .
+                    </p>
+                    <p>
+                      Победа, если у противника 0 ОЗ, или после лимита ходов у вас больше ОЗ (при равенстве — по скорости отряда).
+                      Щиты и поглощение не входят в число «снято ОЗ».
+                    </p>
+                    {battleDamageSummary.userDealt > battleDamageSummary.opponentDealt ? (
+                      <p className="mt-2 text-[var(--foreground)] font-medium">
+                        По сумме вы нанесли больше урона по ОЗ, но исход могли решить лечение, щиты и порядок ходов.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {(userSquadForResult.length > 0 || opponentSquadForResult.length > 0) && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2 flex items-center justify-between gap-2">
+                        <span>Ваш отряд</span>
+                        {typeof (battleResult as any).userTeamCp === "number" ? (
+                          <span className="text-[10px] font-bold text-[var(--primary)] tabular-nums">
+                            CP {(battleResult as any).userTeamCp}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-3 justify-start">
+                        {userSquadForResult.map((m, i) => (
+                          <BattleSquadMemberChip key={m.characterId ?? `u-${m.name ?? i}-${i}`} member={m} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2 flex items-center justify-between gap-2">
+                        <span>Противник</span>
+                        {typeof (battleResult as any).opponentTeamCp === "number" ? (
+                          <span className="text-[10px] font-bold text-[var(--primary)] tabular-nums">
+                            CP {(battleResult as any).opponentTeamCp}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-3 justify-start">
+                        {opponentSquadForResult.length > 0 ? (
+                          opponentSquadForResult.map((m, i) => (
+                            <BattleSquadMemberChip key={m.characterId ?? `o-${m.name ?? i}-${i}`} member={m} />
+                          ))
+                        ) : (
+                          <p className="games-muted text-sm">Состав не передан — смотрите лог.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {fullLog.length > 0 && (
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/8 overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-[var(--border)]/60 bg-[var(--background)]/50">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                        Лог боя · {fullLog.length} {fullLog.length === 1 ? "событие" : "событий"}
+                      </span>
+                      {fullLog.length > 20 ? (
+                        <button
+                          type="button"
+                          className="text-[11px] font-medium text-[var(--primary)] hover:underline"
+                          onClick={() => setBattleLogExpanded((v) => !v)}
+                        >
+                          {battleLogExpanded ? "Свернуть" : "Развернуть всё"}
+                        </button>
+                      ) : null}
+                    </div>
+                    <ul className="space-y-0 text-sm max-h-[min(22rem,50vh)] overflow-y-auto p-2 sm:p-3">
+                      {logSlice.map((e: BattleLogEntry, i: number) => {
+                        const buffArt = battleBuffArtForLog(e.action, e.techniqueName);
+                        const line = formatBattleLogLine(e, getInvLabel);
+                        return (
+                          <li
+                            key={`${e.turn ?? "t"}-${i}-${e.action ?? "a"}`}
+                            className="text-[var(--muted-foreground)] flex items-start gap-2.5 py-2 border-b border-[var(--border)]/35 last:border-0"
+                          >
+                            {buffArt ? (
+                              <img
+                                src={buffArt}
+                                alt=""
+                                className="w-4 h-4 rounded-sm shrink-0 mt-0.5 object-cover border border-[var(--border)]"
+                              />
+                            ) : (
+                              <span className="w-4 shrink-0" aria-hidden />
+                            )}
+                            <span className="min-w-0 leading-snug">{line}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+      {subTab === "overview" && (
+        <>
+          <div className="games-dash-grid">
+            <div className="games-dash-card games-dash-card--accent">
+              <span className="games-dash-card__label">Монеты</span>
+              <span className="games-dash-card__value inline-flex items-center gap-1">
+                {res.balance}
+                <Coins className="w-4 h-4 text-amber-500 opacity-90" aria-hidden />
+              </span>
+            </div>
+            <div className="games-dash-card">
+              <span className="games-dash-card__label">Рейтинг отряда</span>
+              <span className="games-dash-card__value">{res.combatRating}</span>
+            </div>
+            <div className="games-dash-card">
+              <span className="games-dash-card__label">Бои сегодня</span>
+              <span className="games-dash-card__value">
+                {dailyBattlesCount}/{dailyBattlesLimit}
+              </span>
+            </div>
+            <div className="games-dash-card">
+              <span className="games-dash-card__label">В отряде</span>
+              <span className="games-dash-card__value">
+                {activeRoster.length}/{maxActive}
+              </span>
+            </div>
+            <div className="games-dash-card">
+              <span className="games-dash-card__label">Учеников всего</span>
+              <span className="games-dash-card__value">{disciples.length}</span>
+            </div>
+            <div className="games-dash-card">
+              <span className="games-dash-card__label">Карточки</span>
+              <span className="games-dash-card__value">{cardsSummary.total}</span>
+              <span className="text-[10px] text-[var(--muted-foreground)]">
+                готовы к рангу: {cardsSummary.upgradeReady}
+                {cardsSummary.missing > 0 ? ` · без карты: ${cardsSummary.missing}` : ""}
+              </span>
+            </div>
+          </div>
+
+          {warehouseRoster.length > 0 ? (
+            <p className="text-xs text-[var(--muted-foreground)] text-center sm:text-left">
+              В казарме: <strong className="text-[var(--foreground)]">{warehouseRoster.length}</strong> — не в боях, но получают часть опыта от тренировки.
+            </p>
+          ) : null}
+
+          {libraryLive ? (
+            <div className="games-panel py-3 px-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <h3 className="games-panel-title mb-0 flex items-center gap-2 text-base">
+                  <BookOpen className="w-4 h-4 text-[var(--primary)]" aria-hidden />
+                  Библиотека
+                </h3>
+                <button
+                  type="button"
+                  className="games-btn games-btn-secondary games-btn-sm"
+                  onClick={() => setSubTab("economy")}
+                >
+                  Вся лавка →
+                </button>
+              </div>
+              <p className="games-muted text-xs mb-2">
+                Открывает изучение техник. Полный свиток и товары — во вкладке «Знания и лавка».
+              </p>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="font-semibold text-[var(--foreground)]">Ур. {libraryLive.level}</span>
+                <span
+                  className="h-2 flex-1 min-w-[6rem] max-w-xs rounded-full bg-[var(--muted)] overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={libraryLive.exp}
+                  aria-valuemin={0}
+                  aria-valuemax={libraryLive.expToNext}
+                >
+                  <span
+                    className="block h-full rounded-full bg-violet-500/90"
+                    style={{
+                      width: `${Math.min(100, (libraryLive.exp / Math.max(1, libraryLive.expToNext)) * 100)}%`,
+                    }}
+                  />
+                </span>
+                <span className="games-muted text-xs tabular-nums">
+                  {libraryLive.exp}/{libraryLive.expToNext}
+                </span>
+              </div>
             </div>
           ) : null}
-        </div>
-      )}
 
-      {shopOffersExceptScroll.length > 0 && (
-        <div className="games-panel py-3 px-4">
-          <h3 className="games-panel-title flex items-center gap-2 text-base mb-2">
-            <ShoppingBag className="w-4 h-4 text-[var(--primary)]" aria-hidden />
-            Лавка (алхимия и бои)
-          </h3>
-          <p className="games-muted text-xs mb-3">Расходники для боёв и алхимии. Свиток знаний — в блоке «Библиотека».</p>
-          <div className="flex flex-wrap gap-2">
-            {shopOffersExceptScroll.map((offer: { offerId: string; label: string; priceCoins: number }) => (
-              <button
-                key={offer.offerId}
-                type="button"
-                disabled={isBuyingShop || (res?.balance ?? 0) < offer.priceCoins}
-                onClick={() => handleBuyShop(offer.offerId)}
-                className="games-btn games-btn-secondary games-btn-sm text-left inline-flex flex-col items-start gap-0.5 max-w-[220px]"
-              >
-                <span className="text-xs font-medium text-[var(--foreground)]">{offer.label}</span>
-                <span className="text-[11px] games-muted inline-flex items-center gap-1">
-                  {offer.priceCoins}
-                  <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
-                </span>
+          <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+            <button type="button" className="games-btn games-btn-secondary games-btn-sm" onClick={() => setSubTab("roster")}>
+              Отряд и техники
+            </button>
+            <button type="button" className="games-btn games-btn-primary games-btn-sm" onClick={() => setSubTab("arena")}>
+              На арену
+            </button>
+            {weekly ? (
+              <button type="button" className="games-btn games-btn-secondary games-btn-sm" onClick={() => setSubTab("weekly")}>
+                Недельная схватка
               </button>
-            ))}
+            ) : null}
           </div>
-        </div>
+        </>
       )}
 
-      {/* Кандидат */}
+      {subTab === "economy" && (
+        <>
+          {libraryLive && (
+            <div className="games-panel py-3 px-4">
+              <h3 className="games-panel-title flex items-center gap-2 text-base mb-2">
+                <BookOpen className="w-4 h-4 text-[var(--primary)]" aria-hidden />
+                Библиотека
+              </h3>
+              <p className="games-muted text-xs mb-2">
+                Уровень библиотеки открывает продвинутые техники. Растёт за вылазки, изучение техник и свиток знаний.
+              </p>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="font-semibold text-[var(--foreground)]">Ур. {libraryLive.level}</span>
+                <span
+                  className="h-2 w-28 min-w-[7rem] rounded-full bg-[var(--muted)] overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={libraryLive.exp}
+                  aria-valuemin={0}
+                  aria-valuemax={libraryLive.expToNext}
+                >
+                  <span
+                    className="block h-full rounded-full bg-violet-500/90"
+                    style={{
+                      width: `${Math.min(100, (libraryLive.exp / Math.max(1, libraryLive.expToNext)) * 100)}%`,
+                    }}
+                  />
+                </span>
+                <span className="games-muted text-xs">
+                  {libraryLive.exp}/{libraryLive.expToNext} до след. уровня
+                </span>
+              </div>
+              {scrollOffer && typeof scrollOffer.priceCoins === "number" ? (
+                <div className="mt-3 pt-3 border-t border-[var(--border)] flex flex-wrap items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-medium text-[var(--foreground)]">Свиток знаний</div>
+                    <p className="games-muted text-[11px]">
+                      +{(scrollOffer as { libraryExp?: number }).libraryExp ?? 0} опыта библиотеки за монеты
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isBuyingShop || (res?.balance ?? 0) < scrollOffer.priceCoins}
+                    onClick={() => handleBuyShop(String(scrollOffer.offerId))}
+                    className="games-btn games-btn-secondary games-btn-sm inline-flex items-center gap-1 shrink-0"
+                  >
+                    Купить {scrollOffer.priceCoins}
+                    <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {shopOffersExceptScroll.length > 0 && (
+            <div className="games-panel py-3 px-4">
+              <h3 className="games-panel-title flex items-center gap-2 text-base mb-2">
+                <ShoppingBag className="w-4 h-4 text-[var(--primary)]" aria-hidden />
+                Лавка (алхимия и бои)
+              </h3>
+              <p className="games-muted text-xs mb-3">Расходники для боёв и алхимии.</p>
+              <div className="flex flex-wrap gap-2">
+                {shopOffersExceptScroll.map((offer: { offerId: string; label: string; priceCoins: number }) => (
+                  <button
+                    key={offer.offerId}
+                    type="button"
+                    disabled={isBuyingShop || (res?.balance ?? 0) < offer.priceCoins}
+                    onClick={() => handleBuyShop(offer.offerId)}
+                    className="games-btn games-btn-secondary games-btn-sm text-left inline-flex flex-col items-start gap-0.5 max-w-[220px]"
+                  >
+                    <span className="text-xs font-medium text-[var(--foreground)]">{offer.label}</span>
+                    <span className="text-[11px] games-muted inline-flex items-center gap-1">
+                      {offer.priceCoins}
+                      <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {subTab === "overview" && (
+        <>
+      {/* Кандидат — обзор */}
       {lastReroll && (
         <div className="games-panel">
           <h3 className="games-panel-title">Кандидат в ученики</h3>
@@ -1119,7 +1458,11 @@ export function DisciplesSection() {
           </button>
         </div>
       )}
+        </>
+      )}
 
+      {subTab === "roster" && (
+      <>
       {/* Ростер: активный отряд (3) + резерв */}
       <div>
         <h3 className="games-panel-title">Ваши ученики</h3>
@@ -1127,7 +1470,7 @@ export function DisciplesSection() {
           Активный отряд участвует в боях и вылазках и получает от них опыт (основной ученик — с большей долей). Лишних можно отправить в казарму.
         </p>
         {disciples.length === 0 ? (
-          <p className="games-muted text-sm">Нет учеников. Призовите кандидата выше.</p>
+          <p className="games-muted text-sm">Нет учеников. Призовите кандидата во вкладке «Обзор».</p>
         ) : (
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
@@ -1480,166 +1823,10 @@ export function DisciplesSection() {
           </div>
         )}
       </div>
+      </>
+      )}
 
-      {battleResult && (() => {
-        const outcomeWin = battleResult.outcome === "win";
-        const serverOutcomeText =
-          typeof battleResult.outcomeReason === "string" && battleResult.outcomeReason.trim()
-            ? battleResult.outcomeReason.trim()
-            : outcomeWin && typeof battleResult.winReason === "string" && battleResult.winReason.trim()
-              ? battleResult.winReason.trim()
-              : !outcomeWin && typeof battleResult.defeatReason === "string" && battleResult.defeatReason.trim()
-                ? battleResult.defeatReason.trim()
-                : "";
-        const fullLog = Array.isArray(battleResult.battleLog) ? battleResult.battleLog : [];
-        const logLimit = battleLogExpanded ? fullLog.length : Math.min(20, fullLog.length);
-        const logSlice = fullLog.slice(0, logLimit);
-        const getInvLabel = (id: string) => getItemLabel(id, inventoryById);
-
-        return (
-          <div
-            className={`games-panel games-result-screen rounded-2xl overflow-hidden border-2 shadow-lg ${
-              outcomeWin ? "games-result-win border-emerald-500/25" : "games-result-lose border-red-500/20"
-            }`}
-          >
-            <div
-              className={`flex flex-col sm:flex-row gap-4 p-4 sm:p-5 border-b border-[var(--border)] ${
-                outcomeWin ? "bg-emerald-500/[0.07]" : "bg-red-500/[0.06]"
-              }`}
-            >
-              <div className="w-full max-w-[11rem] sm:max-w-[9.5rem] aspect-[5/4] rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]/20 shrink-0 mx-auto sm:mx-0 shadow-inner">
-                <img
-                  src={outcomeWin ? GAME_ART.battle.victory : GAME_ART.battle.defeat}
-                  alt=""
-                  className="w-full h-full object-cover object-center"
-                />
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col gap-2">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="games-panel-title mb-0 text-lg sm:text-xl">
-                      {outcomeWin ? "🏆 Победа" : "💀 Поражение"}
-                    </h3>
-                    <p className="text-xs games-muted mt-1">Итог боя · можно закрыть и сразу искать новый матч</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBattleResult(null);
-                      setLastBattleOpponent(null);
-                    }}
-                    className="games-btn games-btn-secondary games-btn-sm shrink-0"
-                  >
-                    Закрыть
-                  </button>
-                </div>
-                {serverOutcomeText ? (
-                  <p className="text-sm text-[var(--foreground)] leading-snug">{serverOutcomeText}</p>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="p-4 sm:p-5 space-y-4">
-              {!outcomeWin && battleDamageSummary ? (
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/12 px-3 py-3 text-xs text-[var(--muted-foreground)] leading-relaxed">
-                  <p className="font-semibold text-[var(--foreground)] mb-1.5">Почему могло быть поражение</p>
-                  <p className="mb-1.5">
-                    По логу суммарный урон по ОЗ: ваш отряд ≈{" "}
-                    <strong className="text-[var(--foreground)]">{battleDamageSummary.userDealt}</strong>
-                    , противник ≈{" "}
-                    <strong className="text-[var(--foreground)]">{battleDamageSummary.opponentDealt}</strong>
-                    {battleDamageSummary.userHealed + battleDamageSummary.opponentHealed > 0
-                      ? ` · лечение (вы +${battleDamageSummary.userHealed}, враг +${battleDamageSummary.opponentHealed})`
-                      : ""}
-                    .
-                  </p>
-                  <p>
-                    Победа = чей отряд первым теряет все ОЗ, а не «кто больше настучал». Щиты, блоки и лечение сильно меняют
-                    исход.
-                  </p>
-                  {battleDamageSummary.userDealt > battleDamageSummary.opponentDealt ? (
-                    <p className="mt-2 text-[var(--foreground)] font-medium">
-                      По сумме урона вы впереди, но запас ОЗ, защита и порядок ходов могли решить в пользу соперника.
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {(userSquadForResult.length > 0 || opponentSquadForResult.length > 0) && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-3">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2">
-                      Ваш отряд
-                    </div>
-                    <div className="flex flex-wrap gap-3 justify-start">
-                      {userSquadForResult.map((m, i) => (
-                        <BattleSquadMemberChip key={m.characterId ?? `u-${m.name ?? i}-${i}`} member={m} />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/70 p-3">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-2">
-                      Противник
-                    </div>
-                    <div className="flex flex-wrap gap-3 justify-start">
-                      {opponentSquadForResult.length > 0 ? (
-                        opponentSquadForResult.map((m, i) => (
-                          <BattleSquadMemberChip key={m.characterId ?? `o-${m.name ?? i}-${i}`} member={m} />
-                        ))
-                      ) : (
-                        <p className="games-muted text-sm">Состав не передан — смотрите лог.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {fullLog.length > 0 && (
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/8 overflow-hidden">
-                  <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-[var(--border)]/60 bg-[var(--background)]/50">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                      Лог боя · {fullLog.length} {fullLog.length === 1 ? "событие" : "событий"}
-                    </span>
-                    {fullLog.length > 20 ? (
-                      <button
-                        type="button"
-                        className="text-[11px] font-medium text-[var(--primary)] hover:underline"
-                        onClick={() => setBattleLogExpanded((v) => !v)}
-                      >
-                        {battleLogExpanded ? "Свернуть" : "Развернуть всё"}
-                      </button>
-                    ) : null}
-                  </div>
-                  <ul className="space-y-0 text-sm max-h-[min(22rem,50vh)] overflow-y-auto p-2 sm:p-3">
-                    {logSlice.map((e: BattleLogEntry, i: number) => {
-                      const buffArt = battleBuffArtForLog(e.action, e.techniqueName);
-                      const line = formatBattleLogLine(e, getInvLabel);
-                      return (
-                        <li
-                          key={`${e.turn ?? "t"}-${i}-${e.action ?? "a"}`}
-                          className="text-[var(--muted-foreground)] flex items-start gap-2.5 py-2 border-b border-[var(--border)]/35 last:border-0"
-                        >
-                          {buffArt ? (
-                            <img
-                              src={buffArt}
-                              alt=""
-                              className="w-4 h-4 rounded-sm shrink-0 mt-0.5 object-cover border border-[var(--border)]"
-                            />
-                          ) : (
-                            <span className="w-4 shrink-0" aria-hidden />
-                          )}
-                          <span className="min-w-0 leading-snug">{line}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })()}
-
+      {subTab === "arena" && (
       <div className="games-panel overflow-hidden rounded-2xl border border-[var(--border)] shadow-sm">
         <div className="relative h-36 sm:h-44 md:h-48 overflow-hidden border-b border-[var(--border)]">
           <img
@@ -1664,6 +1851,10 @@ export function DisciplesSection() {
               <p className="text-sm text-[var(--foreground)] font-medium">Готовы к поединку?</p>
               <p className="text-xs games-muted max-w-md mx-auto">
                 Подберём соперника по рейтингу. Перед боем можно взять до трёх расходников из сумки.
+              </p>
+              <p className="text-[11px] text-[var(--muted-foreground)]">
+                Ваш CP: <strong className="text-[var(--foreground)]">{res.combatRating}</strong> · осталось боёв:{" "}
+                <strong className="text-[var(--foreground)]">{battlesRemaining}</strong>
               </p>
               <button
                 type="button"
@@ -1742,7 +1933,9 @@ export function DisciplesSection() {
           )}
         </div>
       </div>
+      )}
 
+      {subTab === "weekly" && (
       <div className="games-panel overflow-hidden rounded-2xl border border-[var(--border)] shadow-sm">
         {weekly ? (
           <>
@@ -1907,6 +2100,7 @@ export function DisciplesSection() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

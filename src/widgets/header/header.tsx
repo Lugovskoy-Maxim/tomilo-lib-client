@@ -54,7 +54,7 @@ const HEADER_DROPDOWN_ITEMS: HeaderDropdownItem[] = [
   { href: "/thanks", label: "Благодарности", icon: Heart },
   { href: "/contact", label: "Контакты", icon: Mail },
   { href: "/characters", label: "Персонажи", icon: Users, beta: true },
-  { href: "/games", label: "Мини-игры", icon: Gamepad2, beta: true },
+  { href: "/games", label: "Арена наставника", icon: Gamepad2, beta: true },
   { href: "/tomilo-shop", label: "Магазин", icon: ShoppingBag },
   { href: "/dmca", label: "Авторские права (DMCA)", icon: Shield },
   { href: "/terms-of-use", label: "Условия использования", icon: FileText },
@@ -576,7 +576,7 @@ export default function Header() {
                               <Gamepad2 className="w-4 h-4" />
                             </span>
                             <span className="mobile-menu-item-label flex-1 min-w-0 transition-transform duration-200 flex items-center gap-1.5">
-                              Мини-игры
+                              Арена наставника
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40">
                                 бета
                               </span>

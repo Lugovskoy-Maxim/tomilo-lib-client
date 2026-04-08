@@ -9,6 +9,11 @@ export interface SpamStats {
 export interface SpamCommentsQuery {
   page?: number;
   limit?: number;
+  /**
+   * Если сервер поддерживает — включает “старые” комментарии/историю, а не только недавние.
+   * Без поддержки на сервере параметр будет проигнорирован.
+   */
+  includeOld?: boolean;
 }
 
 export interface SpamRestrictedUsersQuery {

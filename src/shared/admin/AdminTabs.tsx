@@ -164,7 +164,7 @@ const tabGroups: TabGroup[] = [
       { id: "site-settings", label: "Настройки сайта", icon: Wrench },
       { id: "audit-logs", label: "Аудит-логи", icon: ScrollText },
       { id: "work-queue", label: "Рабочая очередь", icon: ClipboardList },
-      { id: "games", label: "Мини-игры", icon: Gamepad2 },
+      { id: "games", label: "Арена наставника", icon: Gamepad2 },
     ],
   },
 ];

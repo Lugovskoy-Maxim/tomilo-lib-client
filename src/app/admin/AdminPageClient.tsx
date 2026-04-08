@@ -105,7 +105,7 @@ export default function AdminPageClient() {
       "site-settings": "Настройки сайта",
       "audit-logs": "Аудит-логи",
       "work-queue": "Рабочая очередь",
-      "games": "Мини-игры",
+      "games": "Арена наставника",
     };
     return titles[activeTab] || "Админ-панель";
   };

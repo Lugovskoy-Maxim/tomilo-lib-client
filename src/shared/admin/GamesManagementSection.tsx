@@ -605,7 +605,7 @@ export function GamesManagementSection() {
           </button>
         </div>
       )}
-      <AdminCard title="Мини-игры" icon={<Gamepad2 className="w-5 h-5" />}>
+      <AdminCard title="Арена наставника" icon={<Gamepad2 className="w-5 h-5" />}>
         <div className="flex flex-wrap gap-2 mb-4">
           {subTabs.map((t) => (
             <button

@@ -177,7 +177,7 @@ export function ExpeditionSection() {
     (payload.itemsGained ?? []).forEach((item) => {
       const label = item.name || item.itemId;
 
-      toast.success(`Найдено: ${label} ×${item.count}`, { icon: item.icon });
+      toast.success(`Найдено: ${label} ×${item.count}`, undefined, { icon: item.icon });
 
     });
   }, [expeditionData, toast, writeLastShownResult]);

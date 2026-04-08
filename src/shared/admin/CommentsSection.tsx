@@ -1252,6 +1252,7 @@ export function CommentsSection() {
             value={spamReasonText}
             onChange={e => setSpamReasonText(e.target.value)}
             placeholder="Причина..."
+            icon={ThumbsDown}
           />
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border)]">
             <button

@@ -142,6 +142,8 @@ export function SpamSection() {
 
   const [subTab, setSubTab] = useState<SpamSubTab>("comments");
 
+  const [includeOld, setIncludeOld] = useState(true);
+
   const [commentsPage, setCommentsPage] = useState(1);
   const [commentsLimit, setCommentsLimit] = useState(20);
 
@@ -155,13 +157,15 @@ export function SpamSection() {
 
   const [cleanupConfirmOpen, setCleanupConfirmOpen] = useState(false);
 
-  const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useGetSpamStatsQuery();
+  const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useGetSpamStatsQuery({
+    includeOld,
+  });
   const {
     data: spamCommentsData,
     isLoading: spamCommentsLoading,
     isError: spamCommentsError,
     refetch: refetchSpamComments,
-  } = useGetSpamCommentsQuery({ page: commentsPage, limit: commentsLimit });
+  } = useGetSpamCommentsQuery({ page: commentsPage, limit: commentsLimit, includeOld });
 
   const {
     data: restrictedUsersData,
@@ -310,6 +314,25 @@ export function SpamSection() {
         <StatBox label="Спам-комментариев" value={stats?.totalSpamComments ?? "—"} />
         <StatBox label="Ограниченных пользователей" value={stats?.totalRestrictedUsers ?? "—"} />
         <StatBox label="Недавний спам" value={stats?.recentSpamComments ?? "—"} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] select-none">
+          <input
+            type="checkbox"
+            className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/40"
+            checked={includeOld}
+            onChange={e => {
+              setIncludeOld(e.target.checked);
+              setCommentsPage(1);
+              setUsersPage(1);
+            }}
+          />
+          Проверять также старые комментарии
+        </label>
+        <span className="text-xs text-[var(--muted-foreground)]">
+          {includeOld ? "Режим: всё время" : "Режим: только недавние"}
+        </span>
       </div>
 
       <div className="flex items-center gap-2">
@@ -624,6 +647,7 @@ export function SpamSection() {
             value={reasonText}
             onChange={e => setReasonText(e.target.value)}
             placeholder="Причина..."
+            icon={ShieldAlert}
           />
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border)]">
             <button

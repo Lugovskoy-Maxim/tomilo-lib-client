@@ -337,15 +337,18 @@ export const adminApi = createApi({
 
     // ============== АНТИСПАМ ==============
 
-    getSpamStats: builder.query<ApiResponseDto<SpamStats>, void>({
-      query: () => "/admin/spam/stats",
+    getSpamStats: builder.query<ApiResponseDto<SpamStats>, { includeOld?: boolean } | void>({
+      query: params => ({
+        url: "/admin/spam/stats",
+        params: params && "includeOld" in params ? { includeOld: params.includeOld } : undefined,
+      }),
       providesTags: [ADMIN_SPAM_TAG],
     }),
 
     getSpamComments: builder.query<ApiResponseDto<SpamCommentsResponse>, SpamCommentsQuery>({
-      query: ({ page = 1, limit = 20 } = {}) => ({
+      query: ({ page = 1, limit = 20, includeOld } = {}) => ({
         url: "/admin/spam/comments",
-        params: { page, limit },
+        params: { page, limit, includeOld },
       }),
       providesTags: [ADMIN_SPAM_TAG],
     }),
