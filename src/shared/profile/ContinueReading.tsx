@@ -136,7 +136,7 @@ export default function ContinueReading({ userProfile }: ContinueReadingProps) {
     return getLastReadInfo(sorted[0]);
   }, [readingHistory]);
 const needsTitleFetch =
-  lastRead && lastRead.titleName === "Неизвестный тайтл" && lastRead.titleId;
+  lastRead && lastRead.titleName === "Неизвестное произведение" && lastRead.titleId;
   const { data: fetchedTitle } = useGetTitleByIdQuery(
     { id: lastRead?.titleId ?? "" },
     { skip: !needsTitleFetch },

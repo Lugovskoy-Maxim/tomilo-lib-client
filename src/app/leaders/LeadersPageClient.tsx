@@ -340,7 +340,7 @@ function transformUsersToLeaderboard(
   return sortedUsers;
 }
 
-const DEFAULT_AVATAR = "/logo/ring_logo.png";
+const DEFAULT_AVATAR = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 function getLeaderAvatarUrl(u: LeaderboardUser): string {
   const deco = getEquippedAvatarDecorationUrl(u.equippedDecorations as EquippedDecorations | null);
   if (deco) return deco;

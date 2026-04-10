@@ -1,7 +1,9 @@
 "use client";
 
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { AlertCircle, Home, RefreshCw } from "lucide-react";
+import Image from "next/image";
+import BG_IMAGE from "../../public/404/error.png";
+import { Home, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Footer, Header } from "@/widgets";
 
@@ -89,12 +91,16 @@ export default function Error({
       <Header />
       <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16">
         <div className="max-w-md w-full text-center">
-          <div className="mb-8 flex justify-center">
-            <div
-              className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--destructive)]/10 text-[var(--destructive)] ring-2 ring-[var(--destructive)]/20"
-              aria-hidden
-            >
-              <AlertCircle className="h-10 w-10 shrink-0" strokeWidth={2} />
+          <div className="relative mb-8">
+            <div className="w-52 h-52 mx-auto flex items-center justify-center">
+              <Image
+                src={BG_IMAGE}
+                alt=""
+                role="presentation"
+                className="w-52 h-52 select-none"
+                unoptimized
+                priority
+              />
             </div>
           </div>
           <p className="text-6xl font-bold text-[var(--muted-foreground)]/20 mb-2 tabular-nums">

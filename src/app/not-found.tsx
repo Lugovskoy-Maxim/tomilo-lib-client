@@ -5,7 +5,7 @@ import { ArrowLeft, Home } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import BG_IMAGE from "../../public/404/error.gif";
+import BG_IMAGE from "../../public/404/error.png";
 import { Footer, Header } from "@/widgets";
 
 export default function NotFound() {
@@ -13,17 +13,17 @@ export default function NotFound() {
   usePageTitle("404 — Страница не найдена");
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className="flex min-h-[80dvh] flex-col">
       <Header />
-      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16">
+      <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-2 sm:py-8">
         <div className="max-w-md w-full text-center">
-          <div className="relative mb-8">
-            <div className="w-32 h-32 mx-auto flex items-center justify-center">
+          <div className="relative mb-2">
+            <div className="w-52 h-52 mx-auto flex items-center justify-center">
               <Image
                 src={BG_IMAGE}
                 alt=""
                 role="presentation"
-                className="w-32 h-32 animate-pulse select-none"
+                className="w-52 h-52 select-none"
                 unoptimized
                 priority
               />

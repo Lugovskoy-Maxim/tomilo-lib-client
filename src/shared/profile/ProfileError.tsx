@@ -5,7 +5,7 @@ import { Home } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Footer, Header } from "@/widgets";
-import BG_IMAGE from "../../../public/404/error.gif";
+import BG_IMAGE from "../../../public/404/error.png";
 
 export default function ErrorState() {
   usePageTitle("Пользователь не найден");
@@ -16,12 +16,12 @@ export default function ErrorState() {
       <main className="flex min-h-0 flex-1 flex-shrink-0 flex-col items-center justify-center bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--secondary)] px-4 py-12 sm:py-16">
         <div className="max-w-md w-full text-center">
           <div className="relative mb-8">
-            <div className="w-32 h-32 mx-auto flex items-center justify-center">
+            <div className="w-52 h-52 mx-auto flex items-center justify-center">
               <Image
                 src={BG_IMAGE}
                 alt=""
                 role="presentation"
-                className="w-32 h-32 animate-pulse select-none"
+                className="w-52 h-52 select-none"
                 unoptimized
                 priority
               />
