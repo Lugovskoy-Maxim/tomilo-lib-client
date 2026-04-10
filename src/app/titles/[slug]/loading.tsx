@@ -1,4 +1,7 @@
 import { Footer, Header } from "@/widgets";
+import Image from "next/image";
+import LOADING_IMAGE from "../../../../public/loading.png";
+
 
 export default function LoadingState() {
   return (
@@ -15,6 +18,18 @@ export default function LoadingState() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[59vh]">
             <div className="text-center">
+                        <div className="relative mb-2">
+                          <div className="w-52 h-52 mx-auto flex items-center justify-center">
+                            <Image
+                              src={LOADING_IMAGE}
+                              alt=""
+                              role="presentation"
+className="w-52 h-52 select-none animate-bounce"
+                              unoptimized
+                              priority
+                            />
+                          </div>
+                        </div>
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
               <p className="text-[var(--muted-foreground)]">Загрузка данных тайтла...</p>
             </div>
