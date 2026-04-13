@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Trash2, Image as ImageIcon, ThumbsUp, Lightbulb } from "lucide-react";
+import { Trash2, Image as ImageIcon, ThumbsUp, Lightbulb, Check, Trophy } from "lucide-react";
 import {
   useGetSuggestionsQuery,
   useDeleteSuggestionMutation,
   useUpdateSuggestionMutation,
+  useAcceptSuggestionMutation,
+  useAcceptWeeklyWinnersMutation,
   type SuggestedDecoration,
 } from "@/store/api/shopApi";
 import { getDecorationImageUrls } from "@/api/shop";
@@ -57,6 +59,8 @@ export function SuggestionsSection() {
   );
   const [deleteSuggestion] = useDeleteSuggestionMutation();
   const [updateSuggestion, { isLoading: updatingVotes }] = useUpdateSuggestionMutation();
+  const [acceptSuggestion, { isLoading: acceptingSuggestion }] = useAcceptSuggestionMutation();
+  const [acceptWeeklyWinners, { isLoading: acceptingWeeklyWinners }] = useAcceptWeeklyWinnersMutation();
 
   const filtered = useMemo(() => {
     if (statusFilter === "all") return suggestions;
@@ -103,6 +107,34 @@ export function SuggestionsSection() {
     }
   };
 
+  const handleAcceptSuggestion = async (id: string, name: string) => {
+    try {
+      await acceptSuggestion(id).unwrap();
+      toast.success(`Предложение «${name}» принято и добавлено в магазин`);
+      refetch();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "data" in err
+          ? String((err as { data?: { message?: string } }).data?.message ?? "Ошибка")
+          : "Не удалось принять предложение";
+      toast.error(msg);
+    }
+  };
+
+  const handleAcceptWeeklyWinners = async () => {
+    try {
+      const result = await acceptWeeklyWinners().unwrap();
+      toast.success(result.message || "Победители недели приняты");
+      refetch();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "data" in err
+          ? String((err as { data?: { message?: string } }).data?.message ?? "Ошибка")
+          : "Не удалось запустить отбор победителей";
+      toast.error(msg);
+    }
+  };
+
   if (error) {
     const err = error as { status?: number; data?: { message?: string } };
     const msg =
@@ -139,15 +171,26 @@ export function SuggestionsSection() {
             Список предложений пользователей: голосование, принятые и отклонённые
           </p>
         </div>
-        <Link
-          href="/tomilo-shop"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors"
-        >
-          <ExternalLink className="w-4 h-4" />
-          Магазин (блок предложений)
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleAcceptWeeklyWinners}
+            disabled={acceptingWeeklyWinners}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Trophy className="w-4 h-4" />
+            {acceptingWeeklyWinners ? "Запуск..." : "Запустить отбор победителей"}
+          </button>
+          <Link
+            href="/tomilo-shop"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] border border-[var(--border)] transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Магазин (блок предложений)
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
@@ -313,14 +356,27 @@ export function SuggestionsSection() {
                       </span>
                     </td>
                     <td className="py-2 px-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(s)}
-                        className="p-2 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--destructive)]/10 hover:text-[var(--destructive)]"
-                        title="Удалить предложение"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        {s.status === "pending" && (
+                          <button
+                            type="button"
+                            onClick={() => handleAcceptSuggestion(s.id, s.name)}
+                            disabled={acceptingSuggestion}
+                            className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 disabled:opacity-50"
+                            title="Принять предложение"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(s)}
+                          className="p-2 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--destructive)]/10 hover:text-[var(--destructive)]"
+                          title="Удалить предложение"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
