@@ -549,6 +549,36 @@ export const shopApi = createApi({
       }),
       invalidatesTags: [{ type: SHOP_TAG, id: "SUGGESTIONS" }],
     }),
+
+    /** Принять конкретное предложение (только админ). */
+    acceptSuggestion: builder.mutation<
+      { message: string; decorationId?: string },
+      string
+    >({
+      query: (id) => ({
+        url: `/shop/admin/suggestions/${id}/accept`,
+        method: "POST",
+      }),
+      invalidatesTags: [
+        { type: SHOP_TAG, id: "SUGGESTIONS" },
+        { type: SHOP_TAG, id: "LIST" },
+      ],
+    }),
+
+    /** Ручной запуск отбора победителей недели (только админ). */
+    acceptWeeklyWinners: builder.mutation<
+      { message: string; acceptedSuggestions?: Array<{ id: string; name: string }> },
+      void
+    >({
+      query: () => ({
+        url: "/shop/admin/suggestions/accept-weekly-winners",
+        method: "POST",
+      }),
+      invalidatesTags: [
+        { type: SHOP_TAG, id: "SUGGESTIONS" },
+        { type: SHOP_TAG, id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -572,4 +602,6 @@ export const {
   useVoteSuggestionMutation,
   useUpdateSuggestionMutation,
   useDeleteSuggestionMutation,
+  useAcceptSuggestionMutation,
+  useAcceptWeeklyWinnersMutation,
 } = shopApi;
