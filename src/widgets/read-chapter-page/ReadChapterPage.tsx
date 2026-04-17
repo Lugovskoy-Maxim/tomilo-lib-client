@@ -11,7 +11,16 @@ import { useIntersectionTrigger } from "@/hooks/useIntersectionTrigger";
 import { ReaderTitle } from "@/types/title";
 import { ReaderChapter } from "@/types/chapter";
 import { Chapter } from "@/types/title";
-import { ArrowBigLeft, ArrowBigRight, ChevronUp, Keyboard, Search, X, ZoomIn } from "lucide-react";
+import {
+  ArrowBigLeft,
+  ArrowBigRight,
+  ChevronUp,
+  Keyboard,
+  Search,
+  X,
+  ZoomIn,
+  Gift,
+} from "lucide-react";
 import ReaderControls from "@/shared/reader/ReaderControls";
 import NavigationHeader from "@/shared/reader/NavigationHeader";
 import { useGetReadingHistoryQuery } from "@/store/api/authApi";
@@ -24,10 +33,7 @@ import {
   ReaderSettingsProvider,
 } from "@/shared/reader/hooks/useReaderSettings";
 import { getImageUrls } from "@/lib/asset-url";
-import {
-  getContinuousScrollImageLoadProps,
-  readerImageSizes,
-} from "@/lib/reader-image-loading";
+import { getContinuousScrollImageLoadProps, readerImageSizes } from "@/lib/reader-image-loading";
 
 import {
   saveReadingPosition,
@@ -83,13 +89,7 @@ export default function ReadChapterPage({
   );
 }
 
-function ReopenRestorePromptButton({
-  seconds,
-  onClick,
-}: {
-  seconds: number;
-  onClick: () => void;
-}) {
+function ReopenRestorePromptButton({ seconds, onClick }: { seconds: number; onClick: () => void }) {
   const [secondsLeft, setSecondsLeft] = useState(seconds);
 
   useEffect(() => {
@@ -124,8 +124,7 @@ function ReadChapterPageContent({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isOfflineReadMode =
-    OFFLINE_FEATURES_ENABLED && searchParams.get("offlineRead") === "1";
+  const isOfflineReadMode = OFFLINE_FEATURES_ENABLED && searchParams.get("offlineRead") === "1";
 
   const { user, updateChapterViews, addToReadingHistory, isAuthenticated } = useAuth();
   const { data: readingHistoryResponse } = useGetReadingHistoryQuery(
@@ -302,8 +301,7 @@ function ReadChapterPageContent({
         const lastCh = loadedChapters[loadedChapters.length - 1];
         if (lastCh.images.length > 0) {
           const firstKey = `${lastCh._id}-0`;
-          const firstReady =
-            loadedImagesRef.current.has(firstKey) || imageLoadErrors.has(firstKey);
+          const firstReady = loadedImagesRef.current.has(firstKey) || imageLoadErrors.has(firstKey);
           if (!firstReady) return;
         }
       }
@@ -350,7 +348,9 @@ function ReadChapterPageContent({
         })
         .catch(() => {
           loadedChapterIdsRef.current.delete(nextChapter._id);
-          setInfiniteScrollLoadError("Не удалось загрузить главу. Проверьте сеть и попробуйте снова.");
+          setInfiniteScrollLoadError(
+            "Не удалось загрузить главу. Проверьте сеть и попробуйте снова.",
+          );
         })
         .finally(() => {
           completeNextChapterLoading();
@@ -829,7 +829,10 @@ function ReadChapterPageContent({
   const isChapterPickerOpenRef = useRef(false);
   isChapterPickerOpenRef.current = isChapterPickerOpen;
   const isReaderDialogOpen = useCallback(() => {
-    return isChapterPickerOpenRef.current || Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'));
+    return (
+      isChapterPickerOpenRef.current ||
+      Boolean(document.querySelector('[role="dialog"][aria-modal="true"]'))
+    );
   }, []);
 
   const getChapterRootElement = useCallback((targetChapterId: string) => {
@@ -1020,10 +1023,7 @@ function ReadChapterPageContent({
           scheduleHeaderVisibility(true, HEADER_DEBOUNCE_MS);
         }
 
-        if (
-          window.innerHeight + currentScrollY >=
-          document.documentElement.scrollHeight - 100
-        ) {
+        if (window.innerHeight + currentScrollY >= document.documentElement.scrollHeight - 100) {
           if (hideBottomMenuSetting) setIsMenuCollapsed(true);
         }
 
@@ -1274,8 +1274,7 @@ function ReadChapterPageContent({
   // Предзагрузка всех изображений при включенной настройке (с отменой при размонтировании/смене главы)
   const preloadImagesRef = useRef<HTMLImageElement[]>([]);
   useEffect(() => {
-    const chapterToPreload =
-      loadedChapters.find(c => c._id === activeReadingChapterId) ?? chapter;
+    const chapterToPreload = loadedChapters.find(c => c._id === activeReadingChapterId) ?? chapter;
 
     if (!preloadAllImages || !chapterToPreload.images.length || !isPositionRestored) return;
 
@@ -1289,10 +1288,7 @@ function ReadChapterPageContent({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- navigator.connection типизирован не везде
     const effectiveType: string | undefined = (navigator as any)?.connection?.effectiveType;
     const isSlowConnection =
-      dataSaver ||
-      effectiveType === "slow-2g" ||
-      effectiveType === "2g" ||
-      effectiveType === "3g";
+      dataSaver || effectiveType === "slow-2g" || effectiveType === "2g" || effectiveType === "3g";
 
     const currentIndex = Math.max(0, Math.min(totalImagesAll - 1, currentPage - 1));
     const limitedIndices = new Set<number>();
@@ -1897,14 +1893,14 @@ function ReadChapterPageContent({
         showReopenRestorePromptButton &&
         savedReadingPage &&
         savedReadingPage > 1 && (
-        <ReopenRestorePromptButton
-          seconds={10}
-          onClick={() => {
-            setIsRestoreModalOpen(true);
-            setShowReopenRestorePromptButton(false);
-          }}
-        />
-      )}
+          <ReopenRestorePromptButton
+            seconds={10}
+            onClick={() => {
+              setIsRestoreModalOpen(true);
+              setShowReopenRestorePromptButton(false);
+            }}
+          />
+        )}
 
       {/* Индикатор предзагрузки */}
       {preloadAllImages && preloadProgress < 100 && (
@@ -2116,9 +2112,7 @@ function ReadChapterPageContent({
                         >
                           {/* Skeleton loader — высота контейнера 3:4, как у картинки */}
                           {!isImageLoaded && !isError && (
-                            <div
-                              className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                            >
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10">
                               <div
                                 className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
                                 style={{ backgroundSize: "200% 100%" }}
@@ -2146,11 +2140,7 @@ function ReadChapterPageContent({
                               className={`${imageFitClass} shadow-lg sm:shadow-2xl cursor-zoom-in transition-opacity duration-200 ${isImageLoaded ? "opacity-100" : "opacity-0"}`}
                               quality={imageQuality}
                               loading={
-                                imageIndex === 0
-                                  ? "eager"
-                                  : imageIndex < 2
-                                    ? "eager"
-                                    : "lazy"
+                                imageIndex === 0 ? "eager" : imageIndex < 2 ? "eager" : "lazy"
                               }
                               fetchPriority={imageIndex === 0 ? "high" : undefined}
                               onLoad={() => {
@@ -2216,6 +2206,37 @@ function ReadChapterPageContent({
                       </div>
                     );
                   })}
+                  {/* Блок доната */}
+                  <div
+                    className="flex justify-center reader-image-container"
+                    style={{ marginBottom: `${pageGap}px` }}
+                  >
+                    <div
+                      className="relative w-full flex flex-col items-center px-0 sm:px-4"
+                      style={{
+                        maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                      }}
+                    >
+                      <Image
+                        src="/donate/donate.webp"
+                        alt="Поддержать проект"
+                        width={isMobile ? 800 : imageWidth}
+                        height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                        className="shadow-lg sm:shadow-2xl"
+                        quality={imageQuality}
+                        loading="lazy"
+                      />
+                      <a
+                        href="https://boosty.to/tomilolib/donate"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95 inline-flex items-center justify-center"
+                      >
+                        <Gift className="h-4 w-4 mr-2 " />
+                        Поддержать проект
+                      </a>
+                    </div>
+                  </div>
                   {/* ch._id === loadedChapters[loadedChapters.length - 1]?._id && <AdBlockReading /> */}
                 </div>
               ))}
@@ -2324,9 +2345,7 @@ function ReadChapterPageContent({
                             >
                               {/* Skeleton loader — высота как у картинки (3:4) */}
                               {!isImageLoaded && !isError && (
-                                <div
-                                  className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                                >
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10">
                                   <div
                                     className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
                                     style={{ backgroundSize: "200% 100%" }}
@@ -2532,9 +2551,7 @@ function ReadChapterPageContent({
                         >
                           {/* Skeleton loader — высота как у картинки (3:4) */}
                           {!isImageLoaded && !isError && (
-                            <div
-                              className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10"
-                            >
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden z-10">
                               <div
                                 className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
                                 style={{ backgroundSize: "200% 100%" }}
@@ -2641,6 +2658,38 @@ function ReadChapterPageContent({
                 )}
 
                 <AdBlockReading />
+
+                {/* Блок доната */}
+                <div
+                  className="flex justify-center reader-image-container"
+                  style={{ marginBottom: `${pageGap}px`, marginTop: `${pageGap}px` }}
+                >
+                  <div
+                    className="relative w-full flex flex-col items-center px-0 sm:px-4"
+                    style={{
+                      maxWidth: isMobile ? "100%" : `${imageWidth}px`,
+                    }}
+                  >
+                    <Image
+                      src="/donate/donate.webp"
+                      alt="Поддержать проект"
+                      width={isMobile ? 800 : imageWidth}
+                      height={isMobile ? 1200 : Math.round((imageWidth * 1600) / 1200)}
+                      className="shadow-lg sm:shadow-2xl"
+                      quality={imageQuality}
+                      loading="lazy"
+                    />
+                    <a
+                      href="https://boosty.to/tomilolib/donate"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95 inline-flex items-center justify-center"
+                    >
+                      <Gift className="h-4 w-4 mr-2" />
+                      Поддержать проект
+                    </a>
+                  </div>
+                </div>
 
                 {/* Реакции на главу */}
                 <div
@@ -2871,9 +2920,7 @@ function ReadChapterPageContent({
                                 >
                                   {/* Skeleton loader — высота как у картинки (3:4) */}
                                   {!isImageLoaded && !isError && (
-                                    <div
-                                      className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden"
-                                    >
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--card)] rounded-lg overflow-hidden">
                                       {/* Анимированный gradient skeleton */}
                                       <div
                                         className="absolute inset-0 bg-gradient-to-r from-[var(--muted)] via-[var(--card)] to-[var(--muted)] animate-shimmer"
@@ -3117,71 +3164,81 @@ function ReadChapterPageContent({
             <div className="overflow-y-auto flex-1 overscroll-contain px-2 py-3 min-h-0">
               {chaptersFilteredBySearch.length === 0 ? (
                 <p className="text-sm text-[var(--muted-foreground)] text-center py-8 px-4">
-                  По запросу «{chapterPickerSearch.trim()}» глав не найдено. Измените номер или название.
+                  По запросу «{chapterPickerSearch.trim()}» глав не найдено. Измените номер или
+                  название.
                 </p>
               ) : (
-              <ul className="space-y-0.5" role="list">
-                {chaptersFilteredBySearch.map(ch => {
-                  const isCurrent = ch._id === effectiveChapter._id;
-                  const isRead =
-                    readChapterIdsForTitle.has(String(ch._id)) ||
-                    readChapterNumbersForTitle.has(Number(ch.number));
-                  return (
-                    <li
-                      key={ch._id}
-                      ref={isCurrent ? currentChapterListItemRef : undefined}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (ch._id === effectiveChapter._id) {
+                <ul className="space-y-0.5" role="list">
+                  {chaptersFilteredBySearch.map(ch => {
+                    const isCurrent = ch._id === effectiveChapter._id;
+                    const isRead =
+                      readChapterIdsForTitle.has(String(ch._id)) ||
+                      readChapterNumbersForTitle.has(Number(ch.number));
+                    return (
+                      <li key={ch._id} ref={isCurrent ? currentChapterListItemRef : undefined}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (ch._id === effectiveChapter._id) {
+                              setIsChapterPickerOpen(false);
+                              return;
+                            }
+                            clearOtherChaptersPositions(titleId, ch._id);
+                            router.push(getChapterPath(ch._id));
                             setIsChapterPickerOpen(false);
-                            return;
-                          }
-                          clearOtherChaptersPositions(titleId, ch._id);
-                          router.push(getChapterPath(ch._id));
-                          setIsChapterPickerOpen(false);
-                        }}
-                        className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors touch-manipulation ${
-                          isCurrent
-                            ? "bg-[var(--primary)]/20 text-[var(--primary)] font-medium ring-1 ring-[var(--primary)]/40"
-                            : "hover:bg-[var(--accent)] text-[var(--foreground)]"
-                        }`}
-                      >
-                        <span
-                          className={`flex-shrink-0 w-8 tabular-nums font-medium ${
-                            isRead ? "text-green-600 dark:text-green-400" : "text-[var(--muted-foreground)]"
+                          }}
+                          className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors touch-manipulation ${
+                            isCurrent
+                              ? "bg-[var(--primary)]/20 text-[var(--primary)] font-medium ring-1 ring-[var(--primary)]/40"
+                              : "hover:bg-[var(--accent)] text-[var(--foreground)]"
                           }`}
                         >
-                          {ch.number}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <span className="block truncate">
-                            {shouldShowChapterTitle(ch.title, ch.number) ? ch.title : `Глава ${ch.number}`}
+                          <span
+                            className={`flex-shrink-0 w-8 tabular-nums font-medium ${
+                              isRead
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-[var(--muted-foreground)]"
+                            }`}
+                          >
+                            {ch.number}
                           </span>
-                          {(ch.images?.length || ch.views || ch.averageRating != null || ch.date || ch.createdAt) && (
-                            <span className="block text-[11px] text-[var(--muted-foreground)] truncate mt-0.5">
-                              {[
-                                ch.images?.length ? `${ch.images.length} стр.` : null,
-                                ch.views ? `${formatNumber(ch.views)} просм.` : null,
-                                ch.averageRating != null ? `★ ${Number(ch.averageRating).toFixed(1)}` : null,
-                                ch.date || ch.createdAt ? formatNotificationTime(ch.date || ch.createdAt || "") : null,
-                              ]
-                                .filter(Boolean)
-                                .join(" · ")}
+                          <div className="min-w-0 flex-1">
+                            <span className="block truncate">
+                              {shouldShowChapterTitle(ch.title, ch.number)
+                                ? ch.title
+                                : `Глава ${ch.number}`}
+                            </span>
+                            {(ch.images?.length ||
+                              ch.views ||
+                              ch.averageRating != null ||
+                              ch.date ||
+                              ch.createdAt) && (
+                              <span className="block text-[11px] text-[var(--muted-foreground)] truncate mt-0.5">
+                                {[
+                                  ch.images?.length ? `${ch.images.length} стр.` : null,
+                                  ch.views ? `${formatNumber(ch.views)} просм.` : null,
+                                  ch.averageRating != null
+                                    ? `★ ${Number(ch.averageRating).toFixed(1)}`
+                                    : null,
+                                  ch.date || ch.createdAt
+                                    ? formatNotificationTime(ch.date || ch.createdAt || "")
+                                    : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </span>
+                            )}
+                          </div>
+                          {isCurrent && (
+                            <span className="flex-shrink-0 text-[10px] font-medium uppercase tracking-wide text-[var(--primary)] bg-[var(--primary)]/20 px-2 py-0.5 rounded-md">
+                              Сейчас
                             </span>
                           )}
-                        </div>
-                        {isCurrent && (
-                          <span className="flex-shrink-0 text-[10px] font-medium uppercase tracking-wide text-[var(--primary)] bg-[var(--primary)]/20 px-2 py-0.5 rounded-md">
-                            Сейчас
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
             </div>
           </div>
@@ -3203,7 +3260,9 @@ function ReadChapterPageContent({
         <div
           className="fixed top-0 left-0 right-0 z-[60] h-1 overflow-hidden rounded-b-full"
           role="progressbar"
-          aria-valuenow={Math.round((currentPage / Math.max(effectiveChapter.images.length, 1)) * 100)}
+          aria-valuenow={Math.round(
+            (currentPage / Math.max(effectiveChapter.images.length, 1)) * 100,
+          )}
           aria-valuemin={0}
           aria-valuemax={100}
         >
