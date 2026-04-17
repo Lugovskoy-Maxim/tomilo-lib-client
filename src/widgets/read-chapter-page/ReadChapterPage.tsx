@@ -18,6 +18,7 @@ import {
   Keyboard,
   Search,
   X,
+  Send,
   ZoomIn,
   Gift,
 } from "lucide-react";
@@ -2235,6 +2236,15 @@ function ReadChapterPageContent({
                         <Gift className="h-4 w-4 mr-2 " />
                         Поддержать проект
                       </a>
+                      <a
+                        href="https://t.me/tomilolib"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95 inline-flex items-center justify-center"
+                      >
+                        <Send className="h-4 w-4 mr-2 " />
+                        Группа в ТГ
+                      </a>
                     </div>
                   </div>
                   {/* ch._id === loadedChapters[loadedChapters.length - 1]?._id && <AdBlockReading /> */}
@@ -2687,6 +2697,15 @@ function ReadChapterPageContent({
                     >
                       <Gift className="h-4 w-4 mr-2" />
                       Поддержать проект
+                    </a>
+                    <a
+                      href="https://t.me/tomilolib"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 rounded-xl transition-colors text-sm font-medium min-h-[44px] touch-manipulation active:scale-95 inline-flex items-center justify-center"
+                    >
+                      <Send className="h-4 w-4 mr-2 " />
+                      Группа в ТГ
                     </a>
                   </div>
                 </div>
