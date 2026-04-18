@@ -432,10 +432,10 @@ function formatBattleLogLine(e: BattleLogEntry, getLabel: (itemId: string) => st
         : "";
 
   if (e.action === "damage" || e.action === "item_damage") {
-    return `Ход ${turn}: ${performer} (${side}) — «${tech}»${targetHint}${val != null ? ` · снято с ОЗ: ${val}` : ""}${absorbSuffix}${dodgeSuffix}`;
+    return `Ход ${turn}: ${performer} (${side}) — «${tech}»${targetHint}${val != null ? ` · снято с очков здоровья: ${val}` : ""}${absorbSuffix}${dodgeSuffix}`;
   }
   if (e.action === "heal" || e.action === "item_heal") {
-    return `Ход ${turn}: ${performer} (${side}) лечит — «${tech}»${targetHint}${val != null ? ` · +${val} ОЗ` : ""}${dodgeSuffix}`;
+    return `Ход ${turn}: ${performer} (${side}) лечит — «${tech}»${targetHint}${val != null ? ` · +${val} очков здоровья` : ""}${dodgeSuffix}`;
   }
   if (e.action === "buff" || e.action === "debuff") {
     return `Ход ${turn}: ${performer} (${side}) — «${tech}» (${act})${val != null ? ` · значение ${val}` : ""}${absorbSuffix}${dodgeSuffix}`;
@@ -444,7 +444,7 @@ function formatBattleLogLine(e: BattleLogEntry, getLabel: (itemId: string) => st
     return `Ход ${turn}: ${performer} (${side}) — «${tech}» (уклонение / движение)${dodgeSuffix}`;
   }
   if (e.action === "item_revive") {
-    return `Ход ${turn}: ${performer} (${side}) — «${tech}» (воскрешение)${val != null ? ` · +${val} ОЗ` : ""}`;
+    return `Ход ${turn}: ${performer} (${side}) — «${tech}» (воскрешение)${val != null ? ` · +${val} очков здоровья` : ""}`;
   }
 
   const valueSuffix =
@@ -760,9 +760,10 @@ export function DisciplesSection() {
   const activeRoster = useMemo(() => disciples.filter(d => !d.inWarehouse), [disciples]);
   const warehouseRoster = useMemo(() => disciples.filter(d => d.inWarehouse), [disciples]);
   // ✅ Шаг 4: Фильтрованный warehouse (useMemo)
+
   const filteredWarehouseRoster = useMemo(() => {
     return warehouseRoster.filter(disciple => {
-      if (searchName && !disciple.name.toLowerCase().includes(searchName.toLowerCase())) {
+      if (searchName && !disciple.name?.toLowerCase().includes(searchName.toLowerCase())) {
         return false;
       }
       if (filterLevel !== "" && disciple.level !== filterLevel) return false;
@@ -772,15 +773,7 @@ export function DisciplesSection() {
       if (filterHp !== "" && disciple.hp < filterHp) return false;
       return true;
     });
-  }, [
-    warehouseRoster,
-    searchName,
-    filterLevel,
-    filterAttack,
-    filterDefense,
-    filterSpeed,
-    filterHp,
-  ]);
+  }, [warehouseRoster, searchName, filterLevel, filterAttack, filterDefense, filterSpeed, filterHp]);
 
   const rosterItems = useMemo(() => {
     const items: Array<
@@ -1388,12 +1381,12 @@ export function DisciplesSection() {
                         ? ` · лечение (вы +${battleDamageSummary.userHealed}, враг +${battleDamageSummary.opponentHealed})`
                         : ""}
                       . Это не «текущие ОЗ», а накопленный урон по бою; при большем начальном запасе
-                      у соперника он может остаться с большим числом ОЗ при похожей сумме снятого.
+                      у соперника он может остаться с большим числом озков сздоровья (ОЗ) при похожей сумме снятого.
                     </p>
                     <p>
-                      Победа, если у противника 0 ОЗ, или после лимита ходов у вас больше ОЗ (при
+                      Победа, если у противника 0 ОЗ, или после лимита ходов у вас больше очков здоровья(ОЗ) (при
                       равенстве — по скорости отряда). Щиты и поглощение не входят в число «снято
-                      ОЗ».
+                      оков здоровья (ОЗ)».
                     </p>
                     {!outcomeWin &&
                     battleDamageSummary.userDealt > battleDamageSummary.opponentDealt ? (

@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { CharacterProposalForm } from "@/shared/browse/character-form/CharacterProposalForm";
 import { getTitlePath } from "@/lib/title-paths";
+import router from "next/router";
 
 const PAGE_SIZE = 24;
 const FETCH_LIMIT = 1000;
@@ -99,6 +100,7 @@ export default function CharactersListClient() {
     _id: string;
     name: string;
   } | null>(null);
+  const [view, setView] = useState<"grid" | "list">("grid");
 
   const { data, isLoading, isError } = useGetCharactersQuery({
     page: 1,
@@ -106,8 +108,7 @@ export default function CharactersListClient() {
   });
   const { isAuthenticated } = useAuth();
   const toast = useToast();
-  const [proposeCharacter, { isLoading: isProposingBasic }] =
-    useProposeCharacterMutation();
+  const [proposeCharacter, { isLoading: isProposingBasic }] = useProposeCharacterMutation();
   const [proposeWithImage, { isLoading: isProposingWithImage }] =
     useProposeCharacterWithImageMutation();
   const isProposing = isProposingBasic || isProposingWithImage;
@@ -148,6 +149,8 @@ export default function CharactersListClient() {
     const start = (currentPage - 1) * PAGE_SIZE;
     return filteredCharacters.slice(start, start + PAGE_SIZE);
   }, [currentPage, filteredCharacters]);
+
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -261,6 +264,101 @@ export default function CharactersListClient() {
               )}
             </>
           )}
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              type="button"
+              onClick={() => setView("grid")}
+              className={`p-2 rounded-lg border ${view === "grid" ? "bg-[var(--primary)]/10 border-[var(--primary)]" : "border-[var(--border)] hover:border-[var(--primary)]/50"} transition-colors`}
+              aria-label="Показать сеткой"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="2"
+                  y="2"
+                  width="5"
+                  height="5"
+                  rx="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <rect
+                  x="9"
+                  y="2"
+                  width="5"
+                  height="5"
+                  rx="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <rect
+                  x="2"
+                  y="9"
+                  width="5"
+                  height="5"
+                  rx="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <rect
+                  x="9"
+                  y="9"
+                  width="5"
+                  height="5"
+                  rx="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              className={`p-2 rounded-lg border ${view === "list" ? "bg-[var(--primary)]/10 border-[var(--primary)]" : "border-[var(--border)] hover:border-[var(--primary)]/50"} transition-colors`}
+              aria-label="Показать списком"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="3"
+                  y="3"
+                  width="10"
+                  height="2"
+                  rx="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <rect
+                  x="3"
+                  y="7"
+                  width="10"
+                  height="2"
+                  rx="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <rect
+                  x="3"
+                  y="11"
+                  width="10"
+                  height="2"
+                  rx="1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 p-4 sm:p-5 space-y-4">
@@ -401,9 +499,7 @@ export default function CharactersListClient() {
             </ul>
           )}
 
-          <div className="text-xs text-[var(--muted-foreground)]">
-            Найдено персонажей: {total}
-          </div>
+          <div className="text-xs text-[var(--muted-foreground)]">Найдено персонажей: {total}</div>
         </div>
 
         {showProposalSection && isAuthenticated && (
@@ -466,7 +562,10 @@ export default function CharactersListClient() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm text-[var(--muted-foreground)]">
-                    Тайтл: <span className="font-medium text-[var(--foreground)]">{selectedTitle.name}</span>
+                    Тайтл:{" "}
+                    <span className="font-medium text-[var(--foreground)]">
+                      {selectedTitle.name}
+                    </span>
                   </p>
                   <button
                     type="button"
@@ -515,11 +614,71 @@ export default function CharactersListClient() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {paginatedCharacters.map(character => (
-                <CharacterCard key={character._id} character={character} />
-              ))}
-            </div>
+            {view === "grid" ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {paginatedCharacters.map(character => (
+                  <CharacterCard key={character._id} character={character} />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {paginatedCharacters.map(character => (
+                  <div
+                    key={character._id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(`/characters/${character._id}`)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(`/characters/${character._id}`);
+                      }
+                    }}
+                    className="flex items-center gap-4 p-3 rounded-xl border border-[var(--border)]/40 bg-[var(--secondary)]/60 backdrop-blur-sm hover:bg-[var(--secondary)]/80 hover:border-[var(--primary)]/30 transition-all duration-300 cursor-pointer"
+                  >
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--background)]/50 ring-2 ring-[var(--border)]/30 flex-shrink-0">
+                      {character.image && !imageError ? (
+                        <AssetImage
+                          src={character.image}
+                          alt={character.name}
+                          fill
+                          sizes="48px"
+                          loading="lazy"
+                          className="object-cover"
+                          onError={() => setImageError(true)}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-[var(--muted-foreground)]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm text-[var(--foreground)] truncate">
+                        {character.name}
+                      </h3>
+                      <span
+                        className={`inline-block mt-1 px-2 py-0.5 text-xs rounded-full border ${characterRoleColors[character.role]}`}
+                      >
+                        {characterRoleLabels[character.role]}
+                      </span>
+                      {/* {title?.name && (
+                        <div className="mt-1 text-xs text-[var(--muted-foreground)] truncate">
+                          из{" "}
+                          <Link
+                            href={getTitlePath(title)}
+                            className="text-[var(--primary)] hover:underline"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {title.name}
+                          </Link>
+                        </div>
+                      )} */}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             {totalPages > 1 && (
               <div className="mt-8 flex items-center justify-center gap-2">
                 <button
