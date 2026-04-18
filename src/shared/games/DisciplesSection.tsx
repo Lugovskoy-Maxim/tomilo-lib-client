@@ -34,9 +34,40 @@ import {
 import { getCoverUrls } from "@/lib/asset-url";
 import { formatUsernameDisplay } from "@/lib/username-display";
 import { getDecorationImageUrls } from "@/api/shop";
-import type { Disciple, DiscipleTechniquesEntry, InventoryEntry, TechniqueEntry } from "@/types/games";
+import type {
+  Disciple,
+  DiscipleTechniquesEntry,
+  InventoryEntry,
+  TechniqueEntry,
+} from "@/types/games";
 import { GAME_ITEMS_LORE } from "@/constants/gameItemsLore";
-import { Users, Swords, RefreshCw, UserMinus, Zap, Coins, CalendarDays, Crown, Trophy, Shield, Footprints, Heart, UserPlus, BookOpen, ShoppingBag, Warehouse, ChevronDown, ChevronRight, Package, Loader2, LayoutDashboard, Store, Dumbbell } from "lucide-react";
+import {
+  Users,
+  Swords,
+  RefreshCw,
+  UserMinus,
+  Zap,
+  Coins,
+  CalendarDays,
+  Crown,
+  Trophy,
+  Shield,
+  Footprints,
+  Heart,
+  UserPlus,
+  BookOpen,
+  ShoppingBag,
+  Warehouse,
+  ChevronDown,
+  ChevronRight,
+  Package,
+  Loader2,
+  LayoutDashboard,
+  Store,
+  Dumbbell,
+  Library,
+} from "lucide-react";
+import Tooltip from "@/shared/ui/Tooltip";
 
 import { GAME_ART, battleBuffArtForLog, weeklyBattleBiomeArt } from "./gameArt";
 
@@ -127,7 +158,9 @@ function pickFirstString(...vals: unknown[]): string | undefined {
 function coerceSquadMember(row: unknown): BattleSquadPreview | null {
   if (!row || typeof row !== "object") return null;
   const r = row as Record<string, unknown>;
-  const nest = (r.disciple ?? r.character ?? r.unit ?? r.card) as Record<string, unknown> | undefined;
+  const nest = (r.disciple ?? r.character ?? r.unit ?? r.card) as
+    | Record<string, unknown>
+    | undefined;
   const n = nest && typeof nest === "object" ? nest : undefined;
 
   const name = pickFirstString(
@@ -163,7 +196,10 @@ function squadFromUnknownArray(raw: unknown): BattleSquadPreview[] {
 }
 
 /** Дополняет состав из resultScreen аватаром/картой из снапшота матчмейкинга или профиля (по characterId). */
-function mergeBattleSquads(primary: BattleSquadPreview[], enrich: BattleSquadPreview[]): BattleSquadPreview[] {
+function mergeBattleSquads(
+  primary: BattleSquadPreview[],
+  enrich: BattleSquadPreview[],
+): BattleSquadPreview[] {
   if (!enrich.length) return primary;
   if (!primary.length) return enrich;
   const byId = new Map<string, BattleSquadPreview>();
@@ -171,7 +207,7 @@ function mergeBattleSquads(primary: BattleSquadPreview[], enrich: BattleSquadPre
     const k = m.characterId?.trim();
     if (k) byId.set(k, m);
   }
-  return primary.map((m) => {
+  return primary.map(m => {
     const k = m.characterId?.trim();
     const e = k ? byId.get(k) : undefined;
     if (!e) return m;
@@ -191,7 +227,10 @@ function firstNonEmptySquad(...sources: unknown[]): BattleSquadPreview[] {
   return [];
 }
 
-function squadsFromResultScreen(br: BattleResultState): { user: BattleSquadPreview[]; opponent: BattleSquadPreview[] } {
+function squadsFromResultScreen(br: BattleResultState): {
+  user: BattleSquadPreview[];
+  opponent: BattleSquadPreview[];
+} {
   const teams = br.teams as Record<string, unknown> | undefined;
   // Состав из resultScreen.teams с бэка — приоритет (имена после боя)
   const user = firstNonEmptySquad(
@@ -308,20 +347,24 @@ function DiscipleAvatar({
   const url = avatarPath ? getCoverUrls(avatarPath, "").primary : "";
   const show = url && showImage;
   const sizeClass =
-    size === "lg" ? "games-card-avatar games-card-avatar--lg" : size === "md" ? "games-card-avatar games-card-avatar--md" : "games-card-avatar";
+    size === "lg"
+      ? "games-card-avatar games-card-avatar--lg"
+      : size === "md"
+        ? "games-card-avatar games-card-avatar--md"
+        : "games-card-avatar";
   if (show) {
-    return (
-      <img
-        src={url}
-        alt=""
-        className={`${sizeClass} object-cover`}
-        onError={onError}
-      />
-    );
+    return <img src={url} alt="" className={`${sizeClass} object-cover`} onError={onError} />;
   }
   return (
     <div className={`${sizeClass} flex items-center justify-center`}>
-      <Users className={size === "md" ? "w-5 h-5 text-[var(--muted-foreground)]" : "w-10 h-10 sm:w-12 sm:h-12 text-[var(--muted-foreground)]"} aria-hidden />
+      <Users
+        className={
+          size === "md"
+            ? "w-5 h-5 text-[var(--muted-foreground)]"
+            : "w-10 h-10 sm:w-12 sm:h-12 text-[var(--muted-foreground)]"
+        }
+        aria-hidden
+      />
     </div>
   );
 }
@@ -362,15 +405,12 @@ function battleLogPerformerDisplayName(e: BattleLogEntry): string {
   return "";
 }
 
-function formatBattleLogLine(
-  e: BattleLogEntry,
-  getLabel: (itemId: string) => string,
-): string {
+function formatBattleLogLine(e: BattleLogEntry, getLabel: (itemId: string) => string): string {
   if (e.action === "battle_start") {
     return [e.message, e.opponentSummary].filter(Boolean).join(" · ");
   }
   if (e.action === "support_items") {
-    return `Подготовка: ${(e.items ?? []).map((item) => item.name || getLabel(item.itemId)).join(", ")}`;
+    return `Подготовка: ${(e.items ?? []).map(item => item.name || getLabel(item.itemId)).join(", ")}`;
   }
 
   const turn = typeof e.turn === "number" ? e.turn : "—";
@@ -415,9 +455,21 @@ function formatBattleLogLine(
 const BATTLE_SUPPORT_ITEMS = [
   { id: "healing_pill", label: "Пилюля исцеления", description: "Авто-лечение при просадке HP" },
   { id: "basic_talisman", label: "Базовый талисман", description: "Небольшой одноразовый щит" },
-  { id: "defense_talisman", label: "Талисман защиты", description: "Поглощает часть входящего урона" },
-  { id: "heavenly_thunder_talisman", label: "Талисман небесной грозы", description: "Наносит стартовый урон врагу" },
-  { id: "resurrection_fragment", label: "Осколок воскрешения", description: "Разово поднимает бойца после поражения" },
+  {
+    id: "defense_talisman",
+    label: "Талисман защиты",
+    description: "Поглощает часть входящего урона",
+  },
+  {
+    id: "heavenly_thunder_talisman",
+    label: "Талисман небесной грозы",
+    description: "Наносит стартовый урон врагу",
+  },
+  {
+    id: "resurrection_fragment",
+    label: "Осколок воскрешения",
+    description: "Разово поднимает бойца после поражения",
+  },
 ] as const;
 
 function SupportItemTile({
@@ -440,7 +492,7 @@ function SupportItemTile({
     <button
       type="button"
       disabled={count <= 0}
-      onClick={(ev) => {
+      onClick={ev => {
         ev.preventDefault();
         ev.stopPropagation();
         onPick();
@@ -469,7 +521,9 @@ function SupportItemTile({
         </div>
         <span
           className={`text-[11px] font-bold tabular-nums px-1.5 py-0.5 rounded-md shrink-0 ${
-            count > 0 ? "bg-[var(--primary)]/15 text-[var(--primary)]" : "bg-[var(--muted)] text-[var(--muted-foreground)]"
+            count > 0
+              ? "bg-[var(--primary)]/15 text-[var(--primary)]"
+              : "bg-[var(--muted)] text-[var(--muted-foreground)]"
           }`}
         >
           ×{count}
@@ -500,7 +554,7 @@ function BattleSupportItemGrid({
 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
-      {BATTLE_SUPPORT_ITEMS.map((item) => {
+      {BATTLE_SUPPORT_ITEMS.map(item => {
         const count = countInventoryForCanonicalId(inventory, item.id);
         const inv = findInventoryEntryForCanonicalId(inventory, item.id);
         return (
@@ -525,7 +579,12 @@ function MatchOpponentAvatar({ avatarPath }: { avatarPath?: string }) {
   return (
     <div className="w-14 h-14 rounded-xl border border-[var(--border)] bg-[var(--muted)]/30 overflow-hidden flex items-center justify-center shrink-0">
       {show ? (
-        <img src={url} alt="" className="w-full h-full object-cover" onError={() => setFailed(true)} />
+        <img
+          src={url}
+          alt=""
+          className="w-full h-full object-cover"
+          onError={() => setFailed(true)}
+        />
       ) : (
         <Users className="w-7 h-7 text-[var(--muted-foreground)]" aria-hidden />
       )}
@@ -545,7 +604,7 @@ function getItemLabel(itemId: string, inventoryById: Map<string, InventoryEntry>
   return (
     inventoryById.get(itemId)?.name ||
     inventoryById.get(itemId.toLowerCase())?.name ||
-    GAME_ITEMS_LORE.find((entry) => entry.id === itemId)?.name ||
+    GAME_ITEMS_LORE.find(entry => entry.id === itemId)?.name ||
     itemId
   );
 }
@@ -578,7 +637,11 @@ function DisciplesSubNav({
   active: DisciplesSubTab;
   onChange: (t: DisciplesSubTab) => void;
 }) {
-  const tabs: { id: DisciplesSubTab; label: string; Icon: ComponentType<{ className?: string }> }[] = [
+  const tabs: {
+    id: DisciplesSubTab;
+    label: string;
+    Icon: ComponentType<{ className?: string }>;
+  }[] = [
     { id: "overview", label: "Обзор", Icon: LayoutDashboard },
     { id: "roster", label: "Отряд", Icon: Users },
     { id: "arena", label: "Арена", Icon: Swords },
@@ -617,7 +680,8 @@ export function DisciplesSection() {
   const { data: inventoryData, refetch: refetchInventory } = useGetProfileInventoryQuery();
   const [reroll, { isLoading: isRerolling }] = useDisciplesRerollMutation();
   const [recruit, { isLoading: isRecruiting }] = useDisciplesRecruitMutation();
-  const [claimDuplicateReward, { isLoading: isClaimingDuplicate }] = useDisciplesClaimDuplicateRewardMutation();
+  const [claimDuplicateReward, { isLoading: isClaimingDuplicate }] =
+    useDisciplesClaimDuplicateRewardMutation();
   const [dismiss] = useDisciplesDismissMutation();
   const [train, { isLoading: isTraining }] = useDisciplesTrainMutation();
   const [setPrimaryMut, { isLoading: isSettingPrimary }] = useDisciplesSetPrimaryMutation();
@@ -630,12 +694,23 @@ export function DisciplesSection() {
   const [learnTechnique, { isLoading: isLearning }] = useDisciplesLearnTechniqueMutation();
   const [equipTechniques, { isLoading: isEquipping }] = useDisciplesEquipTechniquesMutation();
   const [upgradeProfileCard, { isLoading: isUpgradingCard }] = useUpgradeProfileCardMutation();
-  const [candidate, setCandidate] = useState<{ characterId: string; titleId: string; name: string; avatar?: string; titleName?: string; attack: number; defense: number; speed: number; hp: number } | null>(null);
+  const [candidate, setCandidate] = useState<{
+    characterId: string;
+    titleId: string;
+    name: string;
+    avatar?: string;
+    titleName?: string;
+    attack: number;
+    defense: number;
+    speed: number;
+    hp: number;
+  } | null>(null);
   /** Истекает через 10 мин после призыва (сервер тоже сбрасывает кандидата через 10 мин) */
   const [candidateExpiresAt, setCandidateExpiresAt] = useState<number | null>(null);
   const [triggerMatch, { isLoading: findingMatch }] = useLazyDisciplesBattleMatchQuery();
   const [opponent, setOpponent] = useState<PvpOpponentSnapshot | null>(null);
-  const [triggerWeeklyMatch, { isLoading: findingWeeklyMatch }] = useLazyDisciplesWeeklyBattleMatchQuery();
+  const [triggerWeeklyMatch, { isLoading: findingWeeklyMatch }] =
+    useLazyDisciplesWeeklyBattleMatchQuery();
   const [weeklyOpponent, setWeeklyOpponent] = useState<PvpOpponentSnapshot | null>(null);
   const [battleResult, setBattleResult] = useState<BattleResultState | null>(null);
   /** Снимок противника с матчмейкинга — карточки/отряд на экране результата после сброса `opponent` */
@@ -654,6 +729,15 @@ export function DisciplesSection() {
   /** Индекс строки для оверлея призыва / найма */
   const [summonFlavorIdx, setSummonFlavorIdx] = useState(0);
 
+  // ✅ Шаг 1: Фильтры казармы (ТОЛЬКО для warehouse, responsive)
+  const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
+  const [filterLevel, setFilterLevel] = useState<number | "">("");
+  const [filterAttack, setFilterAttack] = useState<number | "">("");
+  const [filterDefense, setFilterDefense] = useState<number | "">("");
+  const [filterSpeed, setFilterSpeed] = useState<number | "">("");
+  const [filterHp, setFilterHp] = useState<number | "">("");
+  const [searchName, setSearchName] = useState("");
+
   const res = data?.data;
   const dailyBattlesCount = res?.dailyBattlesCount ?? 0;
   const dailyBattlesLimit = res?.maxBattlesPerDay ?? 3;
@@ -663,8 +747,7 @@ export function DisciplesSection() {
       ? res.canBattle
       : battlesRemaining > 0 || res?.role === "admin";
   const disciples = useMemo(() => (res?.disciples ?? []) as Disciple[], [res?.disciples]);
-  const maxActive =
-    res?.maxDisciples != null && res.maxDisciples > 0 ? res.maxDisciples : 3;
+  const maxActive = res?.maxDisciples != null && res.maxDisciples > 0 ? res.maxDisciples : 3;
   const primaryId = res?.primaryDiscipleCharacterId ?? null;
   const libraryState = res?.library;
   const libraryLive = techniquesData?.data?.library ?? libraryState ?? null;
@@ -674,14 +757,31 @@ export function DisciplesSection() {
   const shopOffersExceptScroll = (gameShopData?.data?.offers ?? []).filter(
     (o: { offerId?: string }) => o.offerId !== "library_scroll",
   );
-  const activeRoster = useMemo(
-    () => disciples.filter((d) => !d.inWarehouse),
-    [disciples],
-  );
-  const warehouseRoster = useMemo(
-    () => disciples.filter((d) => d.inWarehouse),
-    [disciples],
-  );
+  const activeRoster = useMemo(() => disciples.filter(d => !d.inWarehouse), [disciples]);
+  const warehouseRoster = useMemo(() => disciples.filter(d => d.inWarehouse), [disciples]);
+  // ✅ Шаг 4: Фильтрованный warehouse (useMemo)
+  const filteredWarehouseRoster = useMemo(() => {
+    return warehouseRoster.filter(disciple => {
+      if (searchName && !disciple.name.toLowerCase().includes(searchName.toLowerCase())) {
+        return false;
+      }
+      if (filterLevel !== "" && disciple.level !== filterLevel) return false;
+      if (filterAttack !== "" && disciple.attack < filterAttack) return false;
+      if (filterDefense !== "" && disciple.defense < filterDefense) return false;
+      if (filterSpeed !== "" && disciple.speed < filterSpeed) return false;
+      if (filterHp !== "" && disciple.hp < filterHp) return false;
+      return true;
+    });
+  }, [
+    warehouseRoster,
+    searchName,
+    filterLevel,
+    filterAttack,
+    filterDefense,
+    filterSpeed,
+    filterHp,
+  ]);
+
   const rosterItems = useMemo(() => {
     const items: Array<
       | { type: "active"; d: Disciple }
@@ -696,11 +796,11 @@ export function DisciplesSection() {
     if (warehouseRoster.length > 0) {
       items.push({ type: "warehouse-header" });
       if (barracksExpanded) {
-        warehouseRoster.forEach((d) => items.push({ type: "warehouse", d }));
+        filteredWarehouseRoster.forEach(d => items.push({ type: "warehouse", d }));
       }
     }
     return items;
-  }, [activeRoster, warehouseRoster, maxActive, barracksExpanded]);
+  }, [activeRoster, filteredWarehouseRoster, maxActive, barracksExpanded]);
   const profileCards = useMemo(
     () => profileCardsData?.data?.cards ?? [],
     [profileCardsData?.data?.cards],
@@ -718,7 +818,7 @@ export function DisciplesSection() {
   const userSquadForResult = useMemo((): BattleSquadPreview[] => {
     if (!battleResult) return [];
     const fromApi = squadsFromResultScreen(battleResult).user;
-    const fromRoster = activeRoster.map((d) => ({
+    const fromRoster = activeRoster.map(d => ({
       name: d.name,
       avatar: d.avatar,
       characterId: d.characterId,
@@ -755,10 +855,9 @@ export function DisciplesSection() {
   const cardsSummary = useMemo(
     () => ({
       total: profileCards.length,
-      upgradeReady: profileCards.filter((card) => card.progression.canUpgrade).length,
+      upgradeReady: profileCards.filter(card => card.progression.canUpgrade).length,
       missing: disciples.filter(
-        (disciple) =>
-          !profileCards.some((card) => card.characterId === disciple.characterId),
+        disciple => !profileCards.some(card => card.characterId === disciple.characterId),
       ).length,
     }),
     [disciples, profileCards],
@@ -769,18 +868,22 @@ export function DisciplesSection() {
     { skip: !weekly },
   );
   const leaderboard = leaderboardData?.data ?? [];
-  const candidateValid = candidate && (candidateExpiresAt == null || Date.now() <= candidateExpiresAt);
+  const candidateValid =
+    candidate && (candidateExpiresAt == null || Date.now() <= candidateExpiresAt);
   const lastRerollRaw = candidateValid ? candidate : (res?.lastRerollCandidate ?? null);
   const lastReroll = lastRerollRaw?.characterId === consumedCandidateId ? null : lastRerollRaw;
   const canReroll = (res?.balance ?? 0) >= (res?.rerollCostCoins ?? 50);
 
   useEffect(() => {
-    if (lastRerollRaw?.characterId && lastRerollRaw.characterId !== consumedCandidateId) setConsumedCandidateId(null);
+    if (lastRerollRaw?.characterId && lastRerollRaw.characterId !== consumedCandidateId)
+      setConsumedCandidateId(null);
   }, [lastRerollRaw?.characterId, consumedCandidateId]);
 
   const toggleSupportItem = (itemId: string, mode: "normal" | "weekly") => {
     const setter = mode === "normal" ? setSelectedSupportItems : setSelectedWeeklySupportItems;
-    setter((prev) => prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId].slice(0, 3));
+    setter(prev =>
+      prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId].slice(0, 3),
+    );
   };
 
   useEffect(() => {
@@ -822,7 +925,7 @@ export function DisciplesSection() {
       const ms = 3000 + Math.floor(Math.random() * 3001); // 3–6 с до следующей фразы
       timeoutId = setTimeout(() => {
         if (cancelled) return;
-        setSummonFlavorIdx((i) => (i + 1) % lines.length);
+        setSummonFlavorIdx(i => (i + 1) % lines.length);
         scheduleNext();
       }, ms);
     };
@@ -846,7 +949,9 @@ export function DisciplesSection() {
         setCandidate(result.data.candidate);
         setCandidateExpiresAt(Date.now() + CANDIDATE_TTL_MS);
       }
-      toast.success(result?.data?.candidate?.name ? `Призыв: ${result.data.candidate.name}` : "Призыв выполнен");
+      toast.success(
+        result?.data?.candidate?.name ? `Призыв: ${result.data.candidate.name}` : "Призыв выполнен",
+      );
     } catch (e: unknown) {
       toast.error(getErrorMessage(e, "Не удалось призвать"));
     }
@@ -864,7 +969,9 @@ export function DisciplesSection() {
       const msg = getErrorMessage(e, "Не удалось принять ученика");
       const isExpired =
         typeof msg === "string" &&
-        (msg.toLowerCase().includes("устар") || msg.toLowerCase().includes("expired") || msg.toLowerCase().includes("timeout"));
+        (msg.toLowerCase().includes("устар") ||
+          msg.toLowerCase().includes("expired") ||
+          msg.toLowerCase().includes("timeout"));
       toast.error(isExpired ? "Кандидат устарел. Призовите нового." : msg);
     }
   };
@@ -890,6 +997,28 @@ export function DisciplesSection() {
       toast.success("Ученик отпущен");
     } catch (e: unknown) {
       toast.error(getErrorMessage(e, "Не удалось отпустить"));
+    }
+  };
+
+  // Global train handler for QuickActionsBar (trains primary disciple)
+  const handleGlobalTrain = async () => {
+    if (!primaryId) {
+      toast.warning('Назначьте основного ученика во вкладке \"Отряд\"');
+      return;
+    }
+    setTrainingCharacterId(primaryId);
+    try {
+      const trainRes = await train(primaryId).unwrap();
+      const outcome = trainRes?.data?.outcome;
+      toast.success(
+        outcome === "fail"
+          ? "Тренировка не удалась: без прироста статов, но опыт получили все ученики (основной — больше всего)"
+          : "Тренировка: прирост статов с упором на самые слабые характеристики; опыт — всему отряду (основной — больше)",
+      );
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, "Не удалось потренировать"));
+    } finally {
+      setTrainingCharacterId(null);
     }
   };
 
@@ -973,9 +1102,13 @@ export function DisciplesSection() {
         supportItemIds: selectedSupportItems,
       }).unwrap();
       const win = result?.data?.win;
-      toast.success((win ? "Победа! " : "Поражение. ") + `+${result?.data?.coinsGained ?? 0} монет`);
-      (result?.data?.consumedItems ?? []).forEach((item) => {
-        toast.success(`Использовано: ${item.name || item.itemId} ×${item.count}`, 3500, { icon: item.icon });
+      toast.success(
+        (win ? "Победа! " : "Поражение. ") + `+${result?.data?.coinsGained ?? 0} монет`,
+      );
+      (result?.data?.consumedItems ?? []).forEach(item => {
+        toast.success(`Использовано: ${item.name || item.itemId} ×${item.count}`, 3500, {
+          icon: item.icon,
+        });
       });
       if (result?.data?.resultScreen) {
         setBattleResult({
@@ -1039,8 +1172,10 @@ export function DisciplesSection() {
           `+${result?.data?.coinsGained ?? 0} монет` +
           (typeof delta === "number" ? `, рейтинг ${delta > 0 ? "+" : ""}${delta}` : ""),
       );
-      (result?.data?.consumedItems ?? []).forEach((item) => {
-        toast.success(`Использовано: ${item.name || item.itemId} ×${item.count}`, 3500, { icon: item.icon });
+      (result?.data?.consumedItems ?? []).forEach(item => {
+        toast.success(`Использовано: ${item.name || item.itemId} ×${item.count}`, 3500, {
+          icon: item.icon,
+        });
       });
       if (result?.data?.resultScreen) {
         setBattleResult({
@@ -1097,9 +1232,13 @@ export function DisciplesSection() {
           const serverOutcomeText =
             typeof battleResult.outcomeReason === "string" && battleResult.outcomeReason.trim()
               ? battleResult.outcomeReason.trim()
-              : outcomeWin && typeof battleResult.winReason === "string" && battleResult.winReason.trim()
+              : outcomeWin &&
+                  typeof battleResult.winReason === "string" &&
+                  battleResult.winReason.trim()
                 ? battleResult.winReason.trim()
-                : !outcomeWin && typeof battleResult.defeatReason === "string" && battleResult.defeatReason.trim()
+                : !outcomeWin &&
+                    typeof battleResult.defeatReason === "string" &&
+                    battleResult.defeatReason.trim()
                   ? battleResult.defeatReason.trim()
                   : "";
           const fullLog = Array.isArray(battleResult.battleLog) ? battleResult.battleLog : [];
@@ -1119,7 +1258,9 @@ export function DisciplesSection() {
           return (
             <div
               className={`games-panel games-result-screen rounded-2xl overflow-hidden border-2 shadow-lg ${
-                outcomeWin ? "games-result-win border-emerald-500/25" : "games-result-lose border-red-500/20"
+                outcomeWin
+                  ? "games-result-win border-emerald-500/25"
+                  : "games-result-lose border-red-500/20"
               }`}
             >
               <div
@@ -1154,12 +1295,18 @@ export function DisciplesSection() {
                     </button>
                   </div>
                   {serverOutcomeText ? (
-                    <p className="text-sm text-[var(--foreground)] leading-snug">{serverOutcomeText}</p>
+                    <p className="text-sm text-[var(--foreground)] leading-snug">
+                      {serverOutcomeText}
+                    </p>
                   ) : null}
                   {(() => {
                     const syn = battleResult.squadSynergy;
-                    const u = (syn?.user?.labels ?? []).filter((l) => typeof l === "string" && l.trim());
-                    const o = (syn?.opponent?.labels ?? []).filter((l) => typeof l === "string" && l.trim());
+                    const u = (syn?.user?.labels ?? []).filter(
+                      l => typeof l === "string" && l.trim(),
+                    );
+                    const o = (syn?.opponent?.labels ?? []).filter(
+                      l => typeof l === "string" && l.trim(),
+                    );
                     if (!u.length && !o.length) return null;
                     return (
                       <div className="text-[11px] text-[var(--muted-foreground)] space-y-1 mt-2 rounded-lg border border-[var(--border)]/80 bg-[var(--muted)]/10 px-3 py-2">
@@ -1168,12 +1315,14 @@ export function DisciplesSection() {
                         </p>
                         {u.length ? (
                           <p>
-                            <span className="text-[var(--foreground)] font-medium">Вы:</span> {u.join(" · ")}
+                            <span className="text-[var(--foreground)] font-medium">Вы:</span>{" "}
+                            {u.join(" · ")}
                           </p>
                         ) : null}
                         {o.length ? (
                           <p>
-                            <span className="text-[var(--foreground)] font-medium">Противник:</span> {o.join(" · ")}
+                            <span className="text-[var(--foreground)] font-medium">Противник:</span>{" "}
+                            {o.join(" · ")}
                           </p>
                         ) : null}
                       </div>
@@ -1217,8 +1366,9 @@ export function DisciplesSection() {
                 ) : null}
                 {showHpBars && hpState ? (
                   <p className="text-[11px] text-[var(--muted-foreground)] leading-snug -mt-2">
-                    Максимум ОЗ у сторон разный: он считается от всего отряда (статы и защита), а не только от уровня одного
-                    ученика. Оставшиеся ОЗ сверху — не «одинаковые полоски», даже если суммарно снято урона похоже.
+                    Максимум ОЗ у сторон разный: он считается от всего отряда (статы и защита), а не
+                    только от уровня одного ученика. Оставшиеся ОЗ сверху — не «одинаковые полоски»,
+                    даже если суммарно снято урона похоже.
                   </p>
                 ) : null}
 
@@ -1227,21 +1377,29 @@ export function DisciplesSection() {
                     <p className="font-semibold text-[var(--foreground)] mb-1.5">Разбор по логу</p>
                     <p className="mb-1.5">
                       Суммарно снято ОЗ (по записям урона): вы ≈{" "}
-                      <strong className="text-[var(--foreground)]">{battleDamageSummary.userDealt}</strong>, противник ≈{" "}
-                      <strong className="text-[var(--foreground)]">{battleDamageSummary.opponentDealt}</strong>
+                      <strong className="text-[var(--foreground)]">
+                        {battleDamageSummary.userDealt}
+                      </strong>
+                      , противник ≈{" "}
+                      <strong className="text-[var(--foreground)]">
+                        {battleDamageSummary.opponentDealt}
+                      </strong>
                       {battleDamageSummary.userHealed + battleDamageSummary.opponentHealed > 0
                         ? ` · лечение (вы +${battleDamageSummary.userHealed}, враг +${battleDamageSummary.opponentHealed})`
                         : ""}
-                      . Это не «текущие ОЗ», а накопленный урон по бою; при большем начальном запасе у соперника он может
-                      остаться с большим числом ОЗ при похожей сумме снятого.
+                      . Это не «текущие ОЗ», а накопленный урон по бою; при большем начальном запасе
+                      у соперника он может остаться с большим числом ОЗ при похожей сумме снятого.
                     </p>
                     <p>
-                      Победа, если у противника 0 ОЗ, или после лимита ходов у вас больше ОЗ (при равенстве — по скорости отряда).
-                      Щиты и поглощение не входят в число «снято ОЗ».
+                      Победа, если у противника 0 ОЗ, или после лимита ходов у вас больше ОЗ (при
+                      равенстве — по скорости отряда). Щиты и поглощение не входят в число «снято
+                      ОЗ».
                     </p>
-                    {!outcomeWin && battleDamageSummary.userDealt > battleDamageSummary.opponentDealt ? (
+                    {!outcomeWin &&
+                    battleDamageSummary.userDealt > battleDamageSummary.opponentDealt ? (
                       <p className="mt-2 text-[var(--foreground)] font-medium">
-                        По сумме вы нанесли больше урона по ОЗ, но исход могли решить лечение, щиты и порядок ходов.
+                        По сумме вы нанесли больше урона по ОЗ, но исход могли решить лечение, щиты
+                        и порядок ходов.
                       </p>
                     ) : null}
                   </div>
@@ -1260,7 +1418,10 @@ export function DisciplesSection() {
                       </div>
                       <div className="flex flex-wrap gap-3 justify-start">
                         {userSquadForResult.map((m, i) => (
-                          <BattleSquadMemberChip key={m.characterId ?? `u-${m.name ?? i}-${i}`} member={m} />
+                          <BattleSquadMemberChip
+                            key={m.characterId ?? `u-${m.name ?? i}-${i}`}
+                            member={m}
+                          />
                         ))}
                       </div>
                     </div>
@@ -1276,7 +1437,10 @@ export function DisciplesSection() {
                       <div className="flex flex-wrap gap-3 justify-start">
                         {opponentSquadForResult.length > 0 ? (
                           opponentSquadForResult.map((m, i) => (
-                            <BattleSquadMemberChip key={m.characterId ?? `o-${m.name ?? i}-${i}`} member={m} />
+                            <BattleSquadMemberChip
+                              key={m.characterId ?? `o-${m.name ?? i}-${i}`}
+                              member={m}
+                            />
                           ))
                         ) : (
                           <p className="games-muted text-sm">Состав не передан — смотрите лог.</p>
@@ -1296,7 +1460,7 @@ export function DisciplesSection() {
                         <button
                           type="button"
                           className="text-[11px] font-medium text-[var(--primary)] hover:underline"
-                          onClick={() => setBattleLogExpanded((v) => !v)}
+                          onClick={() => setBattleLogExpanded(v => !v)}
                         >
                           {battleLogExpanded ? "Свернуть" : "Развернуть всё"}
                         </button>
@@ -1358,19 +1522,16 @@ export function DisciplesSection() {
                 Тренировка
               </span>
               <span className="games-dash-card__value text-base">
-                {res.canTrain ? "Можно провести" : "Уже была сегодня"}
+                {res.canTrain ? "Готова" : "Сегодня была"}
               </span>
               <span className="text-[10px] text-[var(--muted-foreground)] leading-tight">
                 {typeof res.trainCostCoins === "number" ? (
                   <span className="inline-flex items-center gap-0.5">
-                    <span className="text-[var(--muted-foreground)]">Стоимость:</span>
                     {res.trainCostCoins}
                     <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
-                    <span>за одну тренировку</span>
                   </span>
-                ) : (
-                  "Старт — во вкладке «Отряд»"
-                )}
+                ) : null}
+                <span> · основной ученик + отряд (QuickBar)</span>
               </span>
             </div>
             <div className="games-dash-card">
@@ -1379,7 +1540,8 @@ export function DisciplesSection() {
                 Команда
               </span>
               <span className="games-dash-card__value">
-                {activeRoster.length}/{disciples.length > 0 ? disciples.length : activeRoster.length || 0}
+                {activeRoster.length}/
+                {disciples.length > 0 ? disciples.length : activeRoster.length || 0}
               </span>
               <span className="text-[10px] text-[var(--muted-foreground)] leading-tight">
                 в активном отряде из всех учеников · слоты {activeRoster.length}/{maxActive}
@@ -1397,7 +1559,9 @@ export function DisciplesSection() {
 
           {warehouseRoster.length > 0 ? (
             <p className="text-xs text-[var(--muted-foreground)] text-center sm:text-left">
-              В казарме: <strong className="text-[var(--foreground)]">{warehouseRoster.length}</strong> — не в боях, но получают часть опыта от тренировки.
+              В казарме:{" "}
+              <strong className="text-[var(--foreground)]">{warehouseRoster.length}</strong> — не в
+              боях, но получают часть опыта от тренировки.
             </p>
           ) : null}
 
@@ -1420,7 +1584,9 @@ export function DisciplesSection() {
                 Открывает изучение техник. Полный свиток и товары — во вкладке «Знания и лавка».
               </p>
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-semibold text-[var(--foreground)]">Ур. {libraryLive.level}</span>
+                <span className="font-semibold text-[var(--foreground)]">
+                  Ур. {libraryLive.level}
+                </span>
                 <span
                   className="h-2 flex-1 min-w-[6rem] max-w-xs rounded-full bg-[var(--muted)] overflow-hidden"
                   role="progressbar"
@@ -1443,18 +1609,31 @@ export function DisciplesSection() {
           ) : null}
 
           <p className="text-[11px] text-[var(--muted-foreground)] text-center sm:text-left max-w-2xl">
-            Тренировку запускаете с карточки ученика во вкладке «Отряд»: раз в день, за монеты; опыт получают все активные и в казарме, большая доля — у основного.
+            Быстрая тренировка отряда в QuickBar внизу (основной + все). Детальная — с карточки
+            ученика.
           </p>
 
           <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-            <button type="button" className="games-btn games-btn-secondary games-btn-sm" onClick={() => setSubTab("roster")}>
+            <button
+              type="button"
+              className="games-btn games-btn-secondary games-btn-sm"
+              onClick={() => setSubTab("roster")}
+            >
               Отряд и техники
             </button>
-            <button type="button" className="games-btn games-btn-primary games-btn-sm" onClick={() => setSubTab("arena")}>
+            <button
+              type="button"
+              className="games-btn games-btn-primary games-btn-sm"
+              onClick={() => setSubTab("arena")}
+            >
               На арену
             </button>
             {weekly ? (
-              <button type="button" className="games-btn games-btn-secondary games-btn-sm" onClick={() => setSubTab("weekly")}>
+              <button
+                type="button"
+                className="games-btn games-btn-secondary games-btn-sm"
+                onClick={() => setSubTab("weekly")}
+              >
                 Недельная схватка
               </button>
             ) : null}
@@ -1463,8 +1642,8 @@ export function DisciplesSection() {
             Призыв:{" "}
             {res.characterPool === "bookmarks" ? (
               <>
-                приоритет — персонажи из тайтлов в ваших закладках; к каталогу добавляются и другие одобренные герои, чтобы
-                не крутился один и тот же узкий набор.
+                приоритет — персонажи из тайтлов в ваших закладках; к каталогу добавляются и другие
+                одобренные герои, чтобы не крутился один и тот же узкий набор.
               </>
             ) : (
               <>случайный одобренный персонаж из общего каталога.</>
@@ -1482,10 +1661,13 @@ export function DisciplesSection() {
                 Библиотека
               </h3>
               <p className="games-muted text-xs mb-2">
-                Уровень библиотеки открывает продвинутые техники. Растёт за вылазки, изучение техник и свиток знаний.
+                Уровень библиотеки открывает продвинутые техники. Растёт за вылазки, изучение техник
+                и свиток знаний.
               </p>
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-semibold text-[var(--foreground)]">Ур. {libraryLive.level}</span>
+                <span className="font-semibold text-[var(--foreground)]">
+                  Ур. {libraryLive.level}
+                </span>
                 <span
                   className="h-2 w-28 min-w-[7rem] rounded-full bg-[var(--muted)] overflow-hidden"
                   role="progressbar"
@@ -1507,9 +1689,12 @@ export function DisciplesSection() {
               {scrollOffer && typeof scrollOffer.priceCoins === "number" ? (
                 <div className="mt-3 pt-3 border-t border-[var(--border)] flex flex-wrap items-center gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-medium text-[var(--foreground)]">Свиток знаний</div>
+                    <div className="text-xs font-medium text-[var(--foreground)]">
+                      Свиток знаний
+                    </div>
                     <p className="games-muted text-[11px]">
-                      +{(scrollOffer as { libraryExp?: number }).libraryExp ?? 0} опыта библиотеки за монеты
+                      +{(scrollOffer as { libraryExp?: number }).libraryExp ?? 0} опыта библиотеки
+                      за монеты
                     </p>
                   </div>
                   <button
@@ -1534,21 +1719,25 @@ export function DisciplesSection() {
               </h3>
               <p className="games-muted text-xs mb-3">Расходники для боёв и алхимии.</p>
               <div className="flex flex-wrap gap-2">
-                {shopOffersExceptScroll.map((offer: { offerId: string; label: string; priceCoins: number }) => (
-                  <button
-                    key={offer.offerId}
-                    type="button"
-                    disabled={isBuyingShop || (res?.balance ?? 0) < offer.priceCoins}
-                    onClick={() => handleBuyShop(offer.offerId)}
-                    className="games-btn games-btn-secondary games-btn-sm text-left inline-flex flex-col items-start gap-0.5 max-w-[220px]"
-                  >
-                    <span className="text-xs font-medium text-[var(--foreground)]">{offer.label}</span>
-                    <span className="text-[11px] games-muted inline-flex items-center gap-1">
-                      {offer.priceCoins}
-                      <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
-                    </span>
-                  </button>
-                ))}
+                {shopOffersExceptScroll.map(
+                  (offer: { offerId: string; label: string; priceCoins: number }) => (
+                    <button
+                      key={offer.offerId}
+                      type="button"
+                      disabled={isBuyingShop || (res?.balance ?? 0) < offer.priceCoins}
+                      onClick={() => handleBuyShop(offer.offerId)}
+                      className="games-btn games-btn-secondary games-btn-sm text-left inline-flex flex-col items-start gap-0.5 max-w-[220px]"
+                    >
+                      <span className="text-xs font-medium text-[var(--foreground)]">
+                        {offer.label}
+                      </span>
+                      <span className="text-[11px] games-muted inline-flex items-center gap-1">
+                        {offer.priceCoins}
+                        <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
+                      </span>
+                    </button>
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -1557,772 +1746,1087 @@ export function DisciplesSection() {
 
       {subTab === "overview" && (
         <>
-      {/* Кандидат — обзор */}
-      {lastReroll && (
-        <div className="games-panel relative overflow-hidden">
-          {(isRerolling || isRecruiting) && (
-            <div
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-[inherit] bg-[var(--background)]/88 backdrop-blur-[2px] px-4 py-6 text-center"
-              role="status"
-              aria-live="polite"
-            >
-              <Loader2 className="w-10 h-10 text-[var(--primary)] animate-spin shrink-0" aria-hidden />
-              <p className="text-sm font-medium text-[var(--foreground)] max-w-sm leading-snug min-h-[2.75rem] flex items-center justify-center">
-                {summonOverlayLine}
-              </p>
-              <p className="text-[11px] text-[var(--muted-foreground)]">
-                {isRerolling ? "Ищем нового кандидата…" : "Принимаем в отряд…"}
-              </p>
+          {/* Кандидат — обзор */}
+          {lastReroll && (
+            <div className="games-panel relative overflow-hidden">
+              {(isRerolling || isRecruiting) && (
+                <div
+                  className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-[inherit] bg-[var(--background)]/88 backdrop-blur-[2px] px-4 py-6 text-center"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <Loader2
+                    className="w-10 h-10 text-[var(--primary)] animate-spin shrink-0"
+                    aria-hidden
+                  />
+                  <p className="text-sm font-medium text-[var(--foreground)] max-w-sm leading-snug min-h-[2.75rem] flex items-center justify-center">
+                    {summonOverlayLine}
+                  </p>
+                  <p className="text-[11px] text-[var(--muted-foreground)]">
+                    {isRerolling ? "Ищем нового кандидата…" : "Принимаем в отряд…"}
+                  </p>
+                </div>
+              )}
+              <h3 className="games-panel-title">Кандидат в ученики</h3>
+              <div className="flex flex-wrap items-center gap-4">
+                <DiscipleAvatar
+                  avatarPath={lastReroll.avatar ?? ""}
+                  showImage={showCandidateAvatar}
+                  onError={() => setCandidateAvatarError(true)}
+                  size="lg"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-[var(--foreground)]">{lastReroll.name}</p>
+                    {disciples.some(d => d.characterId === lastReroll.characterId) && (
+                      <span className="inline-flex items-center rounded-md bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                        Дубль
+                      </span>
+                    )}
+                  </div>
+                  <p className="games-muted text-sm">{lastReroll.titleName}</p>
+                  {disciples.some(d => d.characterId === lastReroll.characterId) && (
+                    <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                      Уже есть в команде. Обменяйте на компенсацию.
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2 mt-1.5">
+                    <span className="games-badge" title="Атака">
+                      ⚔ {lastReroll.attack}
+                    </span>
+                    <span className="games-badge" title="Защита">
+                      🛡 {lastReroll.defense}
+                    </span>
+                    <span className="games-badge" title="Скорость">
+                      👟 {lastReroll.speed}
+                    </span>
+                    <span className="games-badge" title="HP">
+                      ❤ {lastReroll.hp}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {disciples.some(d => d.characterId === lastReroll.characterId) ? (
+                    <button
+                      type="button"
+                      onClick={() => handleClaimDuplicateReward(lastReroll.characterId)}
+                      disabled={isClaimingDuplicate}
+                      className="games-btn games-btn-primary"
+                      title="Получить монеты за дубля"
+                    >
+                      {isClaimingDuplicate ? "…" : "Получить компенсацию"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleRecruit(lastReroll.characterId)}
+                      disabled={isRecruiting}
+                      className="games-btn games-btn-primary"
+                    >
+                      Взять в команду
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleReroll}
+                    disabled={!canReroll || isRerolling}
+                    className="games-btn games-btn-secondary"
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 ${isRerolling ? "animate-spin" : ""}`}
+                      aria-hidden
+                    />
+                    Ещё призыв ({res.rerollCostCoins}{" "}
+                    <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden />)
+                  </button>
+                </div>
+              </div>
             </div>
           )}
-          <h3 className="games-panel-title">Кандидат в ученики</h3>
-          <div className="flex flex-wrap items-center gap-4">
-            <DiscipleAvatar
-              avatarPath={lastReroll.avatar ?? ""}
-              showImage={showCandidateAvatar}
-              onError={() => setCandidateAvatarError(true)}
-              size="lg"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-semibold text-[var(--foreground)]">{lastReroll.name}</p>
-                {disciples.some((d) => d.characterId === lastReroll.characterId) && (
-                  <span className="inline-flex items-center rounded-md bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400 border border-amber-500/30">
-                    Дубль
-                  </span>
-                )}
-              </div>
-              <p className="games-muted text-sm">{lastReroll.titleName}</p>
-              {disciples.some((d) => d.characterId === lastReroll.characterId) && (
-                <p className="text-xs text-[var(--muted-foreground)] mt-1">Уже есть в команде. Обменяйте на компенсацию.</p>
-              )}
-              <div className="flex flex-wrap gap-2 mt-1.5">
-                <span className="games-badge" title="Атака">⚔ {lastReroll.attack}</span>
-                <span className="games-badge" title="Защита">🛡 {lastReroll.defense}</span>
-                <span className="games-badge" title="Скорость">👟 {lastReroll.speed}</span>
-                <span className="games-badge" title="HP">❤ {lastReroll.hp}</span>
-              </div>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {disciples.some((d) => d.characterId === lastReroll.characterId) ? (
-                <button
-                  type="button"
-                  onClick={() => handleClaimDuplicateReward(lastReroll.characterId)}
-                  disabled={isClaimingDuplicate}
-                  className="games-btn games-btn-primary"
-                  title="Получить монеты за дубля"
+
+          {!lastReroll && (
+            <div className="games-panel text-center">
+              {isRerolling ? (
+                <div
+                  className="py-6 px-4 flex flex-col items-center gap-3"
+                  role="status"
+                  aria-live="polite"
                 >
-                  {isClaimingDuplicate ? "…" : "Получить компенсацию"}
-                </button>
+                  <Loader2
+                    className="w-11 h-11 text-[var(--primary)] animate-spin shrink-0"
+                    aria-hidden
+                  />
+                  <p className="text-sm font-medium text-[var(--foreground)] max-w-md leading-relaxed min-h-[3.25rem] flex items-center justify-center">
+                    {summonOverlayLine}
+                  </p>
+                  <p className="text-[11px] text-[var(--muted-foreground)]">
+                    Не закрывайте вкладку — кандидат скоро появится.
+                  </p>
+                </div>
               ) : (
                 <button
                   type="button"
-                  onClick={() => handleRecruit(lastReroll.characterId)}
-                  disabled={isRecruiting}
-                  className="games-btn games-btn-primary"
+                  onClick={handleReroll}
+                  disabled={!canReroll || isRerolling}
+                  className="games-btn games-btn-primary inline-flex items-center gap-2"
                 >
-                  Взять в команду
+                  <RefreshCw className="w-5 h-5 shrink-0" aria-hidden />
+                  Призвать ученика — {res.rerollCostCoins}{" "}
+                  <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden />{" "}
+                  монет
                 </button>
               )}
-              <button type="button" onClick={handleReroll} disabled={!canReroll || isRerolling} className="games-btn games-btn-secondary">
-                <RefreshCw className={`w-4 h-4 ${isRerolling ? "animate-spin" : ""}`} aria-hidden />
-                Ещё призыв ({res.rerollCostCoins} <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden />)
-              </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {!lastReroll && (
-        <div className="games-panel text-center">
-          {isRerolling ? (
-            <div className="py-6 px-4 flex flex-col items-center gap-3" role="status" aria-live="polite">
-              <Loader2 className="w-11 h-11 text-[var(--primary)] animate-spin shrink-0" aria-hidden />
-              <p className="text-sm font-medium text-[var(--foreground)] max-w-md leading-relaxed min-h-[3.25rem] flex items-center justify-center">
-                {summonOverlayLine}
-              </p>
-              <p className="text-[11px] text-[var(--muted-foreground)]">Не закрывайте вкладку — кандидат скоро появится.</p>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleReroll}
-              disabled={!canReroll || isRerolling}
-              className="games-btn games-btn-primary inline-flex items-center gap-2"
-            >
-              <RefreshCw className="w-5 h-5 shrink-0" aria-hidden />
-              Призвать ученика — {res.rerollCostCoins}{" "}
-              <Coins className="w-4 h-4 text-amber-500 inline-block shrink-0" aria-hidden /> монет
-            </button>
           )}
-        </div>
-      )}
         </>
       )}
 
       {subTab === "roster" && (
-      <>
-      {/* Ростер: активный отряд (3) + резерв */}
-      <div>
-        <h3 className="games-panel-title">Ваши ученики</h3>
-        <p className="games-muted text-sm mb-3">
-          В активном отряде{" "}
-          <strong className="text-[var(--foreground)]">
-            {activeRoster.length} из {disciples.length}
-          </strong>{" "}
-          учеников (всего в ростере). До {maxActive} слотов в бою; лишних можно отправить в казарму. Опыт с боёв и вылазок получают все активные, основной — с большей долей.
-        </p>
-        {disciples.length === 0 ? (
-          <p className="games-muted text-sm">Нет учеников. Призовите кандидата во вкладке «Обзор».</p>
-        ) : (
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
-              <Users className="w-4 h-4" aria-hidden /> Активный отряд (до {maxActive})
-            </h4>
-<div className="games-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
-            {rosterItems.map((item) => {
-              if (item.type === "warehouse-header") {
-                return (
-                  <div key="warehouse-header" className="col-span-full border-t border-[var(--border)] pt-4 mt-2">
-                    <button
-                      type="button"
-                      className="w-full text-left rounded-lg -mx-1 px-1 py-1.5 hover:bg-[var(--muted)]/35 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
-                      onClick={() => setBarracksExpanded((v) => !v)}
-                      aria-expanded={barracksExpanded}
-                      aria-label={
-                        barracksExpanded
-                          ? `Свернуть казарму, учеников: ${warehouseRoster.length}`
-                          : `Развернуть казарму, учеников: ${warehouseRoster.length}`
-                      }
-                    >
-                      <span className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
-                        {barracksExpanded ? (
-                          <ChevronDown className="w-4 h-4 shrink-0 text-[var(--muted-foreground)]" aria-hidden />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 shrink-0 text-[var(--muted-foreground)]" aria-hidden />
-                        )}
-                        <Warehouse className="w-4 h-4 shrink-0" aria-hidden />
-                        Казарма ({warehouseRoster.length})
-                      </span>
-                    </button>
-                    {barracksExpanded ? (
-                      <p className="games-muted text-xs mt-1 mb-0 pl-6">
-                        Не участвуют в боях и вылазках. Тренировка раз в день всё равно даёт им часть опыта.
-                      </p>
-                    ) : null}
-                  </div>
-                );
-              }
-              if (item.type === "empty") {
-                return (
-                  <div
-                    key={`empty-${item.i}`}
-                    className="rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--muted)]/10 flex flex-col items-center justify-center py-4 px-2 min-h-[72px]"
-                  >
-                    <UserPlus className="w-5 h-5 text-[var(--muted-foreground)]/50 mb-0.5" aria-hidden />
-                    <span className="text-[11px] text-[var(--muted-foreground)]">Пустой слот</span>
-                  </div>
-                );
-              }
-              const d = item.d;
-              const raw = techniquesData?.data;
-              const list = Array.isArray(raw)
-                ? raw
-                : (raw && typeof raw === "object" && "disciples" in raw && Array.isArray((raw as { disciples: unknown[] }).disciples))
-                  ? (raw as { disciples: Array<{ characterId: string; available?: unknown[]; techniquesLearned?: string[]; techniquesEquipped?: string[] }> }).disciples
-                  : [];
-              const disciplesList: Array<{
-                characterId: string;
-                available: DiscipleTechniquesEntry["available"];
-                techniquesLearned: string[];
-                techniquesEquipped: string[];
-              }> = (Array.isArray(list) ? list : []).map((entry) => ({
-                characterId: entry.characterId,
-                available: Array.isArray(entry.available) ? entry.available as DiscipleTechniquesEntry["available"] : [],
-                techniquesLearned: "learned" in entry && Array.isArray(entry.learned)
-                  ? entry.learned
-                  : "techniquesLearned" in entry && Array.isArray(entry.techniquesLearned)
-                    ? entry.techniquesLearned
-                    : [],
-                techniquesEquipped: "equipped" in entry && Array.isArray(entry.equipped)
-                  ? entry.equipped
-                  : "techniquesEquipped" in entry && Array.isArray(entry.techniquesEquipped)
-                    ? entry.techniquesEquipped
-                    : [],
-              }));
-              const tInfo = disciplesList.find((x) => x.characterId === d.characterId);
-              const available = tInfo?.available ?? [];
-              const learned = new Set(tInfo?.techniquesLearned ?? []);
-              const equipped = new Set(tInfo?.techniquesEquipped ?? []);
-              const showDiscipleAvatar = !failedDiscipleAvatarIds.has(d.characterId);
-              const relatedCard = profileCards.find(card => card.characterId === d.characterId);
-              const CardWrap = "div";
-              const cardClass =
-                item.type === "warehouse"
-                  ? "games-card games-card--compact col-span-full"
-                  : "games-card games-card--compact";
-              return (
-                <CardWrap key={d.characterId} className={`${cardClass} games-disciple-card`}>
-                  {/* Заголовок: аватар, имя, уровень, ранг */}
-                  <div className="games-disciple-card__header">
-                    <div className="games-disciple-card__avatar">
-                      <DiscipleAvatar
-                        avatarPath={d.avatar ?? ""}
-                        showImage={showDiscipleAvatar}
-                        onError={() => setFailedDiscipleAvatarIds(prev => new Set(prev).add(d.characterId))}
-                        size="lg"
-                      />
-                      {primaryId === d.characterId && (
-                        <span className="games-disciple-card__avatar-badge" title="Основной ученик">
-                          <Crown className="w-3 h-3" />
-                        </span>
-                      )}
-                    </div>
-                    <div className="games-disciple-card__info">
-                      <div className="games-disciple-card__name">
-                        {d.name ?? "Ученик"}
-                        {primaryId === d.characterId && (
-                          <Crown className="w-3.5 h-3.5 text-amber-500" aria-hidden />
-                        )}
-                      </div>
-                      {d.titleName && <div className="games-disciple-card__title">{d.titleName}</div>}
-                      <div className="games-disciple-card__meta">
-                        {d.level != null && <span className="games-disciple-card__level">Ур.{d.level}</span>}
-                        {d.rank && <span className="games-disciple-card__rank">{d.rank}</span>}
-                      </div>
-                    </div>
-                  </div>
+        <>
+          {/* Ростер: активный отряд (3) + резерв */}
+          <div>
+            <h3 className="games-panel-title">Ваши ученики</h3>
+            <p className="games-muted text-sm mb-3">
+              В активном отряде{" "}
+              <strong className="text-[var(--foreground)]">
+                {activeRoster.length} из {disciples.length}
+              </strong>{" "}
+              (QuickBar: быстрая тренировка всего отряда). До {maxActive} слотов в бою; лишних — в
+              казарму.
+            </p>
 
-                  {/* Статистика */}
-                  <div className="games-disciple-card__stats">
-                    <div className="games-disciple-card__stat" title="CP">
-                      <Zap className="games-disciple-card__stat-icon" />
-                      <span>{formatStat(d.cp)}</span>
-                    </div>
-                    <div className="games-disciple-card__stat" title="Атака">
-                      <Swords className="games-disciple-card__stat-icon" />
-                      <span>{formatStat(d.attack)}</span>
-                    </div>
-                    <div className="games-disciple-card__stat" title="Защита">
-                      <Shield className="games-disciple-card__stat-icon" />
-                      <span>{formatStat(d.defense)}</span>
-                    </div>
-                    <div className="games-disciple-card__stat" title="Скорость">
-                      <Footprints className="games-disciple-card__stat-icon" />
-                      <span>{formatStat(d.speed)}</span>
-                    </div>
-                    <div className="games-disciple-card__stat" title="HP">
-                      <Heart className="games-disciple-card__stat-icon" />
-                      <span>{formatStat(d.hp)}</span>
-                    </div>
-                  </div>
+            {/* ✅ Шаг 7: Тренировка только в QuickBar, здесь статус */}
+            <div className="mb-4 text-sm text-[var(--muted-foreground)]">
+              Быстрая тренировка отряда — в QuickBar снизу (основной + все). Статус:{" "}
+              {res.canTrain ? "Готова" : "Сегодня была"} ({res.trainCostCoins ?? 0} монет).
+            </div>
 
-                  {/* Прогресс опыта */}
-                  {d.exp != null && d.expToNext != null && d.expToNext > 0 && (
-                    <div className="games-disciple-card__progress">
-                      <div className="games-disciple-card__progress-label">
-                        <span>Опыт</span>
-                        <span>{d.exp}/{d.expToNext} XP</span>
-                      </div>
-                      <div className="games-disciple-card__progress-bar">
+            {disciples.length === 0 ? (
+              <p className="games-muted text-sm">
+                Нет учеников. Призовите кандидата во вкладке «Обзор».
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {warehouseRoster.length > 3 && barracksExpanded}
+
+                <h4 className="text-sm font-semibold text-[var(--foreground)] mb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4" aria-hidden /> Активный отряд (до {maxActive})
+                </h4>
+                <div className="games-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
+                  {rosterItems.map(item => {
+                    if (item.type === "warehouse-header") {
+                      return (
                         <div
-                          className="games-disciple-card__progress-fill"
-                          style={{ width: `${Math.min(100, (d.exp / d.expToNext) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Действия */}
-                  <div className="games-disciple-card__actions">
-                    <button
-                      type="button"
-                      onClick={() => handleTrain(d.characterId)}
-                      disabled={!res.canTrain || isTraining}
-                      className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action inline-flex items-center gap-1 flex-wrap justify-center"
-                      title={
-                        res.canTrain
-                          ? `Тренировка раз в день · ${typeof res.trainCostCoins === "number" ? `${res.trainCostCoins} монет` : "стоимость на сервере"}`
-                          : "Сегодня тренировка уже проведена"
-                      }
-                    >
-                      {isTraining && trainingCharacterId === d.characterId ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin shrink-0" aria-hidden />
-                          Тренировка…
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-3 h-3 shrink-0" aria-hidden />
-                          Тренировка
-                          {typeof res.trainCostCoins === "number" ? (
-                            <span className="inline-flex items-center gap-0.5 opacity-90 text-[10px] ml-0.5">
-                              {res.trainCostCoins}
-                              <Coins className="w-2.5 h-2.5 text-amber-500" aria-hidden />
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-                    </button>
-                    {!d.inWarehouse ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleSetPrimary(d.characterId)}
-                          disabled={primaryId === d.characterId || isSettingPrimary}
-                          className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
-                          title="Основной получает большую долю опыта в играх"
+                          key="warehouse-header"
+                          className="col-span-full border-t border-[var(--border)] pt-4 mt-2"
                         >
-                          <Crown className="w-3 h-3" /> Основной
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleWarehouseToggle(d.characterId, true)}
-                          disabled={activeRoster.length <= 1 || isMovingWarehouse}
-                          className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
-                          title="В казарму (нужен хотя бы один активный)"
-                        >
-                          <Warehouse className="w-3 h-3" /> В казарму
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleWarehouseToggle(d.characterId, false)}
-                        disabled={activeRoster.length >= maxActive || isMovingWarehouse}
-                        className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
-                      >
-                        В отряд
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleDismiss(d.characterId)}
-                      className="games-btn games-btn-danger games-btn-sm games-disciple-card__action"
-                    >
-                      <UserMinus className="w-3 h-3" /> Отпустить
-                    </button>
-                  </div>
-                <div className="mt-1.5 rounded-md border border-[var(--border)] bg-[var(--muted)]/20 p-2 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {relatedCard?.stageImageUrl ? (
-                      <div className="w-10 h-[52px] shrink-0 rounded overflow-hidden bg-[var(--muted)] border border-[var(--border)]">
-                        <img src={getDecorationImageUrls(relatedCard.stageImageUrl).primary} alt="" className="w-full h-full object-cover" />
-                      </div>
-                    ) : null}
-                    <div className="min-w-0">
-                      <div className="text-xs font-medium text-[var(--foreground)]">
-                        {relatedCard ? `Ранг ${relatedCard.currentStage}${relatedCard.progression.nextStage ? ` → ${relatedCard.progression.nextStage}` : " · макс."}` : "Карточка не получена"}
-                      </div>
-                      {relatedCard?.progression.nextStage && (
-                        <div className="text-[11px] games-muted">
-                          Ур.{d.level ?? 0}/{relatedCard.progression.nextStageRequiredLevel} ·{" "}
-                          <span className="inline-flex items-center gap-0.5">
-                            {relatedCard.progression.nextStageUpgradeCoins}
-                            <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
-                          </span>
-                          {relatedCard.progression.nextStageUpgradeItemId ? ` · ${getItemLabel(relatedCard.progression.nextStageUpgradeItemId, inventoryById)}` : ""}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {relatedCard?.progression.nextStage ? (
-                    <button
-                      type="button"
-                      disabled={!relatedCard.progression.canUpgrade || isUpgradingCard}
-                      className="games-btn games-btn-secondary games-btn-sm shrink-0"
-                      onClick={async () => {
-                        try {
-                          const result = await upgradeProfileCard(relatedCard.id).unwrap();
-                          const success = result?.data?.success;
-                          toast[success ? "success" : "warning"](success ? `Улучшено до ${result.data?.card?.currentStage ?? relatedCard.currentStage}` : "Не удалось");
-                          refetchCards();
-                          refetchDisciples();
-                        } catch (e: unknown) {
-                          toast.error(getErrorMessage(e, "Не удалось улучшить"));
-                        }
-                      }}
-                    >
-                      Улучшить
-                    </button>
-                  ) : null}
-                </div>
-                {available.length > 0 ? (
-                  <div className="mt-1.5">
-                    <div className="games-muted text-[10px] font-semibold uppercase tracking-wide mb-1">
-                      Техники — полный каталог по уровню и рангу; в бой до 3
-                    </div>
-                    <div className="max-h-60 overflow-y-auto rounded-md border border-[var(--border)]/60 bg-[var(--muted)]/10 p-1.5 space-y-1.5">
-                      {sortTechniquesForLibrary(available, learned, libraryLive?.level ?? 1).map((t) => {
-                        const isLearned = learned.has(t.id);
-                        const isEq = equipped.has(t.id);
-                        const libraryLocked = !isLearned && (t.requiredLibraryLevel ?? 1) > (libraryLive?.level ?? 1);
-                        return (
-                          <div
-                            key={t.id}
-                            className="rounded border border-[var(--border)]/80 bg-[var(--background)]/80 px-2 py-1.5"
+                          <button
+                            type="button"
+                            className="w-full text-left rounded-lg -mx-1 px-1 py-1.5 hover:bg-[var(--muted)]/35 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                            onClick={() => setBarracksExpanded(v => !v)}
+                            aria-expanded={barracksExpanded}
+                            aria-label={
+                              barracksExpanded
+                                ? `Свернуть казарму (${warehouseRoster.length} учеников), фильтры скрыты`
+                                : `Развернуть казарму (${warehouseRoster.length} учеников), показать фильтры`
+                            }
                           >
-                            <div className="flex flex-wrap items-center gap-1.5 gap-y-1">
-                              <span className="text-[11px] font-medium text-[var(--foreground)] min-w-0 flex-1">
-                                {t.name}
-                                {typeof t.requiredLibraryLevel === "number" && t.requiredLibraryLevel > 1 ? (
-                                  <span
-                                    className={`ml-1 ${libraryLocked ? "text-amber-600 dark:text-amber-400" : "text-violet-500"}`}
-                                    title="Минимальный уровень библиотеки для изучения"
-                                  >
-                                    ·Б{t.requiredLibraryLevel}
-                                  </span>
-                                ) : null}
-                              </span>
-                              {!isLearned ? (
-                                <button
-                                  type="button"
-                                  disabled={isLearning || libraryLocked}
-                                  title={
-                                    libraryLocked
-                                      ? `Сначала библиотека ур. ${t.requiredLibraryLevel ?? 1}`
-                                      : `Изучить за ${t.learnCostCoins} монет`
-                                  }
-                                  onClick={async () => {
-                                    try {
-                                      await learnTechnique({ characterId: d.characterId, techniqueId: t.id }).unwrap();
-                                      toast.success(`Изучено: ${t.name}`);
-                                    } catch (e: unknown) {
-                                      toast.error(getErrorMessage(e, "Не удалось изучить"));
-                                    }
-                                  }}
-                                  className="games-btn games-btn-secondary text-[10px] py-0.5 px-1.5 inline-flex items-center gap-0.5 shrink-0 disabled:opacity-50"
-                                >
-                                  {libraryLocked ? "🔒" : null}
-                                  {t.learnCostCoins}
-                                  <Coins className="w-3 h-3 text-amber-500 shrink-0" aria-hidden />
-                                </button>
+                            <span className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+                              {barracksExpanded ? (
+                                <ChevronDown
+                                  className="w-4 h-4 shrink-0 text-[var(--muted-foreground)]"
+                                  aria-hidden
+                                />
                               ) : (
-                                <button
-                                  type="button"
-                                  disabled={isEquipping}
-                                  onClick={async () => {
-                                    try {
-                                      const next = isEq
-                                        ? (tInfo?.techniquesEquipped ?? []).filter(x => x !== t.id)
-                                        : [...(tInfo?.techniquesEquipped ?? []), t.id].slice(0, 3);
-                                      await equipTechniques({ characterId: d.characterId, techniqueIds: next }).unwrap();
-                                      toast.success(isEq ? "Снято" : "Экипировано");
-                                    } catch (e: unknown) {
-                                      toast.error(getErrorMessage(e, "Не удалось экипировать"));
+                                <ChevronRight
+                                  className="w-4 h-4 shrink-0 text-[var(--muted-foreground)]"
+                                  aria-hidden
+                                />
+                              )}
+                              <Warehouse className="w-4 h-4 shrink-0" aria-hidden />
+                              Казарма ({warehouseRoster.length})
+                              {warehouseRoster.length > 3 && !barracksExpanded && (
+                                <span className="ml-1 text-xs text-[var(--primary)] bg-[var(--primary)]/10 px-1.5 py-0.5 rounded-full">
+                                  фильтры
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                          {barracksExpanded ? (
+                            <>
+                              <p className="games-muted text-xs mt-1 mb-0 pl-6">
+                                Не участвуют в боях и вылазках. Тренировка раз в день всё равно даёт
+                                им часть опыта.
+                              </p>
+
+                              <div className="p-3 bg-[var(--muted)]/30 rounded-xl border border-[var(--border)] mb-4 space-y-2">
+                                <div className="flex flex-wrap gap-2 items-center text-sm">
+                                  <div className="relative flex-1 min-w-[140px]">
+                                    <input
+                                      type="text"
+                                      placeholder="Поиск по имени"
+                                      value={searchName}
+                                      onChange={e => setSearchName(e.target.value)}
+                                      className="w-full pl-8 pr-2 py-1.5 border border-[var(--border)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-[var(--primary)]"
+                                    />
+                                    <svg
+                                      className="absolute left-2 top-1/2 w-4 h-4 -translate-y-1/2 text-[var(--muted-foreground)]"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <label>Ур.</label>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        value={filterLevel || ""}
+                                        onChange={e =>
+                                          setFilterLevel(
+                                            e.target.value ? Number(e.target.value) : "",
+                                          )
+                                        }
+                                        className="w-16 px-1.5 py-1 border border-[var(--border)] rounded text-xs focus:ring-1"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <label>А</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="500"
+                                        value={filterAttack || ""}
+                                        onChange={e =>
+                                          setFilterAttack(
+                                            e.target.value ? Number(e.target.value) : "",
+                                          )
+                                        }
+                                        className="w-16 px-1.5 py-1 border border-[var(--border)] rounded text-xs focus:ring-1"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <label>З</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="500"
+                                        value={filterDefense || ""}
+                                        onChange={e =>
+                                          setFilterDefense(
+                                            e.target.value ? Number(e.target.value) : "",
+                                          )
+                                        }
+                                        className="w-16 px-1.5 py-1 border border-[var(--border)] rounded text-xs focus:ring-1"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <label>С</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="200"
+                                        value={filterSpeed || ""}
+                                        onChange={e =>
+                                          setFilterSpeed(
+                                            e.target.value ? Number(e.target.value) : "",
+                                          )
+                                        }
+                                        className="w-16 px-1.5 py-1 border border-[var(--border)] rounded text-xs focus:ring-1"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                      <label>HP</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="1000"
+                                        value={filterHp || ""}
+                                        onChange={e =>
+                                          setFilterHp(e.target.value ? Number(e.target.value) : "")
+                                        }
+                                        className="w-16 px-1.5 py-1 border border-[var(--border)] rounded text-xs focus:ring-1"
+                                      />
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      setSearchName("");
+                                      setFilterLevel("");
+                                      setFilterAttack("");
+                                      setFilterDefense("");
+                                      setFilterSpeed("");
+                                      setFilterHp("");
+                                    }}
+                                    className="px-3 py-1.5 text-xs bg-[var(--muted)] hover:bg-[var(--primary)] text-[var(--foreground)] hover:text-white rounded-lg font-medium transition-all shadow-sm"
+                                  >
+                                    Сбросить
+                                  </button>
+                                </div>
+                                <div className="text-xs text-[var(--muted-foreground)] flex justify-between items-center">
+                                  <span>
+                                    Казарма: найдено {filteredWarehouseRoster.length} из{" "}
+                                    {warehouseRoster.length}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      setDisplayMode(displayMode === "grid" ? "list" : "grid")
                                     }
-                                  }}
-                                  className={`games-btn text-[10px] py-0.5 px-1.5 shrink-0 ${isEq ? "games-btn-primary" : "games-btn-secondary"}`}
-                                >
-                                  {isEq ? "Снять" : "В бой"}
-                                </button>
+                                    className="text-xs px-2 py-0.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 rounded text-[var(--primary)] transition-all"
+                                  >
+                                    {displayMode === "grid" ? "Список" : "Сетка"}
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          ) : null}
+                        </div>
+                      );
+                    }
+                    if (item.type === "empty") {
+                      return (
+                        <div
+                          key={`empty-${item.i}`}
+                          className="rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--muted)]/10 flex flex-col items-center justify-center py-4 px-2 min-h-[72px]"
+                        >
+                          <UserPlus
+                            className="w-5 h-5 text-[var(--muted-foreground)]/50 mb-0.5"
+                            aria-hidden
+                          />
+                          <span className="text-[11px] text-[var(--muted-foreground)]">
+                            Пустой слот
+                          </span>
+                        </div>
+                      );
+                    }
+                    const d = item.d;
+                    const raw = techniquesData?.data;
+                    const list = Array.isArray(raw)
+                      ? raw
+                      : raw &&
+                          typeof raw === "object" &&
+                          "disciples" in raw &&
+                          Array.isArray((raw as { disciples: unknown[] }).disciples)
+                        ? (
+                            raw as {
+                              disciples: Array<{
+                                characterId: string;
+                                available?: unknown[];
+                                techniquesLearned?: string[];
+                                techniquesEquipped?: string[];
+                              }>;
+                            }
+                          ).disciples
+                        : [];
+                    const disciplesList: Array<{
+                      characterId: string;
+                      available: DiscipleTechniquesEntry["available"];
+                      techniquesLearned: string[];
+                      techniquesEquipped: string[];
+                    }> = (Array.isArray(list) ? list : []).map(entry => ({
+                      characterId: entry.characterId,
+                      available: Array.isArray(entry.available)
+                        ? (entry.available as DiscipleTechniquesEntry["available"])
+                        : [],
+                      techniquesLearned:
+                        "learned" in entry && Array.isArray(entry.learned)
+                          ? entry.learned
+                          : "techniquesLearned" in entry && Array.isArray(entry.techniquesLearned)
+                            ? entry.techniquesLearned
+                            : [],
+                      techniquesEquipped:
+                        "equipped" in entry && Array.isArray(entry.equipped)
+                          ? entry.equipped
+                          : "techniquesEquipped" in entry && Array.isArray(entry.techniquesEquipped)
+                            ? entry.techniquesEquipped
+                            : [],
+                    }));
+                    const tInfo = disciplesList.find(x => x.characterId === d.characterId);
+                    const available = tInfo?.available ?? [];
+                    const learned = new Set(tInfo?.techniquesLearned ?? []);
+                    const equipped = new Set(tInfo?.techniquesEquipped ?? []);
+                    const showDiscipleAvatar = !failedDiscipleAvatarIds.has(d.characterId);
+                    const relatedCard = profileCards.find(
+                      card => card.characterId === d.characterId,
+                    );
+                    const isWarehouse = item.type === "warehouse";
+                    const cardClass = isWarehouse
+                      ? `games-card games-card--${displayMode} col-span-full`
+                      : `games-card games-card--${displayMode}`;
+                    // Удалён старый FiltersPanel — теперь inline в рендере
+                    return (
+                      <div
+                        key={d.characterId}
+                        className={`${cardClass} games-disciple-card ${displayMode === "list" ? "games-disciple-card--list" : ""}`}
+                      >
+                        {/* ✅ Фильтры в header warehouse (conditional) */}
+
+                        {/* Заголовок: аватар, имя, уровень, ранг */}
+                        <div className="games-disciple-card__header">
+                          <div className="games-disciple-card__avatar">
+                            <DiscipleAvatar
+                              avatarPath={d.avatar ?? ""}
+                              showImage={showDiscipleAvatar}
+                              onError={() =>
+                                setFailedDiscipleAvatarIds(prev => new Set(prev).add(d.characterId))
+                              }
+                              size="lg"
+                            />
+                            {primaryId === d.characterId && (
+                              <span
+                                className="games-disciple-card__avatar-badge"
+                                title="Основной ученик"
+                              >
+                                <Crown className="w-3 h-3" />
+                              </span>
+                            )}
+                          </div>
+                          <div className="games-disciple-card__info">
+                            <div className="games-disciple-card__name">
+                              {d.name ?? "Ученик"}
+                              {primaryId === d.characterId && (
+                                <Crown className="w-3.5 h-3.5 text-amber-500" aria-hidden />
                               )}
                             </div>
-                            <div className="text-[10px] games-muted mt-0.5 flex flex-wrap gap-x-2 gap-y-0">
-                              <span>{TECHNIQUE_TYPE_LABELS[t.type] ?? t.type}</span>
-                              <span>сила {t.power}</span>
-                              <span>кд {t.cooldownTurns}</span>
+                            {d.titleName && (
+                              <div className="games-disciple-card__title">{d.titleName}</div>
+                            )}
+                            <div className="games-disciple-card__meta">
+                              {d.level != null && (
+                                <Tooltip
+                                  content="Уровень персонажа. Влияет на силу и доступные техники."
+                                  position="top"
+                                  trigger="hover"
+                                >
+                                  <span className="games-disciple-card__level">Ур.{d.level}</span>
+                                </Tooltip>
+                              )}
+                              {d.rank && (
+                                <Tooltip
+                                  content="Ранг персонажа. Определяет редкость и базовые характеристики."
+                                  position="top"
+                                  trigger="hover"
+                                >
+                                  <span className="games-disciple-card__rank">{d.rank}</span>
+                                </Tooltip>
+                              )}
+                              <Tooltip
+                                content={relatedCard ? "Карточка есть" : "Карточки нет"}
+                                position="top"
+                                trigger="hover"
+                              >
+                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)]">
+                                  <Library
+                                    className={`w-3 h-3 ${relatedCard ? "text-green-500" : "text-gray-400"}`}
+                                  />
+                                </span>
+                              </Tooltip>
                             </div>
-                            {t.description ? (
-                              <details className="mt-1 text-[10px]">
-                                <summary className="cursor-pointer games-muted select-none">Описание</summary>
-                                <p className="mt-0.5 pl-1 border-l border-[var(--border)] text-[var(--muted-foreground)]">
-                                  {t.description}
-                                </p>
-                              </details>
-                            ) : null}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="games-muted text-[11px] mt-1.5">Нет техник по уровню и рангу ученика. Прокачайте ученика или библиотеку.</p>
-                )}
-                </CardWrap>
-              );
-            })}
-            </div>
+                        </div>
+
+                        {/* Статистика */}
+                        <div className="games-disciple-card__stats">
+                          <div className="games-disciple-card__stat" title="CP">
+                            <Zap className="games-disciple-card__stat-icon" />
+                            <span>{formatStat(d.cp)}</span>
+                          </div>
+                          <div className="games-disciple-card__stat" title="Атака">
+                            <Swords className="games-disciple-card__stat-icon" />
+                            <span>{formatStat(d.attack)}</span>
+                          </div>
+                          <div className="games-disciple-card__stat" title="Защита">
+                            <Shield className="games-disciple-card__stat-icon" />
+                            <span>{formatStat(d.defense)}</span>
+                          </div>
+                          <div className="games-disciple-card__stat" title="Скорость">
+                            <Footprints className="games-disciple-card__stat-icon" />
+                            <span>{formatStat(d.speed)}</span>
+                          </div>
+                          <div className="games-disciple-card__stat" title="HP">
+                            <Heart className="games-disciple-card__stat-icon" />
+                            <span>{formatStat(d.hp)}</span>
+                          </div>
+                        </div>
+
+                        {/* Прогресс опыта */}
+                        {d.exp != null && d.expToNext != null && d.expToNext > 0 && (
+                          <div className="games-disciple-card__progress">
+                            <div className="games-disciple-card__progress-label">
+                              <span>Опыт</span>
+                              <span>
+                                {d.exp}/{d.expToNext} XP
+                              </span>
+                            </div>
+                            <div className="games-disciple-card__progress-bar">
+                              <div
+                                className="games-disciple-card__progress-fill"
+                                style={{ width: `${Math.min(100, (d.exp / d.expToNext) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Действия */}
+                        <div className="games-disciple-card__actions">
+                          {!d.inWarehouse ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleSetPrimary(d.characterId)}
+                                disabled={primaryId === d.characterId || isSettingPrimary}
+                                className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
+                                title="Основной получает большую долю опыта в играх"
+                              >
+                                <Crown className="w-3 h-3" /> Основной
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleWarehouseToggle(d.characterId, true)}
+                                disabled={activeRoster.length <= 1 || isMovingWarehouse}
+                                className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
+                                title="В казарму (нужен хотя бы один активный)"
+                              >
+                                <Warehouse className="w-3 h-3" /> В казарму
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleWarehouseToggle(d.characterId, false)}
+                              disabled={activeRoster.length >= maxActive || isMovingWarehouse}
+                              className="games-btn games-btn-secondary games-btn-sm games-disciple-card__action"
+                            >
+                              В отряд
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDismiss(d.characterId)}
+                            className="games-btn games-btn-danger games-btn-sm games-disciple-card__action"
+                          >
+                            <UserMinus className="w-3 h-3" /> Отпустить
+                          </button>
+                        </div>
+                        <div className="mt-1.5 rounded-md border border-[var(--border)] bg-[var(--muted)]/20 p-2 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {relatedCard?.stageImageUrl ? (
+                              <div className="w-10 h-[52px] shrink-0 rounded overflow-hidden bg-[var(--muted)] border border-[var(--border)]">
+                                <img
+                                  src={getDecorationImageUrls(relatedCard.stageImageUrl).primary}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ) : null}
+                            <div className="min-w-0">
+                              <div className="text-xs font-medium text-[var(--foreground)]">
+                                {relatedCard
+                                  ? `Ранг ${relatedCard.currentStage}${relatedCard.progression.nextStage ? ` → ${relatedCard.progression.nextStage}` : " · макс."}`
+                                  : "Карточка не получена"}
+                              </div>
+                              {relatedCard?.progression.nextStage && (
+                                <div className="text-[11px] games-muted">
+                                  Ур.{d.level ?? 0}/{relatedCard.progression.nextStageRequiredLevel}{" "}
+                                  ·{" "}
+                                  <span className="inline-flex items-center gap-0.5">
+                                    {relatedCard.progression.nextStageUpgradeCoins}
+                                    <Coins
+                                      className="w-3 h-3 text-amber-500 shrink-0"
+                                      aria-hidden
+                                    />
+                                  </span>
+                                  {relatedCard.progression.nextStageUpgradeItemId
+                                    ? ` · ${getItemLabel(relatedCard.progression.nextStageUpgradeItemId, inventoryById)}`
+                                    : ""}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {relatedCard?.progression.nextStage ? (
+                            <button
+                              type="button"
+                              disabled={!relatedCard.progression.canUpgrade || isUpgradingCard}
+                              className="games-btn games-btn-secondary games-btn-sm shrink-0"
+                              onClick={async () => {
+                                try {
+                                  const result = await upgradeProfileCard(relatedCard.id).unwrap();
+                                  const success = result?.data?.success;
+                                  toast[success ? "success" : "warning"](
+                                    success
+                                      ? `Улучшено до ${result.data?.card?.currentStage ?? relatedCard.currentStage}`
+                                      : "Не удалось",
+                                  );
+                                  refetchCards();
+                                  refetchDisciples();
+                                } catch (e: unknown) {
+                                  toast.error(getErrorMessage(e, "Не удалось улучшить"));
+                                }
+                              }}
+                            >
+                              Улучшить
+                            </button>
+                          ) : null}
+                        </div>
+                        {available.length > 0 ? (
+                          <div className="mt-1.5">
+                            <details className="group">
+                              <summary className="flex items-center gap-1.5 cursor-pointer list-none games-muted text-[10px] font-semibold uppercase tracking-wide mb-1 hover:text-[var(--foreground)] transition-colors">
+                                <Zap className="w-3 h-3" />
+                                Техники ({available.length})
+                                <ChevronRight className="w-3 h-3 ml-auto group-open:hidden" />
+                                <ChevronDown className="w-3 h-3 ml-auto hidden group-open:inline" />
+                              </summary>
+                              <div className="mt-1 max-h-60 overflow-y-auto rounded-md border border-[var(--border)]/60 bg-[var(--muted)]/10 p-1.5 space-y-1.5">
+                                {sortTechniquesForLibrary(
+                                  available,
+                                  learned,
+                                  libraryLive?.level ?? 1,
+                                ).map(t => {
+                                  const isLearned = learned.has(t.id);
+                                  const isEq = equipped.has(t.id);
+                                  const libraryLocked =
+                                    !isLearned &&
+                                    (t.requiredLibraryLevel ?? 1) > (libraryLive?.level ?? 1);
+                                  return (
+                                    <div
+                                      key={t.id}
+                                      className="rounded border border-[var(--border)]/80 bg-[var(--background)]/80 px-2 py-1.5"
+                                    >
+                                      <div className="flex flex-wrap items-center gap-1.5 gap-y-1">
+                                        <span className="text-[11px] font-medium text-[var(--foreground)] min-w-0 flex-1">
+                                          {t.name}
+                                          {typeof t.requiredLibraryLevel === "number" &&
+                                          t.requiredLibraryLevel > 1 ? (
+                                            <span
+                                              className={`ml-1 ${libraryLocked ? "text-amber-600 dark:text-amber-400" : "text-violet-500"}`}
+                                              title="Минимальный уровень библиотеки для изучения"
+                                            >
+                                              ·Б{t.requiredLibraryLevel}
+                                            </span>
+                                          ) : null}
+                                        </span>
+                                        {!isLearned ? (
+                                          <button
+                                            type="button"
+                                            disabled={isLearning || libraryLocked}
+                                            title={
+                                              libraryLocked
+                                                ? `Сначала библиотека ур. ${t.requiredLibraryLevel ?? 1}`
+                                                : `Изучить за ${t.learnCostCoins} монет`
+                                            }
+                                            onClick={async () => {
+                                              try {
+                                                await learnTechnique({
+                                                  characterId: d.characterId,
+                                                  techniqueId: t.id,
+                                                }).unwrap();
+                                                toast.success(`Изучено: ${t.name}`);
+                                              } catch (e: unknown) {
+                                                toast.error(
+                                                  getErrorMessage(e, "Не удалось изучить"),
+                                                );
+                                              }
+                                            }}
+                                            className="games-btn games-btn-secondary text-[10px] py-0.5 px-1.5 inline-flex items-center gap-0.5 shrink-0 disabled:opacity-50"
+                                          >
+                                            {libraryLocked ? "🔒" : null}
+                                            {t.learnCostCoins}
+                                            <Coins
+                                              className="w-3 h-3 text-amber-500 shrink-0"
+                                              aria-hidden
+                                            />
+                                          </button>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            disabled={isEquipping}
+                                            onClick={async () => {
+                                              try {
+                                                const next = isEq
+                                                  ? (tInfo?.techniquesEquipped ?? []).filter(
+                                                      x => x !== t.id,
+                                                    )
+                                                  : [
+                                                      ...(tInfo?.techniquesEquipped ?? []),
+                                                      t.id,
+                                                    ].slice(0, 3);
+                                                await equipTechniques({
+                                                  characterId: d.characterId,
+                                                  techniqueIds: next,
+                                                }).unwrap();
+                                                toast.success(isEq ? "Снято" : "Экипировано");
+                                              } catch (e: unknown) {
+                                                toast.error(
+                                                  getErrorMessage(e, "Не удалось экипировать"),
+                                                );
+                                              }
+                                            }}
+                                            className={`games-btn text-[10px] py-0.5 px-1.5 shrink-0 ${isEq ? "games-btn-primary" : "games-btn-secondary"}`}
+                                          >
+                                            {isEq ? "Снять" : "В бой"}
+                                          </button>
+                                        )}
+                                      </div>
+                                      <div className="text-[10px] games-muted mt-0.5 flex flex-wrap gap-x-2 gap-y-0">
+                                        <span>{TECHNIQUE_TYPE_LABELS[t.type] ?? t.type}</span>
+                                        <span>сила {t.power}</span>
+                                        <span>кд {t.cooldownTurns}</span>
+                                      </div>
+                                      {t.description ? (
+                                        <details className="mt-1 text-[10px]">
+                                          <summary className="cursor-pointer games-muted select-none">
+                                            Описание
+                                          </summary>
+                                          <p className="mt-0.5 pl-1 border-l border-[var(--border)] text-[var(--muted-foreground)]">
+                                            {t.description}
+                                          </p>
+                                        </details>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </details>
+                          </div>
+                        ) : (
+                          <p className="games-muted text-[11px] mt-1.5">
+                            Нет техник по уровню и рангу ученика. Прокачайте ученика или библиотеку.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      </>
+        </>
       )}
 
       {subTab === "arena" && (
-      <div className="games-panel overflow-hidden rounded-2xl border border-[var(--border)] shadow-sm">
-        <div className="relative h-36 sm:h-44 md:h-48 overflow-hidden border-b border-[var(--border)]">
-          <img
-            src={GAME_ART.battle.arena}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/20 to-transparent pointer-events-none" />
-          <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
-            <h3 className="games-panel-title mb-0 flex items-center gap-2 text-base sm:text-lg drop-shadow-sm">
-              <Swords className="w-5 h-5 text-[var(--primary)] shrink-0" aria-hidden /> Арена
-            </h3>
-          </div>
-        </div>
-        <div className="p-4 sm:p-5 space-y-4">
-          <p className="games-muted text-xs leading-relaxed max-w-2xl">
-            В PvP выходит весь активный отряд (до {maxActive} слотов). Основной ученик сильнее влияет на опыт в тренировках и
-            вылазках, но не единственный боец на арене.
-          </p>
-          {!opponent ? (
-            <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--muted)]/10 px-4 py-6 sm:py-8 text-center space-y-3">
-              <p className="text-sm text-[var(--foreground)] font-medium">Готовы к поединку?</p>
-              <p className="text-xs games-muted max-w-md mx-auto">
-                Подберём соперника по рейтингу. Перед боем можно взять до трёх расходников из сумки.
-              </p>
-              <p className="text-[11px] text-[var(--muted-foreground)]">
-                Ваш CP: <strong className="text-[var(--foreground)]">{res.combatRating}</strong> · осталось боёв:{" "}
-                <strong className="text-[var(--foreground)]">{battlesRemaining}</strong>
-              </p>
-              <button
-                type="button"
-                onClick={handleFindMatch}
-                disabled={!canBattle || activeRoster.length === 0 || findingMatch || isBattling}
-                className="games-btn games-btn-primary inline-flex items-center justify-center gap-2 min-w-[12rem] px-6"
-              >
-                {findingMatch ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
-                    Ищем…
-                  </>
-                ) : (
-                  <>Найти противника</>
-                )}
-              </button>
-              {!canBattle ? (
-                <p className="text-xs text-amber-600 dark:text-amber-400">Сейчас нельзя начать бой (лимит или кулдаун).</p>
-              ) : null}
-              {activeRoster.length === 0 ? (
-                <p className="text-xs text-amber-600 dark:text-amber-400">Нужен хотя бы один ученик в активном отряде.</p>
-              ) : null}
+        <div className="games-panel overflow-hidden rounded-2xl border border-[var(--border)] shadow-sm">
+          <div className="relative h-36 sm:h-44 md:h-48 overflow-hidden border-b border-[var(--border)]">
+            <img
+              src={GAME_ART.battle.arena}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/20 to-transparent pointer-events-none" />
+            <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
+              <h3 className="games-panel-title mb-0 flex items-center gap-2 text-base sm:text-lg drop-shadow-sm">
+                <Swords className="w-5 h-5 text-[var(--primary)] shrink-0" aria-hidden /> Арена
+              </h3>
             </div>
-          ) : (
-            <div className="rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/[0.05] p-4 sm:p-5 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <MatchOpponentAvatar avatarPath={opponent.avatar} />
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold text-[var(--foreground)] truncate">
-                        {formatUsernameDisplay(opponent.username)}
-                      </span>
-                      {opponent.userId?.startsWith?.("bot:") ? (
-                        <span className="games-badge-bot shrink-0">бот</span>
-                      ) : null}
+          </div>
+          <div className="p-4 sm:p-5 space-y-4">
+            <p className="games-muted text-xs leading-relaxed max-w-2xl">
+              В PvP выходит весь активный отряд (до {maxActive} слотов). Основной ученик сильнее
+              влияет на опыт в тренировках и вылазках, но не единственный боец на арене.
+            </p>
+            {!opponent ? (
+              <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--muted)]/10 px-4 py-6 sm:py-8 text-center space-y-3">
+                <p className="text-sm text-[var(--foreground)] font-medium">Готовы к поединку?</p>
+                <p className="text-xs games-muted max-w-md mx-auto">
+                  Подберём соперника по рейтингу. Перед боем можно взять до трёх расходников из
+                  сумки.
+                </p>
+                <p className="text-[11px] text-[var(--muted-foreground)]">
+                  Ваш CP: <strong className="text-[var(--foreground)]">{res.combatRating}</strong> ·
+                  осталось боёв:{" "}
+                  <strong className="text-[var(--foreground)]">{battlesRemaining}</strong>
+                </p>
+                <button
+                  type="button"
+                  onClick={handleFindMatch}
+                  disabled={!canBattle || activeRoster.length === 0 || findingMatch || isBattling}
+                  className="games-btn games-btn-primary inline-flex items-center justify-center gap-2 min-w-[12rem] px-6"
+                >
+                  {findingMatch ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
+                      Ищем…
+                    </>
+                  ) : (
+                    <>Найти противника</>
+                  )}
+                </button>
+                {!canBattle ? (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Сейчас нельзя начать бой (лимит или кулдаун).
+                  </p>
+                ) : null}
+                {activeRoster.length === 0 ? (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Нужен хотя бы один ученик в активном отряде.
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/[0.05] p-4 sm:p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <MatchOpponentAvatar avatarPath={opponent.avatar} />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-[var(--foreground)] truncate">
+                          {formatUsernameDisplay(opponent.username)}
+                        </span>
+                        {opponent.userId?.startsWith?.("bot:") ? (
+                          <span className="games-badge-bot shrink-0">бот</span>
+                        ) : null}
+                      </div>
+                      <p className="text-sm games-muted mt-0.5">
+                        Рейтинг боя:{" "}
+                        <strong className="text-[var(--foreground)]">
+                          {opponent.combatRating ?? "—"}
+                        </strong>
+                      </p>
                     </div>
-                    <p className="text-sm games-muted mt-0.5">
-                      Рейтинг боя: <strong className="text-[var(--foreground)]">{opponent.combatRating ?? "—"}</strong>
-                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 shrink-0 sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setOpponent(null)}
+                      className="games-btn games-btn-secondary games-btn-sm flex-1 sm:flex-none min-w-[6rem]"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBattle}
+                      disabled={isBattling}
+                      className="games-btn games-btn-primary flex-1 sm:flex-none min-w-[7rem] inline-flex items-center justify-center gap-2"
+                    >
+                      {isBattling ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden /> : null}
+                      {isBattling ? "Бой…" : "В бой!"}
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 shrink-0 sm:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setOpponent(null)}
-                    className="games-btn games-btn-secondary games-btn-sm flex-1 sm:flex-none min-w-[6rem]"
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleBattle}
-                    disabled={isBattling}
-                    className="games-btn games-btn-primary flex-1 sm:flex-none min-w-[7rem] inline-flex items-center justify-center gap-2"
-                  >
-                    {isBattling ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden /> : null}
-                    {isBattling ? "Бой…" : "В бой!"}
-                  </button>
+                <div className="rounded-xl bg-[var(--background)]/85 border border-[var(--border)] p-3 sm:p-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                      Расходники из сумки
+                    </span>
+                    <span className="text-[11px] games-muted">
+                      Выберите до 3 · списываются при бое
+                    </span>
+                  </div>
+                  <BattleSupportItemGrid
+                    inventory={inventory}
+                    selectedIds={selectedSupportItems}
+                    onToggle={id => toggleSupportItem(id, "normal")}
+                  />
                 </div>
               </div>
-              <div className="rounded-xl bg-[var(--background)]/85 border border-[var(--border)] p-3 sm:p-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                    Расходники из сумки
-                  </span>
-                  <span className="text-[11px] games-muted">Выберите до 3 · списываются при бое</span>
-                </div>
-                <BattleSupportItemGrid
-                  inventory={inventory}
-                  selectedIds={selectedSupportItems}
-                  onToggle={(id) => toggleSupportItem(id, "normal")}
-                />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       {subTab === "weekly" && (
-      <div className="games-panel overflow-hidden rounded-2xl border border-[var(--border)] shadow-sm">
-        {weekly ? (
-          <>
-            <div className="relative h-32 sm:h-40 md:h-44 overflow-hidden border-b border-[var(--border)]">
-              <img
-                src={weeklyBattleBiomeArt(typeof weekly.weeklyRating === "number" ? weekly.weeklyRating : 0)}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/25 to-transparent pointer-events-none" />
-              <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
-                <h3 className="games-panel-title mb-0 flex items-center gap-2 text-base sm:text-lg drop-shadow-sm">
-                  <CalendarDays className="w-5 h-5 text-[var(--primary)] shrink-0" aria-hidden /> Недельная схватка
-                </h3>
-              </div>
-            </div>
-            <div className="p-4 sm:p-5 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                <div className="games-muted">
-                  {weekly.weeklyDivision ? (
-                    <span className="inline-flex flex-wrap items-center gap-2">
-                      <Crown className="w-4 h-4 text-[var(--primary)] shrink-0" aria-hidden />
-                      Дивизион <strong className="text-[var(--foreground)]">{weekly.weeklyDivision}</strong>
-                      {typeof weekly.weeklyRating === "number" ? (
-                        <span>
-                          · рейтинг <strong className="text-[var(--foreground)]">{weekly.weeklyRating}</strong>
-                        </span>
-                      ) : null}
-                    </span>
-                  ) : (
-                    <span>Один бой в неделю</span>
+        <div className="games-panel overflow-hidden rounded-2xl border border-[var(--border)] shadow-sm">
+          {weekly ? (
+            <>
+              <div className="relative h-32 sm:h-40 md:h-44 overflow-hidden border-b border-[var(--border)]">
+                <img
+                  src={weeklyBattleBiomeArt(
+                    typeof weekly.weeklyRating === "number" ? weekly.weeklyRating : 0,
                   )}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/25 to-transparent pointer-events-none" />
+                <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
+                  <h3 className="games-panel-title mb-0 flex items-center gap-2 text-base sm:text-lg drop-shadow-sm">
+                    <CalendarDays className="w-5 h-5 text-[var(--primary)] shrink-0" aria-hidden />{" "}
+                    Недельная схватка
+                  </h3>
                 </div>
-                {!weekly.canWeeklyBattle && weekly.nextWeeklyBattleAt ? (
-                  <div className="games-muted text-xs sm:text-sm">
-                    Снова:{" "}
-                    <strong className="text-[var(--foreground)]">
-                      {new Date(weekly.nextWeeklyBattleAt).toLocaleDateString()}
-                    </strong>
+              </div>
+              <div className="p-4 sm:p-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                  <div className="games-muted">
+                    {weekly.weeklyDivision ? (
+                      <span className="inline-flex flex-wrap items-center gap-2">
+                        <Crown className="w-4 h-4 text-[var(--primary)] shrink-0" aria-hidden />
+                        Дивизион{" "}
+                        <strong className="text-[var(--foreground)]">
+                          {weekly.weeklyDivision}
+                        </strong>
+                        {typeof weekly.weeklyRating === "number" ? (
+                          <span>
+                            · рейтинг{" "}
+                            <strong className="text-[var(--foreground)]">
+                              {weekly.weeklyRating}
+                            </strong>
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : (
+                      <span>Один бой в неделю</span>
+                    )}
+                  </div>
+                  {!weekly.canWeeklyBattle && weekly.nextWeeklyBattleAt ? (
+                    <div className="games-muted text-xs sm:text-sm">
+                      Снова:{" "}
+                      <strong className="text-[var(--foreground)]">
+                        {new Date(weekly.nextWeeklyBattleAt).toLocaleDateString()}
+                      </strong>
+                    </div>
+                  ) : null}
+                </div>
+
+                {!weeklyOpponent ? (
+                  <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--muted)]/10 px-4 py-6 sm:py-7 text-center space-y-3">
+                    <p className="text-sm text-[var(--foreground)] font-medium">
+                      Недельный поединок
+                    </p>
+                    <p className="text-xs games-muted max-w-md mx-auto">
+                      Отдельный рейтинг и лимит раз в неделю. Расходники те же, что на арене.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleFindWeeklyMatch}
+                      disabled={
+                        !weekly.canWeeklyBattle ||
+                        activeRoster.length === 0 ||
+                        findingWeeklyMatch ||
+                        isWeeklyBattling
+                      }
+                      className="games-btn games-btn-primary inline-flex items-center justify-center gap-2 min-w-[12rem] px-6"
+                    >
+                      {findingWeeklyMatch ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
+                          Ищем…
+                        </>
+                      ) : (
+                        <>Найти противника</>
+                      )}
+                    </button>
+                    {!weekly.canWeeklyBattle ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Сейчас недельный бой недоступен.
+                      </p>
+                    ) : null}
+                    {activeRoster.length === 0 ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Нужен ученик в активном отряде.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-violet-500/30 bg-violet-500/[0.05] p-4 sm:p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <MatchOpponentAvatar avatarPath={weeklyOpponent.avatar} />
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-semibold text-[var(--foreground)] truncate">
+                              {formatUsernameDisplay(weeklyOpponent.username)}
+                            </span>
+                            {weeklyOpponent.userId?.startsWith?.("bot:") ? (
+                              <span className="games-badge-bot shrink-0">бот</span>
+                            ) : null}
+                          </div>
+                          {typeof weeklyOpponent.weeklyRating === "number" ? (
+                            <p className="text-sm games-muted mt-0.5">
+                              Недельный рейтинг:{" "}
+                              <strong className="text-[var(--foreground)]">
+                                {weeklyOpponent.weeklyRating}
+                              </strong>
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 shrink-0 sm:justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setWeeklyOpponent(null)}
+                          className="games-btn games-btn-secondary games-btn-sm flex-1 sm:flex-none min-w-[6rem]"
+                        >
+                          Отмена
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleWeeklyBattle}
+                          disabled={isWeeklyBattling}
+                          className="games-btn games-btn-primary flex-1 sm:flex-none min-w-[7rem] inline-flex items-center justify-center gap-2"
+                        >
+                          {isWeeklyBattling ? (
+                            <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+                          ) : null}
+                          {isWeeklyBattling ? "Бой…" : "В бой!"}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-[var(--background)]/85 border border-[var(--border)] p-3 sm:p-4">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                          Расходники из сумки
+                        </span>
+                        <span className="text-[11px] games-muted">До 3 шт.</span>
+                      </div>
+                      <BattleSupportItemGrid
+                        inventory={inventory}
+                        selectedIds={selectedWeeklySupportItems}
+                        onToggle={id => toggleSupportItem(id, "weekly")}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {leaderboard.length > 0 ? (
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/8 p-3 sm:p-4">
+                    <h4 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-3 flex items-center gap-1.5">
+                      <Trophy className="w-3.5 h-3.5 text-[var(--primary)]" aria-hidden /> Топ
+                      недели
+                    </h4>
+                    <ol className="space-y-1.5 text-sm">
+                      {leaderboard.slice(0, 10).map((entry, i) => (
+                        <li
+                          key={entry.username}
+                          className="flex items-center justify-between gap-2"
+                        >
+                          <span className="games-muted text-xs w-5 shrink-0">#{i + 1}</span>
+                          <span className="truncate font-medium text-[var(--foreground)] min-w-0">
+                            {formatUsernameDisplay(entry.username)}
+                          </span>
+                          <span className="text-[var(--primary)] font-semibold shrink-0">
+                            {entry.weeklyRating}
+                          </span>
+                          <span className="games-muted text-[11px] shrink-0">
+                            {entry.weeklyWins}П / {entry.weeklyLosses}П
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                 ) : null}
               </div>
-
-              {!weeklyOpponent ? (
-                <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--muted)]/10 px-4 py-6 sm:py-7 text-center space-y-3">
-                  <p className="text-sm text-[var(--foreground)] font-medium">Недельный поединок</p>
-                  <p className="text-xs games-muted max-w-md mx-auto">
-                    Отдельный рейтинг и лимит раз в неделю. Расходники те же, что на арене.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleFindWeeklyMatch}
-                    disabled={
-                      !weekly.canWeeklyBattle || activeRoster.length === 0 || findingWeeklyMatch || isWeeklyBattling
-                    }
-                    className="games-btn games-btn-primary inline-flex items-center justify-center gap-2 min-w-[12rem] px-6"
-                  >
-                    {findingWeeklyMatch ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
-                        Ищем…
-                      </>
-                    ) : (
-                      <>Найти противника</>
-                    )}
-                  </button>
-                  {!weekly.canWeeklyBattle ? (
-                    <p className="text-xs text-amber-600 dark:text-amber-400">Сейчас недельный бой недоступен.</p>
-                  ) : null}
-                  {activeRoster.length === 0 ? (
-                    <p className="text-xs text-amber-600 dark:text-amber-400">Нужен ученик в активном отряде.</p>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-violet-500/30 bg-violet-500/[0.05] p-4 sm:p-5 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <MatchOpponentAvatar avatarPath={weeklyOpponent.avatar} />
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold text-[var(--foreground)] truncate">
-                            {formatUsernameDisplay(weeklyOpponent.username)}
-                          </span>
-                          {weeklyOpponent.userId?.startsWith?.("bot:") ? (
-                            <span className="games-badge-bot shrink-0">бот</span>
-                          ) : null}
-                        </div>
-                        {typeof weeklyOpponent.weeklyRating === "number" ? (
-                          <p className="text-sm games-muted mt-0.5">
-                            Недельный рейтинг:{" "}
-                            <strong className="text-[var(--foreground)]">{weeklyOpponent.weeklyRating}</strong>
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 shrink-0 sm:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setWeeklyOpponent(null)}
-                        className="games-btn games-btn-secondary games-btn-sm flex-1 sm:flex-none min-w-[6rem]"
-                      >
-                        Отмена
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleWeeklyBattle}
-                        disabled={isWeeklyBattling}
-                        className="games-btn games-btn-primary flex-1 sm:flex-none min-w-[7rem] inline-flex items-center justify-center gap-2"
-                      >
-                        {isWeeklyBattling ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden /> : null}
-                        {isWeeklyBattling ? "Бой…" : "В бой!"}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="rounded-xl bg-[var(--background)]/85 border border-[var(--border)] p-3 sm:p-4">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                        Расходники из сумки
-                      </span>
-                      <span className="text-[11px] games-muted">До 3 шт.</span>
-                    </div>
-                    <BattleSupportItemGrid
-                      inventory={inventory}
-                      selectedIds={selectedWeeklySupportItems}
-                      onToggle={(id) => toggleSupportItem(id, "weekly")}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {leaderboard.length > 0 ? (
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/8 p-3 sm:p-4">
-                  <h4 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)] mb-3 flex items-center gap-1.5">
-                    <Trophy className="w-3.5 h-3.5 text-[var(--primary)]" aria-hidden /> Топ недели
-                  </h4>
-                  <ol className="space-y-1.5 text-sm">
-                    {leaderboard.slice(0, 10).map((entry, i) => (
-                      <li key={entry.username} className="flex items-center justify-between gap-2">
-                        <span className="games-muted text-xs w-5 shrink-0">#{i + 1}</span>
-                        <span className="truncate font-medium text-[var(--foreground)] min-w-0">
-                          {formatUsernameDisplay(entry.username)}
-                        </span>
-                        <span className="text-[var(--primary)] font-semibold shrink-0">{entry.weeklyRating}</span>
-                        <span className="games-muted text-[11px] shrink-0">
-                          {entry.weeklyWins}П / {entry.weeklyLosses}П
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              ) : null}
+            </>
+          ) : (
+            <div className="p-4 sm:p-5">
+              <h3 className="games-panel-title flex items-center gap-2 mb-2">
+                <CalendarDays className="w-4 h-4 text-[var(--primary)]" aria-hidden /> Недельная
+                схватка
+              </h3>
+              <p className="games-muted text-sm">
+                Режим появится после обновления бэкенда: 1 схватка в неделю и сезонный рейтинг.
+              </p>
             </div>
-          </>
-        ) : (
-          <div className="p-4 sm:p-5">
-            <h3 className="games-panel-title flex items-center gap-2 mb-2">
-              <CalendarDays className="w-4 h-4 text-[var(--primary)]" aria-hidden /> Недельная схватка
-            </h3>
-            <p className="games-muted text-sm">
-              Режим появится после обновления бэкенда: 1 схватка в неделю и сезонный рейтинг.
-            </p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       )}
     </div>
   );

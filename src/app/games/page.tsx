@@ -102,12 +102,14 @@ export default function GamesPage() {
               <p className="games-tabs-label text-center sm:text-left text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
                 Разделы
               </p>
-              <GamesTabs activeTab={activeTab} onTabChange={setActiveTab} />
+              <GamesTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
             </div>
           </section>
 
           <div className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-5">
-            <GamesHubIntro activeTab={activeTab} />
             <div
               key={activeTab}
               className="games-content-enter"
@@ -123,6 +125,7 @@ export default function GamesPage() {
               {activeTab === "alchemy" && <AlchemySection />}
               {activeTab === "wheel" && <WheelSection />}
             </div>
+            <GamesHubIntro activeTab={activeTab} />
           </div>
         </>
       ) : (

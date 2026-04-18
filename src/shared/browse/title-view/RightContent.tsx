@@ -452,7 +452,7 @@ export function RightContent({
   // Нормализация: сервер отдаёт ratings как { userId, rating }[] или legacy number[] — приводим к number[] для статистики
   const ratingValues: number[] = (titleData?.ratings ?? [])
     .map(r => (typeof r === "number" ? r : (r as TitleRatingEntry).rating))
-    .filter((v): v is number => Number.isFinite(v) && v >= 1 && v <= 5);
+    .filter((v): v is number => Number.isFinite(v) && v >= 1 && v <= 10);
 
   const getRatingStats = (ratings: number[]) => {
     if (!ratings.length) return [];
@@ -467,7 +467,7 @@ export function RightContent({
       .map(([ratingStr, count]) => {
         const rating = parseInt(ratingStr, 10);
         return Number.isFinite(rating)
-          ? { rating, count, percentage: ((count / ratings.length) * 100).toFixed(1) }
+          ? { rating, count, percentage: Math.round((count / ratings.length) * 100) }
           : null;
       })
       .filter((s): s is NonNullable<typeof s> => s != null)

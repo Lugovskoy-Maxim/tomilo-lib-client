@@ -533,6 +533,7 @@ export function ExpeditionSection() {
           )}
         </div>
       </div>
+      
     </div>
   );
 }

@@ -928,8 +928,8 @@
 }
 
 .games-disciple-card__avatar-img {
-  width: 4rem;
-  height: 4rem;
+  width: 4.8rem;
+  height: 4.8rem;
   border-radius: calc(var(--radius) - 2px);
   border: 2px solid var(--border);
   object-fit: cover;
