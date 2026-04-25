@@ -131,7 +131,7 @@ export function ProfileTabs({
           className="overflow-x-auto overflow-y-hidden overscroll-x-contain scrollbar-hide [-webkit-overflow-scrolling:touch] scroll-pl-2 scroll-pr-2 sm:overflow-visible sm:scroll-pr-0"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          <div className="flex flex-nowrap items-end gap-0 min-w-min -mb-px sm:flex-wrap sm:min-w-0 sm:gap-y-1">
+          <div className="flex flex-nowrap items-end gap-0 min-w-min -mb-px">
             {tabGroups.map((group, groupIndex) => {
               const tabsInGroup = group.tabs.filter(t => visibleTabs.includes(t));
               if (!tabsInGroup.length) return null;

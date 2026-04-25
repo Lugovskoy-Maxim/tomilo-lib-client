@@ -155,45 +155,47 @@ export default function ProfileShell({
   ) : !userProfile ? (
     renderEmptyState()
   ) : (
-    <div className="relative min-h-[40vh] sm:min-h-[44vh] flex flex-1 flex-col pt-20 max-[380px]:pt-[4.5rem] sm:pt-44 bg-transparent">
-      <div className="relative z-10 w-full mx-auto px-3 min-[380px]:px-4 sm:px-8 lg:px-12 max-w-6xl min-w-0 overflow-x-hidden flex flex-1 flex-col pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:pb-2">
-        {/* Верхняя панель: назад + контекстная ссылка */}
-        <div className="flex flex-wrap items-stretch gap-2 py-2 sm:flex-nowrap sm:items-center sm:justify-between sm:gap-3 sm:py-4">
+    <div className="flex flex-1 flex-col min-h-0">
+      <div className="relative z-10 w-full mx-auto px-3 min-[400px]:px-4 sm:px-6 lg:px-8 max-w-5xl min-w-0 overflow-x-hidden flex flex-1 flex-col pt-4 sm:pt-6 pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
+
+        {/* Верхняя панель навигации */}
+        <div className="flex items-center gap-2 mb-4 sm:mb-5">
           <button
             type="button"
             onClick={topBarBack}
-            className="profile-glass-toolbar flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[color-mix(in_oklch,var(--accent)_55%,transparent)] transition-colors sm:min-h-0 sm:rounded-xl sm:px-3"
+            className="profile-glass-toolbar flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-[var(--foreground)] hover:bg-[color-mix(in_oklch,var(--accent)_55%,transparent)] transition-colors"
             aria-label="Назад"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" aria-hidden />
-            Назад
+            <span className="hidden min-[360px]:inline">Назад</span>
           </button>
-          <div className="flex w-full flex-wrap items-center justify-stretch gap-2 empty:hidden sm:ml-auto sm:w-auto sm:justify-end">
+
+          <div className="flex items-center gap-2 ml-auto empty:hidden">
             {variant === "admin" && (
               <Link
                 href="/admin"
-                className="profile-glass-toolbar flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/15 transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
+                className="profile-glass-toolbar flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/15 transition-colors"
               >
                 <Shield className="w-4 h-4 shrink-0" aria-hidden />
-                <span className="whitespace-nowrap">Админка</span>
+                <span className="hidden sm:inline whitespace-nowrap">Админка</span>
               </Link>
             )}
             {(variant === "admin" || (variant === "other" && showMyProfileLink)) && (
               <Link
                 href="/profile"
-                className="profile-glass-toolbar flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[color-mix(in_oklch,var(--accent)_50%,transparent)] transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
+                className="profile-glass-toolbar flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-[var(--foreground)] hover:bg-[color-mix(in_oklch,var(--accent)_50%,transparent)] transition-colors"
               >
                 <UserIcon className="w-4 h-4 shrink-0" aria-hidden />
-                <span className="whitespace-nowrap">Мой профиль</span>
+                <span className="hidden sm:inline whitespace-nowrap">Мой профиль</span>
               </Link>
             )}
             {variant === "own" && showAdminLink && (
               <Link
                 href="/admin"
-                className="profile-glass-toolbar flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/15 transition-colors sm:min-h-0 sm:flex-none sm:rounded-xl"
+                className="profile-glass-toolbar flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/15 transition-colors"
               >
                 <Shield className="w-4 h-4 shrink-0" aria-hidden />
-                <span className="whitespace-nowrap">Админка</span>
+                <span className="hidden sm:inline whitespace-nowrap">Админка</span>
               </Link>
             )}
           </div>
@@ -206,8 +208,8 @@ export default function ProfileShell({
           </div>
         )}
 
-        {/* Полоска профиля: всё в одну линию */}
-        <div className="mb-5 sm:mb-7">
+        {/* Hero-блок профиля */}
+        <div className="mb-4 sm:mb-5">
           <ProfileStrip
             userProfile={userProfile}
             onEdit={variant === "own" ? onEdit : undefined}
@@ -217,17 +219,14 @@ export default function ProfileShell({
           />
         </div>
 
-        {/* Один столбец контента */}
-        <div className="flex-1 min-h-0 flex flex-col gap-6 sm:gap-8 profile-shell-content">
+        {/* Уведомления и контент */}
+        <div className="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 profile-shell-content">
           {userProfile?.deletedAt && (
-            <div className="rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
-              <AlertTriangle
-                className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5"
-                aria-hidden
-              />
+            <div className="rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
+              <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" aria-hidden />
               <div>
                 <p className="font-medium">Профиль удалён</p>
-                <p className="text-[var(--muted-foreground)] mt-0.5">
+                <p className="text-[var(--muted-foreground)] mt-0.5 text-xs">
                   Данные учётной записи сохранены, но не используются.
                 </p>
               </div>
@@ -236,14 +235,11 @@ export default function ProfileShell({
           {userProfile?.scheduledDeletionAt &&
             !userProfile?.deletedAt &&
             new Date(userProfile.scheduledDeletionAt).getTime() > Date.now() && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
-                <Calendar
-                  className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
-                  aria-hidden
-                />
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 flex items-start gap-3 text-sm text-[var(--foreground)]">
+                <Calendar className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" aria-hidden />
                 <div>
                   <p className="font-medium">Запланировано удаление профиля</p>
-                  <p className="text-[var(--muted-foreground)] mt-0.5">
+                  <p className="text-[var(--muted-foreground)] mt-0.5 text-xs">
                     Удаление запланировано на{" "}
                     {new Date(userProfile.scheduledDeletionAt).toLocaleDateString("ru-RU", {
                       day: "numeric",
@@ -256,7 +252,7 @@ export default function ProfileShell({
               </div>
             )}
           {hasPrivacyNotice && (
-            <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-[var(--foreground)]">
+            <div className="rounded-xl border border-amber-500/25 bg-amber-500/8 px-4 py-2.5 text-xs text-[var(--muted-foreground)]">
               Часть данных скрыта настройками приватности.
             </div>
           )}
@@ -281,25 +277,27 @@ export default function ProfileShell({
   return (
     <main className="relative min-h-screen flex flex-col min-w-0 overflow-x-hidden">
       {/* Глобальный фон профиля: во всю ширину экрана, фиксированный при скролле */}
+      {/* Фоновое изображение профиля */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <Image
           src="/user/banner.jpg"
           alt=""
           fill
-          unoptimized
-          className="object-cover object-center"
+          className="object-cover object-center "
         />
-        {backgroundUrl && (
+        {backgroundUrl && backgroundUrl !== "/user/banner.jpg" && (
           <Image
             src={backgroundUrl}
             alt=""
             fill
             unoptimized
-            className="object-cover object-center"
+            className="object-cover object-center "
           />
         )}
+        {/* Оверлей: в светлой теме мягкий, в тёмной — сильнее */}
+        <div className="absolute inset-0 dark:from-[var(--background)]/50 dark:via-[var(--background)]/70 dark:to-[var(--background)]/94" />
       </div>
-      <div className="relative z-10 flex flex-col flex-1 min-h-0 bg-transparent">
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
         <Header />
         {wrapWithProvider ? (
           <ProfileProvider value={profileContextValue}>{content}</ProfileProvider>

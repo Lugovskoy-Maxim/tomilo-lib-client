@@ -9,6 +9,7 @@ import LazySection from "@/shared/lazy-section/LazySection";
 import SectionLoadError from "@/shared/error-state/SectionLoadError";
 import UnderratedCard from "@/shared/underrated-card/UnderratedCard";
 import FeaturedTitleBlock from "@/shared/featured-title/FeaturedTitleBlock";
+import UserActivitySection from "@/widgets/home-page/UserActivitySection";
 import LatestUpdateCard from "@/shared/last-updates/LastUpdates";
 import { useHomeData, type HomeVisibleSections } from "@/hooks/useHomeData";
 import { useStaticData, type StaticDataVisibleSections } from "@/hooks/useStaticData";
@@ -285,6 +286,9 @@ export default function HomePage({ initialPopularTitles = null }: HomePageProps)
                 <FeaturedTitleBlock data={popularTitles.data} autoPlayInterval={8000} />
               )}
             </LazySection>
+
+            {/* Активность пользователей */}
+            <UserActivitySection />
 
             {/* Быстрые действия для авторизованных пользователей — отключено
         <QuickActions />
