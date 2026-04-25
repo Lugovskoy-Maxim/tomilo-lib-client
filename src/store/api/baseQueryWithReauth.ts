@@ -16,25 +16,89 @@ const REFRESH_URL = `${API_BASE.replace(/\/$/, "")}/auth/refresh`;
 
 let refreshPromise: Promise<unknown> | null = null;
 
+// Кэш для GET-запросов (key: url, value: { data, timestamp, ttl })
+const GET_CACHE = new Map<
+  string,
+  { data: unknown; timestamp: number; ttl: number }
+>();
+
+// Эндпоинты, которые не нужно кэшировать
+const NO_CACHE_ENDPOINTS = new Set([
+  "getUser",
+  "getNotifications",
+  "getMessages",
+  "getCharacter",
+  "getInventory",
+  "getEquippedItems",
+]);
+
+// TTL для кэширования (в миллисекундах)
+const DEFAULT_TTL = 5 * 60 * 1000; // 5 минут
+
+/**
+ * Очищает кэш для всех GET-запросов
+ */
+export const clearGetCache = () => {
+  GET_CACHE.clear();
+};
+
+/**
+ * Очищает кэш для определенных URL
+ */
+export const clearCacheForUrls = (urls: string[]) => {
+  urls.forEach(url => GET_CACHE.delete(url));
+};
+
 /**
  * Базовый запрос с поддержкой:
  * - credentials: 'include' — отправка и сохранение cookies (access/refresh на сервере)
  * - Bearer из localStorage при наличии (для обратной совместимости и OAuth)
  * - при 401 — один раз вызывается refresh, затем повтор исходного запроса
+ * - retry с exponential backoff для временных сетевых ошибок
  */
 export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, extraOptions) => {
   // Some endpoints are intentionally public. If backend rejects invalid Bearer tokens even for public routes,
   // sending Authorization may turn a public 200 into a 401. Keep these requests token-free.
   const PUBLIC_ENDPOINTS = new Set(["getDecorations", "getDecorationsByType"]);
 
+  // Получаем endpoint из контекста
+  const endpoint = (api as { endpoint?: string } | undefined)?.endpoint;
+  const isNoCacheEndpoint = endpoint ? NO_CACHE_ENDPOINTS.has(endpoint) : false;
+
+  // Проверяем, является ли запрос GET-запросом и можно ли его кэшировать
+  const getCacheKey = (): string | null => {
+    if (typeof args === "string") {
+      return !isNoCacheEndpoint ? args : null;
+    }
+    const req = args as { url: string; method?: string };
+    const method = (req.method || "GET").toUpperCase();
+    return method === "GET" && !isNoCacheEndpoint ? req.url : null;
+  };
+
+  // Проверяем кэш для GET-запросов
+  const cacheKey = getCacheKey();
+  if (cacheKey && typeof window !== "undefined") {
+    const cached = GET_CACHE.get(cacheKey);
+    if (cached) {
+      const now = Date.now();
+      if (now - cached.timestamp < cached.ttl) {
+        // Возвращаем закэшированные данные
+        return { data: cached.data };
+      }
+      // Удаляем устаревший кэш
+      GET_CACHE.delete(cacheKey);
+    }
+  }
+
   const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE,
     credentials: "include",
+    timeout: 30000, // 30 seconds timeout
     prepareHeaders(headers, ctx) {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        const endpoint = (ctx as { endpoint?: string } | undefined)?.endpoint;
-        const shouldAttachToken = Boolean(token) && (!endpoint || !PUBLIC_ENDPOINTS.has(endpoint));
+        const ctxEndpoint = (ctx as { endpoint?: string } | undefined)?.endpoint;
+        const shouldAttachToken = Boolean(token) && (!ctxEndpoint || !PUBLIC_ENDPOINTS.has(ctxEndpoint));
         if (shouldAttachToken && token) {
           headers.set("authorization", `Bearer ${token}`);
         }
@@ -52,8 +116,6 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
     },
   });
 
-  let result = await baseQuery(args, api, extraOptions);
-
   const getRequestMeta = (): { url: string; method: string; body?: unknown } => {
     if (typeof args === "string") return { url: args, method: "GET" };
     const req = args as { url: string; method?: string; body?: unknown };
@@ -63,30 +125,43 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
   const requestMeta = getRequestMeta();
   const isMutationMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(requestMeta.method);
   const isAuthEndpoint = /\/auth\//.test(requestMeta.url);
-  const isOfflineNetworkFailure =
+
+  // Retry logic с exponential backoff для временных ошибок
+  const MAX_RETRIES = 3;
+  let retries = 0;
+  let result = await baseQuery(args, api, extraOptions);
+
+  while (
+    retries < MAX_RETRIES &&
     result.error?.status === "FETCH_ERROR" &&
     typeof result.error?.error === "string" &&
-    /failed to fetch|networkerror|network request failed|load failed/i.test(result.error.error);
-
-  if (
-    OFFLINE_FEATURES_ENABLED &&
-    isOfflineNetworkFailure &&
-    isMutationMethod &&
-    !isAuthEndpoint &&
-    canQueueBody(requestMeta.body)
+    /failed to fetch|networkerror|network request failed|load failed/i.test(result.error.error)
   ) {
-    enqueueOfflineMutation({
-      url: requestMeta.url,
-      method: requestMeta.method as "POST" | "PUT" | "PATCH" | "DELETE",
-      body: requestMeta.body,
-    });
-    return {
-      data: {
-        success: true,
-        queuedOffline: true,
-        message: "Действие сохранено и будет отправлено при восстановлении сети.",
-      },
-    };
+    // В offline режиме для мутаций — ставим в очередь и выходим
+    if (
+      OFFLINE_FEATURES_ENABLED &&
+      isMutationMethod &&
+      !isAuthEndpoint &&
+      canQueueBody(requestMeta.body)
+    ) {
+      enqueueOfflineMutation({
+        url: requestMeta.url,
+        method: requestMeta.method as "POST" | "PUT" | "PATCH" | "DELETE",
+        body: requestMeta.body,
+      });
+      return {
+        data: {
+          success: true,
+          queuedOffline: true,
+          message: "Действие сохранено и будет отправлено при восстановлении сети.",
+        },
+      };
+    }
+
+    retries++;
+    const delayMs = Math.min(1000 * Math.pow(2, retries - 1), 10000); // exponential backoff: 1s, 2s, 4s
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+    result = await baseQuery(args, api, extraOptions);
   }
 
   // При 429 (Too Many Requests) — одна повторная попытка с задержкой (защита от DDoS)
@@ -134,6 +209,26 @@ export const baseQueryWithReauth: BaseQueryFn = async (args, api: BaseQueryApi, 
     }
     await refreshPromise;
     result = await baseQuery(args, api, extraOptions);
+  }
+
+  // Сохраняем успешные GET-запросы в кэш
+  if (result.data && cacheKey && typeof window !== "undefined") {
+    GET_CACHE.set(cacheKey, {
+      data: result.data,
+      timestamp: Date.now(),
+      ttl: DEFAULT_TTL,
+    });
+  }
+
+  // Очищаем кэш при успешных мутациях (POST, PUT, PATCH, DELETE)
+  if (
+    isMutationMethod &&
+    result.data &&
+    !result.error &&
+    typeof window !== "undefined"
+  ) {
+    // Очищаем весь кэш при мутациях, чтобы избежать устаревших данных
+    GET_CACHE.clear();
   }
 
   return result;
