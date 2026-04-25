@@ -153,7 +153,7 @@ function CommentCard({
             ? <Clock className="w-3 h-3 text-sky-400 flex-shrink-0" />
             : <MessageCircle className="w-3 h-3 text-violet-400 flex-shrink-0" />}
           <span className="text-[11px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide truncate">
-            {isLatest ? "Последний комментарий" : "Популярный комментарий"}
+            {isLatest ? "Последний комментарий" : `"Любимый" комментарий`}
           </span>
         </div>
         <p className="text-xs text-[var(--foreground)] line-clamp-2 leading-relaxed">
@@ -206,8 +206,8 @@ function ReaderCard({ r }: { r: HomepageActivityReader }) {
 }
 
 function StreakCard({ s }: { s: HomepageActivityStreak }) {
-  const flames = Math.min(s.streak, 5);
-  const extra = s.streak - 5;
+  // const flames = Math.min(s.streak, 5);
+  // const extra = s.streak - 5;
   return (
     <Card href={`/user/${s.user._id}`} accent="hover:border-orange-500/30">
       <div className="relative flex-shrink-0">
@@ -226,12 +226,12 @@ function StreakCard({ s }: { s: HomepageActivityStreak }) {
         <p className="text-sm font-semibold text-[var(--foreground)] truncate">
           {formatUsernameDisplay(s.user.username)}
         </p>
-        <div className="flex items-center gap-0.5 mt-0.5">
+        {/* <div className="flex items-center gap-0.5 mt-0.5">
           {Array.from({ length: flames }).map((_, i) => (
             <Flame key={i} className="w-3 h-3 text-orange-500 fill-orange-500/40" />
           ))}
           {extra > 0 && <span className="text-[10px] text-orange-500 font-bold">+{extra}</span>}
-        </div>
+        </div> */}
       </div>
       <div className="flex-shrink-0 text-right">
         <p className="text-base font-black text-orange-400 tabular-nums leading-none">{s.streak}</p>
@@ -341,7 +341,7 @@ function LikesCard({ u }: { u: HomepageActivityLikesUser }) {
         <div className="flex items-center gap-1 mb-0.5">
           <ThumbsUp className="w-3 h-3 text-rose-400 flex-shrink-0" />
           <span className="text-[11px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide">
-            Топ по лайкам
+            Топ по сердечкам
           </span>
         </div>
         <p className="text-sm font-semibold text-[var(--foreground)] truncate">
@@ -350,7 +350,7 @@ function LikesCard({ u }: { u: HomepageActivityLikesUser }) {
       </div>
       <div className="flex-shrink-0 text-right">
         <p className="text-base font-black text-rose-400 tabular-nums leading-none">{u.likesReceived}</p>
-        <p className="text-[10px] text-[var(--muted-foreground)]">лайков</p>
+        <p className="text-[10px] text-[var(--muted-foreground)]">сердечек</p>
       </div>
     </Card>
   );
