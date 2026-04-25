@@ -13,7 +13,17 @@ import {
 } from "@/lib/rank-utils";
 import { isPremiumActive } from "@/lib/premium";
 import { PremiumBadge } from "@/shared/premium-badge/PremiumBadge";
-import { Pencil, Sparkles, Shield, Coins, Flame, HelpCircle } from "lucide-react";
+import {
+  Pencil,
+  Sparkles,
+  Shield,
+  Coins,
+  Flame,
+  HelpCircle,
+  Calendar,
+  Heart,
+  Cake,
+} from "lucide-react";
 import Tooltip from "@/shared/ui/Tooltip";
 import { formatUsernameDisplay } from "@/lib/username-display";
 
@@ -23,6 +33,28 @@ interface ProfileStripProps {
   onAvatarUpdate?: (newAvatarUrl: string) => void;
   isOwnProfile?: boolean;
   isPublicView?: boolean;
+}
+
+function formatJoinDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("ru-RU", {
+    year: "numeric",
+    month: "long",
+  });
+}
+
+function formatBirthDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const today = new Date();
+  let age = today.getFullYear() - date.getFullYear();
+  const m = today.getMonth() - date.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < date.getDate())) age--;
+  const mod10 = age % 10;
+  const mod100 = age % 100;
+  let ending = "лет";
+  if (mod100 >= 11 && mod100 <= 19) ending = "лет";
+  else if (mod10 === 1) ending = "год";
+  else if (mod10 >= 2 && mod10 <= 4) ending = "года";
+  return `${age} ${ending}`;
 }
 
 export default function ProfileStrip({
@@ -36,91 +68,121 @@ export default function ProfileStrip({
   const experience = userProfile.experience ?? 0;
   const balance = userProfile.balance ?? 0;
   const currentStreak = userProfile.currentStreak ?? 0;
+  const longestStreak = userProfile.longestStreak ?? 0;
   const { progressPercent: expProgress, nextLevelExp } = getLevelProgress(level, experience);
   const isAdmin = userProfile.role === "admin";
-  const rankColor = getRankColor(levelToRank(level).rank);
+  const rankInfo = levelToRank(level);
+  const rankColor = getRankColor(rankInfo.rank);
   const showBalance = !isPublicView || isOwnProfile;
   const showStreak = !isPublicView || isOwnProfile || userProfile.showStats !== false;
+  const hasPremium = isPremiumActive(userProfile.subscriptionExpiresAt);
+
+  const streakLabel =
+    currentStreak === 1 ? "день" : currentStreak >= 2 && currentStreak <= 4 ? "дня" : "дней";
 
   return (
-    <div className="profile-glass-strip flex flex-col gap-3 py-4 px-3 min-[400px]:px-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 sm:px-5 rounded-2xl">
-      {/* Верхняя строка на мобильных: аватар + имя */}
-      <div className="flex items-center gap-3 min-w-0 sm:contents">
-      {/* Аватар: контейнер с overflow-visible и отступом, чтобы рамка и эффекты не обрезались */}
-      <div className="relative w-[5.5rem] h-[5.5rem] shrink-0 flex items-center justify-center overflow-visible rounded-full ring-2 ring-[var(--border)]/50 sm:w-[7rem] sm:h-[7rem]">
-        <div className="relative w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 flex items-center justify-center overflow-visible">
-          <ProfileAvatar userProfile={userProfile} size="sm" />
-          <div className="absolute inset-0 pointer-events-none overflow-visible sm:hidden">
-            <RankStarsOverlay userProfile={userProfile} size={72} />
-          </div>
-          <div className="absolute inset-0 pointer-events-none overflow-visible hidden sm:block">
-            <RankStarsOverlay userProfile={userProfile} size={96} />
-          </div>
-          {onAvatarUpdate && (
-            <div className="absolute -bottom-0.5 -right-0.5 z-10">
-              <EditAvatarButton onAvatarUpdate={onAvatarUpdate} />
+    <div className="profile-hero-strip">
+      {/* ── Верхняя строка: аватар + основная инфо ── */}
+      <div className="profile-hero-top">
+        {/* Аватар */}
+        <div className="profile-hero-avatar-wrap">
+          <div className="relative flex items-center justify-center overflow-visible">
+            <ProfileAvatar userProfile={userProfile}  />
+            <div className="absolute inset-0 pointer-events-none overflow-visible sm:hidden">
+              <RankStarsOverlay userProfile={userProfile} size={120} />
             </div>
+            <div className="absolute inset-0 pointer-events-none overflow-visible hidden sm:block">
+              <RankStarsOverlay userProfile={userProfile} size={145} />
+            </div>
+            {onAvatarUpdate && (
+              <div className="absolute -bottom-1 -right-1 z-20">
+                <EditAvatarButton onAvatarUpdate={onAvatarUpdate} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Имя + роль + мета */}
+        <div className="profile-hero-identity">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="profile-hero-username">
+              {formatUsernameDisplay(userProfile.username)}
+            </h1>
+            {hasPremium && (
+              <Tooltip content="Премиум-подписчик" position="top" showIcon={false}>
+                <span className="inline-flex">
+                  <PremiumBadge size="xs" ariaLabel="Премиум-подписчик" />
+                </span>
+              </Tooltip>
+            )}
+          </div>
+
+          {/* Роль-бейдж */}
+          <span
+            className={`profile-hero-role-badge ${
+              isAdmin ? "profile-hero-role-admin" : "profile-hero-role-user"
+            }`}
+          >
+            {isAdmin ? (
+              <Shield className="w-3 h-3 shrink-0" aria-hidden />
+            ) : (
+              <Sparkles className="w-3 h-3 shrink-0" aria-hidden />
+            )}
+            {isAdmin ? "Администратор" : "Культиватор"}
+          </span>
+
+          {/* Мета-теги: дата регистрации, день рождения, жанр */}
+          <div className="profile-hero-meta">
+            {userProfile.createdAt && (
+              <span className="profile-hero-meta-chip">
+                <Calendar className="w-3 h-3 shrink-0 opacity-70" aria-hidden />
+                С {formatJoinDate(userProfile.createdAt)}
+              </span>
+            )}
+            {userProfile.birthDate && (
+              <span className="profile-hero-meta-chip">
+                <Cake className="w-3 h-3 shrink-0 opacity-70" aria-hidden />
+                {formatBirthDate(userProfile.birthDate)}
+              </span>
+            )}
+            {userProfile.favoriteGenre && (
+              <span className="profile-hero-meta-chip">
+                <Heart className="w-3 h-3 shrink-0 text-pink-500" aria-hidden />
+                {userProfile.favoriteGenre}
+              </span>
+            )}
+          </div>
+
+          {/* Био (только если короткое) */}
+          {userProfile.bio && (
+            <p className="profile-hero-bio">{userProfile.bio}</p>
           )}
         </div>
+
       </div>
 
-      {/* Имя и роль */}
-      <div className="min-w-0 flex-1 sm:min-w-[12rem]">
-        <h1 className="text-base min-[400px]:text-lg sm:text-xl font-semibold text-[var(--foreground)] break-words [overflow-wrap:anywhere] flex items-center gap-2 flex-wrap">
-          {formatUsernameDisplay(userProfile.username)}
-          {isPremiumActive(userProfile.subscriptionExpiresAt) && (
-            <Tooltip content="Премиум-подписчик" position="top" showIcon={false}>
-              <span className="inline-flex">
-                <PremiumBadge size="xs" ariaLabel="Премиум-подписчик" />
-              </span>
-            </Tooltip>
-          )}
-        </h1>
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
-            isAdmin
-              ? "bg-red-500/15 text-red-600 dark:text-red-400"
-              : "bg-[var(--primary)]/10 text-[var(--primary)]"
-          }`}
-        >
-          {isAdmin ? <Shield className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
-          {isAdmin ? "Админ" : "Культиватор"}
-        </span>
-      </div>
-      </div>
-
-      {/* Уровень — на мобильных на всю ширину */}
-      <div className="profile-strip-level relative flex w-full items-center gap-2 sm:gap-3 py-2.5 px-3 rounded-lg border border-[var(--border)]/60 min-w-0 z-0 sm:w-max sm:basis-auto sm:max-w-none overflow-visible bg-[var(--muted)]/5">
-        <div className="relative z-10 flex w-full min-w-0 items-center gap-2 sm:gap-3 sm:w-auto sm:flex-initial">
+      {/* ── Нижняя строка: уровень + статы ── */}
+      <div className="profile-hero-bottom">
+        {/* Уровень + прогресс */}
+        <div className="profile-hero-level-card">
           <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm shrink-0"
-            style={{ backgroundColor: `${rankColor}25`, color: rankColor }}
+            className="profile-hero-level-badge"
+            style={{ backgroundColor: `${rankColor}22`, color: rankColor }}
           >
             {level}
           </div>
-          {/* Название ранга всегда видно; прогресс и XP — от 400px */}
-          <div className="min-w-0 flex-1 sm:flex-initial">
-            <p className="text-xs font-semibold truncate" style={{ color: rankColor }}>
-              {getRankDisplay(level)}
-            </p>
-            <div className="mt-1.5 h-1.5 sm:h-1 rounded-full bg-[var(--secondary)] overflow-hidden w-full max-w-full sm:max-w-[120px]">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${expProgress}%`, backgroundColor: rankColor }}
-              />
-            </div>
-            <div className="mt-0.5 flex items-center gap-1 min-w-0 w-full">
-              <p className="text-[10px] sm:text-[10px] text-[var(--muted-foreground)] truncate flex-1 tabular-nums">
-                {experience.toLocaleString()} / {nextLevelExp.toLocaleString()} XP
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-1 mb-1.5">
+              <p className="text-xs font-bold truncate" style={{ color: rankColor }}>
+                {getRankDisplay(level)}
               </p>
               <Tooltip
                 trigger="click"
                 content={
                   <div className="space-y-2 max-w-[280px]">
                     <p className="font-semibold text-[var(--foreground)]">Уровни и ранги</p>
-                    <p className="text-[var(--muted-foreground)]">
-                      Уровень 0–90. XP для следующего уровня растёт с каждым уровнем. 9 рангов по 10
-                      уровней:
+                    <p className="text-[var(--muted-foreground)] text-xs">
+                      Уровень 0–90. 9 рангов по 10 уровней:
                     </p>
                     <ul className="text-[10px] text-[var(--muted-foreground)] space-y-0.5 list-decimal list-inside">
                       {RANK_NAMES.slice(1).map((name, i) => (
@@ -134,48 +196,69 @@ export default function ProfileStrip({
               >
                 <button
                   type="button"
-                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-[var(--muted-foreground)] hover:bg-[var(--muted)]/15 hover:text-[var(--foreground)] transition-colors touch-manipulation sm:h-9 sm:w-9"
-                  aria-label="Справка по уровням и рангам"
+                  className="flex h-6 w-6 items-center justify-center rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                  aria-label="Справка по рангам"
                 >
-                  <HelpCircle className="w-4 h-4" aria-hidden />
+                  <HelpCircle className="w-3.5 h-3.5" aria-hidden />
                 </button>
               </Tooltip>
             </div>
+            <div className="h-1.5 rounded-full bg-[var(--secondary)] overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${expProgress}%`, backgroundColor: rankColor }}
+              />
+            </div>
+            <p className="mt-1 text-[10px] text-[var(--muted-foreground)] tabular-nums">
+              {experience.toLocaleString()} / {nextLevelExp.toLocaleString()} XP
+            </p>
           </div>
         </div>
+
+        {/* Баланс */}
+        {showBalance && (
+          <div className="profile-hero-stat-chip">
+            <Coins className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
+            <div className="min-w-0">
+              <p className="text-sm font-bold tabular-nums text-[var(--foreground)]">
+                {balance.toLocaleString()}
+              </p>
+              <p className="text-[10px] text-[var(--muted-foreground)]">монет</p>
+            </div>
+          </div>
+        )}
+
+        {/* Серия */}
+        {showStreak && (
+          <div className="profile-hero-stat-chip">
+            <Flame
+              className={`w-4 h-4 shrink-0 ${currentStreak > 0 ? "text-orange-500" : "text-[var(--muted-foreground)]"}`}
+              aria-hidden
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-bold tabular-nums text-[var(--foreground)]">
+                {currentStreak} {streakLabel}
+              </p>
+              <p className="text-[10px] text-[var(--muted-foreground)]">
+                рекорд {longestStreak}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Кнопка редактирования */}
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="profile-hero-edit-btn max-w-[120px] sm:w-auto"
+            aria-label="Редактировать профиль"
+          >
+            <Pencil className="w-4 h-4 shrink-0" aria-hidden />
+            Редактировать
+          </button>
+        )}
       </div>
-
-      {/* Баланс и серия */}
-      {(showBalance || showStreak) && (
-        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap">
-          {showBalance && (
-            <div className="flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg border border-[var(--border)]/60 bg-[var(--muted)]/5 px-3 py-2 sm:min-h-0 sm:flex-none sm:justify-start">
-              <Coins className="w-4 h-4 text-amber-500 shrink-0" aria-hidden />
-              <span className="text-sm font-semibold tabular-nums">{balance.toLocaleString()}</span>
-            </div>
-          )}
-          {showStreak && (
-            <div className="flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg border border-[var(--border)]/60 bg-[var(--muted)]/5 px-3 py-2 sm:min-h-0 sm:flex-none sm:justify-start">
-              <Flame className="w-4 h-4 text-orange-500 shrink-0" aria-hidden />
-              <span className="text-sm font-semibold tabular-nums">
-                {currentStreak} {currentStreak === 1 ? "день" : currentStreak < 5 ? "дня" : "дней"}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Редактировать */}
-      {onEdit && (
-        <button
-          type="button"
-          onClick={onEdit}
-          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[var(--border)]/80 bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/10 transition-colors touch-manipulation focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2 sm:min-h-0 sm:w-auto sm:justify-center"
-        >
-          <Pencil className="w-4 h-4 shrink-0" aria-hidden />
-          Редактировать
-        </button>
-      )}
     </div>
   );
 }
