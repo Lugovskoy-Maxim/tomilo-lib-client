@@ -85,6 +85,64 @@ export interface HomepageActiveUser {
   equippedDecorations?: HomepageActiveUserEquippedDecorations | null;
 }
 
+export interface HomepageActivityComment {
+  _id: string;
+  content: string;
+  reactionsTotal: number;
+  createdAt: string;
+  entityName: string;
+  entityUrl: string;
+  chapterName?: string;
+  titleName?: string;
+  user: { _id: string; username: string; avatar?: string };
+}
+
+export interface HomepageActivityReader {
+  user: { _id: string; username: string; avatar?: string };
+  count: number;
+}
+
+export interface HomepageActivityStreak {
+  user: { _id: string; username: string; avatar?: string };
+  streak: number;
+}
+
+export interface HomepageActivityTopTitle {
+  _id: string;
+  name: string;
+  slug: string;
+  coverImage?: string;
+  chaptersReadCount: number;
+}
+
+export interface HomepageActivityLevelUser {
+  user: { _id: string; username: string; avatar?: string };
+  level: number;
+  experience: number;
+}
+
+export interface HomepageActivityNewUser {
+  user: { _id: string; username: string; avatar?: string };
+  createdAt: string;
+  chaptersRead: number;
+}
+
+export interface HomepageActivityLikesUser {
+  user: { _id: string; username: string; avatar?: string };
+  likesReceived: number;
+}
+
+export interface HomepageActivity {
+  popularComment: HomepageActivityComment | null;
+  lastComment: HomepageActivityComment | null;
+  topChapterReader: HomepageActivityReader | null;
+  topStreak: HomepageActivityStreak | null;
+  topTitle: HomepageActivityTopTitle | null;
+  topLevelUser: HomepageActivityLevelUser | null;
+  topNewUser: HomepageActivityNewUser | null;
+  topLikesUser: HomepageActivityLikesUser | null;
+}
+
 export const usersApi = createApi({
   reducerPath: "usersApi",
   baseQuery: baseQueryWithReauth,
@@ -136,6 +194,14 @@ export const usersApi = createApi({
       }) => ({
         url: "/users/homepage/active",
         params: { limit, days, sortBy, sortOrder, verification, requireAvatar, format },
+      }),
+      providesTags: ["Users"],
+    }),
+
+    /** Активность пользователей для главной страницы: популярный комментарий, топ читатель, топ стрик */
+    getHomepageActivity: builder.query<ApiResponse<HomepageActivity>, void>({
+      query: () => ({
+        url: "/users/homepage/activity",
       }),
       providesTags: ["Users"],
     }),
@@ -284,6 +350,7 @@ export const {
   useDeleteUserMutation,
   useGetUserByIdQuery,
   useGetHomepageActiveUsersQuery,
+  useGetHomepageActivityQuery,
   useGetCharacterContributorsQuery,
   useUpdateUserRoleMutation,
   useBanUserMutation,

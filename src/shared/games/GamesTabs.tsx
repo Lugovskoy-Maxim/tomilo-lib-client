@@ -10,6 +10,7 @@ const TAB_IDS: GamesTabId[] = ["inventory", "quests", "disciples", "expedition",
 interface GamesTabsProps {
   activeTab: GamesTabId;
   onTabChange: (tab: GamesTabId) => void;
+  notifications?: Partial<Record<GamesTabId, number | boolean>>;
 }
 
 const TABS: { id: GamesTabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -26,7 +27,7 @@ export function isValidGamesTabId(value: string): value is GamesTabId {
   return TAB_IDS.includes(value as GamesTabId);
 }
 
-export function GamesTabs({ activeTab, onTabChange }: GamesTabsProps) {
+export function GamesTabs({ activeTab, onTabChange, notifications }: GamesTabsProps) {
   const currentIndex = useMemo(() => TABS.findIndex(tab => tab.id === activeTab), [activeTab]);
 
   return (
@@ -59,7 +60,12 @@ export function GamesTabs({ activeTab, onTabChange }: GamesTabsProps) {
           }}
           className={`games-tab ${activeTab === id ? "active" : ""}`}
         >
-          <Icon className="tab-icon" aria-hidden />
+          <span className="relative inline-flex">
+            <Icon className="tab-icon" aria-hidden />
+            {notifications?.[id] ? (
+              <span className="games-tab-dot" aria-label="Есть уведомление" />
+            ) : null}
+          </span>
           {label}
         </button>
       ))}

@@ -23,6 +23,82 @@
   }
 }
 
+@keyframes games-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes games-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes games-progress-fill {
+  from { width: 0 !important; }
+}
+
+@keyframes games-btn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 45%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in oklch, var(--primary) 0%, transparent); }
+}
+
+@keyframes games-badge-pop {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.25); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes games-result-win-bounce {
+  0%, 100% { transform: translateY(0); }
+  20% { transform: translateY(-8px); }
+  40% { transform: translateY(-4px); }
+  60% { transform: translateY(-6px); }
+  80% { transform: translateY(-2px); }
+}
+
+@keyframes games-result-lose-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(6px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(2px); }
+}
+
+@keyframes games-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes games-dash-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes games-subtab-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .games-content-enter {
   animation: games-content-in 0.25s ease-out forwards;
 }
@@ -32,9 +108,16 @@
   animation-delay: var(--games-slot-delay, 0ms);
 }
 
+.games-card-enter {
+  animation: games-card-in 0.3s ease-out forwards;
+  animation-delay: var(--card-delay, 0ms);
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .games-content-enter,
-  .games-slot-enter {
+  .games-slot-enter,
+  .games-card-enter {
     animation: none;
     opacity: 1;
     transform: none;
@@ -250,6 +333,33 @@
 .games-hub .games-tab:hover .tab-icon {
   transform: scale(1.08);
 }
+
+/* --- Skeleton loader --- */
+.games-disciple-skeleton {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, var(--radius));
+  padding: 1rem;
+  animation: games-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+.games-disciple-skeleton__avatar {
+  width: 4.8rem;
+  height: 4.8rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--muted);
+  flex-shrink: 0;
+}
+
+.games-disciple-skeleton__line {
+  height: 0.75rem;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+.games-disciple-skeleton__line--short { width: 40%; }
+.games-disciple-skeleton__line--medium { width: 65%; }
+.games-disciple-skeleton__line--full { width: 100%; }
 
 /* --- Панели и карточки --- */
 .games-hub .games-panel {
@@ -1218,4 +1328,208 @@
   font-size: 0.75rem;
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
+}
+
+/* --- Анимации результата боя --- */
+.games-battle-result--win {
+  animation: games-result-win-bounce 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.games-battle-result--lose {
+  animation: games-result-lose-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* --- Кнопки с pulse и glow --- */
+.games-btn-pulse {
+  animation: games-btn-pulse 2s ease-in-out infinite;
+}
+
+.games-btn-glow {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.games-btn-glow:hover {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 35%, transparent);
+  transform: translateY(-1px);
+}
+
+.games-btn-glow:active {
+  transform: translateY(0);
+}
+
+/* ripple */
+.games-btn-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, color-mix(in oklch, white 30%, transparent) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.games-btn-glow:active::after {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
+/* --- Прогресс-бары с анимацией заполнения --- */
+.games-progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.games-progress-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), color-mix(in oklch, var(--primary) 70%, white));
+  transform-origin: left;
+  animation: games-progress-fill 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.games-progress-bar__fill--xp {
+  background: linear-gradient(90deg, #a78bfa, #7c3aed);
+}
+
+.games-progress-bar__fill--lib {
+  background: linear-gradient(90deg, #34d399, #059669);
+}
+
+/* --- Train-ready badge --- */
+.games-train-ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: color-mix(in oklch, var(--primary) 18%, transparent);
+  color: var(--primary);
+  border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
+  animation: games-badge-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* --- Shimmer на карточках учеников при hover --- */
+.games-disciple-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.games-disciple-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, color-mix(in oklch, white 8%, transparent) 50%, transparent 60%);
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.games-disciple-card:hover::before {
+  opacity: 1;
+  animation: games-shimmer 1.2s ease-in-out;
+}
+
+/* --- Анимация входа карточек учеников --- */
+.games-card-enter {
+  animation: games-card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--card-delay, 0) * 60ms);
+}
+
+/* --- Dash-карточки hover lift --- */
+.games-dash-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.games-dash-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px color-mix(in oklch, var(--primary) 15%, transparent);
+}
+
+/* --- Мобильный горизонтальный скролл для подвкладок --- */
+.games-subnav-scroll {
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.games-subnav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Tab notification dot --- */
+.games-tab-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 1.5px solid var(--background);
+  animation: games-badge-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* --- Confirm dismiss overlay --- */
+.games-confirm-dismiss {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in oklch, var(--destructive) 90%, black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  z-index: 10;
+  animation: games-card-in 0.2s ease both;
+  padding: 0.75rem;
+}
+
+.games-confirm-dismiss__text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+}
+
+.games-confirm-dismiss__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.games-confirm-dismiss__btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+
+.games-confirm-dismiss__btn:hover {
+  opacity: 0.85;
+}
+
+.games-confirm-dismiss__btn--cancel {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.games-confirm-dismiss__btn--confirm {
+  background: white;
+  color: var(--destructive);
 }

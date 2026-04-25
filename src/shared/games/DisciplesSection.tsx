@@ -726,6 +726,8 @@ export function DisciplesSection() {
   const [subTab, setSubTab] = useState<DisciplesSubTab>("overview");
   /** Показываем спиннер на конкретной кнопке «Тренировка», не блокируя весь отряд без индикации */
   const [trainingCharacterId, setTrainingCharacterId] = useState<string | null>(null);
+  /** ID ученика, для которого показываем confirm-диалог «Отпустить» */
+  const [dismissConfirmId, setDismissConfirmId] = useState<string | null>(null);
   /** Индекс строки для оверлея призыва / найма */
   const [summonFlavorIdx, setSummonFlavorIdx] = useState(0);
 
@@ -1894,10 +1896,31 @@ export function DisciplesSection() {
               {res.canTrain ? "Готова" : "Сегодня была"} ({res.trainCostCoins ?? 0} монет).
             </div>
 
-            {disciples.length === 0 ? (
-              <p className="games-muted text-sm">
-                Нет учеников. Призовите кандидата во вкладке «Обзор».
-              </p>
+            {isLoading ? (
+              <div className="games-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="games-disciple-skeleton">
+                    <div className="games-disciple-skeleton__avatar" />
+                    <div className="flex-1 space-y-2">
+                      <div className="games-disciple-skeleton__line games-disciple-skeleton__line--medium" />
+                      <div className="games-disciple-skeleton__line games-disciple-skeleton__line--short" />
+                      <div className="games-disciple-skeleton__line games-disciple-skeleton__line--full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : disciples.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-8 text-center">
+                <Users className="w-10 h-10 text-[var(--muted-foreground)]/40" aria-hidden />
+                <p className="games-muted text-sm">Нет учеников. Призовите кандидата во вкладке «Обзор».</p>
+                <button
+                  type="button"
+                  onClick={() => setSubTab("overview")}
+                  className="games-btn games-btn-primary games-btn-glow"
+                >
+                  <UserPlus className="w-4 h-4" /> Перейти к призыву
+                </button>
+              </div>
             ) : (
               <div className="space-y-4">
                 {warehouseRoster.length > 3 && barracksExpanded}
@@ -2089,15 +2112,22 @@ export function DisciplesSection() {
                       return (
                         <div
                           key={`empty-${item.i}`}
-                          className="rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--muted)]/10 flex flex-col items-center justify-center py-4 px-2 min-h-[72px]"
+                          className="rounded-xl border border-dashed border-[var(--border)]/60 bg-[var(--muted)]/10 flex flex-col items-center justify-center py-4 px-2 min-h-[72px] gap-1.5"
                         >
                           <UserPlus
-                            className="w-5 h-5 text-[var(--muted-foreground)]/50 mb-0.5"
+                            className="w-5 h-5 text-[var(--muted-foreground)]/50"
                             aria-hidden
                           />
                           <span className="text-[11px] text-[var(--muted-foreground)]">
                             Пустой слот
                           </span>
+                          <button
+                            type="button"
+                            onClick={() => setSubTab("overview")}
+                            className="games-btn games-btn-primary games-btn-sm games-btn-glow mt-0.5"
+                          >
+                            <UserPlus className="w-3 h-3" /> Призвать
+                          </button>
                         </div>
                       );
                     }
@@ -2156,10 +2186,12 @@ export function DisciplesSection() {
                       ? `games-card games-card--${displayMode} col-span-full`
                       : `games-card games-card--${displayMode}`;
                     // Удалён старый FiltersPanel — теперь inline в рендере
+                    const cardIndex = rosterItems.filter(it => it.type !== "empty" && it.type !== "warehouse-header").indexOf(item as { type: "active" | "warehouse"; d: Disciple });
                     return (
                       <div
                         key={d.characterId}
-                        className={`${cardClass} games-disciple-card ${displayMode === "list" ? "games-disciple-card--list" : ""}`}
+                        className={`${cardClass} games-disciple-card games-card-enter ${displayMode === "list" ? "games-disciple-card--list" : ""}`}
+                        style={{ "--card-delay": cardIndex >= 0 ? cardIndex : 0 } as React.CSSProperties}
                       >
                         {/* ✅ Фильтры в header warehouse (conditional) */}
 
@@ -2225,6 +2257,11 @@ export function DisciplesSection() {
                               </Tooltip>
                             </div>
                           </div>
+                          {res?.canTrain && !d.inWarehouse && (
+                            <span className="games-train-ready-badge ml-auto shrink-0">
+                              <Zap className="w-2.5 h-2.5" aria-hidden /> Готов
+                            </span>
+                          )}
                         </div>
 
                         {/* Статистика */}
@@ -2302,13 +2339,53 @@ export function DisciplesSection() {
                               В отряд
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => handleDismiss(d.characterId)}
-                            className="games-btn games-btn-danger games-btn-sm games-disciple-card__action"
-                          >
-                            <UserMinus className="w-3 h-3" /> Отпустить
-                          </button>
+                          {!d.inWarehouse && (
+                            <button
+                              type="button"
+                              onClick={() => handleTrain(d.characterId)}
+                              disabled={!res?.canTrain || trainingCharacterId === d.characterId || isTraining}
+                              className={`games-btn games-btn-primary games-btn-sm games-disciple-card__action games-btn-glow${res?.canTrain ? " games-btn-pulse" : ""}`}
+                            >
+                              {trainingCharacterId === d.characterId ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Dumbbell className="w-3 h-3" />
+                              )}{" "}
+                              Тренировать
+                            </button>
+                          )}
+                          {dismissConfirmId === d.characterId ? (
+                            <div className="games-confirm-dismiss">
+                              <span className="games-confirm-dismiss__text">Отпустить ученика?</span>
+                              <div className="games-confirm-dismiss__actions">
+                                <button
+                                  type="button"
+                                  className="games-confirm-dismiss__btn games-confirm-dismiss__btn--cancel"
+                                  onClick={() => setDismissConfirmId(null)}
+                                >
+                                  Отмена
+                                </button>
+                                <button
+                                  type="button"
+                                  className="games-confirm-dismiss__btn games-confirm-dismiss__btn--confirm"
+                                  onClick={async () => {
+                                    setDismissConfirmId(null);
+                                    await handleDismiss(d.characterId);
+                                  }}
+                                >
+                                  Отпустить
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setDismissConfirmId(d.characterId)}
+                              className="games-btn games-btn-danger games-btn-sm games-disciple-card__action"
+                            >
+                              <UserMinus className="w-3 h-3" /> Отпустить
+                            </button>
+                          )}
                         </div>
                         <div className="mt-1.5 rounded-md border border-[var(--border)] bg-[var(--muted)]/20 p-2 flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">

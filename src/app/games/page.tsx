@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header, Footer } from "@/widgets";
 import {
@@ -21,6 +21,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useAuth } from "@/hooks/useAuth";
 import { useMounted } from "@/hooks/useMounted";
 import { useToast } from "@/hooks/useToast";
+import { useGetProfileDisciplesQuery } from "@/store/api/gamesApi";
 import ProfileDailyQuests from "@/shared/profile/ProfileDailyQuests";
 import LoginModal from "@/shared/modal/LoginModal";
 import RegisterModal from "@/shared/modal/RegisterModal";
@@ -36,6 +37,12 @@ export default function GamesPage() {
   const { isAuthenticated, isLoading: authLoading, login } = useAuth();
   const mounted = useMounted();
   const toast = useToast();
+  const { data: disciplesData } = useGetProfileDisciplesQuery(undefined, { skip: !isAuthenticated });
+  const disciplesNotification = useMemo(() => {
+    const res = disciplesData?.data;
+    if (!res) return false;
+    return !!(res.canTrain || res.lastRerollCandidate);
+  }, [disciplesData]);
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTabState] = useState<GamesTabId>(() =>
     isValidGamesTabId(tabFromUrl ?? "") ? (tabFromUrl as GamesTabId) : DEFAULT_TAB
@@ -105,6 +112,7 @@ export default function GamesPage() {
               <GamesTabs
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                notifications={{ disciples: disciplesNotification }}
               />
             </div>
           </section>
