@@ -153,7 +153,7 @@ function CommentCard({
             ? <Clock className="w-3 h-3 text-sky-400 flex-shrink-0" />
             : <MessageCircle className="w-3 h-3 text-violet-400 flex-shrink-0" />}
           <span className="text-[11px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide truncate">
-            {isLatest ? "Последний комментарий" : `"Любимый" комментарий`}
+            {isLatest ? "Последний комментарий" : `"Залайканный" комментарий`}
           </span>
         </div>
         <p className="text-xs text-[var(--foreground)] line-clamp-2 leading-relaxed">
@@ -164,13 +164,13 @@ function CommentCard({
             <BookMarked className="w-3 h-3 text-[var(--primary)] flex-shrink-0" />
             <span className="text-[11px] text-[var(--muted-foreground)] truncate">
               {c.titleName ?? c.entityName}
-              {c.chapterName && c.titleName ? ` · ${c.chapterName}` : ""}
+              {c.chapterName && c.titleName ? `${c.titleName} · ${c.chapterName}` : ""}
             </span>
           </div>
         )}
       </div>
-      <div className="flex items-center gap-0.5 flex-shrink-0 text-rose-500">
-        <Heart className="w-3.5 h-3.5 fill-rose-500" />
+      <div className="flex items-center gap-0.5 flex-shrink-0 text-amber-500">
+        <ThumbsUp className="w-3.5 h-3.5 fill-amber-500" />
         <span className="text-xs font-bold tabular-nums">{c.reactionsTotal}</span>
       </div>
     </Card>
@@ -341,7 +341,7 @@ function LikesCard({ u }: { u: HomepageActivityLikesUser }) {
         <div className="flex items-center gap-1 mb-0.5">
           <ThumbsUp className="w-3 h-3 text-rose-400 flex-shrink-0" />
           <span className="text-[11px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide">
-            Топ по сердечкам
+            Топ по лайкам 👍
           </span>
         </div>
         <p className="text-sm font-semibold text-[var(--foreground)] truncate">
@@ -350,7 +350,7 @@ function LikesCard({ u }: { u: HomepageActivityLikesUser }) {
       </div>
       <div className="flex-shrink-0 text-right">
         <p className="text-base font-black text-rose-400 tabular-nums leading-none">{u.likesReceived}</p>
-        <p className="text-[10px] text-[var(--muted-foreground)]">сердечек</p>
+        <p className="text-[10px] text-[var(--muted-foreground)]">лайков 👍</p>
       </div>
     </Card>
   );
