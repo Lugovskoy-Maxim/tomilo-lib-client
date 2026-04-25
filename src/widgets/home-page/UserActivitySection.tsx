@@ -16,6 +16,7 @@ import {
   BookMarked,
   TrendingUp,
   Clock,
+  Quote,
 } from "lucide-react";
 import { useGetHomepageActivityQuery } from "@/store/api/usersApi";
 import type {
@@ -37,7 +38,15 @@ function avatarUrl(a?: string) {
   return a ? getCoverUrls(a, "").primary : "";
 }
 
-function Avatar({ username, avatar, size = 32 }: { username: string; avatar?: string; size?: number }) {
+function Avatar({
+  username,
+  avatar,
+  size = 45,
+}: {
+  username: string;
+  avatar?: string;
+  size?: number;
+}) {
   const url = avatarUrl(avatar);
   if (url) {
     return (
@@ -63,7 +72,10 @@ function Avatar({ username, avatar, size = 32 }: { username: string; avatar?: st
 
 const SKELETON_VARIANTS = [
   // wide bar + circle
-  <div key="s1" className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse">
+  <div
+    key="s1"
+    className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse"
+  >
     <div className="w-8 h-8 rounded-full bg-[var(--muted)]/40 flex-shrink-0" />
     <div className="flex-1 space-y-2">
       <div className="h-2.5 bg-[var(--muted)]/40 rounded w-3/4" />
@@ -72,7 +84,10 @@ const SKELETON_VARIANTS = [
     <div className="w-10 h-5 bg-[var(--muted)]/30 rounded-full" />
   </div>,
   // two lines
-  <div key="s2" className="flex flex-col gap-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse">
+  <div
+    key="s2"
+    className="flex flex-col gap-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse"
+  >
     <div className="flex items-center gap-2">
       <div className="w-3 h-3 rounded bg-[var(--muted)]/40" />
       <div className="h-2 bg-[var(--muted)]/40 rounded w-1/3" />
@@ -81,7 +96,10 @@ const SKELETON_VARIANTS = [
     <div className="h-2 bg-[var(--muted)]/20 rounded w-2/3" />
   </div>,
   // avatar + badge
-  <div key="s3" className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse">
+  <div
+    key="s3"
+    className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse"
+  >
     <div className="relative flex-shrink-0">
       <div className="w-9 h-9 rounded-full bg-[var(--muted)]/40" />
       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[var(--muted)]/50" />
@@ -93,7 +111,10 @@ const SKELETON_VARIANTS = [
     <div className="w-8 h-6 bg-[var(--muted)]/30 rounded" />
   </div>,
   // icon row
-  <div key="s4" className="flex items-center gap-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse">
+  <div
+    key="s4"
+    className="flex items-center gap-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse"
+  >
     <div className="w-8 h-8 rounded-lg bg-[var(--muted)]/40 flex-shrink-0" />
     <div className="flex-1 space-y-1.5">
       <div className="h-2 bg-[var(--muted)]/40 rounded w-1/4" />
@@ -143,36 +164,49 @@ function CommentCard({
   c: HomepageActivityComment;
   variant?: "popular" | "latest";
 }) {
+  console.log(c);
   const isLatest = variant === "latest";
   return (
-    <Card href={c.entityUrl || undefined} accent={isLatest ? "hover:border-sky-500/30" : "hover:border-violet-500/30"}>
-      <Avatar username={c.user.username} avatar={c.user.avatar} size={34} />
+    <Card
+      href={c.entityUrl || undefined}
+      accent={isLatest ? "hover:border-sky-500/30" : "hover:border-violet-500/30"}
+    >
+      <Avatar username={c.user.username} avatar={c.user.avatar} size={50} />
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1 mb-0.5">
-          {isLatest
-            ? <Clock className="w-3 h-3 text-sky-400 flex-shrink-0" />
-            : <MessageCircle className="w-3 h-3 text-violet-400 flex-shrink-0" />}
+          {isLatest ? (
+            <Clock className="w-3 h-3 text-sky-400 flex-shrink-0" />
+          ) : (
+            <MessageCircle className="w-3 h-3 text-violet-400 flex-shrink-0" />
+          )}
           <span className="text-[11px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide truncate">
             {isLatest ? "Последний комментарий" : `Популярный комментарий`}
           </span>
         </div>
-        <p className="text-xs text-[var(--foreground)] line-clamp-2 leading-relaxed">
+        <p className="text-sm font-semibold text-[var(--foreground)] truncate">{c.user.username}</p>
+        <p className="flex text-xs text-[var(--chart-5)] italic line-clamp-4 leading-relaxed">
+          <Quote className="w-4 h-4 text-[var(--muted-foreground)]" />
           {c.content}
         </p>
-        {(c.titleName || c.entityName) && (
-          <div className="flex items-center gap-1 mt-1">
-            <BookMarked className="w-3 h-3 text-[var(--primary)] flex-shrink-0" />
-            <span className="text-[11px] text-[var(--muted-foreground)] truncate">
-              {c.titleName ?? c.entityName}
-              {c.chapterName && c.titleName ? `${c.titleName} · ${c.chapterName}` : ""}
-            </span>
-          </div>
-        )}
+        <p className="flex gap-2">
+          {/* {(c.titleName || c.entityName) && (
+            <div className="flex items-center gap-1 mt-1">
+              <BookMarked className="w-3 h-3 text-[var(--primary)] flex-shrink-0" />
+              <span className="text-[11px] text-[var(--muted-foreground)] truncate">
+                {c.titleName ?? c.entityName}
+                {c.chapterName && c.titleName ? `${c.titleName} · ${c.chapterName}` : ""}
+              </span>
+            </div>
+          )} */}
+        </p>
       </div>
-      <div className="flex items-center gap-0.5 flex-shrink-0 text-rose-500">
-        <Heart className="w-3.5 h-3.5 fill-rose-500 " />
-        <span className="text-xs font-bold tabular-nums">{c.reactionsTotal}</span>
-      </div>
+      {variant == "popular" ? (
+        <div className="flex items-center gap-0.5 flex-shrink-0 text-rose-500">
+          <Heart className="w-3.5 h-3.5 fill-rose-500 " />
+          <span className="text-xs font-bold tabular-nums">{c.reactionsTotal}</span>
+        </div>
+      ) : null}
     </Card>
   );
 }
@@ -181,7 +215,7 @@ function ReaderCard({ r }: { r: HomepageActivityReader }) {
   return (
     <Card href={`/user/${r.user._id}`} accent="hover:border-blue-500/30">
       <div className="relative flex-shrink-0">
-        <Avatar username={r.user.username} avatar={r.user.avatar} size={34} />
+        <Avatar username={r.user.username} avatar={r.user.avatar} size={50} />
         <span className="absolute -bottom-0.5 -right-0.5 bg-blue-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
           <Trophy className="w-2.5 h-2.5" />
         </span>
@@ -211,7 +245,7 @@ function StreakCard({ s }: { s: HomepageActivityStreak }) {
   return (
     <Card href={`/user/${s.user._id}`} accent="hover:border-orange-500/30">
       <div className="relative flex-shrink-0">
-        <Avatar username={s.user.username} avatar={s.user.avatar} size={34} />
+        <Avatar username={s.user.username} avatar={s.user.avatar} size={50} />
         <span className="absolute -bottom-0.5 -right-0.5 bg-orange-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px]">
           🔥
         </span>
@@ -265,7 +299,9 @@ function TopTitleCard({ t }: { t: HomepageActivityTopTitle }) {
         <p className="text-sm font-semibold text-[var(--foreground)] truncate">{t.name}</p>
       </div>
       <div className="flex-shrink-0 text-right">
-        <p className="text-base font-black text-emerald-400 tabular-nums leading-none">{t.chaptersReadCount}</p>
+        <p className="text-base font-black text-emerald-400 tabular-nums leading-none">
+          {t.chaptersReadCount}
+        </p>
         <p className="text-[10px] text-[var(--muted-foreground)]">глав</p>
       </div>
     </Card>
@@ -276,7 +312,7 @@ function LevelCard({ u }: { u: HomepageActivityLevelUser }) {
   return (
     <Card href={`/user/${u.user._id}`} accent="hover:border-yellow-500/30">
       <div className="relative flex-shrink-0">
-        <Avatar username={u.user.username} avatar={u.user.avatar} size={34} />
+        <Avatar username={u.user.username} avatar={u.user.avatar} size={50} />
         <span className="absolute -bottom-0.5 -right-0.5 bg-yellow-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
           <Star className="w-2.5 h-2.5 fill-white" />
         </span>
@@ -304,7 +340,7 @@ function NewUserCard({ u }: { u: HomepageActivityNewUser }) {
   return (
     <Card href={`/user/${u.user._id}`} accent="hover:border-pink-500/30">
       <div className="relative flex-shrink-0">
-        <Avatar username={u.user.username} avatar={u.user.avatar} size={34} />
+        <Avatar username={u.user.username} avatar={u.user.avatar} size={50} />
         <span className="absolute -bottom-0.5 -right-0.5 bg-pink-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
           <Sparkles className="w-2.5 h-2.5" />
         </span>
@@ -321,7 +357,9 @@ function NewUserCard({ u }: { u: HomepageActivityNewUser }) {
         </p>
       </div>
       <div className="flex-shrink-0 text-right">
-        <p className="text-base font-black text-pink-400 tabular-nums leading-none">{u.chaptersRead}</p>
+        <p className="text-base font-black text-pink-400 tabular-nums leading-none">
+          {u.chaptersRead}
+        </p>
         <p className="text-[10px] text-[var(--muted-foreground)]">глав</p>
       </div>
     </Card>
@@ -332,7 +370,7 @@ function LikesCard({ u }: { u: HomepageActivityLikesUser }) {
   return (
     <Card href={`/user/${u.user._id}`} accent="hover:border-rose-500/30">
       <div className="relative flex-shrink-0">
-        <Avatar username={u.user.username} avatar={u.user.avatar} size={34} />
+        <Avatar username={u.user.username} avatar={u.user.avatar} size={50} />
         <span className="absolute -bottom-0.5 -right-0.5 bg-rose-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
           <Heart className="w-2.5 h-2.5 fill-white" />
         </span>
@@ -341,7 +379,7 @@ function LikesCard({ u }: { u: HomepageActivityLikesUser }) {
         <div className="flex items-center gap-1 mb-0.5">
           <ThumbsUp className="w-3 h-3 text-rose-400 flex-shrink-0" />
           <span className="text-[11px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wide">
-            Топ по оценкам
+            Топ по полученным оценкам
           </span>
         </div>
         <p className="text-sm font-semibold text-[var(--foreground)] truncate">
@@ -349,7 +387,9 @@ function LikesCard({ u }: { u: HomepageActivityLikesUser }) {
         </p>
       </div>
       <div className="flex-shrink-0 text-right">
-        <p className="text-base font-black text-rose-400 tabular-nums leading-none">{u.likesReceived}</p>
+        <p className="text-base font-black text-rose-400 tabular-nums leading-none">
+          {u.likesReceived}
+        </p>
         <p className="text-[10px] text-[var(--muted-foreground)]">реакций</p>
       </div>
     </Card>
@@ -364,10 +404,16 @@ function buildPool(activity: HomepageActivity): ActivityCard[] {
   const pool: ActivityCard[] = [];
 
   if (activity.popularComment) {
-    pool.push({ key: "comment", node: <CommentCard c={activity.popularComment} variant="popular" /> });
+    pool.push({
+      key: "comment",
+      node: <CommentCard c={activity.popularComment} variant="popular" />,
+    });
   }
   if (activity.lastComment) {
-    pool.push({ key: "lastcomment", node: <CommentCard c={activity.lastComment} variant="latest" /> });
+    pool.push({
+      key: "lastcomment",
+      node: <CommentCard c={activity.lastComment} variant="latest" />,
+    });
   }
   if (activity.topChapterReader) {
     pool.push({ key: "reader", node: <ReaderCard r={activity.topChapterReader} /> });
